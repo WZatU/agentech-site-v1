@@ -1,4 +1,5 @@
 const fallbackSiteUrl = "http://localhost:3000";
+const fallbackGaMeasurementId = "G-C32SXD74ZX";
 
 export function getSiteUrl() {
   const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -11,3 +12,15 @@ export function getSiteUrl() {
 }
 
 export const siteUrl = getSiteUrl();
+
+export function getGaMeasurementId() {
+  const rawMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
+
+  if (!rawMeasurementId) {
+    return fallbackGaMeasurementId;
+  }
+
+  return rawMeasurementId;
+}
+
+export const gaMeasurementId = getGaMeasurementId();

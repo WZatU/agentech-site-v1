@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope, Oxanium, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { siteUrl } from "@/lib/site-config";
+import { gaMeasurementId, siteUrl } from "@/lib/site-config";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -63,6 +64,20 @@ export default function RootLayout({
       className={`${manrope.variable} ${plexMono.variable} ${plusJakartaSans.variable} ${oxanium.variable}`}
     >
       <body className="font-[var(--font-sans)] text-mist antialiased">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${gaMeasurementId}', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
         <div className="relative flex min-h-screen flex-col">
           <SiteHeader />
           <main className="flex-1">{children}</main>
