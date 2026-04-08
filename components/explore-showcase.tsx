@@ -134,7 +134,9 @@ function FeatureModule({
           </div>
         </div>
 
-        <ModuleChart path={path} tone={tone} />
+        <div className="xl:ml-auto xl:w-[74%]">
+          <ModuleChart path={path} tone={tone} />
+        </div>
       </div>
     </article>
   );
