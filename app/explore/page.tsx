@@ -1,7 +1,9 @@
 import { ExploreShowcase } from "@/components/explore-showcase";
-import { company, exploreMetrics, exploreSignals } from "@/lib/site-data";
+import { exploreMetrics, exploreSignals } from "@/lib/site-data";
 
 export default function ExplorePage() {
+  const businessEmail = "wzc.dw.business@gmail.com";
+
   return (
     <>
       <section className="relative overflow-hidden border-b border-[#363d45]/70">
@@ -53,10 +55,10 @@ export default function ExplorePage() {
               Reach out directly and we can continue through a more structured process if there is fit.
             </p>
             <a
-              href={`mailto:${company.inquiryEmail}`}
+              href={`mailto:${businessEmail}`}
               className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-medium text-ink transition hover:bg-mist lg:mt-8"
             >
-              {company.inquiryEmail}
+              {businessEmail}
             </a>
           </article>
         </div>
