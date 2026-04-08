@@ -84,9 +84,9 @@ export default function OpenGraphImage() {
               fontWeight: 800,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "#F2FBFF",
+              color: "#B7ECF7",
               textShadow:
-                "0 0 24px rgba(188, 234, 248, 0.18), 0 0 56px rgba(121, 193, 224, 0.12)"
+                "0 0 22px rgba(198, 244, 252, 0.3), 0 0 52px rgba(102, 208, 226, 0.2)"
             }}
           >
             AGENTECH
