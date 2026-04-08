@@ -27,7 +27,7 @@ function ModuleChart({
   const fillId = `${tone}-chart-fill`;
 
   return (
-    <div className="relative h-[240px] overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.01))]">
+    <div className="relative h-[180px] overflow-hidden rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.01))] sm:h-[210px] lg:h-[240px] lg:rounded-[28px]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,rgba(147,183,211,0.14),transparent_26%)]" />
       <div className="explore-noise absolute inset-0 opacity-20" />
 
@@ -111,26 +111,26 @@ function FeatureModule({
   tone: "token" | "revenue";
 }) {
   return (
-    <article className="relative overflow-hidden rounded-[34px] border border-white/10 bg-white/[0.035] p-8 shadow-panel backdrop-blur-md md:p-10">
+    <article className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.035] p-5 shadow-panel backdrop-blur-md sm:p-6 lg:rounded-[34px] lg:p-10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_16%,rgba(147,183,211,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_42%)]" />
       <div className="explore-scanlines absolute inset-0 opacity-25" />
       <div className="explore-noise absolute inset-0 opacity-20" />
 
-      <div className="relative grid gap-8 xl:grid-cols-[0.92fr,1.08fr] xl:items-end">
+      <div className="relative grid gap-6 lg:gap-8 xl:grid-cols-[0.92fr,1.08fr] xl:items-end">
         <div className="max-w-2xl">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <p className="text-xs uppercase tracking-[0.28em] text-slate">{label}</p>
             <span className="rounded-full border border-white/15 bg-white/[0.03] px-3 py-1 text-xs text-[#9ec0dd]">
               {tag}
             </span>
           </div>
 
-          <div className="mt-10">
-            <p className="text-[clamp(3.1rem,7vw,6.4rem)] font-semibold leading-none tracking-[-0.06em] text-white tabular-nums">
+          <div className="mt-6 sm:mt-8 lg:mt-10">
+            <p className="text-[clamp(2.35rem,13vw,6.4rem)] font-semibold leading-[0.92] tracking-[-0.06em] text-white tabular-nums">
               {value}
             </p>
-            <p className="mt-5 text-sm uppercase tracking-[0.24em] text-white/60">{unit}</p>
-            <p className="mt-6 max-w-xl text-base leading-8 text-slate">{description}</p>
+            <p className="mt-4 text-[11px] uppercase tracking-[0.24em] text-white/60 sm:text-sm">{unit}</p>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-slate sm:text-base sm:leading-8">{description}</p>
           </div>
         </div>
 
@@ -143,8 +143,8 @@ function FeatureModule({
 export function ExploreShowcase({ metrics }: ExploreShowcaseProps) {
   return (
     <section className="border-b border-[#363d45]/70 bg-[linear-gradient(180deg,#010204_0%,#020408_55%,#010204_100%)]">
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-        <div className="space-y-6">
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-20">
+        <div className="space-y-4 lg:space-y-6">
           <FeatureModule
             label="Total Token Usage"
             tag="+2.3M today"
@@ -166,15 +166,15 @@ export function ExploreShowcase({ metrics }: ExploreShowcaseProps) {
           />
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:mt-6 lg:gap-4 xl:grid-cols-4">
           {metrics.map((metric) => (
             <article
               key={metric.label}
-              className="rounded-[26px] border border-white/10 bg-white/[0.025] px-6 py-5 backdrop-blur-sm"
+              className="rounded-[20px] border border-white/10 bg-white/[0.025] px-4 py-4 backdrop-blur-sm lg:rounded-[26px] lg:px-6 lg:py-5"
             >
-              <p className="text-sm text-slate">{metric.label}</p>
-              <p className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-white">{metric.value}</p>
-              <p className="mt-3 text-sm text-[#8fb4d3]">{metric.delta}</p>
+              <p className="text-xs text-slate sm:text-sm">{metric.label}</p>
+              <p className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-white lg:mt-4 lg:text-3xl">{metric.value}</p>
+              <p className="mt-2 text-xs text-[#8fb4d3] sm:text-sm lg:mt-3">{metric.delta}</p>
             </article>
           ))}
         </div>
