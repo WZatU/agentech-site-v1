@@ -5,7 +5,7 @@ export default function SoftwareAgentsPage() {
     <>
       <section className="border-b border-[#363d45]/70">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">Software Agents</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">Soft Agents</h1>
         </div>
       </section>
 

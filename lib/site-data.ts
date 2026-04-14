@@ -4,8 +4,8 @@ export type NavItem = {
 };
 
 export const navigation: NavItem[] = [
-  { label: "Hardware Agents", href: "/hardware-agents" },
-  { label: "Software Agents", href: "/software-agents" },
+  { label: "Hard Agents", href: "/hardware-agents" },
+  { label: "Soft Agents", href: "/software-agents" },
   { label: "Edge Products", href: "/edge-product" },
   { label: "About Us", href: "/about" },
   { label: "Talents", href: "/talents" },
@@ -30,12 +30,12 @@ export const company = {
 
 export const homeTracks = [
   {
-    title: "Hardware Agents",
+    title: "Hard Agents",
     description: "Physical systems designed for useful work in the real world.",
     href: "/hardware-agents"
   },
   {
-    title: "Software Agents",
+    title: "Soft Agents",
     description: "Multi-agent software built for execution, memory, and operational leverage.",
     href: "/software-agents"
   },
