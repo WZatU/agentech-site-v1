@@ -17,7 +17,7 @@ export default function AboutPage() {
       ...member,
       name:
         {
-          Lydia: "Léa Li"
+          Lydia: "Meryl Li"
         }[member.name] ?? member.name
     }))
   ];
