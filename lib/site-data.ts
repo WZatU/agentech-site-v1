@@ -1,25 +1,36 @@
 export type NavItem = {
   label: string;
   href: string;
+  children?: Array<{
+    label: string;
+    href: string;
+  }>;
 };
 
 export const navigation: NavItem[] = [
-  { label: "Hard Agents", href: "/hardware-agents" },
-  { label: "Soft Agents", href: "/software-agents" },
-  { label: "Edge Products", href: "/edge-product" },
-  { label: "About Us", href: "/about" },
-  { label: "Talents", href: "/talents" },
-  { label: "Career", href: "/career" },
-  { label: "Explore", href: "/explore" }
+  { label: "HARD-AGENTS", href: "/hardware-agents" },
+  { label: "SOFT-AGENTS", href: "/software-agents" },
+  { label: "EDGE-PRODUCTS", href: "/edge-product" },
+  { label: "ABOUT", href: "/about" },
+  {
+    label: "TALENTS",
+    href: "/talents",
+    children: [
+      { label: "Tech Education", href: "/tech-education" },
+      { label: "Summer School", href: "/summer-school" },
+      { label: "Internship", href: "/career-intern" }
+    ]
+  },
+  { label: "EXPLORE", href: "/explore" }
 ];
 
 export const company = {
   name: "Agentech",
-  tagline: "AI-native robotics and intelligent systems.",
+  tagline: "AI-NATIVE-INFRASTRUCTURE & EMBODIED-INTELLIGENCE",
   heroTitle: "Agentech",
   heroBody: "AI-native robotics and intelligent systems.",
   location: "California / Global Collaboration",
-  contactEmail: "hello@agentech.ai",
+  contactEmail: "info@agent-tech.ai",
   inquiryEmail: "partnerships@agentech.ai",
   socialLinks: [
     { label: "LinkedIn", href: "https://www.linkedin.com/company/agentech" },

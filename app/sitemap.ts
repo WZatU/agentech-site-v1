@@ -4,9 +4,12 @@ import { siteUrl } from "@/lib/site-config";
 const routes = [
   "",
   "/about",
+  "/career-intern",
   "/career",
   "/explore",
   "/hardware-agents",
+  "/summer-school",
+  "/tech-education",
   "/software-agents",
   "/edge-product",
   "/talents"

@@ -1,3 +1,5 @@
+import { company } from "@/lib/site-data";
+
 type BrandMarkProps = {
   scale?: "sm" | "lg";
   stacked?: boolean;
@@ -13,7 +15,7 @@ export function BrandMark({ scale = "sm", stacked = false }: BrandMarkProps) {
           AGENTECH
         </div>
         <div className="text-[9px] uppercase tracking-[0.22em] text-white/46 md:text-[10px]">
-          AI-native robotics and intelligent systems
+          {company.tagline}
         </div>
       </div>
     );
@@ -33,7 +35,7 @@ export function BrandMark({ scale = "sm", stacked = false }: BrandMarkProps) {
       <div className="flex items-center justify-center gap-3">
         <span className={`${isLarge ? "w-12" : "w-8"} h-px bg-white/12`} />
         <div className={`${isLarge ? "text-sm tracking-[0.22em]" : "text-[10px] tracking-[0.2em]"} uppercase text-white/52`}>
-          AI-native robotics and intelligent systems
+          {company.tagline}
         </div>
         <span className={`${isLarge ? "w-12" : "w-8"} h-px bg-white/12`} />
       </div>
