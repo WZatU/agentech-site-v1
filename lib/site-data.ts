@@ -91,7 +91,7 @@ export const leadership = [
 
 export const supportTeam = [
   { name: "Lydia", role: "COO" },
-  { name: "Connie", role: "CFO" },
+  { name: "Connie Sun", role: "CFO" },
   { name: "Mei", role: "Investor" }
 ];
 
