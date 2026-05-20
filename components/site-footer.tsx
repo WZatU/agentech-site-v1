@@ -1,9 +1,17 @@
+import Link from "next/link";
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-[#363d45]/70 bg-black">
-      <div className="border-t border-[#363d45]/70">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-6 text-sm text-slate lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <p>Agentech, Inc.</p>
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 text-sm font-medium uppercase tracking-[0.22em] text-slate lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <p>Agentech, Inc.</p>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-8">
+          <Link href="/about" className="transition hover:text-white">
+            About
+          </Link>
+          <Link href="/news" className="transition hover:text-white">
+            News
+          </Link>
         </div>
       </div>
     </footer>

@@ -133,6 +133,10 @@ body::after {
     animation: chartPulse 3.6s ease-in-out 2.2s infinite;
     transform-origin: center;
   }
+
+  .logo-roll {
+    animation: logoRoll 26s linear infinite;
+  }
 }
 
 @keyframes particlePulse {
@@ -168,5 +172,15 @@ body::after {
   50% {
     opacity: 1;
     filter: drop-shadow(0 0 10px rgba(196, 225, 245, 0.32));
+  }
+}
+
+@keyframes logoRoll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }
