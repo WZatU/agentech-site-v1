@@ -1,22 +1,28 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { company } from "@/lib/site-data";
 
-const talentPathways = [
+const talentPrograms = [
   {
-    title: "TECH EDUCATION",
-    audience: "MIDDLE SCHOOL + HIGH SCHOOL",
-    href: "/tech-education"
+    title: "Tech Education",
+    audience: "Middle School + High School",
+    href: "/tech-education",
+    image: "/assets/programs/tech-education.png",
+    alt: "Students building robotics projects in Agentech tech education"
   },
   {
-    title: "SUMMER SCHOOL",
-    audience: "HIGH SCHOOL",
-    href: "/summer-school"
+    title: "Summer School",
+    audience: "High School",
+    href: "/summer-school",
+    image: "/assets/programs/summer-school.png",
+    alt: "Students collaborating on robotics projects during Agentech summer school"
   },
   {
-    title: "INTERNSHIP",
-    audience: "UNIVERSITY + BEYOND",
-    href: "/career-intern"
+    title: "Internship",
+    audience: "University + Beyond",
+    href: "/career-intern",
+    image: "/assets/programs/internship.png",
+    alt: "Agentech internship team collaborating on embodied robotics systems"
   }
 ] as const;
 
@@ -51,20 +57,33 @@ export default function TalentsPage() {
           </h2>
         </div>
 
-        <div className="mx-auto mt-12 flex max-w-6xl flex-col gap-4">
-          {talentPathways.map((pathway) => (
+        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+          {talentPrograms.map((program) => (
             <Link
-              key={pathway.href}
-              href={pathway.href}
-              className="group rounded-[28px] border border-white/10 bg-white/[0.03] px-8 py-7 text-left transition hover:border-white/22 hover:bg-white hover:text-black"
+              key={program.href}
+              href={program.href}
+              className="group overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition hover:border-white/24 hover:bg-white"
             >
-              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
-                <h3 className="text-2xl font-semibold uppercase tracking-[0.08em] text-white transition group-hover:text-black md:text-[2rem]">
-                  {pathway.title}
-                </h3>
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate transition group-hover:text-black/55 md:text-right">
-                  {pathway.audience}
+              <div className="relative h-64 overflow-hidden">
+                <Image
+                  src={program.image}
+                  alt={program.alt}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, 100vw"
+                  className="object-cover transition duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/8 to-transparent transition group-hover:from-black/20" />
+              </div>
+              <div className="p-6">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate transition group-hover:text-black/55">
+                  {program.audience}
                 </p>
+                <h3 className="mt-3 text-2xl font-semibold uppercase tracking-[0.08em] text-white transition group-hover:text-black">
+                  {program.title}
+                </h3>
+                <div className="mt-6 inline-flex rounded-full border border-white/16 px-5 py-2 text-sm font-medium text-white transition group-hover:border-black/20 group-hover:text-black">
+                  Open Form
+                </div>
               </div>
             </Link>
           ))}

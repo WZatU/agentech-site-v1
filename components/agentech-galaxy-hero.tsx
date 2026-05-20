@@ -1,18 +1,25 @@
 "use client";
 
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
 type AgentechGalaxyHeroProps = {
   title: string;
+  titleImage?: string;
   subtitle?: string;
   children?: ReactNode;
+  bottomContent?: ReactNode;
+  lockedViewport?: boolean;
 };
 
 export function AgentechGalaxyHero({
   title,
+  titleImage,
   subtitle,
-  children
+  children,
+  bottomContent,
+  lockedViewport = false
 }: AgentechGalaxyHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -215,21 +222,50 @@ export function AgentechGalaxyHero({
   }, []);
 
   return (
-    <section className="relative min-h-[88svh] w-full overflow-hidden border-b border-[#363d45]/70 bg-black text-white">
+    <section
+      className={
+        lockedViewport
+          ? "relative h-[calc(100svh-72px)] w-full overflow-hidden bg-black text-white"
+          : "relative min-h-[88svh] w-full overflow-hidden border-b border-[#363d45]/70 bg-black text-white"
+      }
+    >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(188,206,222,0.03),transparent_16%),radial-gradient(circle_at_center,rgba(108,147,176,0.05),transparent_52%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/80 to-transparent" />
 
-      <div className="relative z-10 mx-auto flex min-h-[88svh] max-w-7xl justify-center px-6 pb-16 pt-[54svh] text-center md:px-10 md:pt-[56svh] lg:px-8 lg:pb-20 lg:pt-[58svh]">
+      <div
+        className={
+          lockedViewport
+            ? "relative z-10 mx-auto flex h-full max-w-7xl justify-center px-5 pb-28 pt-[48svh] text-center sm:px-6 sm:pb-32 sm:pt-[50svh] md:px-10 md:pb-32 md:pt-[52svh] lg:px-8 lg:pt-[54svh]"
+            : "relative z-10 mx-auto flex min-h-[88svh] max-w-7xl justify-center px-6 pb-16 pt-[54svh] text-center md:px-10 md:pt-[56svh] lg:px-8 lg:pb-20 lg:pt-[58svh]"
+        }
+      >
         <div className="max-w-6xl animate-rise">
-          <h1 className="hero-wordmark text-[3.8rem] tracking-[0.1em] md:text-[6rem] lg:text-[8.4rem]">
-            {title}
-          </h1>
+          {titleImage ? (
+            <Image
+              src={titleImage}
+              alt={title}
+              width={1000}
+              height={101}
+              className={lockedViewport ? "mx-auto h-auto w-full max-w-[82vw] sm:max-w-3xl lg:max-w-5xl" : "mx-auto h-auto w-full max-w-5xl"}
+              priority
+            />
+          ) : (
+            <h1 className="hero-wordmark text-[3.8rem] tracking-[0.1em] md:text-[6rem] lg:text-[8.4rem]">
+              {title}
+            </h1>
+          )}
           {subtitle ? <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/62 md:text-base">{subtitle}</p> : null}
           {children ? <div className="mt-10 flex flex-wrap items-center justify-center gap-4">{children}</div> : null}
         </div>
       </div>
+
+      {bottomContent ? (
+        <div className="absolute inset-x-0 bottom-0 z-20 border-t border-[#363d45]/70 bg-black/70 py-4 backdrop-blur-sm sm:py-5">
+          {bottomContent}
+        </div>
+      ) : null}
     </section>
   );
 }
