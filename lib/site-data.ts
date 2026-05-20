@@ -12,15 +12,7 @@ export const navigation: NavItem[] = [
   { label: "Agentech Robotic", href: "/agentech-robotic", image: "/assets/logo/AGENTECH-robotic.png" },
   { label: "Agentech Education", href: "/agentech-education", image: "/assets/logo/AGENTECH-education.png" },
   { label: "Agentech Bots", href: "/agentech-bots", image: "/assets/logo/AGENTECH.png" },
-  {
-    label: "Agentech Talents",
-    href: "/talents",
-    children: [
-      { label: "Tech Education", href: "/tech-education" },
-      { label: "Summer School", href: "/summer-school" },
-      { label: "Internship", href: "/career-intern" }
-    ]
-  }
+  { label: "Agentech Talents", href: "/talents" }
 ];
 
 export const company = {
