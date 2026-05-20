@@ -125,35 +125,36 @@ export default function AgentechRoboticPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12 font-[var(--font-brand)] text-white sm:px-6 lg:px-8 lg:py-20">
-        <div className="overflow-hidden bg-[#020509] shadow-[0_0_90px_rgba(31,183,255,0.08)]">
-          <div className="grid border border-[#1b5f91]/70 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mx-auto max-w-7xl px-3 py-10 font-[var(--font-brand)] text-white sm:px-5 md:px-6 lg:px-8 lg:py-20">
+        <div className="overflow-x-auto bg-[#020509] shadow-[0_0_90px_rgba(31,183,255,0.08)]">
+          <div className="min-w-[900px] lg:min-w-0">
+          <div className="grid grid-cols-4 border border-[#1b5f91]/70">
             {products.map((product) => (
               <article
                 key={product.name}
-                className={`relative flex min-h-[28rem] flex-col items-center border-[#1b5f91]/70 bg-[radial-gradient(circle_at_center,rgba(31,183,255,0.12),transparent_35%),linear-gradient(180deg,rgba(8,18,27,0.72),rgba(1,3,7,0.96))] px-6 pb-8 pt-7 text-center md:border-l md:first:border-l-0 ${accentBorder[product.accent]}`}
+                className={`relative flex min-h-[23rem] flex-col items-center border-l border-[#1b5f91]/70 bg-[radial-gradient(circle_at_center,rgba(31,183,255,0.12),transparent_35%),linear-gradient(180deg,rgba(8,18,27,0.72),rgba(1,3,7,0.96))] px-4 pb-6 pt-5 text-center first:border-l-0 lg:min-h-[28rem] lg:px-6 lg:pb-8 lg:pt-7 ${accentBorder[product.accent]}`}
               >
-                <div className="relative h-56 w-full">
+                <div className="relative h-40 w-full lg:h-56">
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
-                    sizes="(min-width: 768px) 40vw, 90vw"
+                    sizes="(min-width: 1024px) 25vw, 225px"
                     className="object-contain"
                     priority={product.name === "AEGIS PRO"}
                   />
                 </div>
-                <div className="relative z-10 mt-10">
-                  <h2 className={`text-3xl tracking-[0.08em] sm:text-4xl ${accentText[product.accent]}`}>
+                <div className="relative z-10 mt-7 lg:mt-10">
+                  <h2 className={`text-2xl tracking-[0.04em] lg:text-4xl ${accentText[product.accent]}`}>
                     {product.name}
                   </h2>
-                  <p className="mt-5 text-2xl tracking-[0.04em] text-white">{product.price}</p>
-                  <p className={`mt-3 text-sm tracking-[0.08em] ${accentText[product.accent]}`}>
+                  <p className="mt-4 text-xl tracking-[0.03em] text-white lg:mt-5 lg:text-2xl">{product.price}</p>
+                  <p className={`mt-3 text-xs tracking-[0.04em] lg:text-sm ${accentText[product.accent]}`}>
                     {product.package}
                   </p>
                   <a
                     href="mailto:info@agent-tech.ai"
-                    className={`mt-7 inline-flex border px-8 py-3 text-lg tracking-[0.08em] transition hover:bg-white/10 ${accentText[product.accent]} ${accentBorder[product.accent]}`}
+                    className={`mt-6 inline-flex border px-6 py-2.5 text-base tracking-[0.05em] transition hover:bg-white/10 lg:mt-7 lg:px-8 lg:py-3 lg:text-lg ${accentText[product.accent]} ${accentBorder[product.accent]}`}
                   >
                     PRE-ORDER
                   </a>
@@ -165,27 +166,27 @@ export default function AgentechRoboticPage() {
           <div className="border-x border-b border-[#1b5f91]/70">
             {sections.map((section) => (
               <section key={section.title} className="border-t border-[#1b5f91]/70 first:border-t-0">
-                <h2 className="border-b border-white/15 px-8 py-6 text-xl tracking-[0.08em] text-[#1fb7ff]">
+                <h2 className="border-b border-white/15 px-5 py-4 text-base tracking-[0.06em] text-[#1fb7ff] lg:px-8 lg:py-6 lg:text-xl">
                   {section.title}
                 </h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1120px] border-collapse text-left">
+                <div>
+                  <table className="w-full border-collapse text-left">
                     <tbody>
                       {section.rows.map(([label, aegisPro, aegisUltra, masterEdu, masterUltra]) => (
                         <tr key={label} className="border-b border-white/15 last:border-b-0">
-                          <th className="w-1/5 px-8 py-5 text-lg font-medium tracking-[0.04em] text-white">
+                          <th className="w-1/5 px-5 py-4 text-sm font-medium tracking-[0.03em] text-white lg:px-8 lg:py-5 lg:text-lg">
                             {label}
                           </th>
-                          <td className="w-1/5 border-l border-white/15 px-6 py-5 text-center text-base tracking-[0.03em] text-[#1fb7ff]">
+                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#1fb7ff] lg:px-6 lg:py-5 lg:text-base">
                             {aegisPro}
                           </td>
-                          <td className="w-1/5 border-l border-white/15 px-6 py-5 text-center text-base tracking-[0.03em] text-[#1fb7ff]">
+                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#1fb7ff] lg:px-6 lg:py-5 lg:text-base">
                             {aegisUltra}
                           </td>
-                          <td className="w-1/5 border-l border-white/15 px-6 py-5 text-center text-base tracking-[0.03em] text-[#bd65ff]">
+                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#bd65ff] lg:px-6 lg:py-5 lg:text-base">
                             {masterEdu}
                           </td>
-                          <td className="w-1/5 border-l border-white/15 px-6 py-5 text-center text-base tracking-[0.03em] text-[#bd65ff]">
+                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#bd65ff] lg:px-6 lg:py-5 lg:text-base">
                             {masterUltra}
                           </td>
                         </tr>
@@ -195,6 +196,7 @@ export default function AgentechRoboticPage() {
                 </div>
               </section>
             ))}
+          </div>
           </div>
         </div>
       </section>
