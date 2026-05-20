@@ -300,13 +300,13 @@ export function EducationAccountForm() {
         })
       });
 
-      const result = (await response.json()) as { error?: string; accountsCreated?: number };
+      const result = (await response.json()) as { error?: string; childrenEnrolled?: number };
       if (!response.ok) {
         throw new Error(result.error || "Unable to create account.");
       }
 
       setStatus("success");
-      setMessage(`Account setup complete. Total created accounts: ${result.accountsCreated}.`);
+      setMessage(`Account setup complete. Total children enrolled: ${result.childrenEnrolled}.`);
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Unable to create account.");

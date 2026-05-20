@@ -56,20 +56,25 @@ function validate(payload: AccountPayload) {
   return null;
 }
 
-async function incrementCounter() {
+async function incrementChildrenEnrolled(count: number) {
   await fs.mkdir(path.dirname(counterPath), { recursive: true });
 
-  let accountsCreated = 0;
+  let childrenEnrolled = 0;
   try {
     const raw = await fs.readFile(counterPath, "utf8");
-    const parsed = JSON.parse(raw) as { accountsCreated?: number };
-    accountsCreated = typeof parsed.accountsCreated === "number" ? parsed.accountsCreated : 0;
+    const parsed = JSON.parse(raw) as { childrenEnrolled?: number; accountsCreated?: number };
+    childrenEnrolled =
+      typeof parsed.childrenEnrolled === "number"
+        ? parsed.childrenEnrolled
+        : typeof parsed.accountsCreated === "number"
+          ? parsed.accountsCreated
+          : 0;
   } catch {
-    accountsCreated = 0;
+    childrenEnrolled = 0;
   }
 
-  const next = accountsCreated + 1;
-  await fs.writeFile(counterPath, `${JSON.stringify({ accountsCreated: next }, null, 2)}\n`);
+  const next = childrenEnrolled + count;
+  await fs.writeFile(counterPath, `${JSON.stringify({ childrenEnrolled: next }, null, 2)}\n`);
   return next;
 }
 
@@ -87,10 +92,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error }, { status: 400 });
   }
 
-  const accountsCreated = await incrementCounter();
+  const children = Array.isArray(payload.children) ? payload.children : [];
+  const childrenEnrolled = await incrementChildrenEnrolled(children.length);
 
   return NextResponse.json({
     ok: true,
-    accountsCreated
+    childrenEnrolled
   });
 }

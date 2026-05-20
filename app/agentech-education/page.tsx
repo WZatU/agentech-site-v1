@@ -3,26 +3,30 @@ import path from "path";
 import Image from "next/image";
 import Link from "next/link";
 
-async function getAccountsCreated() {
+async function getChildrenEnrolled() {
   try {
     const raw = await fs.readFile(path.join(process.cwd(), "data", "account-counter.json"), "utf8");
-    const parsed = JSON.parse(raw) as { accountsCreated?: number };
-    return typeof parsed.accountsCreated === "number" ? parsed.accountsCreated : 0;
+    const parsed = JSON.parse(raw) as { childrenEnrolled?: number; accountsCreated?: number };
+    return typeof parsed.childrenEnrolled === "number"
+      ? parsed.childrenEnrolled
+      : typeof parsed.accountsCreated === "number"
+        ? parsed.accountsCreated
+        : 0;
   } catch {
     return 0;
   }
 }
 
 export default async function AgentechEducationPage() {
-  const accountsCreated = await getAccountsCreated();
+  const childrenEnrolled = await getChildrenEnrolled();
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <section className="border-b border-black/10 px-6 py-8 lg:px-8">
-        <div className="mx-auto grid max-w-7xl items-center gap-6 md:grid-cols-[1fr_auto_1fr]">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Accounts Created</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-950">{accountsCreated}</p>
+      <section className="px-6 py-8 lg:px-8">
+       <div className="mx-auto grid max-w-7xl items-center gap-6 md:grid-cols-[1fr_auto_1fr]">
+          <div className="px-4 py-3 text-left">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Children Enrolled</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-950">{childrenEnrolled}</p>
           </div>
 
           <div className="flex justify-center">
