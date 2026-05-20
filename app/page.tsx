@@ -5,7 +5,7 @@ import { company } from "@/lib/site-data";
 export default function HomePage() {
   return (
     <>
-      <AgentechGalaxyHero title={company.name.toUpperCase()} />
+      <AgentechGalaxyHero title={company.name.toUpperCase()} titleImage="/assets/logo/AGENTECH.png" />
 
       <section className="border-t border-[#363d45]/70 px-6 py-10 lg:px-8">
         <div className="mx-auto flex max-w-7xl justify-end">

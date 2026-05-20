@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandMark } from "@/components/brand-mark";
@@ -32,7 +33,17 @@ export function SiteHeader() {
               return (
                 <div key={item.href} className="group relative flex items-center">
                   <Link href={item.href} className={`${linkClassName} flex items-center gap-2`}>
-                    <span>{item.label}</span>
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.label}
+                        width={1000}
+                        height={247}
+                        className="max-h-7 w-auto max-w-44 object-contain"
+                      />
+                    ) : (
+                      <span>{item.label}</span>
+                    )}
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 12 12"
@@ -76,7 +87,17 @@ export function SiteHeader() {
                 href={item.href}
                 className={linkClassName}
               >
-                {item.label}
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.label}
+                    width={1000}
+                    height={247}
+                    className="max-h-7 w-auto max-w-44 object-contain"
+                  />
+                ) : (
+                  item.label
+                )}
               </Link>
             );
           })}

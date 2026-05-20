@@ -1,6 +1,7 @@
 export type NavItem = {
   label: string;
   href: string;
+  image?: string;
   children?: Array<{
     label: string;
     href: string;
@@ -8,9 +9,9 @@ export type NavItem = {
 };
 
 export const navigation: NavItem[] = [
-  { label: "Agentech Robotic", href: "/agentech-robotic" },
-  { label: "Agentech Education", href: "/agentech-education" },
-  { label: "Agentech Bots", href: "/agentech-bots" },
+  { label: "Agentech Robotic", href: "/agentech-robotic", image: "/assets/logo/AGENTECH-robotic.png" },
+  { label: "Agentech Education", href: "/agentech-education", image: "/assets/logo/AGENTECH-education.png" },
+  { label: "Agentech Bots", href: "/agentech-bots", image: "/assets/logo/AGENTECH.png" },
   {
     label: "Agentech Talents",
     href: "/talents",
