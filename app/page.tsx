@@ -7,7 +7,8 @@ const partnerLogos = [
   { src: "/assets/partners/Learning_Tree_gray.png", alt: "Learning Tree" },
   { src: "/assets/partners/legionglobal_gray.png", alt: "Legion Global" },
   { src: "/assets/partners/Sequoia_foundation_gray.png", alt: "Sequoia Forest Foundation" },
-  { src: "/assets/partners/Sequoia_gray.png", alt: "Sequoia" }
+  { src: "/assets/partners/Sequoia_gray.png", alt: "Sequoia" },
+  { src: "/assets/partners/241_gray.png", alt: "241" }
 ] as const;
 
 export default function HomePage() {

@@ -11,8 +11,8 @@ export type NavItem = {
 export const navigation: NavItem[] = [
   { label: "Agentech Robotic", href: "/agentech-robotic", image: "/assets/logo/AGENTECH-robotic.png" },
   { label: "Agentech Education", href: "/agentech-education", image: "/assets/logo/AGENTECH-education.png" },
-  { label: "Agentech Bots", href: "/agentech-bots", image: "/assets/logo/AGENTECH.png" },
-  { label: "Agentech Talents", href: "/talents" }
+  { label: "Agentech Bots", href: "/agentech-bots", image: "/assets/logo/AGENTECH-products.png" },
+  { label: "Agentech Talents", href: "/talents", image: "/assets/logo/AGENTECH-talents.png" }
 ];
 
 export const company = {
