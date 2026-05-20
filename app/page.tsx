@@ -14,29 +14,29 @@ export default function HomePage() {
   const rollingLogos = [...partnerLogos, ...partnerLogos];
 
   return (
-    <>
-      <AgentechGalaxyHero title={company.name.toUpperCase()} titleImage="/assets/logo/AGENTECH.png" />
-
-      <section className="border-t border-[#363d45]/70 py-10">
-        <div className="overflow-hidden">
+    <AgentechGalaxyHero
+      title={company.name.toUpperCase()}
+      titleImage="/assets/logo/AGENTECH.png"
+      bottomContent={
+        <div className="w-full overflow-hidden">
           <div className="logo-roll flex w-max items-center gap-16">
             {rollingLogos.map((logo, index) => (
               <div
                 key={`${logo.src}-${index}`}
-                className="flex h-24 w-48 shrink-0 items-center justify-center opacity-70 grayscale transition hover:opacity-100"
+                className="flex h-14 w-32 shrink-0 items-center justify-center opacity-70 grayscale transition hover:opacity-100 sm:h-16 sm:w-40 md:h-20 md:w-48"
               >
                 <Image
                   src={logo.src}
                   alt={logo.alt}
                   width={240}
                   height={120}
-                  className="max-h-20 w-auto object-contain"
+                  className="max-h-12 w-auto object-contain sm:max-h-14 md:max-h-16"
                 />
               </div>
             ))}
           </div>
         </div>
-      </section>
-    </>
+      }
+    />
   );
 }

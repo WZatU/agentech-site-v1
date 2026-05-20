@@ -3,20 +3,40 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { navigation } from "@/lib/site-data";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  function closeMobileNav() {
+    setMobileOpen(false);
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#363d45]/70 bg-black/75 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/75 backdrop-blur-xl">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex min-w-0 shrink-0 items-center gap-3" onClick={closeMobileNav}>
           <BrandMark />
         </Link>
 
-        <nav className="flex flex-wrap items-center justify-end gap-1 text-sm text-slate">
+        <button
+          type="button"
+          aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((open) => !open)}
+          className="ml-auto grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 text-white transition hover:bg-white/10 md:hidden"
+        >
+          <span className="flex w-5 flex-col gap-1.5">
+            <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "translate-y-2 rotate-45" : ""}`} />
+            <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "opacity-0" : ""}`} />
+            <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+          </span>
+        </button>
+
+        <nav className="hidden flex-wrap items-center justify-end gap-1 text-sm text-slate md:flex">
           {navigation.map((item) => {
             const childPaths = item.children?.map((child) => child.href.split("#")[0]) ?? [];
             const isActive =
@@ -103,6 +123,54 @@ export function SiteHeader() {
           })}
         </nav>
       </div>
+
+      <div
+        className={`fixed inset-0 top-[72px] z-[80] bg-black/55 transition md:hidden ${
+          mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeMobileNav}
+      />
+
+      <aside
+        className={`fixed right-0 top-[72px] z-[90] h-[calc(100vh-72px)] w-[82vw] max-w-[340px] border-l border-white/10 bg-[#05070a] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.72)] transition-transform duration-200 md:hidden ${
+          mobileOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <nav className="flex flex-col gap-2">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || (item.href === "/talents" && pathname.startsWith("/talents"));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={closeMobileNav}
+                className={`rounded-xl px-4 py-4 text-sm font-semibold transition ${
+                  isActive ? "bg-white/10 text-white" : "text-slate hover:bg-white/6 hover:text-white"
+                }`}
+              >
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.label}
+                    width={1000}
+                    height={247}
+                    className="max-h-8 w-auto max-w-56 object-contain"
+                  />
+                ) : (
+                  item.label
+                )}
+              </Link>
+            );
+          })}
+          <div className="my-3 h-px bg-white/10" />
+          <Link href="/about" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
+            About
+          </Link>
+          <Link href="/news" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
+            News
+          </Link>
+        </nav>
+      </aside>
     </header>
   );
 }
