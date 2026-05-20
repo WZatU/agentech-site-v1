@@ -8,20 +8,18 @@ export type NavItem = {
 };
 
 export const navigation: NavItem[] = [
-  { label: "HARD-AGENTS", href: "/hardware-agents" },
-  { label: "SOFT-AGENTS", href: "/software-agents" },
-  { label: "EDGE-PRODUCTS", href: "/edge-product" },
-  { label: "ABOUT", href: "/about" },
+  { label: "Agentech Robotic", href: "/agentech-robotic" },
+  { label: "Agentech Education", href: "/agentech-education" },
+  { label: "Agentech Bots", href: "/agentech-bots" },
   {
-    label: "TALENTS",
+    label: "Agentech Talents",
     href: "/talents",
     children: [
       { label: "Tech Education", href: "/tech-education" },
       { label: "Summer School", href: "/summer-school" },
       { label: "Internship", href: "/career-intern" }
     ]
-  },
-  { label: "EXPLORE", href: "/explore" }
+  }
 ];
 
 export const company = {
@@ -41,19 +39,19 @@ export const company = {
 
 export const homeTracks = [
   {
-    title: "Hard Agents",
+    title: "Agentech Robotic",
     description: "Physical systems designed for useful work in the real world.",
-    href: "/hardware-agents"
+    href: "/agentech-robotic"
   },
   {
-    title: "Soft Agents",
+    title: "Agentech Education",
     description: "Multi-agent software built for execution, memory, and operational leverage.",
-    href: "/software-agents"
+    href: "/agentech-education"
   },
   {
-    title: "Edge Products",
+    title: "Agentech Bots",
     description: "Applied experiments exploring what should exist next.",
-    href: "/edge-product"
+    href: "/agentech-bots"
   }
 ];
 

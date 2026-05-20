@@ -4,14 +4,14 @@ import { siteUrl } from "@/lib/site-config";
 const routes = [
   "",
   "/about",
+  "/news",
   "/career-intern",
   "/career",
-  "/explore",
-  "/hardware-agents",
+  "/agentech-robotic",
+  "/agentech-education",
+  "/agentech-bots",
   "/summer-school",
   "/tech-education",
-  "/software-agents",
-  "/edge-product",
   "/talents"
 ];
 

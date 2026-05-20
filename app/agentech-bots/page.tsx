@@ -1,37 +1,34 @@
 import Image from "next/image";
 
-const edgeProductImages = [
+const agentechBotsImages = [
   {
     src: "/assets/edge-products/edge-product-01.png",
-    alt: "Agentech immersive interface concept",
-    title: "Interface Exploration"
+    alt: "Agentech Bots immersive interface concept"
   },
   {
     src: "/assets/edge-products/edge-product-02.png",
-    alt: "Agentech concept vehicle interface",
-    title: "Vehicle Systems Concept"
+    alt: "Agentech Bots concept vehicle interface"
   },
   {
     src: "/assets/edge-products/edge-product-03.png",
-    alt: "Agentech holographic mobility prototype",
-    title: "Embodied Product Study"
+    alt: "Agentech Bots holographic mobility prototype"
   }
 ] as const;
 
-export default function EdgeProductPage() {
+export default function AgentechBotsPage() {
   return (
     <>
       <section>
         <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 lg:px-8 lg:pb-10 lg:pt-20">
-          <h1 className="text-4xl font-semibold uppercase tracking-[0.22em] text-white md:text-6xl">
-            UNDER CONSTRUCTION
+          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">
+            Agentech Bots
           </h1>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-6 lg:px-8 lg:pb-24 lg:pt-8">
         <div className="space-y-16 md:space-y-20">
-          {edgeProductImages.map((image, index) => (
+          {agentechBotsImages.map((image, index) => (
             <article key={image.src}>
               <div className="relative overflow-hidden rounded-[24px] bg-[#05080b]">
                 <Image

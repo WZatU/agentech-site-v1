@@ -4,19 +4,27 @@ import { company } from "@/lib/site-data";
 
 export default function HomePage() {
   return (
-    <AgentechGalaxyHero title={company.name.toUpperCase()} subtitle={company.heroBody}>
-      <Link
-        href="/explore"
-        className="rounded-full bg-white px-5 py-3 text-sm font-medium text-ink transition hover:bg-mist"
-      >
-        Explore
-      </Link>
-      <Link
-        href="/talents"
-        className="rounded-full border border-white/12 bg-white/5 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-      >
-        Talents
-      </Link>
-    </AgentechGalaxyHero>
+    <>
+      <AgentechGalaxyHero title={company.name.toUpperCase()} />
+
+      <section className="border-t border-[#363d45]/70 px-6 py-10 lg:px-8">
+        <div className="mx-auto flex max-w-7xl justify-end">
+          <div className="flex flex-col items-end gap-5">
+            <Link
+              href="/about"
+              className="text-sm font-medium uppercase tracking-[0.22em] text-slate transition hover:text-white"
+            >
+              About
+            </Link>
+            <Link
+              href="/news"
+              className="text-sm font-medium uppercase tracking-[0.22em] text-slate transition hover:text-white"
+            >
+              News
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

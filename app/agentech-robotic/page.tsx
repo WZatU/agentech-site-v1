@@ -1,11 +1,13 @@
 import Image from "next/image";
 
-export default function HardwareAgentsPage() {
+export default function AgentechRoboticPage() {
   return (
     <>
       <section className="border-b border-[#363d45]/70">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">Hard Agents</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">
+            Agentech Robotic
+          </h1>
         </div>
       </section>
 
@@ -15,7 +17,7 @@ export default function HardwareAgentsPage() {
             <div className="relative w-full max-w-[88rem] overflow-hidden rounded-[24px]">
               <Image
                 src="/assets/agents/hardware-agent-1.png"
-                alt="Hardware Agents visual 1"
+                alt="Agentech Robotic visual 1"
                 width={2400}
                 height={1400}
                 className="h-auto w-full"
@@ -29,7 +31,7 @@ export default function HardwareAgentsPage() {
             <div className="relative w-full max-w-5xl overflow-hidden rounded-[24px]">
               <Image
                 src="/assets/agents/hardware-agent-2.png"
-                alt="Hardware Agents visual 2"
+                alt="Agentech Robotic visual 2"
                 width={2400}
                 height={1400}
                 className="h-auto w-full"

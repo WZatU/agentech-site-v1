@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 
 type AgentechGalaxyHeroProps = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children?: ReactNode;
 };
 
@@ -226,7 +226,7 @@ export function AgentechGalaxyHero({
           <h1 className="hero-wordmark text-[3.8rem] tracking-[0.1em] md:text-[6rem] lg:text-[8.4rem]">
             {title}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/62 md:text-base">{subtitle}</p>
+          {subtitle ? <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/62 md:text-base">{subtitle}</p> : null}
           {children ? <div className="mt-10 flex flex-wrap items-center justify-center gap-4">{children}</div> : null}
         </div>
       </div>

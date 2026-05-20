@@ -1,11 +1,13 @@
 import Image from "next/image";
 
-export default function SoftwareAgentsPage() {
+export default function AgentechEducationPage() {
   return (
     <>
       <section className="border-b border-[#363d45]/70">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">Soft Agents</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">
+            Agentech Education
+          </h1>
         </div>
       </section>
 
@@ -13,7 +15,7 @@ export default function SoftwareAgentsPage() {
         <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[24px]">
           <Image
             src="/assets/agents/software-agent-1.png"
-            alt="Software Agents visual"
+            alt="Agentech Education visual"
             width={2400}
             height={1400}
             className="h-auto w-full"
