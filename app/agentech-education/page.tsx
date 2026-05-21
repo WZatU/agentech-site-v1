@@ -1,25 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getChildrenEnrolled } from "@/lib/education-counter";
-
-const classAdvertisements = [
-  {
-    grade: "Grade K-2",
-    image: "/assets/class advertisements/k-2.png"
-  },
-  {
-    grade: "Grade 3-5",
-    image: "/assets/class advertisements/3-5.png"
-  },
-  {
-    grade: "Grade 6-8",
-    image: "/assets/class advertisements/6-8.png"
-  },
-  {
-    grade: "Grade 9-12",
-    image: "/assets/class advertisements/9-12.png"
-  }
-] as const;
+import { educationGradePages } from "@/lib/education-grade-pages";
 
 export default async function AgentechEducationPage() {
   const childrenEnrolled = await getChildrenEnrolled();
@@ -58,9 +40,10 @@ export default async function AgentechEducationPage() {
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="-mx-4 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:overflow-visible lg:px-0 lg:pb-0">
           <div className="flex min-w-max gap-4 lg:grid lg:min-w-0 lg:grid-cols-4 lg:gap-5">
-            {classAdvertisements.map((advertisement) => (
-              <article
-                key={advertisement.grade}
+            {educationGradePages.map((advertisement) => (
+              <Link
+                key={advertisement.slug}
+                href={`/agentech-education/${advertisement.slug}`}
                 className="w-[74vw] max-w-[360px] shrink-0 overflow-hidden rounded-xl bg-white shadow-[0_12px_34px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70 lg:w-auto lg:max-w-none"
               >
                 <div className="relative aspect-[3/4] w-full bg-slate-50">
@@ -75,7 +58,7 @@ export default async function AgentechEducationPage() {
                 <div className="px-4 py-3 text-center">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-950">{advertisement.grade}</p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
