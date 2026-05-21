@@ -1,0 +1,47 @@
+type SupabaseOptions = {
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  query?: string;
+  body?: unknown;
+  prefer?: string;
+};
+
+function getSupabaseConfig() {
+  const url = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !serviceRoleKey) {
+    throw new Error("Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+  }
+
+  return {
+    url: url.replace(/\/$/, ""),
+    serviceRoleKey
+  };
+}
+
+export async function supabaseRequest<T>(table: string, options: SupabaseOptions = {}) {
+  const { url, serviceRoleKey } = getSupabaseConfig();
+  const query = options.query ? `?${options.query}` : "";
+  const response = await fetch(`${url}/rest/v1/${table}${query}`, {
+    method: options.method ?? "GET",
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": "application/json",
+      Prefer: options.prefer ?? "return=representation"
+    },
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `Supabase request failed for ${table}.`);
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  return (await response.json()) as T;
+}

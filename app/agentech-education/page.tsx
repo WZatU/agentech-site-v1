@@ -1,21 +1,6 @@
-import { promises as fs } from "fs";
-import path from "path";
 import Image from "next/image";
 import Link from "next/link";
-
-async function getChildrenEnrolled() {
-  try {
-    const raw = await fs.readFile(path.join(process.cwd(), "data", "account-counter.json"), "utf8");
-    const parsed = JSON.parse(raw) as { childrenEnrolled?: number; accountsCreated?: number };
-    return typeof parsed.childrenEnrolled === "number"
-      ? parsed.childrenEnrolled
-      : typeof parsed.accountsCreated === "number"
-        ? parsed.accountsCreated
-        : 0;
-  } catch {
-    return 0;
-  }
-}
+import { getChildrenEnrolled } from "@/lib/education-counter";
 
 export default async function AgentechEducationPage() {
   const childrenEnrolled = await getChildrenEnrolled();

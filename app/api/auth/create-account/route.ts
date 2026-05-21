@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import {
   clearVerificationCode,
+  createAccount,
   createPasswordHash,
   findAccount,
   isValidEmail,
   isValidPassword,
   normalizeEmail,
-  readAccounts,
-  verifyCode,
-  writeAccounts
+  verifyCode
 } from "@/lib/prototype-auth";
 
 export async function POST(request: Request) {
@@ -43,19 +42,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Verification code is incorrect or expired." }, { status: 400 });
   }
 
-  const accounts = await readAccounts();
   const { passwordHash, salt } = createPasswordHash(password);
   const now = new Date().toISOString();
 
-  accounts.push({
+  await createAccount({
     email,
-    passwordHash,
+    password_hash: passwordHash,
     salt,
-    createdAt: now,
-    verifiedAt: now
+    created_at: now,
+    verified_at: now
   });
-
-  await writeAccounts(accounts);
   await clearVerificationCode(email);
 
   return NextResponse.json({ ok: true, email });

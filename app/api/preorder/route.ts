@@ -1,8 +1,7 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { supabaseRequest } from "@/lib/supabase-server";
 
 type PreorderPayload = {
   product?: string;
@@ -13,19 +12,8 @@ type PreorderPayload = {
   notes?: string;
 };
 
-const preorderPath = path.join(process.cwd(), "data", "preorder-invoices.json");
-
 function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-async function readRequests() {
-  try {
-    const raw = await fs.readFile(preorderPath, "utf8");
-    return JSON.parse(raw) as Array<Record<string, unknown>>;
-  } catch {
-    return [];
-  }
 }
 
 export async function POST(request: Request) {
@@ -34,6 +22,8 @@ export async function POST(request: Request) {
   const product = clean(payload?.product);
   const name = clean(payload?.name);
   const phone = clean(payload?.phone);
+  const company = clean(payload?.company);
+  const notes = clean(payload?.notes);
 
   if (!product) {
     return NextResponse.json({ error: "Choose a robot model." }, { status: 400 });
@@ -43,24 +33,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Name, email, and phone number are required." }, { status: 400 });
   }
 
-  const requests = await readRequests();
-  const invoiceNumber = `AGT-${new Date().getFullYear()}-${String(requests.length + 1).padStart(5, "0")}`;
+  const invoiceNumber = `AGT-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
 
-  requests.push({
-    invoiceNumber,
-    product,
-    email,
-    name,
-    phone,
-    company: clean(payload?.company),
-    notes: clean(payload?.notes),
-    status: "invoice_email_pending",
-    onlinePaymentAccepted: false,
-    createdAt: new Date().toISOString()
+  await supabaseRequest("agentech_preorder_invoices", {
+    method: "POST",
+    body: {
+      invoice_number: invoiceNumber,
+      product,
+      email,
+      name,
+      phone,
+      company,
+      notes,
+      status: "invoice_email_pending",
+      online_payment_accepted: false
+    }
   });
-
-  await fs.mkdir(path.dirname(preorderPath), { recursive: true });
-  await fs.writeFile(preorderPath, `${JSON.stringify(requests, null, 2)}\n`);
 
   try {
     await sendEmail({
@@ -86,17 +74,33 @@ export async function POST(request: Request) {
         `Name: ${name}`,
         `Email: ${email}`,
         `Phone: ${phone}`,
-        `Company: ${clean(payload?.company) || "-"}`,
-        `Notes: ${clean(payload?.notes) || "-"}`
+        `Company: ${company || "-"}`,
+        `Notes: ${notes || "-"}`
       ].join("\n")
     });
+
+    await supabaseRequest("agentech_preorder_invoices", {
+      method: "PATCH",
+      query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}`,
+      body: {
+        status: "invoice_email_sent"
+      }
+    });
   } catch {
+    await supabaseRequest("agentech_preorder_invoices", {
+      method: "PATCH",
+      query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}`,
+      body: {
+        status: "invoice_email_failed"
+      }
+    });
+
     return NextResponse.json({ error: "Invoice request saved, but email could not be sent. Check Resend settings." }, { status: 502 });
   }
 
   return NextResponse.json({
     ok: true,
     invoiceNumber,
-    message: "Invoice request created. Email sending will be connected next; no online payment is accepted."
+    message: "Invoice request created. Agentech will send the invoice to your email; no online payment is accepted."
   });
 }

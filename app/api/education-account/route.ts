@@ -1,6 +1,5 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
+import { incrementChildrenEnrolled } from "@/lib/education-counter";
 
 type ChildPayload = {
   firstName?: string;
@@ -20,8 +19,6 @@ type AccountPayload = {
   dob?: string;
   children?: ChildPayload[];
 };
-
-const counterPath = path.join(process.cwd(), "data", "account-counter.json");
 
 function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -55,28 +52,6 @@ function validate(payload: AccountPayload) {
   }
 
   return null;
-}
-
-async function incrementChildrenEnrolled(count: number) {
-  await fs.mkdir(path.dirname(counterPath), { recursive: true });
-
-  let childrenEnrolled = 0;
-  try {
-    const raw = await fs.readFile(counterPath, "utf8");
-    const parsed = JSON.parse(raw) as { childrenEnrolled?: number; accountsCreated?: number };
-    childrenEnrolled =
-      typeof parsed.childrenEnrolled === "number"
-        ? parsed.childrenEnrolled
-        : typeof parsed.accountsCreated === "number"
-          ? parsed.accountsCreated
-          : 0;
-  } catch {
-    childrenEnrolled = 0;
-  }
-
-  const next = childrenEnrolled + count;
-  await fs.writeFile(counterPath, `${JSON.stringify({ childrenEnrolled: next }, null, 2)}\n`);
-  return next;
 }
 
 export async function POST(request: Request) {
