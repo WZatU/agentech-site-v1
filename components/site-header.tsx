@@ -3,16 +3,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
+import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { navigation } from "@/lib/site-data";
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountEmail, setAccountEmail] = useState("");
+
+  useEffect(() => {
+    function refreshSession() {
+      setAccountEmail(getAccountSession()?.email ?? "");
+    }
+
+    refreshSession();
+    window.addEventListener(accountSessionEvent, refreshSession);
+    window.addEventListener("storage", refreshSession);
+
+    return () => {
+      window.removeEventListener(accountSessionEvent, refreshSession);
+      window.removeEventListener("storage", refreshSession);
+    };
+  }, []);
 
   function closeMobileNav() {
     setMobileOpen(false);
+  }
+
+  function signOut() {
+    clearAccountSession();
+    closeMobileNav();
   }
 
   return (
@@ -121,6 +143,24 @@ export function SiteHeader() {
               </Link>
             );
           })}
+          {accountEmail ? (
+            <>
+              <Link href="/account" className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
+                Requests
+              </Link>
+              <button
+                type="button"
+                onClick={signOut}
+                className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link href="/login" className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
+              Sign In
+            </Link>
+          )}
         </nav>
       </div>
 
@@ -169,6 +209,21 @@ export function SiteHeader() {
           <Link href="/news" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
             News
           </Link>
+          <div className="my-3 h-px bg-white/10" />
+          {accountEmail ? (
+            <>
+              <Link href="/account" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
+                Requests
+              </Link>
+              <button type="button" onClick={signOut} className="rounded-xl px-4 py-4 text-left text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link href="/login" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
+              Sign In
+            </Link>
+          )}
         </nav>
       </aside>
     </header>

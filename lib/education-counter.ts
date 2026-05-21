@@ -9,12 +9,19 @@ const counterKey = "children_enrolled";
 
 export async function getChildrenEnrolled() {
   try {
-    const rows = await supabaseRequest<CounterRow[]>("agentech_counters", {
-      query: `key=eq.${counterKey}&select=key,value&limit=1`
+    const children = await supabaseRequest<Array<{ id: number }>>("agentech_children", {
+      query: "select=id"
     });
-    return rows[0]?.value ?? 0;
+    return children.length;
   } catch {
-    return 0;
+    try {
+      const rows = await supabaseRequest<CounterRow[]>("agentech_counters", {
+        query: `key=eq.${counterKey}&select=key,value&limit=1`
+      });
+      return rows[0]?.value ?? 0;
+    } catch {
+      return 0;
+    }
   }
 }
 

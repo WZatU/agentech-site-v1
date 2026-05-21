@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { incrementChildrenEnrolled } from "@/lib/education-counter";
+import { getChildrenEnrolled } from "@/lib/education-counter";
+import { replaceChildren, upsertProfile } from "@/lib/account-records";
+import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
 type ChildPayload = {
   firstName?: string;
@@ -7,6 +9,8 @@ type ChildPayload = {
   dob?: string;
   grade?: string;
   sex?: string;
+  schoolInfo?: string;
+  preferredLocation?: string;
 };
 
 type AccountPayload = {
@@ -28,12 +32,13 @@ function validate(payload: AccountPayload) {
   const accountType = payload.accountType;
   const limit = accountType === "group" ? 100 : 6;
   const children = Array.isArray(payload.children) ? payload.children : [];
+  const email = normalizeEmail(payload.email);
 
   if (accountType !== "individual" && accountType !== "group") {
     return "Choose an account type.";
   }
 
-  if (!clean(payload.email) || !clean(payload.firstName) || !clean(payload.lastName) || !clean(payload.phone)) {
+  if (!isValidEmail(email) || !clean(payload.firstName) || !clean(payload.lastName) || !clean(payload.phone)) {
     return "Account email, first name, last name, and phone number are required.";
   }
 
@@ -69,7 +74,33 @@ export async function POST(request: Request) {
   }
 
   const children = Array.isArray(payload.children) ? payload.children : [];
-  const childrenEnrolled = await incrementChildrenEnrolled(children.length);
+  const email = normalizeEmail(payload.email);
+
+  await upsertProfile({
+    email,
+    first_name: clean(payload.firstName),
+    last_name: clean(payload.lastName),
+    phone: clean(payload.phone),
+    company: null,
+    address: clean(payload.address) || null,
+    dob: clean(payload.dob) || null,
+    account_type: payload.accountType ?? null
+  });
+
+  await replaceChildren(
+    email,
+    children.map((child) => ({
+      first_name: clean(child.firstName),
+      last_name: clean(child.lastName),
+      dob: clean(child.dob),
+      grade: clean(child.grade),
+      sex: clean(child.sex),
+      school_info: clean(child.schoolInfo) || null,
+      preferred_location: clean(child.preferredLocation) || null
+    }))
+  );
+
+  const childrenEnrolled = await getChildrenEnrolled();
 
   return NextResponse.json({
     ok: true,

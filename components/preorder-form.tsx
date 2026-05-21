@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { getAccountSession } from "@/lib/account-session";
 
 type PreorderFormProps = {
   product: string;
@@ -11,6 +12,12 @@ type ApiResult = {
   error?: string;
   invoiceNumber?: string;
   message?: string;
+  profile?: {
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    company?: string | null;
+  } | null;
 };
 
 export function PreorderForm({ product }: PreorderFormProps) {
@@ -23,9 +30,20 @@ export function PreorderForm({ product }: PreorderFormProps) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const savedEmail = window.localStorage.getItem("agentechAccountEmail");
-    if (savedEmail) {
-      setEmail(savedEmail);
+    const session = getAccountSession();
+    if (session?.email) {
+      setEmail(session.email);
+      fetch(`/api/account?email=${encodeURIComponent(session.email)}`)
+        .then((response) => response.json())
+        .then((result: ApiResult) => {
+          if (result.profile) {
+            const fullName = [result.profile.first_name, result.profile.last_name].filter(Boolean).join(" ");
+            setName(fullName);
+            setPhone(result.profile.phone || "");
+            setCompany(result.profile.company || "");
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { getAccountSession } from "@/lib/account-session";
 
 type AccountType = "individual" | "group";
 
@@ -10,6 +11,8 @@ type ChildForm = {
   dob: string;
   grade: string;
   sex: string;
+  schoolInfo: string;
+  preferredLocation: string;
 };
 
 type OwnerForm = {
@@ -21,12 +24,35 @@ type OwnerForm = {
   dob: string;
 };
 
+type AccountLookup = {
+  profile?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    address: string | null;
+    dob: string | null;
+    account_type: AccountType | null;
+  } | null;
+  children?: Array<{
+    first_name: string;
+    last_name: string;
+    dob: string;
+    grade: string;
+    sex: string;
+    school_info?: string | null;
+    preferred_location?: string | null;
+  }>;
+};
+
 const blankChild: ChildForm = {
   firstName: "",
   lastName: "",
   dob: "",
   grade: "",
-  sex: ""
+  sex: "",
+  schoolInfo: "",
+  preferredLocation: ""
 };
 
 const accountOptions = [
@@ -45,9 +71,9 @@ const accountOptions = [
 ];
 
 const rosterTemplate = [
-  "Child First Name,Child Last Name,Date of Birth,Grade,Sex",
-  "Emily,Chen,2016-04-12,4,Female",
-  "Jordan,Lee,2015-09-20,5,Male"
+  "Child First Name,Child Last Name,Date of Birth,Grade,Sex,School Info,Preferred Location",
+  "Emily,Chen,2016-04-12,4,Female,Lincoln Elementary,Irvine",
+  "Jordan,Lee,2015-09-20,5,Male,Roosevelt Middle,Online"
 ].join("\n");
 
 const rosterHeaders: Record<string, keyof ChildForm> = {
@@ -60,7 +86,13 @@ const rosterHeaders: Record<string, keyof ChildForm> = {
   "date of birth": "dob",
   dob: "dob",
   grade: "grade",
-  sex: "sex"
+  sex: "sex",
+  school: "schoolInfo",
+  "school info": "schoolInfo",
+  "school information": "schoolInfo",
+  "preferred location": "preferredLocation",
+  "preferred site": "preferredLocation",
+  location: "preferredLocation"
 };
 
 function parseCsvRows(csv: string) {
@@ -238,9 +270,41 @@ export function EducationAccountForm() {
   }, [children, owner]);
 
   useEffect(() => {
-    const savedEmail = window.localStorage.getItem("agentechAccountEmail");
-    if (savedEmail) {
-      setOwner((current) => ({ ...current, email: savedEmail }));
+    const session = getAccountSession();
+    if (session?.email) {
+      setOwner((current) => ({ ...current, email: session.email }));
+      fetch(`/api/account?email=${encodeURIComponent(session.email)}`)
+        .then((response) => response.json())
+        .then((result: AccountLookup) => {
+          if (result.profile) {
+            setOwner({
+              email: result.profile.email,
+              firstName: result.profile.first_name || "",
+              lastName: result.profile.last_name || "",
+              phone: result.profile.phone || "",
+              address: result.profile.address || "",
+              dob: result.profile.dob || ""
+            });
+            if (result.profile.account_type) {
+              setAccountType(result.profile.account_type);
+            }
+          }
+
+          if (result.children?.length) {
+            setChildren(
+              result.children.map((child) => ({
+                firstName: child.first_name,
+                lastName: child.last_name,
+                dob: child.dob,
+                grade: child.grade,
+                sex: child.sex,
+                schoolInfo: child.school_info || "",
+                preferredLocation: child.preferred_location || ""
+              }))
+            );
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -315,7 +379,7 @@ export function EducationAccountForm() {
       }
 
       setStatus("success");
-      setMessage(`Account setup complete. Total children enrolled: ${result.childrenEnrolled}.`);
+      setMessage(`Profile saved. Total children enrolled: ${result.childrenEnrolled}.`);
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Unable to create account.");
@@ -433,7 +497,7 @@ export function EducationAccountForm() {
                 <h3 className="text-lg font-semibold text-[#0b1220]">Group roster upload</h3>
                 <p className="mt-2 text-sm leading-6 text-[#334155]">
                   Use the template in Excel or Google Sheets, then export or download it as CSV. Required columns are
-                  child first name, child last name, date of birth, grade, and sex.
+                  child first name, child last name, date of birth, grade, and sex. School info and preferred location are optional.
                 </p>
                 {rosterStatus ? <p className="mt-3 text-sm font-semibold text-emerald-700">{rosterStatus}</p> : null}
                 {rosterErrors.length ? (
@@ -465,7 +529,7 @@ export function EducationAccountForm() {
                       </button>
                     </div>
                     <div className="max-h-[420px] overflow-auto">
-                      <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+                      <table className="w-full min-w-[960px] border-collapse text-left text-sm">
                         <thead className="sticky top-0 bg-[#f1f5f9] text-xs uppercase tracking-[0.12em] text-[#334155]">
                           <tr>
                             <th className="border-b border-[#cbd5e1] px-4 py-3">First Name</th>
@@ -473,6 +537,8 @@ export function EducationAccountForm() {
                             <th className="border-b border-[#cbd5e1] px-4 py-3">Date of Birth</th>
                             <th className="border-b border-[#cbd5e1] px-4 py-3">Grade</th>
                             <th className="border-b border-[#cbd5e1] px-4 py-3">Sex</th>
+                            <th className="border-b border-[#cbd5e1] px-4 py-3">School Info</th>
+                            <th className="border-b border-[#cbd5e1] px-4 py-3">Preferred Location</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#e2e8f0] bg-white text-[#0b1220]">
@@ -483,6 +549,8 @@ export function EducationAccountForm() {
                               <td className="px-4 py-3">{child.dob}</td>
                               <td className="px-4 py-3">{child.grade}</td>
                               <td className="px-4 py-3">{child.sex}</td>
+                              <td className="px-4 py-3">{child.schoolInfo || "-"}</td>
+                              <td className="px-4 py-3">{child.preferredLocation || "-"}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -528,6 +596,18 @@ export function EducationAccountForm() {
                           <option value="prefer-not-to-say">Prefer not to say</option>
                         </select>
                       </div>
+                      <InputField
+                        label="School Info"
+                        value={child.schoolInfo}
+                        onChange={(value) => updateChild(index, "schoolInfo", value)}
+                        placeholder="School name or program"
+                      />
+                      <InputField
+                        label="Preferred Location"
+                        value={child.preferredLocation}
+                        onChange={(value) => updateChild(index, "preferredLocation", value)}
+                        placeholder="Example: Irvine, Online"
+                      />
                     </div>
                   </article>
                 ))}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { clearAccountSession, getAccountSession, setAccountSession } from "@/lib/account-session";
 
 type AuthMode = "signin" | "signup";
 type SignupStep = "email" | "verify";
@@ -26,10 +27,27 @@ export function UniversalAuthForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [devCode, setDevCode] = useState("");
+  const [signedInEmail, setSignedInEmail] = useState("");
+
+  useEffect(() => {
+    const session = getAccountSession();
+    if (session) {
+      setSignedInEmail(session.email);
+      setEmail(session.email);
+    }
+  }, []);
 
   function rememberAndContinue(accountEmail: string) {
-    window.localStorage.setItem("agentechAccountEmail", accountEmail);
+    setAccountSession(accountEmail);
     router.push(next);
+  }
+
+  function signOut() {
+    clearAccountSession();
+    setSignedInEmail("");
+    setPassword("");
+    setStatus("idle");
+    setMessage("");
   }
 
   async function sendCode(event: FormEvent<HTMLFormElement>) {
@@ -111,7 +129,21 @@ export function UniversalAuthForm() {
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 rounded-2xl bg-[#f1f5f9] p-1">
+      {signedInEmail ? (
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
+          <p className="font-semibold">Signed in as {signedInEmail}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button type="button" onClick={() => router.push(next)} className="rounded-full bg-[#0b1220] px-5 py-2.5 text-white">
+              Continue
+            </button>
+            <button type="button" onClick={signOut} className="rounded-full border border-emerald-300 px-5 py-2.5 font-semibold text-emerald-950">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {!signedInEmail ? <div className="mb-6 grid grid-cols-2 rounded-2xl bg-[#f1f5f9] p-1">
         {(["signup", "signin"] as const).map((option) => (
           <button
             key={option}
@@ -129,9 +161,9 @@ export function UniversalAuthForm() {
             {option === "signup" ? "Create Account" : "Sign In"}
           </button>
         ))}
-      </div>
+      </div> : null}
 
-      {mode === "signup" && signupStep === "email" ? (
+      {!signedInEmail && mode === "signup" && signupStep === "email" ? (
         <form onSubmit={sendCode} className="space-y-5">
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Email</span>
@@ -149,7 +181,7 @@ export function UniversalAuthForm() {
         </form>
       ) : null}
 
-      {mode === "signup" && signupStep === "verify" ? (
+      {!signedInEmail && mode === "signup" && signupStep === "verify" ? (
         <form onSubmit={createAccount} className="space-y-5">
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Verification Code</span>
@@ -181,7 +213,7 @@ export function UniversalAuthForm() {
         </form>
       ) : null}
 
-      {mode === "signin" ? (
+      {!signedInEmail && mode === "signin" ? (
         <form onSubmit={signIn} className="space-y-5">
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Email</span>

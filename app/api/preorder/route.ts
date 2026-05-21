@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { createInvoiceItem, sendUnpaidBalanceInvoice } from "@/lib/invoices";
+import { getProductPrice, formatUsd } from "@/lib/pricing";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { getProfile, upsertProfile } from "@/lib/account-records";
 import { supabaseRequest } from "@/lib/supabase-server";
 
 type PreorderPayload = {
@@ -29,11 +32,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a robot model." }, { status: 400 });
   }
 
+  const productPrice = getProductPrice(product);
+  if (!productPrice) {
+    return NextResponse.json({ error: "Choose a valid robot model." }, { status: 400 });
+  }
+
   if (!isValidEmail(email) || !name || !phone) {
     return NextResponse.json({ error: "Name, email, and phone number are required." }, { status: 400 });
   }
 
   const invoiceNumber = `AGT-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
+  const [firstName, ...lastParts] = name.split(/\s+/);
+  const existingProfile = await getProfile(email);
+
+  await upsertProfile({
+    email,
+    first_name: firstName || name,
+    last_name: lastParts.join(" "),
+    phone,
+    company: company || existingProfile?.company || null,
+    address: existingProfile?.address || null,
+    dob: existingProfile?.dob || null,
+    account_type: existingProfile?.account_type || null
+  });
 
   await supabaseRequest("agentech_preorder_invoices", {
     method: "POST",
@@ -46,24 +67,21 @@ export async function POST(request: Request) {
       company,
       notes,
       status: "invoice_email_pending",
-      online_payment_accepted: false
+      online_payment_accepted: false,
+      total_amount: productPrice.total
     }
   });
 
+  await createInvoiceItem({
+    email,
+    sourceType: "robot",
+    sourceId: invoiceNumber,
+    itemName: productPrice.label,
+    amount: productPrice.total
+  });
+
   try {
-    await sendEmail({
-      to: email,
-      subject: `Agentech invoice request ${invoiceNumber}`,
-      text: `We received your invoice request for ${product}. Invoice request number: ${invoiceNumber}. Agentech does not accept online payment right now; our team will follow up by email.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #111827;">
-          <h1>Invoice request received</h1>
-          <p>We received your request for <strong>${product}</strong>.</p>
-          <p>Invoice request number: <strong>${invoiceNumber}</strong></p>
-          <p>Agentech does not accept online payment right now. Our team will follow up by email.</p>
-        </div>
-      `
-    });
+    const balanceEmail = await sendUnpaidBalanceInvoice(email, invoiceNumber);
 
     await sendEmail({
       to: process.env.RESEND_REPLY_TO || "info@agent-tech.ai",
@@ -71,6 +89,8 @@ export async function POST(request: Request) {
       text: [
         `Invoice: ${invoiceNumber}`,
         `Product: ${product}`,
+        `Robot amount: ${formatUsd(productPrice.total)}`,
+        `Customer unpaid balance emailed: ${formatUsd(balanceEmail.total)}`,
         `Name: ${name}`,
         `Email: ${email}`,
         `Phone: ${phone}`,
@@ -83,24 +103,24 @@ export async function POST(request: Request) {
       method: "PATCH",
       query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}`,
       body: {
-        status: "invoice_email_sent"
+        status: "balance_invoice_email_sent"
       }
     });
   } catch {
     await supabaseRequest("agentech_preorder_invoices", {
       method: "PATCH",
       query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}`,
-      body: {
-        status: "invoice_email_failed"
+    body: {
+        status: "balance_invoice_email_failed"
       }
     });
 
-    return NextResponse.json({ error: "Invoice request saved, but email could not be sent. Check Resend settings." }, { status: 502 });
+    return NextResponse.json({ error: "Invoice request saved, but the balance email could not be sent. Check Resend settings." }, { status: 502 });
   }
 
   return NextResponse.json({
     ok: true,
     invoiceNumber,
-    message: "Invoice request created. Agentech will send the invoice to your email; no online payment is accepted."
+    message: "Invoice request created. Agentech emailed your current unpaid balance; no online payment is accepted."
   });
 }
