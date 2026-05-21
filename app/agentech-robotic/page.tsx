@@ -153,7 +153,7 @@ export default function AgentechRoboticPage() {
                     {product.package}
                   </p>
                   <a
-                    href="mailto:info@agent-tech.ai"
+                    href={`/login?next=${encodeURIComponent(`/preorder?product=${encodeURIComponent(product.name)}`)}`}
                     className={`mt-6 inline-flex border px-6 py-2.5 text-base tracking-[0.05em] transition hover:bg-white/10 lg:mt-7 lg:px-8 lg:py-3 lg:text-lg ${accentText[product.accent]} ${accentBorder[product.accent]}`}
                   >
                     PRE-ORDER

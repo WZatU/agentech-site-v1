@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
 type AccountType = "individual" | "group";
 
@@ -13,6 +13,7 @@ type ChildForm = {
 };
 
 type OwnerForm = {
+  email: string;
   firstName: string;
   lastName: string;
   phone: string;
@@ -212,6 +213,7 @@ function InputField({
 export function EducationAccountForm() {
   const [accountType, setAccountType] = useState<AccountType>("individual");
   const [owner, setOwner] = useState<OwnerForm>({
+    email: "",
     firstName: "",
     lastName: "",
     phone: "",
@@ -228,12 +230,19 @@ export function EducationAccountForm() {
   const canAddChild = children.length < childLimit;
 
   const completedRequired = useMemo(() => {
-    const ownerComplete = Boolean(owner.firstName.trim() && owner.lastName.trim() && owner.phone.trim());
+    const ownerComplete = Boolean(owner.email.trim() && owner.firstName.trim() && owner.lastName.trim() && owner.phone.trim());
     const childrenComplete = children.every((child) =>
       Boolean(child.firstName.trim() && child.lastName.trim() && child.dob && child.grade.trim() && child.sex)
     );
     return ownerComplete && children.length > 0 && childrenComplete;
   }, [children, owner]);
+
+  useEffect(() => {
+    const savedEmail = window.localStorage.getItem("agentechAccountEmail");
+    if (savedEmail) {
+      setOwner((current) => ({ ...current, email: savedEmail }));
+    }
+  }, []);
 
   function updateOwner(field: keyof OwnerForm, value: string) {
     setOwner((current) => ({ ...current, [field]: value }));
@@ -371,6 +380,9 @@ export function EducationAccountForm() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <InputField label="Account Email" required value={owner.email} onChange={(value) => updateOwner("email", value)} type="email" />
+              </div>
               <InputField label="First Name" required value={owner.firstName} onChange={(value) => updateOwner("firstName", value)} />
               <InputField label="Last Name" required value={owner.lastName} onChange={(value) => updateOwner("lastName", value)} />
               <InputField label="Phone Number" required value={owner.phone} onChange={(value) => updateOwner("phone", value)} type="tel" />
@@ -526,7 +538,7 @@ export function EducationAccountForm() {
           <div className="flex flex-col gap-4 rounded-2xl border border-[#cbd5e1] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-[#0b1220]">Ready to create this account?</h2>
-              <p className="mt-2 text-sm text-[#334155]">Google login will be connected before launch; this setup form is ready for that account data.</p>
+              <p className="mt-2 text-sm text-[#334155]">This profile will be connected to your verified Agentech account email.</p>
               {message ? <p className={`mt-3 text-sm ${status === "error" ? "text-red-500" : "text-emerald-600"}`}>{message}</p> : null}
             </div>
             <button

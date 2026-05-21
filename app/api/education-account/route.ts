@@ -12,6 +12,7 @@ type ChildPayload = {
 
 type AccountPayload = {
   accountType?: "individual" | "group";
+  email?: string;
   firstName?: string;
   lastName?: string;
   phone?: string;
@@ -35,8 +36,8 @@ function validate(payload: AccountPayload) {
     return "Choose an account type.";
   }
 
-  if (!clean(payload.firstName) || !clean(payload.lastName) || !clean(payload.phone)) {
-    return "First name, last name, and phone number are required.";
+  if (!clean(payload.email) || !clean(payload.firstName) || !clean(payload.lastName) || !clean(payload.phone)) {
+    return "Account email, first name, last name, and phone number are required.";
   }
 
   if (!children.length) {

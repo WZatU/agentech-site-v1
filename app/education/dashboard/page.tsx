@@ -5,7 +5,7 @@ export default function EducationDashboardPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Agentech Education</p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Dashboard</h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
-          This dashboard will show students, classes, enrollment status, and program progress after Google login is connected.
+          This dashboard will show students, classes, enrollment status, and program progress after universal account login is connected.
         </p>
       </section>
     </main>

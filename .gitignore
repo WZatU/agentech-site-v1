@@ -8,3 +8,6 @@ dist
 .env
 .env.*
 !.env.example
+data/accounts.json
+data/verification-codes.json
+data/preorder-invoices.json
