@@ -8,10 +8,10 @@ export default function LoginPage() {
     <main className="min-h-screen bg-[#f4f6f8] px-6 py-10 text-[#0b1220] lg:px-8">
       <section className="mx-auto grid min-h-[82vh] max-w-6xl items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
         <div>
-          <Link href="/agentech-education" className="inline-flex">
+          <Link href="/" className="inline-flex">
             <Image
-              src="/assets/logo/AGENTECH-education.png"
-              alt="Agentech Education"
+              src="/assets/logo/AGENTECH.png"
+              alt="Agentech"
               width={1000}
               height={247}
               className="h-auto w-80 max-w-full"
