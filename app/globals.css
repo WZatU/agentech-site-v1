@@ -139,6 +139,28 @@ body::after {
   .logo-roll {
     animation: logoRoll 26s linear infinite;
   }
+
+  .talent-application-form,
+  .talent-application-form label,
+  .talent-application-form p,
+  .talent-application-form span,
+  .talent-application-form input,
+  .talent-application-form textarea,
+  .talent-application-form button {
+    color: #000 !important;
+    opacity: 1 !important;
+  }
+
+  .talent-application-form input::placeholder,
+  .talent-application-form textarea::placeholder {
+    color: #000 !important;
+    opacity: 1 !important;
+  }
+
+  .talent-application-form .talent-submit,
+  .talent-application-form .talent-active-choice {
+    color: #fff !important;
+  }
 }
 
 @keyframes particlePulse {

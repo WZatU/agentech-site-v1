@@ -1,16 +1,24 @@
 import Image from "next/image";
+import Link from "next/link";
 import { TechEducationForm } from "@/components/tech-education-form";
 
 export default function TechEducationPage() {
   return (
     <section className="min-h-screen bg-white px-6 py-16 text-slate-950 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
+        <Link
+          href="/talents"
+          className="mb-10 inline-flex rounded-full border border-slate-950 px-5 py-2.5 text-sm font-semibold !text-black transition hover:bg-slate-950 hover:!text-white"
+        >
+          Back to Agentech Talents
+        </Link>
+
         <div className="max-w-3xl">
-          <p className="text-sm uppercase tracking-[0.24em] text-slate-500">WORKSHOP</p>
-          <h1 className="mt-5 text-4xl font-semibold uppercase tracking-[0.14em] text-slate-950 md:text-6xl">
+          <p className="text-sm uppercase tracking-[0.24em] !text-black">WORKSHOP</p>
+          <h1 className="mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
             APPLY FOR WORKSHOP
           </h1>
-          <p className="mt-5 text-base leading-8 text-slate-600 md:text-lg">
+          <p className="mt-5 text-base leading-8 !text-black md:text-lg">
             For middle school and high school students
           </p>
         </div>

@@ -30,10 +30,15 @@ export default function TalentsPage() {
   return (
     <div className="min-h-screen bg-white text-black">
       <section className="border-b border-slate-200">
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-          <h1 className="text-4xl font-semibold uppercase tracking-[0.16em] text-slate-950 md:text-6xl">
-            Agentech Talents
-          </h1>
+        <div className="mx-auto flex max-w-7xl justify-center px-6 py-14 lg:px-8 lg:py-20">
+          <Image
+            src="/assets/logo/AGENTECH-talents.png"
+            alt="Agentech Talents"
+            width={900}
+            height={180}
+            priority
+            className="h-auto w-[min(78vw,520px)] object-contain sm:w-[min(68vw,640px)] lg:w-[min(52vw,760px)]"
+          />
         </div>
       </section>
 
@@ -57,12 +62,13 @@ export default function TalentsPage() {
           </h2>
         </div>
 
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+        <div className="mt-14">
+          <div className="mx-auto grid max-w-[420px] gap-5 lg:max-w-none lg:grid-cols-3">
           {talentPrograms.map((program) => (
             <Link
               key={program.href}
               href={program.href}
-              className="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:shadow-[0_22px_55px_rgba(15,23,42,0.14)]"
+              className="group w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:shadow-[0_22px_55px_rgba(15,23,42,0.14)]"
             >
               <div className="relative h-64 overflow-hidden">
                 <Image
@@ -87,6 +93,7 @@ export default function TalentsPage() {
               </div>
             </Link>
           ))}
+          </div>
         </div>
 
         <div className="mx-auto mt-10 max-w-3xl text-center">

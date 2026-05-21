@@ -41,10 +41,10 @@ const initialState: FormState = {
 };
 
 const fieldClass =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950";
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm !text-black outline-none transition placeholder:!text-black focus:border-slate-950";
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-medium text-slate-950">{children}</p>;
+  return <p className="text-sm font-medium !text-black">{children}</p>;
 }
 
 function ChoiceButton({
@@ -62,8 +62,8 @@ function ChoiceButton({
       onClick={onClick}
       className={`rounded-full border px-4 py-2 text-sm transition ${
         active
-          ? "border-slate-950 bg-slate-950 text-white"
-          : "border-slate-200 bg-white text-slate-600 hover:border-slate-950 hover:text-slate-950"
+          ? "talent-active-choice border-slate-950 bg-slate-950 text-white"
+          : "border-slate-300 bg-white !text-black hover:border-slate-950"
       }`}
     >
       {children}
@@ -173,7 +173,7 @@ export function SummerSchoolForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-12 space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
+    <form onSubmit={handleSubmit} className="talent-application-form mt-12 space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
       <div className="grid gap-6 md:grid-cols-2">
         <label className="space-y-2">
           <FieldLabel>Name / 姓名</FieldLabel>
@@ -236,7 +236,7 @@ export function SummerSchoolForm() {
 
         <div className="space-y-3 md:col-span-2">
           <FieldLabel>Interest / 兴趣方向</FieldLabel>
-          <p className="text-sm text-slate-500">Choose up to three / 最多选择三个</p>
+          <p className="text-sm !text-black">Choose up to three / 最多选择三个</p>
           <div className="flex flex-wrap gap-3">
             {SUMMER_SCHOOL_INTERESTS.map((interest) => (
               <ChoiceButton
@@ -302,7 +302,7 @@ export function SummerSchoolForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="talent-submit rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Sending..." : "Send Application / 提交申请"}
       </button>
