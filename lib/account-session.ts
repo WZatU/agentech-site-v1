@@ -7,6 +7,8 @@ export const accountSessionKey = "agentechAccount";
 export const legacyAccountEmailKey = "agentechAccountEmail";
 export const accountSessionEvent = "agentech-account-session-change";
 
+const accountSessionKeys = [accountSessionKey, legacyAccountEmailKey];
+
 export function getAccountSession() {
   if (typeof window === "undefined") return null;
 
@@ -43,7 +45,9 @@ export function setAccountSession(email: string) {
 }
 
 export function clearAccountSession() {
-  window.localStorage.removeItem(accountSessionKey);
-  window.localStorage.removeItem(legacyAccountEmailKey);
+  for (const key of accountSessionKeys) {
+    window.localStorage.removeItem(key);
+    window.sessionStorage.removeItem(key);
+  }
   window.dispatchEvent(new Event(accountSessionEvent));
 }

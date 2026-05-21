@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { clearAccountSession, getAccountSession } from "@/lib/account-session";
+import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { formatUsd } from "@/lib/pricing";
 
 type DashboardData = {
@@ -56,23 +57,53 @@ type DashboardData = {
 };
 
 export function AccountDashboard() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const session = getAccountSession();
-    if (!session?.email) {
-      setLoading(false);
-      return;
+    let cancelled = false;
+
+    function loadAccount() {
+      const session = getAccountSession();
+      if (!session?.email) {
+        setEmail("");
+        setData({});
+        setLoading(false);
+        return;
+      }
+
+      setEmail(session.email);
+      setLoading(true);
+      fetch(`/api/account?email=${encodeURIComponent(session.email)}`)
+        .then((response) => response.json())
+        .then((result: DashboardData) => {
+          if (!cancelled) {
+            setData(result);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setData({ error: "Unable to load account." });
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setLoading(false);
+          }
+        });
     }
 
-    setEmail(session.email);
-    fetch(`/api/account?email=${encodeURIComponent(session.email)}`)
-      .then((response) => response.json())
-      .then((result: DashboardData) => setData(result))
-      .catch(() => setData({ error: "Unable to load account." }))
-      .finally(() => setLoading(false));
+    loadAccount();
+    window.addEventListener(accountSessionEvent, loadAccount);
+    window.addEventListener("storage", loadAccount);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(accountSessionEvent, loadAccount);
+      window.removeEventListener("storage", loadAccount);
+    };
   }, []);
 
   if (loading) {
@@ -111,7 +142,10 @@ export function AccountDashboard() {
             type="button"
             onClick={() => {
               clearAccountSession();
-              window.location.href = "/login";
+              setEmail("");
+              setData({});
+              router.replace("/login?signedOut=1");
+              router.refresh();
             }}
             className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
           >

@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { clearAccountSession, getAccountSession, setAccountSession } from "@/lib/account-session";
+import { accountSessionEvent, clearAccountSession, getAccountSession, setAccountSession } from "@/lib/account-session";
 
 type AuthMode = "signin" | "signup";
 type SignupStep = "email" | "verify";
@@ -30,11 +30,22 @@ export function UniversalAuthForm() {
   const [signedInEmail, setSignedInEmail] = useState("");
 
   useEffect(() => {
-    const session = getAccountSession();
-    if (session) {
-      setSignedInEmail(session.email);
-      setEmail(session.email);
+    function refreshSession() {
+      const session = getAccountSession();
+      setSignedInEmail(session?.email ?? "");
+      if (session?.email) {
+        setEmail(session.email);
+      }
     }
+
+    refreshSession();
+    window.addEventListener(accountSessionEvent, refreshSession);
+    window.addEventListener("storage", refreshSession);
+
+    return () => {
+      window.removeEventListener(accountSessionEvent, refreshSession);
+      window.removeEventListener("storage", refreshSession);
+    };
   }, []);
 
   function rememberAndContinue(accountEmail: string) {
@@ -48,6 +59,8 @@ export function UniversalAuthForm() {
     setPassword("");
     setStatus("idle");
     setMessage("");
+    router.replace("/login?signedOut=1");
+    router.refresh();
   }
 
   async function sendCode(event: FormEvent<HTMLFormElement>) {

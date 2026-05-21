@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
@@ -10,6 +10,7 @@ import { navigation } from "@/lib/site-data";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountEmail, setAccountEmail] = useState("");
 
@@ -34,7 +35,10 @@ export function SiteHeader() {
 
   function signOut() {
     clearAccountSession();
+    setAccountEmail("");
     closeMobileNav();
+    router.replace("/login?signedOut=1");
+    router.refresh();
   }
 
   return (
