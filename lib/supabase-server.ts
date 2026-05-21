@@ -13,8 +13,10 @@ function getSupabaseConfig() {
     throw new Error("Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
   }
 
+  const normalizedUrl = url.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
+
   return {
-    url: url.replace(/\/$/, ""),
+    url: normalizedUrl,
     serviceRoleKey
   };
 }
