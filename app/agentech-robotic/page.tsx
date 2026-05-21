@@ -112,6 +112,7 @@ const accentBorder = {
 export default function AgentechRoboticPage() {
   return (
     <>
+      <div id="robotic-top" />
       <section className="border-b border-[#363d45]/70">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
           <Image
@@ -200,6 +201,14 @@ export default function AgentechRoboticPage() {
           </div>
         </div>
       </section>
+      <a
+        href="#robotic-top"
+        aria-label="Back to top"
+        className="fixed right-4 z-[60] grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-black/80 text-xl font-semibold text-white shadow-[0_16px_45px_rgba(0,0,0,0.45)] backdrop-blur transition hover:bg-white hover:text-black sm:right-6"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
+      >
+        ↑
+      </a>
     </>
   );
 }

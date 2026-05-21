@@ -15,10 +15,21 @@ type ApiResult = {
   message?: string;
 };
 
+type AccountSummaryResult = {
+  profile?: unknown;
+  children?: unknown[];
+  requests?: unknown[];
+  enrollments?: unknown[];
+  unpaidBalance?: {
+    lines?: unknown[];
+  };
+};
+
 export function UniversalAuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/account-setup";
+  const explicitNext = searchParams.get("next");
+  const next = explicitNext || "/account-setup";
   const [mode, setMode] = useState<AuthMode>("signup");
   const [signupStep, setSignupStep] = useState<SignupStep>("email");
   const [email, setEmail] = useState("");
@@ -48,9 +59,39 @@ export function UniversalAuthForm() {
     };
   }, []);
 
-  function rememberAndContinue(accountEmail: string) {
+  async function getPostAuthDestination(accountEmail: string, isNewAccount: boolean) {
+    if (explicitNext) {
+      return explicitNext;
+    }
+
+    if (isNewAccount) {
+      return "/account-setup";
+    }
+
+    try {
+      const response = await fetch(`/api/account?email=${encodeURIComponent(accountEmail)}`);
+      if (!response.ok) {
+        return "/account";
+      }
+
+      const result = (await response.json()) as AccountSummaryResult;
+      const hasAccountData = Boolean(
+        result.profile ||
+        result.children?.length ||
+        result.requests?.length ||
+        result.enrollments?.length ||
+        result.unpaidBalance?.lines?.length
+      );
+
+      return hasAccountData ? "/account" : "/account-setup";
+    } catch {
+      return "/account";
+    }
+  }
+
+  async function rememberAndContinue(accountEmail: string, isNewAccount: boolean) {
     setAccountSession(accountEmail);
-    router.push(next);
+    router.push(await getPostAuthDestination(accountEmail, isNewAccount));
   }
 
   function signOut() {
@@ -107,7 +148,7 @@ export function UniversalAuthForm() {
     }
 
     setStatus("success");
-    rememberAndContinue(result.email);
+    await rememberAndContinue(result.email, true);
   }
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
@@ -129,7 +170,7 @@ export function UniversalAuthForm() {
     }
 
     setStatus("success");
-    rememberAndContinue(result.email);
+    await rememberAndContinue(result.email, false);
   }
 
   return (
@@ -146,7 +187,11 @@ export function UniversalAuthForm() {
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
           <p className="font-semibold">Signed in as {signedInEmail}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <button type="button" onClick={() => router.push(next)} className="rounded-full bg-[#0b1220] px-5 py-2.5 text-white">
+            <button
+              type="button"
+              onClick={async () => router.push(await getPostAuthDestination(signedInEmail, false))}
+              className="rounded-full bg-[#0b1220] px-5 py-2.5 text-white"
+            >
               Continue
             </button>
             <button type="button" onClick={signOut} className="rounded-full border border-emerald-300 px-5 py-2.5 font-semibold text-emerald-950">
