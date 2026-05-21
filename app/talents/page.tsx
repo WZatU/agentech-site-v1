@@ -4,18 +4,18 @@ import { company } from "@/lib/site-data";
 
 const talentPrograms = [
   {
-    title: "Tech Education",
+    title: "Workshop",
     audience: "Middle School + High School",
     href: "/tech-education",
     image: "/assets/programs/tech-education.png",
-    alt: "Students building robotics projects in Agentech tech education"
+    alt: "Students building robotics projects in Agentech workshop"
   },
   {
-    title: "Summer School",
+    title: "AI & Robotics Club",
     audience: "High School",
     href: "/summer-school",
     image: "/assets/programs/summer-school.png",
-    alt: "Students collaborating on robotics projects during Agentech summer school"
+    alt: "Students collaborating in the Agentech AI and Robotics Club"
   },
   {
     title: "Internship",
@@ -28,10 +28,10 @@ const talentPrograms = [
 
 export default function TalentsPage() {
   return (
-    <>
-      <section className="border-b border-[#363d45]/70">
+    <div className="min-h-screen bg-white text-black">
+      <section className="border-b border-slate-200">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-          <h1 className="text-4xl font-semibold uppercase tracking-[0.16em] text-white md:text-6xl">
+          <h1 className="text-4xl font-semibold uppercase tracking-[0.16em] text-slate-950 md:text-6xl">
             Agentech Talents
           </h1>
         </div>
@@ -47,12 +47,12 @@ export default function TalentsPage() {
             className="h-auto w-full"
             priority
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/20 to-transparent" />
         </div>
 
         <div className="mx-auto mt-14 max-w-5xl text-center">
-          <p className="text-sm uppercase tracking-[0.24em] text-slate">Talent Vision</p>
-          <h2 className="mt-5 text-3xl font-semibold uppercase tracking-[0.16em] text-white md:text-5xl">
+          <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Talent Vision</p>
+          <h2 className="mt-5 text-3xl font-semibold uppercase tracking-[0.16em] text-slate-950 md:text-5xl">
             START EARLY. BUILD FOR REAL.
           </h2>
         </div>
@@ -62,7 +62,7 @@ export default function TalentsPage() {
             <Link
               key={program.href}
               href={program.href}
-              className="group overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition hover:border-white/24 hover:bg-white"
+              className="group overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:border-slate-300 hover:shadow-[0_22px_55px_rgba(15,23,42,0.14)]"
             >
               <div className="relative h-64 overflow-hidden">
                 <Image
@@ -72,16 +72,16 @@ export default function TalentsPage() {
                   sizes="(min-width: 1024px) 33vw, 100vw"
                   className="object-cover transition duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/8 to-transparent transition group-hover:from-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition group-hover:from-black/10" />
               </div>
               <div className="p-6">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate transition group-hover:text-black/55">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">
                   {program.audience}
                 </p>
-                <h3 className="mt-3 text-2xl font-semibold uppercase tracking-[0.08em] text-white transition group-hover:text-black">
+                <h3 className="mt-3 text-2xl font-semibold uppercase tracking-[0.08em] text-slate-950">
                   {program.title}
                 </h3>
-                <div className="mt-6 inline-flex rounded-full border border-white/16 px-5 py-2 text-sm font-medium text-white transition group-hover:border-black/20 group-hover:text-black">
+                <div className="mt-6 inline-flex rounded-full border border-slate-950 px-5 py-2 text-sm font-medium text-slate-950 transition group-hover:bg-slate-950 group-hover:text-white">
                   Open Form
                 </div>
               </div>
@@ -92,12 +92,12 @@ export default function TalentsPage() {
         <div className="mx-auto mt-10 max-w-3xl text-center">
           <a
             href={`mailto:${company.contactEmail}`}
-            className="mt-8 inline-flex rounded-full border border-white/16 px-8 py-3.5 text-base font-medium text-white transition hover:bg-white/8"
+            className="mt-8 inline-flex rounded-full border border-slate-950 px-8 py-3.5 text-base font-medium text-slate-950 transition hover:bg-slate-950 hover:text-white"
           >
             {company.contactEmail}
           </a>
         </div>
       </section>
-    </>
+    </div>
   );
 }

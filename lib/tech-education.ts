@@ -27,12 +27,12 @@ export type TechEducationApplication = {
 };
 
 export function buildTechEducationSubject(name: string) {
-  return `[Tech Education] - Application for ${name}`;
+  return `[Workshop] - Application for ${name}`;
 }
 
 export function buildTechEducationText(application: TechEducationApplication) {
   return [
-    "Program: Tech Education",
+    "Program: Workshop",
     `Name: ${application.name}`,
     `Email: ${application.email}`,
     `School: ${application.school}`,

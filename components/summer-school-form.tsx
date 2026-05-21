@@ -40,8 +40,11 @@ const initialState: FormState = {
   website: ""
 };
 
+const fieldClass =
+  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-slate-950";
+
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-medium text-white">{children}</p>;
+  return <p className="text-sm font-medium text-slate-950">{children}</p>;
 }
 
 function ChoiceButton({
@@ -59,8 +62,8 @@ function ChoiceButton({
       onClick={onClick}
       className={`rounded-full border px-4 py-2 text-sm transition ${
         active
-          ? "border-white bg-white text-black"
-          : "border-white/10 bg-white/[0.03] text-slate hover:border-white/20 hover:text-white"
+          ? "border-slate-950 bg-slate-950 text-white"
+          : "border-slate-200 bg-white text-slate-600 hover:border-slate-950 hover:text-slate-950"
       }`}
     >
       {children}
@@ -170,21 +173,21 @@ export function SummerSchoolForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-12 space-y-8 rounded-[32px] border border-white/10 bg-white/[0.03] p-6 md:p-8">
+    <form onSubmit={handleSubmit} className="mt-12 space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
       <div className="grid gap-6 md:grid-cols-2">
         <label className="space-y-2">
           <FieldLabel>Name / 姓名</FieldLabel>
-          <input className="field" name="name" value={form.name} onChange={(event) => updateField("name", event.target.value)} />
+          <input className={fieldClass} name="name" value={form.name} onChange={(event) => updateField("name", event.target.value)} />
         </label>
 
         <label className="space-y-2">
           <FieldLabel>Email / 邮箱</FieldLabel>
-          <input className="field" type="email" name="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} />
+          <input className={fieldClass} type="email" name="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} />
         </label>
 
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>School / 学校</FieldLabel>
-          <input className="field" name="school" value={form.school} onChange={(event) => updateField("school", event.target.value)} />
+          <input className={fieldClass} name="school" value={form.school} onChange={(event) => updateField("school", event.target.value)} />
         </label>
 
         <label className="hidden">
@@ -212,7 +215,7 @@ export function SummerSchoolForm() {
         <label className="space-y-2">
           <FieldLabel>GPA</FieldLabel>
           <input
-            className="field"
+            className={fieldClass}
             name="gpa"
             value={form.gpa}
             onChange={(event) => updateField("gpa", event.target.value)}
@@ -223,7 +226,7 @@ export function SummerSchoolForm() {
         <label className="space-y-2">
           <FieldLabel>Parent Email / 家长邮箱</FieldLabel>
           <input
-            className="field"
+            className={fieldClass}
             type="email"
             name="parentEmail"
             value={form.parentEmail}
@@ -233,7 +236,7 @@ export function SummerSchoolForm() {
 
         <div className="space-y-3 md:col-span-2">
           <FieldLabel>Interest / 兴趣方向</FieldLabel>
-          <p className="text-sm text-slate">Choose up to three / 最多选择三个</p>
+          <p className="text-sm text-slate-500">Choose up to three / 最多选择三个</p>
           <div className="flex flex-wrap gap-3">
             {SUMMER_SCHOOL_INTERESTS.map((interest) => (
               <ChoiceButton
@@ -265,7 +268,7 @@ export function SummerSchoolForm() {
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>Have you done any projects? / 你做过什么项目？</FieldLabel>
           <textarea
-            className="field min-h-32 resize-y"
+            className={`${fieldClass} min-h-32 resize-y`}
             name="projects"
             value={form.projects}
             onChange={(event) => updateField("projects", event.target.value)}
@@ -275,7 +278,7 @@ export function SummerSchoolForm() {
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>Tell us the uniqueness about you / 你觉得你特别的地方是什么？</FieldLabel>
           <textarea
-            className="field min-h-32 resize-y"
+            className={`${fieldClass} min-h-32 resize-y`}
             name="uniqueness"
             value={form.uniqueness}
             onChange={(event) => updateField("uniqueness", event.target.value)}
@@ -285,7 +288,7 @@ export function SummerSchoolForm() {
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>Notes (optional) / 备注（可选）</FieldLabel>
           <textarea
-            className="field min-h-28 resize-y"
+            className={`${fieldClass} min-h-28 resize-y`}
             name="notes"
             value={form.notes}
             onChange={(event) => updateField("notes", event.target.value)}
@@ -293,13 +296,13 @@ export function SummerSchoolForm() {
         </label>
       </div>
 
-      {error ? <p className="text-sm text-[#f2b6b6]">{error}</p> : null}
-      {success ? <p className="text-sm text-[#a9d6b6]">{success}</p> : null}
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="rounded-full bg-white px-6 py-3 text-sm font-medium text-ink transition hover:bg-mist disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Sending..." : "Send Application / 提交申请"}
       </button>

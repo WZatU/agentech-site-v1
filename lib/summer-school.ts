@@ -31,12 +31,12 @@ export type SummerSchoolApplication = {
 };
 
 export function buildSummerSchoolSubject(name: string) {
-  return `[Summer School] - Application for ${name}`;
+  return `[AI & Robotics Club] - Application for ${name}`;
 }
 
 export function buildSummerSchoolText(application: SummerSchoolApplication) {
   return [
-    "Program: Summer School",
+    "Program: AI & Robotics Club",
     `Name: ${application.name}`,
     `Email: ${application.email}`,
     `School: ${application.school}`,
