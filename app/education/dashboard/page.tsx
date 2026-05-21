@@ -1,6 +1,6 @@
 export default function EducationDashboardPage() {
   return (
-    <main className="min-h-screen bg-white px-6 py-16 text-slate-950 lg:px-8">
+    <main className="education-black min-h-screen bg-white px-6 py-16 text-black lg:px-8">
       <section className="mx-auto max-w-7xl">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Agentech Education</p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Dashboard</h1>

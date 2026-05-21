@@ -6,13 +6,6 @@ export default function CareerInternPage() {
   return (
     <section className="min-h-screen bg-white px-6 py-16 text-slate-950 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <Link
-          href="/talents"
-          className="mb-10 inline-flex rounded-full border border-slate-950 px-5 py-2.5 text-sm font-semibold !text-black transition hover:bg-slate-950 hover:!text-white"
-        >
-          Back to Agentech Talents
-        </Link>
-
         <div className="max-w-3xl">
           <p className="text-sm uppercase tracking-[0.24em] !text-black">INTERNSHIP</p>
           <h1 className="mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
@@ -36,6 +29,15 @@ export default function CareerInternPage() {
         </div>
 
         <InternshipForm />
+
+        <div className="mt-8">
+          <Link
+            href="/talents"
+            className="inline-flex rounded-full border border-slate-950 px-5 py-2.5 text-sm font-semibold !text-black transition hover:bg-slate-950 hover:!text-white"
+          >
+            Back to Agentech Talents
+          </Link>
+        </div>
       </div>
     </section>
   );

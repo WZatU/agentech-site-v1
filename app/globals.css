@@ -161,6 +161,40 @@ body::after {
   .talent-application-form .talent-active-choice {
     color: #fff !important;
   }
+
+  .education-black,
+  .education-black label,
+  .education-black p,
+  .education-black span,
+  .education-black h1,
+  .education-black h2,
+  .education-black h3,
+  .education-black input,
+  .education-black textarea,
+  .education-black select,
+  .education-black a,
+  .education-black button,
+  .education-black table,
+  .education-black th,
+  .education-black td {
+    color: #000 !important;
+    opacity: 1 !important;
+  }
+
+  .education-black input::placeholder,
+  .education-black textarea::placeholder {
+    color: #000 !important;
+    opacity: 1 !important;
+  }
+
+  .education-black [class*="bg-black"],
+  .education-black [class*="bg-black"] *,
+  .education-black [class*="bg-slate-950"],
+  .education-black [class*="bg-slate-950"] *,
+  .education-black [class*="bg-[#0b1220]"],
+  .education-black [class*="bg-[#0b1220]"] * {
+    color: #fff !important;
+  }
 }
 
 @keyframes particlePulse {

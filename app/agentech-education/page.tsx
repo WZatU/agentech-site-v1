@@ -7,7 +7,7 @@ export default async function AgentechEducationPage() {
   const childrenEnrolled = await getChildrenEnrolled();
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="education-black min-h-screen bg-white text-black">
       <section className="px-6 py-8 lg:px-8">
        <div className="mx-auto grid max-w-7xl items-center gap-6 md:grid-cols-[1fr_auto_1fr]">
           <div className="px-4 py-3 text-left">

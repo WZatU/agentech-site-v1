@@ -38,7 +38,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-white text-slate-950">
+    <main className="education-black min-h-screen bg-white text-black">
       <section className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
         <Link href="/agentech-education" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
           Back to Agentech Education
