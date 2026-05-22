@@ -71,10 +71,27 @@ const accountOptions = [
   }
 ];
 
+const gradeOptions = [
+  "Pre-K",
+  "Kindergarten",
+  "Grade 1",
+  "Grade 2",
+  "Grade 3",
+  "Grade 4",
+  "Grade 5",
+  "Grade 6",
+  "Grade 7",
+  "Grade 8",
+  "Grade 9",
+  "Grade 10",
+  "Grade 11",
+  "Grade 12"
+];
+
 const rosterTemplate = [
   "Child First Name,Child Last Name,Date of Birth,Grade,Sex,School Info,Preferred Location",
-  "Emily,Chen,2016-04-12,4,Female,Lincoln Elementary,Irvine",
-  "Jordan,Lee,2015-09-20,5,Male,Roosevelt Middle,Online"
+  "Emily,Chen,2016-04-12,Grade 4,Female,Lincoln Elementary,Irvine",
+  "Jordan,Lee,2015-09-20,Grade 5,Male,Roosevelt Middle,Online"
 ].join("\n");
 
 const rosterHeaders: Record<string, keyof ChildForm> = {
@@ -147,7 +164,52 @@ function parseCsvRows(csv: string) {
   return rows;
 }
 
-function childrenFromCsv(csv: string, limit: number) {
+function normalizeGrade(value: string) {
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, " ");
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (["pre-k", "prek", "pre k", "prekindergarten", "pre-kindergarten", "preschool"].includes(normalized)) {
+    return "Pre-K";
+  }
+
+  if (["k", "kg", "kindergarten"].includes(normalized)) {
+    return "Kindergarten";
+  }
+
+  const match = normalized.match(/(?:grade\s*)?(\d{1,2})(?:st|nd|rd|th)?/);
+  if (match) {
+    const grade = Number(match[1]);
+    if (grade >= 1 && grade <= 12) {
+      return `Grade ${grade}`;
+    }
+  }
+
+  const exact = gradeOptions.find((option) => option.toLowerCase() === normalized);
+  return exact || "";
+}
+
+function getGradeOptionsForCourse(courseCode: string) {
+  const course = courseCode ? getEducationCourseByCode(courseCode) : null;
+
+  if (course?.gradeSlug === "k-2") {
+    return ["Kindergarten", "Grade 1", "Grade 2"];
+  }
+
+  if (course?.gradeSlug === "3-5") {
+    return ["Grade 3", "Grade 4", "Grade 5"];
+  }
+
+  if (course?.gradeSlug === "6-8") {
+    return ["Grade 6", "Grade 7", "Grade 8"];
+  }
+
+  return gradeOptions;
+}
+
+function childrenFromCsv(csv: string, limit: number, allowedGrades = gradeOptions) {
   const rows = parseCsvRows(csv);
   const errors: string[] = [];
 
@@ -173,7 +235,7 @@ function childrenFromCsv(csv: string, limit: number) {
     row.forEach((cell, cellIndex) => {
       const field = headerMap[cellIndex];
       if (field) {
-        child[field] = cell.trim();
+        child[field] = field === "grade" ? normalizeGrade(cell) : cell.trim();
       }
     });
 
@@ -182,6 +244,10 @@ function childrenFromCsv(csv: string, limit: number) {
         const label = field === "dob" ? "Date of Birth" : field;
         errors.push(`Row ${rowIndex + 2} is missing ${label}.`);
       }
+    }
+
+    if (child.grade && !allowedGrades.includes(child.grade)) {
+      errors.push(`Row ${rowIndex + 2} has grade "${child.grade}", which is not available for this course.`);
     }
 
     return child;
@@ -263,14 +329,22 @@ export function EducationAccountForm() {
   const childLimit = accountType === "group" ? 100 : 6;
   const canAddChild = children.length < childLimit;
   const selectedCourse = selectedCourseCode ? getEducationCourseByCode(selectedCourseCode) : null;
+  const allowedGradeOptions = useMemo(() => getGradeOptionsForCourse(selectedCourseCode), [selectedCourseCode]);
 
   const completedRequired = useMemo(() => {
     const ownerComplete = Boolean(owner.email.trim() && owner.firstName.trim() && owner.lastName.trim() && owner.phone.trim());
     const childrenComplete = children.every((child) =>
-      Boolean(child.firstName.trim() && child.lastName.trim() && child.dob && child.grade.trim() && child.sex)
+      Boolean(
+        child.firstName.trim() &&
+          child.lastName.trim() &&
+          child.dob &&
+          child.grade.trim() &&
+          allowedGradeOptions.includes(child.grade) &&
+          child.sex
+      )
     );
     return ownerComplete && children.length > 0 && childrenComplete;
-  }, [children, owner]);
+  }, [allowedGradeOptions, children, owner]);
 
   useEffect(() => {
     const session = getAccountSession();
@@ -322,7 +396,7 @@ export function EducationAccountForm() {
                   firstName: child.first_name,
                   lastName: child.last_name,
                   dob: child.dob,
-                  grade: child.grade,
+                  grade: normalizeGrade(child.grade) || child.grade,
                   sex: child.sex,
                   schoolInfo: child.school_info || "",
                   preferredLocation: child.preferred_location || ""
@@ -369,7 +443,7 @@ export function EducationAccountForm() {
 
     try {
       const text = await file.text();
-      const result = childrenFromCsv(text, childLimit);
+      const result = childrenFromCsv(text, childLimit, allowedGradeOptions);
       setRosterErrors(result.errors);
 
       if (result.children.length) {
@@ -621,7 +695,21 @@ export function EducationAccountForm() {
                       <InputField label="First Name" required value={child.firstName} onChange={(value) => updateChild(index, "firstName", value)} />
                       <InputField label="Last Name" required value={child.lastName} onChange={(value) => updateChild(index, "lastName", value)} />
                       <InputField label="Date of Birth" required value={child.dob} onChange={(value) => updateChild(index, "dob", value)} type="date" />
-                      <InputField label="Grade" required value={child.grade} onChange={(value) => updateChild(index, "grade", value)} placeholder="Example: Grade 7" />
+                      <div className="space-y-2">
+                        <FieldLabel required>Grade</FieldLabel>
+                        <select
+                          value={child.grade}
+                          onChange={(event) => updateChild(index, "grade", event.target.value)}
+                          className="w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none transition focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+                        >
+                          <option value="">Select grade</option>
+                          {allowedGradeOptions.map((gradeOption) => (
+                            <option key={gradeOption} value={gradeOption}>
+                              {gradeOption}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="space-y-2">
                         <FieldLabel required>Sex</FieldLabel>
                         <select
