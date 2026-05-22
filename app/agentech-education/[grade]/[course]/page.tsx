@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { EducationCourseButton } from "@/components/education-course-button";
 import { educationGradePages, getEducationGradePage } from "@/lib/education-grade-pages";
 import { educationCourses, getEducationCourse } from "@/lib/education-courses";
+import { formatUsd } from "@/lib/pricing";
 
 type CoursePageProps = {
   params: Promise<{
@@ -44,7 +45,7 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
 
   const enrollNext =
     courseData.locationCode === "WALNUT"
-      ? `/account-setup?campus=walnut`
+      ? `/account-setup?campus=walnut&course=${courseData.courseCode}`
       : "/account-setup";
   const enrollHref = `/login?next=${encodeURIComponent(enrollNext)}`;
 
@@ -63,6 +64,7 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{courseData.courseCode}</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">{courseData.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">{courseData.description}</p>
+            <p className="mt-5 text-2xl font-semibold text-slate-950">{formatUsd(courseData.price)}</p>
           </div>
           <div className="flex lg:min-w-64 lg:justify-center">
             <Link

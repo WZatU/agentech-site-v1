@@ -35,7 +35,7 @@ export const educationCourses: EducationCourse[] = [
     classTime: "2026 Summer",
     startingDate: "2026-06-01",
     ageRange: "Grades K-2",
-    price: 0,
+    price: 499,
     flyerImage: "/assets/class advertisements/Flyers/k-2 eng.png"
   }
 ];

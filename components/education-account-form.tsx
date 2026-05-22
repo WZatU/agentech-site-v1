@@ -257,6 +257,7 @@ export function EducationAccountForm() {
   const [message, setMessage] = useState("");
   const [rosterStatus, setRosterStatus] = useState("");
   const [rosterErrors, setRosterErrors] = useState<string[]>([]);
+  const [selectedCourseCode, setSelectedCourseCode] = useState("");
 
   const childLimit = accountType === "group" ? 100 : 6;
   const canAddChild = children.length < childLimit;
@@ -273,6 +274,10 @@ export function EducationAccountForm() {
     const session = getAccountSession();
     const params = new URLSearchParams(window.location.search);
     const preferredCampus = params.get("campus")?.toLowerCase() === "walnut" ? "Walnut" : "";
+    const courseCode = params.get("course")?.toUpperCase() || "";
+    if (courseCode) {
+      setSelectedCourseCode(courseCode);
+    }
 
     function applyPreferredCampus(currentChildren: ChildForm[]) {
       if (!preferredCampus) {
@@ -396,6 +401,28 @@ export function EducationAccountForm() {
       const result = (await response.json()) as { error?: string; childrenEnrolled?: number };
       if (!response.ok) {
         throw new Error(result.error || "Unable to create account.");
+      }
+
+      if (selectedCourseCode && owner.email) {
+        const courseResponse = await fetch("/api/education-course", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            courseCode: selectedCourseCode,
+            email: owner.email
+          })
+        });
+        const courseResult = (await courseResponse.json()) as { error?: string; message?: string };
+
+        if (!courseResponse.ok) {
+          throw new Error(courseResult.error || "Profile saved, but course invoice could not be created.");
+        }
+
+        setStatus("success");
+        setMessage(`Profile saved. ${courseResult.message || "Course invoice email requested."}`);
+        return;
       }
 
       setStatus("success");
