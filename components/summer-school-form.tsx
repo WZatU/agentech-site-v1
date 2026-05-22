@@ -41,10 +41,14 @@ const initialState: FormState = {
 };
 
 const fieldClass =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm !text-black outline-none transition placeholder:!text-black focus:border-slate-950";
+  "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm !text-black outline-none transition placeholder:!text-black focus:border-slate-950 focus:ring-4 focus:ring-slate-200";
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm font-medium !text-black">{children}</p>;
+function FieldLabel({ children, required = true }: { children: React.ReactNode; required?: boolean }) {
+  return (
+    <p className="text-sm font-semibold !text-black">
+      {children} {required ? <span className="text-red-600">*</span> : null}
+    </p>
+  );
 }
 
 function ChoiceButton({
@@ -60,10 +64,10 @@ function ChoiceButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-4 py-2 text-sm transition ${
+      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
         active
           ? "talent-active-choice border-slate-950 bg-slate-950 text-white"
-          : "border-slate-300 bg-white !text-black hover:border-slate-950"
+          : "talent-muted-choice border-red-500 bg-red-50 text-red-600 hover:bg-red-100"
       }`}
     >
       {children}
@@ -173,8 +177,8 @@ export function SummerSchoolForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="talent-application-form mt-12 space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
-      <div className="grid gap-6 md:grid-cols-2">
+    <form onSubmit={handleSubmit} className="talent-application-form mt-12 w-full space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <label className="space-y-2">
           <FieldLabel>Name / 姓名</FieldLabel>
           <input className={fieldClass} name="name" value={form.name} onChange={(event) => updateField("name", event.target.value)} />
@@ -192,13 +196,7 @@ export function SummerSchoolForm() {
 
         <label className="hidden">
           Website
-          <input
-            tabIndex={-1}
-            autoComplete="off"
-            name="website"
-            value={form.website}
-            onChange={(event) => updateField("website", event.target.value)}
-          />
+          <input tabIndex={-1} autoComplete="off" name="website" value={form.website} onChange={(event) => updateField("website", event.target.value)} />
         </label>
 
         <div className="space-y-3 md:col-span-2">
@@ -214,24 +212,12 @@ export function SummerSchoolForm() {
 
         <label className="space-y-2">
           <FieldLabel>GPA</FieldLabel>
-          <input
-            className={fieldClass}
-            name="gpa"
-            value={form.gpa}
-            onChange={(event) => updateField("gpa", event.target.value)}
-            placeholder="e.g. 3.8 / 4.0"
-          />
+          <input className={fieldClass} name="gpa" value={form.gpa} onChange={(event) => updateField("gpa", event.target.value)} placeholder="e.g. 3.8 / 4.0" />
         </label>
 
         <label className="space-y-2">
           <FieldLabel>Parent Email / 家长邮箱</FieldLabel>
-          <input
-            className={fieldClass}
-            type="email"
-            name="parentEmail"
-            value={form.parentEmail}
-            onChange={(event) => updateField("parentEmail", event.target.value)}
-          />
+          <input className={fieldClass} type="email" name="parentEmail" value={form.parentEmail} onChange={(event) => updateField("parentEmail", event.target.value)} />
         </label>
 
         <div className="space-y-3 md:col-span-2">
@@ -239,11 +225,7 @@ export function SummerSchoolForm() {
           <p className="text-sm !text-black">Choose up to three / 最多选择三个</p>
           <div className="flex flex-wrap gap-3">
             {SUMMER_SCHOOL_INTERESTS.map((interest) => (
-              <ChoiceButton
-                key={interest}
-                active={form.interests.includes(interest)}
-                onClick={() => toggleInterest(interest)}
-              >
+              <ChoiceButton key={interest} active={form.interests.includes(interest)} onClick={() => toggleInterest(interest)}>
                 {interest}
               </ChoiceButton>
             ))}
@@ -254,11 +236,7 @@ export function SummerSchoolForm() {
           <FieldLabel>Experience / 经验基础</FieldLabel>
           <div className="flex flex-wrap gap-3">
             {SUMMER_SCHOOL_EXPERIENCE.map((experience) => (
-              <ChoiceButton
-                key={experience}
-                active={form.experience === experience}
-                onClick={() => updateField("experience", experience)}
-              >
+              <ChoiceButton key={experience} active={form.experience === experience} onClick={() => updateField("experience", experience)}>
                 {experience}
               </ChoiceButton>
             ))}
@@ -267,44 +245,29 @@ export function SummerSchoolForm() {
 
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>Have you done any projects? / 你做过什么项目？</FieldLabel>
-          <textarea
-            className={`${fieldClass} min-h-32 resize-y`}
-            name="projects"
-            value={form.projects}
-            onChange={(event) => updateField("projects", event.target.value)}
-          />
+          <textarea className={`${fieldClass} min-h-32 resize-y`} name="projects" value={form.projects} onChange={(event) => updateField("projects", event.target.value)} />
         </label>
 
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>Tell us the uniqueness about you / 你觉得你特别的地方是什么？</FieldLabel>
-          <textarea
-            className={`${fieldClass} min-h-32 resize-y`}
-            name="uniqueness"
-            value={form.uniqueness}
-            onChange={(event) => updateField("uniqueness", event.target.value)}
-          />
+          <textarea className={`${fieldClass} min-h-32 resize-y`} name="uniqueness" value={form.uniqueness} onChange={(event) => updateField("uniqueness", event.target.value)} />
         </label>
 
         <label className="space-y-2 md:col-span-2">
-          <FieldLabel>Notes (optional) / 备注（可选）</FieldLabel>
-          <textarea
-            className={`${fieldClass} min-h-28 resize-y`}
-            name="notes"
-            value={form.notes}
-            onChange={(event) => updateField("notes", event.target.value)}
-          />
+          <FieldLabel required={false}>Notes (optional) / 备注（可选）</FieldLabel>
+          <textarea className={`${fieldClass} min-h-28 resize-y`} name="notes" value={form.notes} onChange={(event) => updateField("notes", event.target.value)} />
         </label>
       </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+      {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
+      {success ? <p className="text-sm font-semibold text-emerald-700">{success}</p> : null}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="talent-submit rounded-full bg-slate-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="talent-submit inline-flex w-full justify-center rounded-full bg-slate-950 px-7 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
-        {isSubmitting ? "Sending..." : "Send Application / 提交申请"}
+        {isSubmitting ? "Sending..." : "Submit Application / 提交申请"}
       </button>
     </form>
   );

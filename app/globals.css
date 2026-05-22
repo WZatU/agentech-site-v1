@@ -162,6 +162,19 @@ body::after {
     color: #fff !important;
   }
 
+  .talent-application-form .talent-muted-choice {
+    color: #dc2626 !important;
+  }
+
+  .talent-application-form span.text-red-600,
+  .talent-application-form p.text-red-600 {
+    color: #dc2626 !important;
+  }
+
+  .talent-application-form p.text-emerald-700 {
+    color: #047857 !important;
+  }
+
   .education-black,
   .education-black label,
   .education-black p,
