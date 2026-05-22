@@ -14,6 +14,8 @@ export type EducationCourse = {
   classTime: string;
   startingDate: string;
   ageRange: string;
+  minAge: number;
+  maxAge: number;
   price: number;
   flyerImage: string;
   detailFlyerImages?: string[];
@@ -36,6 +38,8 @@ export const educationCourses: EducationCourse[] = [
     classTime: "2026 Summer",
     startingDate: "2026-06-01",
     ageRange: "Grades K-2",
+    minAge: 5,
+    maxAge: 8,
     price: 499,
     flyerImage: "/assets/class advertisements/Flyers/k-2 eng.png"
   },
@@ -55,6 +59,8 @@ export const educationCourses: EducationCourse[] = [
     classTime: "2026 Summer",
     startingDate: "2026-06-01",
     ageRange: "Grades 3-5",
+    minAge: 9,
+    maxAge: 11,
     price: 499,
     flyerImage: "/assets/class advertisements/Flyers/3-5.png"
   },
@@ -74,6 +80,8 @@ export const educationCourses: EducationCourse[] = [
     classTime: "2026 Summer",
     startingDate: "2026-06-01",
     ageRange: "Grades 6-8",
+    minAge: 11,
+    maxAge: 14,
     price: 699,
     flyerImage: "/assets/class advertisements/Flyers/6-8.png",
     detailFlyerImages: [

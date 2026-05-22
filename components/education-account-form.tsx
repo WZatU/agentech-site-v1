@@ -657,8 +657,14 @@ export function EducationAccountForm() {
 
           <div className="flex flex-col gap-4 rounded-2xl border border-[#cbd5e1] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-[#0b1220]">Ready to create this account?</h2>
-              <p className="mt-2 text-sm text-[#334155]">This profile will be connected to your verified Agentech account email.</p>
+              <h2 className="text-xl font-semibold text-[#0b1220]">
+                {selectedCourseCode ? "Ready to continue enrollment?" : "Ready to create this account?"}
+              </h2>
+              <p className="mt-2 text-sm text-[#334155]">
+                {selectedCourseCode
+                  ? "Save the student information first, then choose the student for this course."
+                  : "This profile will be connected to your verified Agentech account email."}
+              </p>
               {message ? <p className={`mt-3 text-sm ${status === "error" ? "text-red-500" : "text-emerald-600"}`}>{message}</p> : null}
             </div>
             <button
@@ -667,7 +673,7 @@ export function EducationAccountForm() {
               disabled={!completedRequired || status === "saving"}
               className="rounded-full bg-[#0b1220] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#1f2937] disabled:cursor-not-allowed disabled:bg-[#cbd5e1]"
             >
-              {status === "saving" ? "Creating..." : "Create Account"}
+              {status === "saving" ? "Saving..." : selectedCourseCode ? "Save Student and Continue to Enroll" : "Create Account"}
             </button>
           </div>
         </div>

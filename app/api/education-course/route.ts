@@ -11,6 +11,24 @@ type EducationCoursePayload = {
   childId?: number;
 };
 
+function getAgeOnDate(dob: string, date: string) {
+  const birthDate = new Date(`${dob}T00:00:00`);
+  const targetDate = new Date(`${date}T00:00:00`);
+
+  if (Number.isNaN(birthDate.getTime()) || Number.isNaN(targetDate.getTime())) {
+    return null;
+  }
+
+  let age = targetDate.getFullYear() - birthDate.getFullYear();
+  const birthdayThisYear = new Date(targetDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+
+  if (targetDate < birthdayThisYear) {
+    age -= 1;
+  }
+
+  return age;
+}
+
 async function upsertCourse(course: NonNullable<ReturnType<typeof getEducationCourseByCode>>) {
   await supabaseRequest<null>("agentech_course_locations", {
     method: "POST",
@@ -66,13 +84,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a student before enrolling." }, { status: 400 });
   }
 
-  const children = await supabaseRequest<Array<{ id: number; first_name: string; last_name: string }>>("agentech_children", {
-    query: `id=eq.${childId}&parent_email=eq.${encodeURIComponent(email)}&select=id,first_name,last_name&limit=1`
+  const children = await supabaseRequest<Array<{ id: number; first_name: string; last_name: string; dob: string; grade: string }>>("agentech_children", {
+    query: `id=eq.${childId}&parent_email=eq.${encodeURIComponent(email)}&select=id,first_name,last_name,dob,grade&limit=1`
   }).catch(() => []);
   const child = children[0];
 
   if (!child) {
     return NextResponse.json({ error: "Add at least one student before enrolling in a course." }, { status: 400 });
+  }
+
+  const childAge = getAgeOnDate(child.dob, course.startingDate);
+  if (childAge === null || childAge < course.minAge || childAge > course.maxAge) {
+    return NextResponse.json(
+      {
+        error: `${child.first_name} is not in the age range for ${course.title}. ${course.ageRange} is for ages ${course.minAge}-${course.maxAge}.`
+      },
+      { status: 400 }
+    );
   }
 
   const existingItems = await supabaseRequest<Array<{ id: number }>>("agentech_invoice_items", {
