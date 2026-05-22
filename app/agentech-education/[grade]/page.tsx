@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EducationCourseButton } from "@/components/education-course-button";
+import { getEducationCoursesByGrade } from "@/lib/education-courses";
 import { educationGradePages, getEducationGradePage } from "@/lib/education-grade-pages";
 
 type GradePageProps = {
@@ -37,6 +39,8 @@ export default async function EducationGradePage({ params }: GradePageProps) {
     notFound();
   }
 
+  const courses = getEducationCoursesByGrade(page.slug);
+
   return (
     <main className="education-black min-h-screen bg-white text-black">
       <section className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
@@ -50,9 +54,11 @@ export default async function EducationGradePage({ params }: GradePageProps) {
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">
               {page.title}
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 md:text-lg">
-              {page.subtitle}
-            </p>
+            <div className="mt-5 max-w-2xl space-y-5 text-base leading-8 text-slate-700 md:text-lg">
+              {page.subtitle.split("\n\n").map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
             <Link
               href="/login?next=/account-setup"
               className="mt-8 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -72,6 +78,42 @@ export default async function EducationGradePage({ params }: GradePageProps) {
             />
           </div>
         </div>
+
+        {courses.length ? (
+          <div className="mt-14 border-t border-slate-200 pt-10">
+            <div className="mb-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Available Courses</p>
+              <h2 className="mt-3 text-3xl font-semibold text-slate-950">Course Flyers</h2>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {courses.map((course) => (
+                <article key={course.courseCode} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_16px_45px_rgba(15,23,42,0.08)]">
+                  <Link href={`/agentech-education/${page.slug}/${course.slug}`} className="group block">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                      <Image
+                        src={course.flyerImage}
+                        alt={`${course.title} flyer`}
+                        fill
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <p className="text-sm font-semibold text-slate-500">{course.courseCode}</p>
+                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
+                      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
+                    </div>
+                  </Link>
+                  <div className="border-t border-slate-200 p-6">
+                    <EducationCourseButton courseCode={course.courseCode} />
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
     </main>
   );

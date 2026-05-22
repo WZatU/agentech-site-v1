@@ -2,8 +2,9 @@ export const educationGradePages = [
   {
     slug: "k-2",
     grade: "Grade K-2",
-    title: "K-2 AI & Robotics Foundations",
-    subtitle: "Early builders explore robotics, logic, creativity, and teamwork.",
+    title: "AI Imagination Summer Camp",
+    subtitle:
+      "Give your child a head start in the world of AI through fun, hands-on learning designed just for Grades K-2! At AI Imagination Summer Camp, young builders will explore creativity, problem-solving, and technology through exciting projects, interactive activities, and beginner-friendly AI adventures in a small, supportive classroom environment.\n\nSpots are limited - ignite your child's imagination this summer and help them become tomorrow's future-ready innovator!",
     image: "/assets/class advertisements/k-2 homepage.png",
     flyerImage: "/assets/class advertisements/Flyers/k-2.png?v=20260521"
   },
