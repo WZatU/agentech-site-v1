@@ -4,8 +4,8 @@ export const educationGradePages = [
     grade: "Grade K-2",
     title: "K-2 AI & Robotics Foundations",
     subtitle: "Early builders explore robotics, logic, creativity, and teamwork.",
-    image: "/assets/class advertisements/k-2.png",
-    flyerImage: "/assets/class advertisements/Flyers/k-2.png"
+    image: "/assets/class advertisements/Flyers/k-2.png?v=20260521",
+    flyerImage: "/assets/class advertisements/Flyers/k-2.png?v=20260521"
   },
   {
     slug: "3-5",
