@@ -159,11 +159,25 @@ body::after {
 
   .talent-application-form .talent-submit,
   .talent-application-form .talent-active-choice {
+    background: #000 !important;
+    border-color: #000 !important;
     color: #fff !important;
+    opacity: 1 !important;
   }
 
   .talent-application-form .talent-muted-choice {
+    background: #fef2f2 !important;
+    border-color: #dc2626 !important;
     color: #dc2626 !important;
+    opacity: 1 !important;
+  }
+
+  .talent-application-form .talent-submit {
+    display: inline-flex !important;
+    min-height: 52px;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
   }
 
   .talent-application-form span.text-red-600,
