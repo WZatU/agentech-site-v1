@@ -41,6 +41,29 @@ export function SiteHeader() {
     router.refresh();
   }
 
+  function getLoginHref() {
+    if (pathname.startsWith("/agentech-education")) {
+      return "/login?next=/account-setup";
+    }
+
+    if (pathname.startsWith("/agentech-robotic") || pathname.startsWith("/preorder")) {
+      return "/login?next=/account";
+    }
+
+    if (
+      pathname.startsWith("/talents") ||
+      pathname.startsWith("/tech-education") ||
+      pathname.startsWith("/summer-school") ||
+      pathname.startsWith("/career-intern")
+    ) {
+      return "/login?next=/talents";
+    }
+
+    return "/login";
+  }
+
+  const loginHref = getLoginHref();
+
   return (
     <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/75 backdrop-blur-xl">
       <div className="mx-auto flex h-full w-full max-w-7xl flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -161,7 +184,7 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link href="/login" className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
+            <Link href={loginHref} className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
               Sign In
             </Link>
           )}
@@ -224,7 +247,7 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link href="/login" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
+            <Link href={loginHref} onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
               Sign In
             </Link>
           )}

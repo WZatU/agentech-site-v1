@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { INTERNSHIP_ROLE_INTERESTS, type InternshipRoleInterest } from "@/lib/internship";
+import { getAccountSession } from "@/lib/account-session";
 
 type FormState = {
   name: string;
@@ -71,6 +73,7 @@ function ChoiceButton({
 }
 
 export function InternshipForm() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -143,6 +146,13 @@ export function InternshipForm() {
     setError("");
     setSuccess("");
 
+    const session = getAccountSession();
+
+    if (!session?.email) {
+      router.push("/login?next=/talents");
+      return;
+    }
+
     const validationError = validate();
 
     if (validationError) {
@@ -165,6 +175,7 @@ export function InternshipForm() {
       body.set("whyAgentech", form.whyAgentech);
       body.set("notes", form.notes);
       body.set("website", form.website);
+      body.set("accountEmail", session.email);
       body.set("startedAt", String(startedAt));
       form.roleInterests.forEach((interest) => body.append("roleInterests", interest));
 

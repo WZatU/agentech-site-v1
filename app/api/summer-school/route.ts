@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
+import { accountExists, saveTalentApplication } from "@/lib/talent-applications";
 import {
   SUMMER_SCHOOL_EXPERIENCE,
   SUMMER_SCHOOL_GRADES,
@@ -19,6 +20,7 @@ const MIN_FORM_FILL_MS = 3_000;
 const recentSubmissions = new Map<string, number>();
 
 type SummerSchoolPayload = {
+  accountEmail?: string;
   name?: string;
   email?: string;
   school?: string;
@@ -168,7 +170,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, message: validation.error }, { status: 400 });
   }
 
+  const accountEmail = clean(payload.accountEmail, 160).toLowerCase();
+
+  if (!accountEmail || !isEmail(accountEmail) || !(await accountExists(accountEmail))) {
+    return NextResponse.json(
+      { ok: false, message: "Please sign in to your Agentech account before submitting this form." },
+      { status: 401 }
+    );
+  }
+
   recentSubmissions.set(clientKey, Date.now());
+
+  await saveTalentApplication({
+    accountEmail,
+    programType: "ai_robotics_club",
+    applicantName: validation.data.name,
+    applicantEmail: validation.data.email,
+    parentEmail: validation.data.parentEmail,
+    school: validation.data.school,
+    grade: validation.data.grade,
+    formData: validation.data
+  });
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(validation.data, receiverEmail);

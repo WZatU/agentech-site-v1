@@ -54,7 +54,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
               {page.subtitle}
             </p>
             <Link
-              href="/login"
+              href="/login?next=/account-setup"
               className="mt-8 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               Parent Login

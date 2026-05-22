@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
+import { accountExists, saveTalentApplication } from "@/lib/talent-applications";
 import {
   INTERNSHIP_ROLE_INTERESTS,
   buildInternshipSubject,
@@ -168,6 +169,14 @@ export async function POST(request: NextRequest) {
 
   const formData = await request.formData();
   const resume = formData.get("resume");
+  const accountEmail = clean(formData.get("accountEmail"), 160).toLowerCase();
+
+  if (!accountEmail || !isEmail(accountEmail) || !(await accountExists(accountEmail))) {
+    return NextResponse.json(
+      { ok: false, message: "Please sign in to your Agentech account before submitting this form." },
+      { status: 401 }
+    );
+  }
 
   if (!(resume instanceof File)) {
     return NextResponse.json({ ok: false, message: "Please upload your resume." }, { status: 400 });
@@ -192,6 +201,17 @@ export async function POST(request: NextRequest) {
   }
 
   recentSubmissions.set(clientKey, Date.now());
+
+  await saveTalentApplication({
+    accountEmail,
+    programType: "internship",
+    applicantName: application.data.name,
+    applicantEmail: application.data.email,
+    school: application.data.organization,
+    grade: application.data.graduationYear,
+    formData: application.data,
+    resumeFilename: application.data.resumeFilename
+  });
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(application.data, receiverEmail, resume);

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAccountSession } from "@/lib/account-session";
 import {
   SUMMER_SCHOOL_EXPERIENCE,
   SUMMER_SCHOOL_GRADES,
@@ -76,6 +78,7 @@ function ChoiceButton({
 }
 
 export function SummerSchoolForm() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -128,6 +131,13 @@ export function SummerSchoolForm() {
     setError("");
     setSuccess("");
 
+    const session = getAccountSession();
+
+    if (!session?.email) {
+      router.push("/login?next=/talents");
+      return;
+    }
+
     const validationError = validate();
 
     if (validationError) {
@@ -145,6 +155,7 @@ export function SummerSchoolForm() {
         },
         body: JSON.stringify({
           ...form,
+          accountEmail: session.email,
           startedAt
         })
       });
