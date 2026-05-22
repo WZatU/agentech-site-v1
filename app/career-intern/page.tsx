@@ -8,7 +8,7 @@ export default function CareerInternPage() {
       <div className="mx-auto max-w-7xl">
         <Link
           href="/talents"
-          className="mb-10 inline-flex rounded-full border border-slate-950 px-5 py-2.5 text-sm font-semibold !text-black transition hover:bg-slate-950 hover:!text-white"
+          className="talent-back-button mb-10 inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
         >
           Back to Agentech Talents
         </Link>
@@ -40,7 +40,7 @@ export default function CareerInternPage() {
         <div className="mt-8">
           <Link
             href="/talents"
-            className="inline-flex rounded-full border border-slate-950 px-5 py-2.5 text-sm font-semibold !text-black transition hover:bg-slate-950 hover:!text-white"
+            className="talent-back-button inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
           >
             Back to Agentech Talents
           </Link>
