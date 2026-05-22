@@ -8,6 +8,7 @@ import { supabaseRequest } from "@/lib/supabase-server";
 type EducationCoursePayload = {
   courseCode?: string;
   email?: string;
+  childId?: number;
 };
 
 async function upsertCourse(course: NonNullable<ReturnType<typeof getEducationCourseByCode>>) {
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as EducationCoursePayload | null;
   const email = normalizeEmail(payload?.email);
   const courseCode = (payload?.courseCode || "").trim().toUpperCase();
+  const childId = Number(payload?.childId);
   const course = getEducationCourseByCode(courseCode);
 
   if (!course) {
@@ -60,8 +62,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please sign in before adding this course." }, { status: 401 });
   }
 
+  if (!Number.isInteger(childId) || childId <= 0) {
+    return NextResponse.json({ error: "Choose a student before enrolling." }, { status: 400 });
+  }
+
+  const children = await supabaseRequest<Array<{ id: number; first_name: string; last_name: string }>>("agentech_children", {
+    query: `id=eq.${childId}&parent_email=eq.${encodeURIComponent(email)}&select=id,first_name,last_name&limit=1`
+  }).catch(() => []);
+  const child = children[0];
+
+  if (!child) {
+    return NextResponse.json({ error: "Add at least one student before enrolling in a course." }, { status: 400 });
+  }
+
   const existingItems = await supabaseRequest<Array<{ id: number }>>("agentech_invoice_items", {
-    query: `email=eq.${encodeURIComponent(email)}&source_type=eq.course&source_id=eq.${encodeURIComponent(course.courseCode)}&paid=eq.false&select=id&limit=1`
+    query: `email=eq.${encodeURIComponent(email)}&source_type=eq.course&source_id=eq.${encodeURIComponent(course.courseCode)}&child_id=eq.${childId}&paid=eq.false&select=id&limit=1`
   }).catch(() => []);
 
   if (existingItems.length) {
@@ -77,8 +92,9 @@ export async function POST(request: Request) {
     email,
     sourceType: "course",
     sourceId: course.courseCode,
-    itemName: `${course.title} (${course.courseCode})`,
-    amount: course.price
+    itemName: `${course.title} (${course.courseCode}) for ${child.first_name} ${child.last_name}`.trim(),
+    amount: course.price,
+    childId
   });
 
   await sendUnpaidBalanceInvoice(email, `COURSE-${course.courseCode}-${Date.now().toString().slice(-6)}`).catch(() => null);

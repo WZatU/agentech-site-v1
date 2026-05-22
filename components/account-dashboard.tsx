@@ -61,6 +61,7 @@ export function AccountDashboard() {
   const [email, setEmail] = useState("");
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
+  const [actionMessage, setActionMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +106,27 @@ export function AccountDashboard() {
       window.removeEventListener("storage", loadAccount);
     };
   }, []);
+
+  async function removeUnpaidItem(itemId: string) {
+    if (!email) return;
+
+    setActionMessage("");
+    const response = await fetch("/api/invoice-item", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, itemId })
+    });
+
+    if (!response.ok) {
+      setActionMessage("Unable to remove that item.");
+      return;
+    }
+
+    setActionMessage("Item removed.");
+    const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
+    const result = (await accountResponse.json()) as DashboardData;
+    setData(result);
+  }
 
   if (loading) {
     return <p className="text-slate">Loading account...</p>;
@@ -155,13 +177,30 @@ export function AccountDashboard() {
       </section>
 
       <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
-        <h2 className="text-2xl font-semibold text-white">Unpaid Balance Items</h2>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-2xl font-semibold text-white">Unpaid Balance Items</h2>
+          <Link href="/agentech-education" className="text-sm font-semibold text-accent">
+            Add Course
+          </Link>
+        </div>
+        {actionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{actionMessage}</p> : null}
         <div className="mt-5 space-y-3">
           {data.unpaidBalance?.lines.length ? (
             data.unpaidBalance.lines.map((line) => (
               <div key={line.id} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="font-semibold text-white">{line.itemName}</p>
-                <p className="text-sm font-semibold text-accent">{formatUsd(line.amount)}</p>
+                <div>
+                  <p className="font-semibold text-white">{line.itemName}</p>
+                  <p className="mt-1 text-sm font-semibold text-accent">{formatUsd(line.amount)}</p>
+                </div>
+                {line.id.startsWith("item-") ? (
+                  <button
+                    type="button"
+                    onClick={() => removeUnpaidItem(line.id)}
+                    className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Remove
+                  </button>
+                ) : null}
               </div>
             ))
           ) : (

@@ -96,7 +96,7 @@ export async function POST(request: Request) {
     account_type: payload.accountType ?? null
   });
 
-  await replaceChildren(
+  const savedChildren = await replaceChildren(
     email,
     children.map((child) => ({
       first_name: clean(child.firstName),
@@ -115,6 +115,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    childrenEnrolled
+    childrenEnrolled,
+    children: savedChildren
   });
 }

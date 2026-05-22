@@ -5,6 +5,7 @@ import { educationGradePages } from "@/lib/education-grade-pages";
 
 export default async function AgentechEducationPage() {
   const childrenEnrolled = await getChildrenEnrolled();
+  const visibleGradePages = educationGradePages.filter((page) => page.slug !== "9-12");
 
   return (
     <div className="education-black min-h-screen bg-white text-black">
@@ -39,8 +40,8 @@ export default async function AgentechEducationPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="-mx-4 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:overflow-visible lg:px-0 lg:pb-0">
-          <div className="flex min-w-max gap-4 lg:grid lg:min-w-0 lg:grid-cols-4 lg:gap-5">
-            {educationGradePages.map((advertisement) => (
+          <div className="flex min-w-max gap-4 lg:grid lg:min-w-0 lg:grid-cols-3 lg:gap-5">
+            {visibleGradePages.map((advertisement) => (
               <Link
                 key={advertisement.slug}
                 href={`/agentech-education/${advertisement.slug}`}

@@ -407,24 +407,9 @@ export function EducationAccountForm() {
       }
 
       if (selectedCourseCode && owner.email) {
-        const courseResponse = await fetch("/api/education-course", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            courseCode: selectedCourseCode,
-            email: owner.email
-          })
-        });
-        const courseResult = (await courseResponse.json()) as { error?: string; message?: string };
-
-        if (!courseResponse.ok) {
-          throw new Error(courseResult.error || "Profile saved, but course invoice could not be created.");
-        }
-
         setStatus("success");
-        setMessage(`Profile saved. ${courseResult.message || "Course invoice email requested."}`);
+        setMessage("Profile saved. Choose which student to enroll next.");
+        window.location.href = `/enroll?course=${encodeURIComponent(selectedCourseCode)}`;
         return;
       }
 
