@@ -4,15 +4,8 @@ import { company } from "@/lib/site-data";
 
 const talentPrograms = [
   {
-    title: "Workshop",
-    audience: "Middle School + High School",
-    href: "/tech-education",
-    image: "/assets/programs/tech-education.png",
-    alt: "Students building robotics projects in Agentech workshop"
-  },
-  {
     title: "AI & Robotics Club",
-    audience: "High School",
+    audience: "Middle School - High School and College",
     href: "/summer-school",
     image: "/assets/programs/summer-school.png",
     alt: "Students collaborating in the Agentech AI and Robotics Club"
@@ -23,6 +16,13 @@ const talentPrograms = [
     href: "/career-intern",
     image: "/assets/programs/internship.png",
     alt: "Agentech internship team collaborating on embodied robotics systems"
+  },
+  {
+    title: "Workshop",
+    audience: "Adults",
+    href: "/tech-education",
+    image: "/assets/programs/tech-education.png",
+    alt: "Students building robotics projects in Agentech workshop"
   }
 ] as const;
 
