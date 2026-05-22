@@ -40,6 +40,25 @@ export function UniversalAuthForm() {
   const [devCode, setDevCode] = useState("");
   const [signedInEmail, setSignedInEmail] = useState("");
 
+  function getNewAccountDestination() {
+    if (!explicitNext) {
+      return "/account-setup";
+    }
+
+    const target = new URL(explicitNext, window.location.origin);
+    if (target.pathname === "/enroll") {
+      const courseCode = target.searchParams.get("course");
+      const params = new URLSearchParams();
+      if (courseCode) {
+        params.set("course", courseCode);
+      }
+      params.set("campus", "walnut");
+      return `/account-setup?${params.toString()}`;
+    }
+
+    return explicitNext;
+  }
+
   useEffect(() => {
     function refreshSession() {
       const session = getAccountSession();
@@ -60,12 +79,12 @@ export function UniversalAuthForm() {
   }, []);
 
   async function getPostAuthDestination(accountEmail: string, isNewAccount: boolean) {
-    if (explicitNext) {
+    if (explicitNext && !isNewAccount) {
       return explicitNext;
     }
 
     if (isNewAccount) {
-      return "/account-setup";
+      return getNewAccountDestination();
     }
 
     try {

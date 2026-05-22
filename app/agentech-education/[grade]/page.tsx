@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EducationCourseButton } from "@/components/education-course-button";
 import { getEducationCoursesByGrade } from "@/lib/education-courses";
 import { educationGradePages, getEducationGradePage } from "@/lib/education-grade-pages";
 import { formatUsd } from "@/lib/pricing";
@@ -101,24 +102,22 @@ export default async function EducationGradePage({ params }: GradePageProps) {
                         className="object-cover transition duration-500 group-hover:scale-[1.03]"
                       />
                     </div>
-                    <div className="grid gap-5 p-6 sm:grid-cols-[1fr_auto] sm:items-end">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-500">{course.courseCode}</p>
-                        <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
-                        <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
-                        <p className="mt-4 text-xl font-semibold text-slate-950">{formatUsd(course.price)}</p>
-                        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
-                      </div>
-                      <Link
-                        href={`/login?next=${encodeURIComponent(
-                          course.locationCode === "WALNUT" ? `/account-setup?campus=walnut&course=${course.courseCode}` : "/account-setup"
-                        )}`}
-                        className="education-enroll-button inline-flex justify-center whitespace-nowrap rounded-full px-6 py-3 text-sm font-semibold transition"
-                      >
-                        Enroll Now
-                      </Link>
-                    </div>
                   </Link>
+                  <div className="grid gap-5 p-6 sm:grid-cols-[1fr_auto] sm:items-end">
+                    <Link href={`/agentech-education/${page.slug}/${course.slug}`} className="block">
+                      <p className="text-sm font-semibold text-slate-500">{course.courseCode}</p>
+                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
+                      <p className="mt-4 text-xl font-semibold text-slate-950">{formatUsd(course.price)}</p>
+                      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
+                    </Link>
+                    <div className="sm:justify-self-end">
+                    <EducationCourseButton
+                      courseCode={course.courseCode}
+                      className="education-enroll-button inline-flex justify-center whitespace-nowrap rounded-full px-6 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white"
+                    />
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>

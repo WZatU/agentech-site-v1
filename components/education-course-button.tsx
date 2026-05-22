@@ -1,11 +1,12 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
 
 type EducationCourseButtonProps = {
   courseCode: string;
+  className?: string;
 };
 
 type ApiResult = {
@@ -14,8 +15,7 @@ type ApiResult = {
   message?: string;
 };
 
-export function EducationCourseButton({ courseCode }: EducationCourseButtonProps) {
-  const pathname = usePathname();
+export function EducationCourseButton({ courseCode, className }: EducationCourseButtonProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -24,7 +24,7 @@ export function EducationCourseButton({ courseCode }: EducationCourseButtonProps
     const session = getAccountSession();
 
     if (!session?.email) {
-      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      router.push(`/login?next=${encodeURIComponent(`/enroll?course=${courseCode}`)}`);
       return;
     }
 
@@ -57,9 +57,12 @@ export function EducationCourseButton({ courseCode }: EducationCourseButtonProps
         type="button"
         onClick={addCourse}
         disabled={status === "saving"}
-        className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+        className={
+          className ||
+          "education-enroll-button rounded-full px-6 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white"
+        }
       >
-        {status === "saving" ? "Adding..." : "Add Course to Cart"}
+        {status === "saving" ? "Enrolling..." : "Enroll Now"}
       </button>
       {message ? (
         <p className={`mt-3 text-sm font-semibold ${status === "error" ? "text-red-600" : "text-emerald-700"}`}>

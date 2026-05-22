@@ -43,11 +43,6 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
     notFound();
   }
 
-  const enrollNext =
-    courseData.locationCode === "WALNUT"
-      ? `/account-setup?campus=walnut&course=${courseData.courseCode}`
-      : "/account-setup";
-  const enrollHref = `/login?next=${encodeURIComponent(enrollNext)}`;
   const detailFlyerImages = courseData.detailFlyerImages ?? [courseData.flyerImage];
 
   return (
@@ -68,12 +63,10 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
             <p className="mt-5 text-2xl font-semibold text-slate-950">{formatUsd(courseData.price)}</p>
           </div>
           <div className="flex lg:min-w-64 lg:justify-center">
-            <Link
-              href={enrollHref}
-              className="education-enroll-button inline-flex rounded-full px-8 py-4 text-sm font-semibold shadow-[0_16px_35px_rgba(15,23,42,0.12)] transition"
-            >
-              Enroll Now
-            </Link>
+            <EducationCourseButton
+              courseCode={courseData.courseCode}
+              className="education-enroll-button inline-flex rounded-full px-8 py-4 text-sm font-semibold shadow-[0_16px_35px_rgba(15,23,42,0.12)] transition disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300 disabled:text-white"
+            />
           </div>
         </div>
 
