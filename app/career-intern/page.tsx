@@ -13,7 +13,7 @@ export default function CareerInternPage() {
           Back to Agentech Talents
         </Link>
 
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm uppercase tracking-[0.24em] !text-black">INTERNSHIP</p>
           <h1 className="mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
             APPLY FOR INTERNSHIP
