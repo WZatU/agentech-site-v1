@@ -81,6 +81,25 @@ export function TechEducationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [startedAt] = useState(() => Date.now());
 
+  function requireAccount(event?: React.SyntheticEvent) {
+    if (getAccountSession()?.email) {
+      return true;
+    }
+
+    event?.preventDefault();
+    event?.stopPropagation();
+    router.push("/login?next=/talents");
+    return false;
+  }
+
+  function gateInteraction(event: React.SyntheticEvent<HTMLFormElement>) {
+    const target = event.target as HTMLElement;
+
+    if (target.closest("input, textarea, select, button")) {
+      requireAccount(event);
+    }
+  }
+
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
@@ -117,10 +136,12 @@ export function TechEducationForm() {
     setError("");
     setSuccess("");
 
-    const session = getAccountSession();
+    if (!requireAccount(event)) {
+      return;
+    }
 
+    const session = getAccountSession();
     if (!session?.email) {
-      router.push("/login?next=/talents");
       return;
     }
 
@@ -174,7 +195,12 @@ export function TechEducationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="talent-application-form mt-12 w-full space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
+    <form
+      onSubmit={handleSubmit}
+      onFocusCapture={gateInteraction}
+      onPointerDownCapture={gateInteraction}
+      className="talent-application-form mt-12 w-full space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8"
+    >
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <label className="space-y-2">
           <FieldLabel>Name / 姓名</FieldLabel>

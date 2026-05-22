@@ -87,7 +87,7 @@ export default function TalentsPage() {
                 <h3 className="mt-3 text-2xl font-semibold uppercase tracking-[0.08em] text-slate-950">
                   {program.title}
                 </h3>
-                <div className="mt-6 inline-flex rounded-full border border-slate-950 bg-white px-5 py-2 text-sm font-medium !text-slate-950 transition hover:!bg-slate-950 hover:!text-white group-hover:!bg-slate-950 group-hover:!text-white">
+                <div className="talent-open-form-button mt-6 inline-flex rounded-full border px-5 py-2 text-sm font-medium transition">
                   Open Form
                 </div>
               </div>

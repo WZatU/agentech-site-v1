@@ -189,6 +189,19 @@ body::after {
     color: #047857 !important;
   }
 
+  .talent-open-form-button {
+    border-color: #020617 !important;
+    background: #fff !important;
+    color: #020617 !important;
+  }
+
+  .group:hover .talent-open-form-button,
+  .talent-open-form-button:hover {
+    border-color: #020617 !important;
+    background: #020617 !important;
+    color: #fff !important;
+  }
+
   .education-black,
   .education-black label,
   .education-black p,
