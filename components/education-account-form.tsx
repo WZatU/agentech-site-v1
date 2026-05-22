@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
+import { getEducationCourseByCode } from "@/lib/education-courses";
 
 type AccountType = "individual" | "group";
 
@@ -261,6 +262,7 @@ export function EducationAccountForm() {
 
   const childLimit = accountType === "group" ? 100 : 6;
   const canAddChild = children.length < childLimit;
+  const selectedCourse = selectedCourseCode ? getEducationCourseByCode(selectedCourseCode) : null;
 
   const completedRequired = useMemo(() => {
     const ownerComplete = Boolean(owner.email.trim() && owner.firstName.trim() && owner.lastName.trim() && owner.phone.trim());
@@ -393,6 +395,7 @@ export function EducationAccountForm() {
         },
         body: JSON.stringify({
           accountType,
+          selectedCourseCode,
           ...owner,
           children
         })
@@ -512,6 +515,11 @@ export function EducationAccountForm() {
                 <p className="mt-2 text-sm text-[#334155]">
                   {children.length} of {childLimit} children added
                 </p>
+                {selectedCourse ? (
+                  <p className="mt-2 text-sm font-semibold text-[#0b1220]">
+                    Course to enroll: {selectedCourse.title} ({selectedCourse.courseCode})
+                  </p>
+                ) : null}
               </div>
               {accountType === "group" ? (
                 <div className="flex flex-wrap gap-3">

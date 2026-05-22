@@ -11,16 +11,18 @@ export const educationGradePages = [
   {
     slug: "3-5",
     grade: "Grade 3-5",
-    title: "Grade 3-5 Robotics Discovery",
-    subtitle: "Students connect coding, sensors, building, and problem solving through hands-on projects.",
+    title: "AI Imagination Summer Camp",
+    subtitle:
+      "Designed for curious young innovators in Grades 3-5, AI Imagination Summer Camp transforms technology into an exciting hands-on adventure where students explore AI, creativity, and digital problem-solving in a fun and engaging way. Campers will build confidence through interactive projects, teamwork, and beginner-friendly coding activities that spark imagination and future-ready thinking.\n\nWith small class sizes, expert instructors, and project-based learning, students won't just use technology - they'll learn how to create with it. This is the perfect summer experience for kids ready to level up from imagination to innovation!",
     image: "/assets/class advertisements/3-5.png",
     flyerImage: "/assets/class advertisements/3-5.png"
   },
   {
     slug: "6-8",
     grade: "Grade 6-8",
-    title: "Grade 6-8 AI & Robotics Lab",
-    subtitle: "Middle school students build deeper technical confidence through real robotics challenges.",
+    title: "AI Creation Camp",
+    subtitle:
+      "Turn curiosity into creation at our AI Creation Camp for Grades 6-8, where students build real AI-powered projects, explore robotics and drones, and learn the technology shaping the future. Through hands-on coding, computer vision, and innovation challenges, campers gain the confidence to become creative problem-solvers and future tech leaders.\n\nFrom obstacle-avoiding robots to drone mapping missions, this immersive summer experience combines cutting-edge technology with teamwork, creativity, and fun - all in a small-group learning environment designed to inspire the next generation of innovators.",
     image: "/assets/class advertisements/6-8.png",
     flyerImage: "/assets/class advertisements/Flyers/6-8.png"
   },

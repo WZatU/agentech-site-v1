@@ -48,6 +48,7 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
       ? `/account-setup?campus=walnut&course=${courseData.courseCode}`
       : "/account-setup";
   const enrollHref = `/login?next=${encodeURIComponent(enrollNext)}`;
+  const detailFlyerImages = courseData.detailFlyerImages ?? [courseData.flyerImage];
 
   return (
     <main className="education-black min-h-screen bg-white text-black">
@@ -76,15 +77,22 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
           </div>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)]">
-          <Image
-            src={courseData.flyerImage}
-            alt={`${courseData.title} flyer`}
-            width={1600}
-            height={2200}
-            className="h-auto w-full"
-            priority
-          />
+        <div className={`mt-10 grid gap-6 ${detailFlyerImages.length > 1 ? "md:grid-cols-2" : ""}`}>
+          {detailFlyerImages.map((flyerImage, index) => (
+            <div
+              key={flyerImage}
+              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)]"
+            >
+              <Image
+                src={flyerImage}
+                alt={`${courseData.title} flyer ${index + 1}`}
+                width={1600}
+                height={2200}
+                className="h-auto w-full"
+                priority={index === 0}
+              />
+            </div>
+          ))}
         </div>
       </section>
     </main>

@@ -25,6 +25,8 @@ export type AccountChild = {
   sex: string;
   school_info?: string | null;
   preferred_location?: string | null;
+  selected_course_code?: string | null;
+  selected_course_title?: string | null;
   created_at?: string;
 };
 
@@ -90,9 +92,7 @@ export async function replaceChildren(parentEmail: string, children: Omit<Accoun
     return [];
   }
 
-  return supabaseRequest<AccountChild[]>("agentech_children", {
-    method: "POST",
-    body: children.map((child) => ({
+  const childrenBody = children.map((child) => ({
       parent_email: parentEmail,
       first_name: child.first_name,
       last_name: child.last_name,
@@ -100,9 +100,28 @@ export async function replaceChildren(parentEmail: string, children: Omit<Accoun
       grade: child.grade,
       sex: child.sex,
       school_info: child.school_info || null,
-      preferred_location: child.preferred_location || null
-    }))
-  });
+      preferred_location: child.preferred_location || null,
+      selected_course_code: child.selected_course_code || null,
+      selected_course_title: child.selected_course_title || null
+    }));
+
+  try {
+    return await supabaseRequest<AccountChild[]>("agentech_children", {
+      method: "POST",
+      body: childrenBody
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+
+    if (!message.includes("selected_course_code") && !message.includes("selected_course_title")) {
+      throw error;
+    }
+
+    return supabaseRequest<AccountChild[]>("agentech_children", {
+      method: "POST",
+      body: childrenBody.map(({ selected_course_code, selected_course_title, ...child }) => child)
+    });
+  }
 }
 
 export async function getChildren(parentEmail: string) {

@@ -55,6 +55,8 @@ create table if not exists public.agentech_children (
 
 alter table public.agentech_children add column if not exists school_info text;
 alter table public.agentech_children add column if not exists preferred_location text;
+alter table public.agentech_children add column if not exists selected_course_code text;
+alter table public.agentech_children add column if not exists selected_course_title text;
 
 create table if not exists public.agentech_sites (
   site_name text primary key,
@@ -141,7 +143,69 @@ values (
   '2026 Summer',
   '2026-06-01',
   'Grades K-2',
-  0,
+  499,
+  true
+)
+on conflict (course_code) do update
+set
+  location_code = excluded.location_code,
+  grade_slug = excluded.grade_slug,
+  course_name = excluded.course_name,
+  course_title = excluded.course_title,
+  course_description = excluded.course_description,
+  flyer_image = excluded.flyer_image,
+  preview_description = excluded.preview_description,
+  class_time = excluded.class_time,
+  starting_date = excluded.starting_date,
+  age_range = excluded.age_range,
+  price = excluded.price,
+  active = excluded.active,
+  updated_at = now();
+
+insert into public.agentech_education_courses (
+  course_code,
+  location_code,
+  grade_slug,
+  course_name,
+  course_title,
+  course_description,
+  flyer_image,
+  preview_description,
+  class_time,
+  starting_date,
+  age_range,
+  price,
+  active
+)
+values
+(
+  'W002',
+  'WALNUT',
+  '3-5',
+  'AI Imagination Summer Camp 3-5',
+  'Walnut 2026 Summer Grades 3-5',
+  'AI Imagination Summer Camp for Grades 3-5 in Walnut.',
+  '/assets/class advertisements/Flyers/3-5.png',
+  'Walnut 2026 Summer Grades 3-5',
+  '2026 Summer',
+  '2026-06-01',
+  'Grades 3-5',
+  499,
+  true
+),
+(
+  'W003',
+  'WALNUT',
+  '6-8',
+  'AI Creation Camp 6-8',
+  'Walnut 2026 Summer Grades 6-8',
+  'AI Creation Camp for Grades 6-8 in Walnut.',
+  '/assets/class advertisements/Flyers/6-8.png',
+  'Walnut 2026 Summer Grades 6-8',
+  '2026 Summer',
+  '2026-06-01',
+  'Grades 6-8',
+  699,
   true
 )
 on conflict (course_code) do update

@@ -41,6 +41,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
   }
 
   const courses = getEducationCoursesByGrade(page.slug);
+  const heroImage = page.slug === "6-8" ? page.image : page.flyerImage;
 
   return (
     <main className="education-black min-h-screen bg-white text-black">
@@ -78,7 +79,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
 
           <div className="overflow-hidden rounded-2xl bg-slate-50 shadow-[0_18px_45px_rgba(15,23,42,0.1)] ring-1 ring-slate-200">
             <Image
-              src={page.flyerImage}
+              src={heroImage}
               alt={`${page.grade} class flyer`}
               width={1200}
               height={1600}

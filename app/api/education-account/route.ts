@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getChildrenEnrolled } from "@/lib/education-counter";
 import { replaceChildren, upsertProfile } from "@/lib/account-records";
+import { getEducationCourseByCode } from "@/lib/education-courses";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
 type ChildPayload = {
@@ -21,6 +22,7 @@ type AccountPayload = {
   phone?: string;
   address?: string;
   dob?: string;
+  selectedCourseCode?: string;
   children?: ChildPayload[];
 };
 
@@ -33,9 +35,14 @@ function validate(payload: AccountPayload) {
   const limit = accountType === "group" ? 100 : 6;
   const children = Array.isArray(payload.children) ? payload.children : [];
   const email = normalizeEmail(payload.email);
+  const selectedCourseCode = clean(payload.selectedCourseCode).toUpperCase();
 
   if (accountType !== "individual" && accountType !== "group") {
     return "Choose an account type.";
+  }
+
+  if (selectedCourseCode && !getEducationCourseByCode(selectedCourseCode)) {
+    return "Choose a valid course.";
   }
 
   if (!isValidEmail(email) || !clean(payload.firstName) || !clean(payload.lastName) || !clean(payload.phone)) {
@@ -75,6 +82,8 @@ export async function POST(request: Request) {
 
   const children = Array.isArray(payload.children) ? payload.children : [];
   const email = normalizeEmail(payload.email);
+  const selectedCourseCode = clean(payload.selectedCourseCode).toUpperCase();
+  const selectedCourse = selectedCourseCode ? getEducationCourseByCode(selectedCourseCode) : null;
 
   await upsertProfile({
     email,
@@ -96,7 +105,9 @@ export async function POST(request: Request) {
       grade: clean(child.grade),
       sex: clean(child.sex),
       school_info: clean(child.schoolInfo) || null,
-      preferred_location: clean(child.preferredLocation) || null
+      preferred_location: clean(child.preferredLocation) || null,
+      selected_course_code: selectedCourse?.courseCode || null,
+      selected_course_title: selectedCourse?.title || null
     }))
   );
 

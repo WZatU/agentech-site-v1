@@ -16,6 +16,7 @@ export type EducationCourse = {
   ageRange: string;
   price: number;
   flyerImage: string;
+  detailFlyerImages?: string[];
 };
 
 export const educationCourses: EducationCourse[] = [
@@ -37,6 +38,48 @@ export const educationCourses: EducationCourse[] = [
     ageRange: "Grades K-2",
     price: 499,
     flyerImage: "/assets/class advertisements/Flyers/k-2 eng.png"
+  },
+  {
+    slug: "walnut-2026-summer-3-5",
+    courseCode: "W002",
+    gradeSlug: "3-5",
+    title: "Walnut 2026 Summer Grades 3-5",
+    previewDescription: "Walnut 2026 Summer Grades 3-5",
+    description:
+      "AI Imagination Summer Camp for Grades 3-5 in Walnut. Students explore AI, creativity, digital problem-solving, teamwork, and beginner-friendly coding through hands-on projects.",
+    city: "Walnut",
+    state: "CA",
+    locationCode: "WALNUT",
+    locationName: "Walnut",
+    courseName: "AI Imagination Summer Camp 3-5",
+    classTime: "2026 Summer",
+    startingDate: "2026-06-01",
+    ageRange: "Grades 3-5",
+    price: 499,
+    flyerImage: "/assets/class advertisements/Flyers/3-5.png"
+  },
+  {
+    slug: "walnut-2026-summer-6-8",
+    courseCode: "W003",
+    gradeSlug: "6-8",
+    title: "Walnut 2026 Summer Grades 6-8",
+    previewDescription: "Walnut 2026 Summer Grades 6-8",
+    description:
+      "AI Creation Camp for Grades 6-8 in Walnut. Students build AI-powered projects, explore robotics and drones, and practice hands-on coding, computer vision, and innovation challenges.",
+    city: "Walnut",
+    state: "CA",
+    locationCode: "WALNUT",
+    locationName: "Walnut",
+    courseName: "AI Creation Camp 6-8",
+    classTime: "2026 Summer",
+    startingDate: "2026-06-01",
+    ageRange: "Grades 6-8",
+    price: 699,
+    flyerImage: "/assets/class advertisements/Flyers/6-8.png",
+    detailFlyerImages: [
+      "/assets/class advertisements/Flyers/6-8.png",
+      "/assets/class advertisements/Flyers/6-8 chinese.png"
+    ]
   }
 ];
 
