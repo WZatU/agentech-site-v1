@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
-import { accountExists, saveTalentApplication } from "@/lib/talent-applications";
+import { accountExists, saveAiRoboticsClubApplication } from "@/lib/talent-applications";
 import {
   SUMMER_SCHOOL_EXPERIENCE,
   SUMMER_SCHOOL_GRADES,
@@ -181,16 +181,7 @@ export async function POST(request: NextRequest) {
 
   recentSubmissions.set(clientKey, Date.now());
 
-  await saveTalentApplication({
-    accountEmail,
-    programType: "ai_robotics_club",
-    applicantName: validation.data.name,
-    applicantEmail: validation.data.email,
-    parentEmail: validation.data.parentEmail,
-    school: validation.data.school,
-    grade: validation.data.grade,
-    formData: validation.data
-  });
+  await saveAiRoboticsClubApplication(accountEmail, validation.data);
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(validation.data, receiverEmail);

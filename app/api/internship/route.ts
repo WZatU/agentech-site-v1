@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
 import { uploadSupabaseStorageObject } from "@/lib/supabase-server";
-import { accountExists, saveTalentApplication } from "@/lib/talent-applications";
+import { accountExists, saveInternshipApplication } from "@/lib/talent-applications";
 import {
   INTERNSHIP_ROLE_INTERESTS,
   buildInternshipSubject,
@@ -215,17 +215,7 @@ export async function POST(request: NextRequest) {
     "application/pdf"
   );
 
-  await saveTalentApplication({
-    accountEmail,
-    programType: "internship",
-    applicantName: application.data.name,
-    applicantEmail: application.data.email,
-    school: application.data.organization,
-    grade: application.data.graduationYear,
-    formData: application.data,
-    resumeFilename: application.data.resumeFilename,
-    resumeStoragePath: uploadedResume.path
-  });
+  await saveInternshipApplication(accountEmail, application.data, uploadedResume.path);
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(application.data, receiverEmail, resume);

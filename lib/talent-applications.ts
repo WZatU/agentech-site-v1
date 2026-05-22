@@ -1,19 +1,7 @@
 import { supabaseRequest } from "@/lib/supabase-server";
-
-export type TalentProgramType = "workshop" | "ai_robotics_club" | "internship";
-
-type SaveTalentApplicationInput = {
-  accountEmail: string;
-  programType: TalentProgramType;
-  applicantName: string;
-  applicantEmail: string;
-  parentEmail?: string;
-  school?: string;
-  grade?: string;
-  formData: unknown;
-  resumeFilename?: string;
-  resumeStoragePath?: string;
-};
+import type { InternshipApplication } from "@/lib/internship";
+import type { SummerSchoolApplication } from "@/lib/summer-school";
+import type { TechEducationApplication } from "@/lib/tech-education";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -28,21 +16,73 @@ export async function accountExists(email: string) {
   return rows.length > 0;
 }
 
-export async function saveTalentApplication(input: SaveTalentApplicationInput) {
-  await supabaseRequest<null>("agentech_talent_applications", {
+export async function saveWorkshopApplication(accountEmail: string, application: TechEducationApplication) {
+  await supabaseRequest<null>("agentech_workshop_applications", {
     method: "POST",
     body: [
       {
-        account_email: normalizeEmail(input.accountEmail),
-        program_type: input.programType,
-        applicant_name: input.applicantName,
-        applicant_email: normalizeEmail(input.applicantEmail),
-        parent_email: input.parentEmail ? normalizeEmail(input.parentEmail) : null,
-        school: input.school || null,
-        grade: input.grade || null,
-        form_data: input.formData,
-        resume_filename: input.resumeFilename || null,
-        resume_storage_path: input.resumeStoragePath || null
+        account_email: normalizeEmail(accountEmail),
+        name: application.name,
+        email: normalizeEmail(application.email),
+        school: application.school,
+        grade: application.grade,
+        gpa: application.gpa,
+        interests: application.interests,
+        experience: application.experience,
+        parent_email: normalizeEmail(application.parentEmail),
+        notes: application.notes || null
+      }
+    ],
+    prefer: "return=minimal"
+  });
+}
+
+export async function saveAiRoboticsClubApplication(accountEmail: string, application: SummerSchoolApplication) {
+  await supabaseRequest<null>("agentech_ai_robotics_club_applications", {
+    method: "POST",
+    body: [
+      {
+        account_email: normalizeEmail(accountEmail),
+        name: application.name,
+        email: normalizeEmail(application.email),
+        school: application.school,
+        grade: application.grade,
+        gpa: application.gpa,
+        interests: application.interests,
+        experience: application.experience,
+        parent_email: normalizeEmail(application.parentEmail),
+        projects: application.projects,
+        uniqueness: application.uniqueness,
+        notes: application.notes || null
+      }
+    ],
+    prefer: "return=minimal"
+  });
+}
+
+export async function saveInternshipApplication(
+  accountEmail: string,
+  application: InternshipApplication,
+  resumeStoragePath: string
+) {
+  await supabaseRequest<null>("agentech_internship_applications", {
+    method: "POST",
+    body: [
+      {
+        account_email: normalizeEmail(accountEmail),
+        name: application.name,
+        email: normalizeEmail(application.email),
+        organization: application.organization,
+        major: application.major,
+        graduation_year: application.graduationYear,
+        location: application.location,
+        role_interests: application.roleInterests,
+        profile_link: application.profileLink || null,
+        built: application.built,
+        why_agentech: application.whyAgentech,
+        resume_filename: application.resumeFilename,
+        resume_storage_path: resumeStoragePath,
+        notes: application.notes || null
       }
     ],
     prefer: "return=minimal"
