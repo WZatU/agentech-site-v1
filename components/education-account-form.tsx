@@ -271,6 +271,24 @@ export function EducationAccountForm() {
 
   useEffect(() => {
     const session = getAccountSession();
+    const params = new URLSearchParams(window.location.search);
+    const preferredCampus = params.get("campus")?.toLowerCase() === "walnut" ? "Walnut" : "";
+
+    function applyPreferredCampus(currentChildren: ChildForm[]) {
+      if (!preferredCampus) {
+        return currentChildren;
+      }
+
+      const childrenToUpdate = currentChildren.length ? currentChildren : [{ ...blankChild }];
+      return childrenToUpdate.map((child, index) =>
+        index === 0 && !child.preferredLocation ? { ...child, preferredLocation: preferredCampus } : child
+      );
+    }
+
+    if (preferredCampus) {
+      setChildren((current) => applyPreferredCampus(current));
+    }
+
     if (session?.email) {
       setOwner((current) => ({ ...current, email: session.email }));
       fetch(`/api/account?email=${encodeURIComponent(session.email)}`)
@@ -292,15 +310,17 @@ export function EducationAccountForm() {
 
           if (result.children?.length) {
             setChildren(
-              result.children.map((child) => ({
-                firstName: child.first_name,
-                lastName: child.last_name,
-                dob: child.dob,
-                grade: child.grade,
-                sex: child.sex,
-                schoolInfo: child.school_info || "",
-                preferredLocation: child.preferred_location || ""
-              }))
+              applyPreferredCampus(
+                result.children.map((child) => ({
+                  firstName: child.first_name,
+                  lastName: child.last_name,
+                  dob: child.dob,
+                  grade: child.grade,
+                  sex: child.sex,
+                  schoolInfo: child.school_info || "",
+                  preferredLocation: child.preferred_location || ""
+                }))
+              )
             );
           }
         })

@@ -247,6 +247,19 @@ body::after {
   .education-black [class*="bg-[#0b1220]"] * {
     color: #fff !important;
   }
+
+  .education-enroll-button {
+    border: 1px solid #020617 !important;
+    background: #fff !important;
+    color: #000 !important;
+    opacity: 1 !important;
+  }
+
+  .education-enroll-button:hover {
+    border-color: #000 !important;
+    background: #000 !important;
+    color: #fff !important;
+  }
 }
 
 @keyframes particlePulse {

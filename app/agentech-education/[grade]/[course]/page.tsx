@@ -42,6 +42,12 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
     notFound();
   }
 
+  const enrollNext =
+    courseData.locationCode === "WALNUT"
+      ? `/account-setup?campus=walnut`
+      : "/account-setup";
+  const enrollHref = `/login?next=${encodeURIComponent(enrollNext)}`;
+
   return (
     <main className="education-black min-h-screen bg-white text-black">
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8 lg:py-14">
@@ -52,10 +58,20 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
           <EducationCourseButton courseCode={courseData.courseCode} />
         </div>
 
-        <div className="mt-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{courseData.courseCode}</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">{courseData.title}</h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">{courseData.description}</p>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{courseData.courseCode}</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">{courseData.title}</h1>
+            <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">{courseData.description}</p>
+          </div>
+          <div className="flex lg:min-w-64 lg:justify-center">
+            <Link
+              href={enrollHref}
+              className="education-enroll-button inline-flex rounded-full px-8 py-4 text-sm font-semibold shadow-[0_16px_35px_rgba(15,23,42,0.12)] transition"
+            >
+              Enroll Now
+            </Link>
+          </div>
         </div>
 
         <div className="mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_55px_rgba(15,23,42,0.12)]">

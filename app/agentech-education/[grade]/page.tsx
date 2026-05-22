@@ -59,12 +59,20 @@ export default async function EducationGradePage({ params }: GradePageProps) {
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
-            <Link
-              href="/login?next=/account-setup"
-              className="mt-8 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              Parent Login
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/login?next=/account-setup"
+                className="education-enroll-button inline-flex rounded-full px-6 py-3 text-sm font-semibold transition"
+              >
+                Enroll Now
+              </Link>
+              <Link
+                href="/login?next=/account-setup"
+                className="education-enroll-button inline-flex rounded-full px-6 py-3 text-sm font-semibold transition"
+              >
+                Parent Login
+              </Link>
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-2xl bg-slate-50 shadow-[0_18px_45px_rgba(15,23,42,0.1)] ring-1 ring-slate-200">
@@ -99,16 +107,23 @@ export default async function EducationGradePage({ params }: GradePageProps) {
                         className="object-cover transition duration-500 group-hover:scale-[1.03]"
                       />
                     </div>
-                    <div className="p-6">
-                      <p className="text-sm font-semibold text-slate-500">{course.courseCode}</p>
-                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
-                      <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
-                      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
+                    <div className="grid gap-5 p-6 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-500">{course.courseCode}</p>
+                        <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
+                        <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
+                        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
+                      </div>
+                      <Link
+                        href={`/login?next=${encodeURIComponent(
+                          course.locationCode === "WALNUT" ? "/account-setup?campus=walnut" : "/account-setup"
+                        )}`}
+                        className="education-enroll-button inline-flex justify-center whitespace-nowrap rounded-full px-6 py-3 text-sm font-semibold transition"
+                      >
+                        Enroll Now
+                      </Link>
                     </div>
                   </Link>
-                  <div className="border-t border-slate-200 p-6">
-                    <EducationCourseButton courseCode={course.courseCode} />
-                  </div>
                 </article>
               ))}
             </div>

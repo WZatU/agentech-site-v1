@@ -29,7 +29,7 @@ export default async function AgentechEducationPage() {
           <div className="flex justify-start md:justify-end">
             <Link
               href="/login?next=/account-setup"
-              className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+              className="education-enroll-button rounded-full px-5 py-2.5 text-sm font-semibold shadow-sm transition"
             >
               Parent Login
             </Link>
