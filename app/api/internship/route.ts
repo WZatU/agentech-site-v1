@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
+import { uploadSupabaseStorageObject } from "@/lib/supabase-server";
 import { accountExists, saveTalentApplication } from "@/lib/talent-applications";
 import {
   INTERNSHIP_ROLE_INTERESTS,
@@ -35,6 +36,11 @@ function getClientKey(request: NextRequest) {
 
 function sanitizeFilename(filename: string) {
   return filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+function buildResumeStoragePath(accountEmail: string, filename: string) {
+  const accountFolder = accountEmail.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `${accountFolder}/${Date.now()}-${crypto.randomUUID()}-${filename}`;
 }
 
 function getRoleInterests(formData: FormData) {
@@ -202,6 +208,13 @@ export async function POST(request: NextRequest) {
 
   recentSubmissions.set(clientKey, Date.now());
 
+  const uploadedResume = await uploadSupabaseStorageObject(
+    "talent-resumes",
+    buildResumeStoragePath(accountEmail, application.data.resumeFilename),
+    resume,
+    "application/pdf"
+  );
+
   await saveTalentApplication({
     accountEmail,
     programType: "internship",
@@ -210,7 +223,8 @@ export async function POST(request: NextRequest) {
     school: application.data.organization,
     grade: application.data.graduationYear,
     formData: application.data,
-    resumeFilename: application.data.resumeFilename
+    resumeFilename: application.data.resumeFilename,
+    resumeStoragePath: uploadedResume.path
   });
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;

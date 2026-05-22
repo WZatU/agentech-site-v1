@@ -12,6 +12,7 @@ type SaveTalentApplicationInput = {
   grade?: string;
   formData: unknown;
   resumeFilename?: string;
+  resumeStoragePath?: string;
 };
 
 function normalizeEmail(email: string) {
@@ -40,7 +41,8 @@ export async function saveTalentApplication(input: SaveTalentApplicationInput) {
         school: input.school || null,
         grade: input.grade || null,
         form_data: input.formData,
-        resume_filename: input.resumeFilename || null
+        resume_filename: input.resumeFilename || null,
+        resume_storage_path: input.resumeStoragePath || null
       }
     ],
     prefer: "return=minimal"

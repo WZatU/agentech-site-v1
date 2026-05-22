@@ -21,6 +21,36 @@ function getSupabaseConfig() {
   };
 }
 
+export async function uploadSupabaseStorageObject(
+  bucket: string,
+  path: string,
+  file: File,
+  contentType = "application/octet-stream"
+) {
+  const { url, serviceRoleKey } = getSupabaseConfig();
+  const response = await fetch(`${url}/storage/v1/object/${bucket}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": contentType,
+      "x-upsert": "false"
+    },
+    body: Buffer.from(await file.arrayBuffer()),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || `Supabase storage upload failed for ${bucket}/${path}.`);
+  }
+
+  return {
+    bucket,
+    path
+  };
+}
+
 export async function supabaseRequest<T>(table: string, options: SupabaseOptions = {}) {
   const { url, serviceRoleKey } = getSupabaseConfig();
   const query = options.query ? `?${options.query}` : "";

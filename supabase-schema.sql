@@ -139,8 +139,12 @@ create table if not exists public.agentech_talent_applications (
   status text not null default 'submitted',
   form_data jsonb not null default '{}'::jsonb,
   resume_filename text,
+  resume_storage_path text,
   created_at timestamptz not null default now()
 );
+
+alter table public.agentech_talent_applications
+add column if not exists resume_storage_path text;
 
 create index if not exists agentech_talent_applications_account_idx
 on public.agentech_talent_applications (account_email, created_at desc);
@@ -159,3 +163,11 @@ alter table public.agentech_enrollments enable row level security;
 alter table public.agentech_preorder_invoices enable row level security;
 alter table public.agentech_invoice_items enable row level security;
 alter table public.agentech_talent_applications enable row level security;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('talent-resumes', 'talent-resumes', false, 5242880, array['application/pdf'])
+on conflict (id) do update
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
