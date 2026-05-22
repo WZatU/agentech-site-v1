@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { EducationCourseButton } from "@/components/education-course-button";
 import { getEducationCoursesByGrade } from "@/lib/education-courses";
 import { educationGradePages, getEducationGradePage } from "@/lib/education-grade-pages";
 import { formatUsd } from "@/lib/pricing";
@@ -66,12 +65,6 @@ export default async function EducationGradePage({ params }: GradePageProps) {
                 href="/login?next=/account-setup"
                 className="education-enroll-button inline-flex rounded-full px-6 py-3 text-sm font-semibold transition"
               >
-                Enroll Now
-              </Link>
-              <Link
-                href="/login?next=/account-setup"
-                className="education-enroll-button inline-flex rounded-full px-6 py-3 text-sm font-semibold transition"
-              >
                 Parent Login
               </Link>
             </div>
@@ -92,8 +85,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
         {courses.length ? (
           <div className="mt-14 border-t border-slate-200 pt-10">
             <div className="mb-7">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Available Courses</p>
-              <h2 className="mt-3 text-3xl font-semibold text-slate-950">Course Flyers</h2>
+              <h2 className="text-3xl font-semibold text-slate-950">Available Courses</h2>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
