@@ -2,11 +2,15 @@
   {
     "sourceFolder": "2026-05-22",
     "slug": "agentech-news",
-    "importedAt": "2026-05-23T03:25:18.971Z"
+    "importedAt": "2026-05-23T03:25:18.971Z",
+    "fingerprint": "a17ef10bc38f97667dcde715ffbc98a836f2e90524edd299259ffc18be46a9c0",
+    "updatedAt": "2026-05-23T23:50:18.288Z"
   },
   {
     "sourceFolder": "2026-05-18",
     "slug": "2026-05-18-agentech-news",
-    "importedAt": "2026-05-23T23:32:43.929Z"
+    "importedAt": "2026-05-23T23:32:43.929Z",
+    "fingerprint": "2d76999fed01b45afcd0a41a8b83da09e0655222dd609f9f6731f13b679a05bb",
+    "updatedAt": "2026-05-23T23:50:18.258Z"
   }
 ]
