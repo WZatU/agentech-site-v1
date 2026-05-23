@@ -5,6 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "serve:3001": "next start -p 3001",
+    "import:news": "node scripts/import-dropbox-news.mjs",
+    "import:news:local": "node scripts/import-dropbox-news.mjs --source",
+    "delete:news": "node scripts/delete-news-entry.mjs",
+    "delete:news:number": "node scripts/delete-news-entry.mjs --mode number",
+    "delete:news:date": "node scripts/delete-news-entry.mjs --mode date",
+    "delete:news:slug": "node scripts/delete-news-entry.mjs --mode slug",
+    "delete:news:source": "node scripts/delete-news-entry.mjs --mode source",
+    "list:news": "node scripts/delete-news-entry.mjs --list",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
@@ -17,6 +26,7 @@
     "@types/node": "22.13.14",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
+    "adm-zip": "^0.5.17",
     "autoprefixer": "10.4.20",
     "eslint": "8.57.1",
     "eslint-config-next": "^15.5.14",

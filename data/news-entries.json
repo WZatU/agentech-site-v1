@@ -1,0 +1,125 @@
+[
+  {
+    "slug": "agentech-news",
+    "title": "Agentech Official News",
+    "date": "2026-05-22",
+    "displayDate": "May 22, 2026",
+    "author": "Wang Yuan",
+    "excerpt": "On 2026.05.22, Agentech is honored to officially announce a strategic collaboration with  Faraday Future (FF) and  Learning Tree to jointly advance robotics development, AI-native education, and next-generation intelligent ecosystems.",
+    "coverImage": "/assets/news/agentech-news/media-1779509428047/01.jpg",
+    "images": [
+      "/assets/news/agentech-news/media-1779509428047/01.jpg",
+      "/assets/news/agentech-news/media-1779509428047/02.jpg",
+      "/assets/news/agentech-news/media-1779509428047/03.jpg",
+      "/assets/news/agentech-news/media-1779509428047/04.jpg",
+      "/assets/news/agentech-news/media-1779509428047/05.jpg",
+      "/assets/news/agentech-news/media-1779509428047/06.jpg"
+    ],
+    "videos": [],
+    "media": [
+      {
+        "type": "image",
+        "src": "/assets/news/agentech-news/media-1779509428047/01.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/agentech-news/media-1779509428047/02.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/agentech-news/media-1779509428047/03.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/agentech-news/media-1779509428047/04.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/agentech-news/media-1779509428047/05.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/agentech-news/media-1779509428047/06.jpg"
+      }
+    ],
+    "body": [
+      "On 2026.05.22, Agentech is honored to officially announce a strategic collaboration with  Faraday Future (FF) and  Learning Tree to jointly advance robotics development, AI-native education, and next-generation intelligent ecosystems.",
+      "As part of the partnership, the three parties have formally signed a cooperation agreement and launched the first batch of robotics and robotic dog equipment procurement. This marks an important milestone for Agentech in integrating AI infrastructure, embodied intelligence, and real-world educational applications.",
+      "Leveraging Agentech’s strengths in AI agents, vision intelligence, and educational technology, together with FF’s robotics and intelligent hardware ecosystem, the collaboration aims to accelerate the deployment of AI-powered experiences into real learning and consumer environments.",
+      "During the graduation ceremony held later that day, the debut appearance of the robots and robotic dogs became one of the highlights of the event. Students experienced firsthand the excitement and inspiration brought by future technologies, transforming AI education from abstract concepts into tangible interaction.",
+      "Together, Agentech, FF, and Learning Tree look forward to embracing the opportunities of the AI era and building the future of intelligent industry and education. 🚀"
+    ],
+    "translations": {
+      "en": {
+        "title": "Agentech Official News",
+        "excerpt": "On 2026.05.22, Agentech is honored to officially announce a strategic collaboration with  Faraday Future (FF) and  Learning Tree to jointly advance robotics development, AI-native education, and next-generation intelligent ecosystems.",
+        "body": [
+          "On 2026.05.22, Agentech is honored to officially announce a strategic collaboration with  Faraday Future (FF) and  Learning Tree to jointly advance robotics development, AI-native education, and next-generation intelligent ecosystems.",
+          "As part of the partnership, the three parties have formally signed a cooperation agreement and launched the first batch of robotics and robotic dog equipment procurement. This marks an important milestone for Agentech in integrating AI infrastructure, embodied intelligence, and real-world educational applications.",
+          "Leveraging Agentech’s strengths in AI agents, vision intelligence, and educational technology, together with FF’s robotics and intelligent hardware ecosystem, the collaboration aims to accelerate the deployment of AI-powered experiences into real learning and consumer environments.",
+          "During the graduation ceremony held later that day, the debut appearance of the robots and robotic dogs became one of the highlights of the event. Students experienced firsthand the excitement and inspiration brought by future technologies, transforming AI education from abstract concepts into tangible interaction.",
+          "Together, Agentech, FF, and Learning Tree look forward to embracing the opportunities of the AI era and building the future of intelligent industry and education. 🚀"
+        ]
+      },
+      "zh": {
+        "title": "Agentech Official News",
+        "excerpt": "On 2026.05.22, Agentech is honored to officially announce a strategic collaboration with  Faraday Future (FF) and  Learning Tree to jointly advance robotics development, AI-native education, and next-generation intelligent ecosystems.",
+        "body": [
+          "2026年5月22日， Agentech 正式与  Faraday Future（FF）及  Learning Tree 达成深度合作，三方将围绕机器人产品开发、AI教育体系建设以及未来智能产业生态展开长期协同。",
+          "本次合作不仅完成了战略协议签署，同时正式启动首批机器人及机器狗设备采购，标志着 Agentech 在 AI 原生教育与智能硬件融合方向迈出重要一步。未来，Agentech 将结合自身在 AI Agent、视觉智能与教育场景中的技术能力，与 FF 的机器人及智能硬件生态共同推进更多真实场景落地。",
+          "在当日下午举行的毕业典礼中，机器人与机器狗首次公开亮相，成为现场最受关注的科技展示之一。孩子们通过近距离互动，真实感受到人工智能与机器人技术所带来的未来感与创造力，也让 AI 教育不再停留于概念，而是真正进入现实体验。",
+          "Agentech 期待与合作伙伴共同抓住 AI 时代机遇，持续推动智能产业与下一代教育生态的发展。🚀",
+          "⸻"
+        ]
+      }
+    }
+  },
+  {
+    "slug": "agentech-begins-new-chapter-ai-native-company",
+    "title": "Agentech Begins a New Chapter as an AI-Native Company",
+    "date": "2026-03-16",
+    "displayDate": "March 16, 2026",
+    "author": "Agentech",
+    "excerpt": "March 16, 2026 marks the official beginning of Agentech's journey as an AI-native company built for the future.",
+    "coverImage": "/assets/news/agentech-new-chapter-1.jpg",
+    "images": [
+      "/assets/news/agentech-new-chapter-1.jpg",
+      "/assets/news/agentech-new-chapter-2.jpg",
+      "/assets/news/agentech-new-chapter-3.jpg"
+    ],
+    "body": [
+      "March 16, 2026 marks more than the opening of a new office - it marks the official beginning of Agentech's journey as an AI-native company built for the future.",
+      "As artificial intelligence rapidly evolves beyond traditional software and becomes capable of perception, reasoning, and autonomous action, Agentech was founded with a clear vision: to help shape the next generation of intelligent systems that will transform how people learn, work, and live.",
+      "We believe the future will not belong to companies that simply use AI as a tool, but to organizations that are fundamentally designed around AI from the very beginning. At Agentech, AI is not an add-on - it is part of our core identity, culture, and long-term mission.",
+      "This milestone represents the start of a new era where innovation moves faster, intelligent agents become real-world collaborators, and technology becomes more human-centered than ever before. Our mission is to bridge education, intelligence, and action - creating systems that empower people and unlock new possibilities for the future.",
+      "As we celebrated this important moment together, we were reminded that we are not simply witnessing the AI revolution. We are building within it.",
+      "The future has already begun - and Agentech is proud to be part of creating it."
+    ],
+    "translations": {
+      "en": {
+        "title": "Agentech Begins a New Chapter as an AI-Native Company",
+        "excerpt": "March 16, 2026 marks the official beginning of Agentech's journey as an AI-native company built for the future.",
+        "body": [
+          "March 16, 2026 marks more than the opening of a new office - it marks the official beginning of Agentech's journey as an AI-native company built for the future.",
+          "As artificial intelligence rapidly evolves beyond traditional software and becomes capable of perception, reasoning, and autonomous action, Agentech was founded with a clear vision: to help shape the next generation of intelligent systems that will transform how people learn, work, and live.",
+          "We believe the future will not belong to companies that simply use AI as a tool, but to organizations that are fundamentally designed around AI from the very beginning. At Agentech, AI is not an add-on - it is part of our core identity, culture, and long-term mission.",
+          "This milestone represents the start of a new era where innovation moves faster, intelligent agents become real-world collaborators, and technology becomes more human-centered than ever before. Our mission is to bridge education, intelligence, and action - creating systems that empower people and unlock new possibilities for the future.",
+          "As we celebrated this important moment together, we were reminded that we are not simply witnessing the AI revolution. We are building within it.",
+          "The future has already begun - and Agentech is proud to be part of creating it."
+        ]
+      },
+      "zh": {
+        "title": "Agentech 以 AI 原生公司身份开启新篇章",
+        "excerpt": "2026 年 3 月 16 日，标志着 Agentech 作为面向未来的 AI 原生公司正式开启新的旅程。",
+        "body": [
+          "2026 年 3 月 16 日，不仅是新办公室启用的日子，更标志着 Agentech 作为一家面向未来的 AI 原生公司正式开启新的旅程。",
+          "随着人工智能迅速超越传统软件，逐渐具备感知、推理和自主行动能力，Agentech 以清晰的愿景创立：帮助塑造下一代智能系统，改变人们学习、工作和生活的方式。",
+          "我们相信，未来不属于那些只是把 AI 当作工具使用的公司，而属于从一开始就围绕 AI 进行设计和构建的组织。在 Agentech，AI 不是附加项，而是我们核心身份、文化和长期使命的一部分。",
+          "这一里程碑代表着新时代的开始：创新将以更快速度推进，智能体将成为现实世界中的协作者，技术也将比以往更加以人为本。我们的使命是连接教育、智能与行动，创造能够赋能人们并释放未来新可能的系统。",
+          "在我们共同庆祝这一重要时刻时，我们再次意识到，我们并不只是见证 AI 革命，而是在其中亲手建设它。",
+          "未来已经开始，Agentech 很自豪能够参与创造这一未来。"
+        ]
+      }
+    }
+  }
+]

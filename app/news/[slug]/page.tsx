@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NewsArticleContent } from "@/components/news-article-content";
 import { NewsSlideshow } from "@/components/news-slideshow";
 import { getNewsEntry, newsEntries } from "@/lib/news";
 
@@ -44,7 +45,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
 
   return (
     <article>
-      <NewsSlideshow images={entry.images} title={entry.title} />
+      <NewsSlideshow images={entry.images} media={entry.media} title={entry.title} />
 
       <div className="mx-auto max-w-4xl px-6 py-12 lg:px-8 lg:py-16">
         <Link
@@ -53,15 +54,8 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
         >
           Back to News
         </Link>
-        <h1 className="mt-6 text-3xl font-semibold leading-tight text-white md:text-5xl">
-          {entry.title}
-        </h1>
-        <p className="mt-5 text-lg font-semibold text-white">{entry.displayDate}</p>
-
-        <div className="mt-10 space-y-7 text-lg leading-8 text-[#d8e1ef]">
-          {entry.body.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
+        <div className="mt-6">
+          <NewsArticleContent entry={entry} />
         </div>
       </div>
     </article>

@@ -1,5 +1,6 @@
 .next
 .next-cache-*
+.tmp
 node_modules
 out
 dist
