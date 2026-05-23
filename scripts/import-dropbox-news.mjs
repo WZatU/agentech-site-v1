@@ -358,7 +358,7 @@ async function getTopLevelDirectories(sourceDir) {
   return entries
     .filter((entry) => {
       const name = entry.name.toLowerCase();
-      return entry.isDirectory() && !name.startsWith("_");
+      return entry.isDirectory() && !name.startsWith("_") && !name.includes("example");
     })
     .map((entry) => path.join(sourceDir, entry.name));
 }

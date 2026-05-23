@@ -74,11 +74,12 @@ How the automation works:
 1. GitHub runs the importer every night at midnight Pacific time.
 2. The importer reads the Dropbox shared folder using `DROPBOX_ACCESS_TOKEN` and `DROPBOX_NEWS_SHARED_LINK`.
 3. Each top-level folder whose name starts with a date, such as `2026-05-22`, becomes one news entry.
-4. The importer reads `index.md`, another `.md` file, or a `.txt` file as the news text.
-5. Numbered media files like `1.jpg`, `2.png`, `3.mp4` are copied into `public/assets/news/<slug>/`.
-6. If the Dropbox folder already exists in `data/news-imports.json`, the importer updates that existing news entry instead of creating a duplicate.
-7. The importer uses only the languages you provide in the Dropbox text file. It does not call OpenAI.
-8. The Action commits the updated JSON and media files back to `main`.
+4. Folders starting with `_` or containing `example` are ignored.
+5. The importer reads `index.md`, another `.md` file, or a `.txt` file as the news text.
+6. Numbered media files like `1.jpg`, `2.png`, `3.mp4` are copied into `public/assets/news/<slug>/`.
+7. If the Dropbox folder already exists in `data/news-imports.json`, the importer updates that existing news entry instead of creating a duplicate.
+8. The importer uses only the languages you provide in the Dropbox text file. It does not call OpenAI.
+9. The Action commits the updated JSON and media files back to `main`.
 
 If the news file has only English or only Chinese, the site shows only that language. To show the language toggle, include both `## English` and `## 中文` sections in the Dropbox text file.
 
