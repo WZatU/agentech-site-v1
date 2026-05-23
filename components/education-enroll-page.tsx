@@ -124,7 +124,7 @@ export function EducationEnrollPage() {
               >
                 {children.map((child) => (
                   <option key={child.id} value={child.id}>
-                    {child.first_name} {child.last_name} - Grade {child.grade}
+                    {child.first_name} {child.last_name} - {child.grade}
                   </option>
                 ))}
               </select>

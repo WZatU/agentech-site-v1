@@ -283,7 +283,7 @@ export function AccountDashboard() {
             data.children.map((child) => (
               <div key={child.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="font-semibold text-white">{child.first_name} {child.last_name}</p>
-                <p className="mt-1 text-sm text-slate">Grade {child.grade} - {child.sex}</p>
+                <p className="mt-1 text-sm text-slate">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
                 {child.school_info ? <p className="mt-1 text-sm text-slate">School: {child.school_info}</p> : null}
                 {child.preferred_location ? <p className="mt-1 text-sm text-slate">Preferred location: {child.preferred_location}</p> : null}
               </div>
