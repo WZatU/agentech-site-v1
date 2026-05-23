@@ -1,8 +1,10 @@
 import AdmZip from "adm-zip";
+import crypto from "node:crypto";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { TextDecoder } from "node:util";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -43,6 +45,48 @@ async function readJson(filePath, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function decodedTextScore(value) {
+  const chineseCharacters = (value.match(/[\u3400-\u9FFF]/g) || []).length;
+  const replacementCharacters = (value.match(/\uFFFD/g) || []).length;
+  const mojibakeMarkers = (value.match(/Ã|Â|â€|â€™|â€œ|â€�|æ|ç|å|è|é/g) || []).length;
+  return chineseCharacters * 5 - replacementCharacters * 20 - mojibakeMarkers * 3;
+}
+
+async function readTextFile(filePath) {
+  const buffer = await fs.readFile(filePath);
+  const utf8 = buffer.toString("utf8");
+
+  try {
+    const gb18030 = new TextDecoder("gb18030").decode(buffer);
+    return decodedTextScore(gb18030) > decodedTextScore(utf8) ? gb18030 : utf8;
+  } catch {
+    return utf8;
+  }
+}
+
+async function fileHash(filePath) {
+  const buffer = await fs.readFile(filePath);
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+}
+
+async function createFolderFingerprint({ indexPath, markdown, mediaItems }) {
+  const hash = crypto.createHash("sha256");
+  hash.update(path.basename(indexPath));
+  hash.update("\0");
+  hash.update(markdown);
+
+  for (const item of mediaItems) {
+    hash.update("\0");
+    hash.update(item.type);
+    hash.update("\0");
+    hash.update(path.basename(item.path));
+    hash.update("\0");
+    hash.update(await fileHash(item.path));
+  }
+
+  return hash.digest("hex");
 }
 
 async function downloadDropboxFolder(link) {
@@ -251,8 +295,13 @@ function markdownToParagraphs(markdown) {
     .filter(Boolean);
 }
 
+function isDividerLine(line) {
+  const trimmed = line.trim();
+  return /^[\s\-–—⸻]+$/u.test(trimmed) || /^[\sâ€“â€”â¸»]+$/.test(trimmed);
+}
+
 function cleanNewsLine(line) {
-  return line.replace(/^[-–—⸻]+$/, "").trim();
+  return isDividerLine(line) ? "" : line.trim();
 }
 
 function isEnglishHeading(value) {
@@ -332,7 +381,11 @@ function splitLanguageSections(markdown) {
       continue;
     }
 
-    if (!cleanNewsLine(line)) {
+    if (isDividerLine(line)) {
+      continue;
+    }
+
+    if (!line.trim()) {
       buckets[current] ||= [];
       buckets[current].push(line);
       continue;
@@ -348,6 +401,19 @@ function splitLanguageSections(markdown) {
 
   if (buckets.zh?.join("").trim()) {
     sections.zh = markdownToParagraphs(buckets.zh.join("\n"));
+  }
+
+  if (!sections.en && !sections.zh && buckets.default?.join("").trim()) {
+    const chunks = buckets.default
+      .join("\n")
+      .split(/\n\s*(?:[-–—⸻]{2,}|â¸»)\s*\n/u)
+      .map((chunk) => markdownToParagraphs(chunk).filter((paragraph) => cleanNewsLine(paragraph)))
+      .filter((chunk) => chunk.length);
+
+    for (const chunk of chunks) {
+      const language = containsChinese(chunk.join("\n")) ? "zh" : "en";
+      sections[language] ||= chunk;
+    }
   }
 
   return sections;
@@ -474,6 +540,7 @@ async function importNews() {
   const existingSlugs = new Set(newsEntries.map((entry) => entry.slug));
   const directories = await getTopLevelDirectories(sourceDir);
   const newImports = [];
+  let updatedImportMetadata = false;
   let updatedExistingMedia = false;
 
   for (const folderPath of directories) {
@@ -501,7 +568,7 @@ async function importNews() {
       continue;
     }
 
-    const markdown = await fs.readFile(indexPath, "utf8");
+    const markdown = await readTextFile(indexPath);
     const { frontmatter, body } = parseFrontmatter(markdown);
     const date = frontmatter.date || folderMatch[1];
     const title = frontmatter.title || titleFromFolderHint(folderMatch[2] || "Agentech News");
@@ -526,6 +593,17 @@ async function importNews() {
 
     if (!mediaSource.media.length || !mediaSource.coverImage) {
       console.log(`Skipping ${sourceFolder}: no images or videos found.`);
+      continue;
+    }
+
+    const fingerprint = await createFolderFingerprint({
+      indexPath,
+      markdown,
+      mediaItems: mediaSource.media
+    });
+
+    if (imported && imported.fingerprint === fingerprint) {
+      console.log(`Skipping ${sourceFolder}: no Dropbox changes detected.`);
       continue;
     }
 
@@ -585,6 +663,9 @@ async function importNews() {
 
     if (existingIndex !== -1) {
       newsEntries[existingIndex] = entry;
+      imported.fingerprint = fingerprint;
+      imported.updatedAt = new Date().toISOString();
+      updatedImportMetadata = true;
       updatedExistingMedia = true;
       console.log(`Updated ${sourceFolder} -> ${finalSlug}`);
     } else {
@@ -593,13 +674,14 @@ async function importNews() {
       newImports.push({
         sourceFolder,
         slug: finalSlug,
+        fingerprint,
         importedAt: new Date().toISOString()
       });
       console.log(`Imported ${sourceFolder} -> ${finalSlug}`);
     }
   }
 
-  if (!newImports.length && !updatedExistingMedia) {
+  if (!newImports.length && !updatedExistingMedia && !updatedImportMetadata) {
     console.log("No new Dropbox news entries found.");
     return;
   }
