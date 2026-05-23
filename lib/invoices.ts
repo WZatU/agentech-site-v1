@@ -1,4 +1,5 @@
 import { sendEmail } from "@/lib/email";
+import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 import { supabaseRequest } from "@/lib/supabase-server";
 
@@ -101,7 +102,7 @@ export async function getUnpaidBalanceLines(email: string) {
   const itemLines: BalanceLine[] = invoiceItems.map((item) => ({
     id: `item-${item.id}`,
     sourceType: item.source_type,
-    itemName: item.item_name,
+    itemName: formatInvoiceItemName(item.item_name),
     amount: toAmount(item.amount),
     createdAt: item.created_at
   }));
@@ -110,7 +111,7 @@ export async function getUnpaidBalanceLines(email: string) {
     .filter((enrollment) => toAmount(enrollment.price) > 0)
     .map((enrollment) => {
       const childName = enrollment.agentech_children
-        ? `${enrollment.agentech_children.first_name} ${enrollment.agentech_children.last_name}`.trim()
+        ? formatFullName(enrollment.agentech_children.first_name, enrollment.agentech_children.last_name)
         : "";
       const className = enrollment.agentech_classes?.class_name || enrollment.class_id || "Course enrollment";
       const itemName = childName ? `${className} for ${childName}` : className;

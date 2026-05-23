@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
 import { getEducationCourseByCode } from "@/lib/education-courses";
+import { formatFullName } from "@/lib/name-format";
 
 type ApiResult = {
   ok?: boolean;
@@ -124,7 +125,7 @@ export function EducationEnrollPage() {
               >
                 {children.map((child) => (
                   <option key={child.id} value={child.id}>
-                    {child.first_name} {child.last_name} - {child.grade}
+                    {formatFullName(child.first_name, child.last_name)} - {child.grade}
                   </option>
                 ))}
               </select>

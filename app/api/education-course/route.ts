@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createInvoiceItem } from "@/lib/invoices";
 import { getEducationCourseByCode } from "@/lib/education-courses";
+import { formatFullName, formatPersonName } from "@/lib/name-format";
 import { accountExists } from "@/lib/talent-applications";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 import { supabaseRequest } from "@/lib/supabase-server";
@@ -97,7 +98,7 @@ export async function POST(request: Request) {
   if (childAge === null || childAge < course.minAge || childAge > course.maxAge) {
     return NextResponse.json(
       {
-        error: `${child.first_name} is not in the age range for ${course.title}. ${course.ageRange} is for ages ${course.minAge}-${course.maxAge}.`
+        error: `${formatPersonName(child.first_name)} is not in the age range for ${course.title}. ${course.ageRange} is for ages ${course.minAge}-${course.maxAge}.`
       },
       { status: 400 }
     );
@@ -120,7 +121,7 @@ export async function POST(request: Request) {
     email,
     sourceType: "course",
     sourceId: course.courseCode,
-    itemName: `${course.title} (${course.courseCode}) for ${child.first_name} ${child.last_name}`.trim(),
+    itemName: `${course.title} (${course.courseCode}) for ${formatFullName(child.first_name, child.last_name)}`.trim(),
     amount: course.price,
     childId
   });

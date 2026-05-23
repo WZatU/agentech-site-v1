@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
+import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 
 type DashboardData = {
@@ -171,7 +172,7 @@ export function AccountDashboard() {
   }
 
   const profileName = data.profile
-    ? [data.profile.first_name, data.profile.last_name].filter(Boolean).join(" ")
+    ? formatFullName(data.profile.first_name, data.profile.last_name)
     : "";
 
   return (
@@ -217,7 +218,7 @@ export function AccountDashboard() {
                 type="button"
                 onClick={confirmRequest}
                 disabled={confirming}
-                className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0b1220] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-white/40"
+                className="rounded-full border border-white bg-white px-5 py-3 text-sm font-semibold text-[#0b1220] transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:border-transparent disabled:bg-white/40 disabled:text-[#0b1220]"
               >
                 {confirming ? "Sending..." : "Confirm Request"}
               </button>
@@ -230,7 +231,7 @@ export function AccountDashboard() {
             data.unpaidBalance.lines.map((line) => (
               <div key={line.id} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div>
-                  <p className="font-semibold text-white">{line.itemName}</p>
+                  <p className="font-semibold text-white">{formatInvoiceItemName(line.itemName)}</p>
                   <p className="mt-1 text-sm font-semibold text-accent">{formatUsd(line.amount)}</p>
                 </div>
                 {line.id.startsWith("item-") ? (
@@ -282,7 +283,7 @@ export function AccountDashboard() {
           {data.children?.length ? (
             data.children.map((child) => (
               <div key={child.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="font-semibold text-white">{child.first_name} {child.last_name}</p>
+                <p className="font-semibold text-white">{formatFullName(child.first_name, child.last_name)}</p>
                 <p className="mt-1 text-sm text-slate">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
                 {child.school_info ? <p className="mt-1 text-sm text-slate">School: {child.school_info}</p> : null}
                 {child.preferred_location ? <p className="mt-1 text-sm text-slate">Preferred location: {child.preferred_location}</p> : null}

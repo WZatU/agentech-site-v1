@@ -4,6 +4,7 @@ import { createInvoiceItem, sendUnpaidBalanceInvoice } from "@/lib/invoices";
 import { getProductPrice, formatUsd } from "@/lib/pricing";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 import { getProfile, upsertProfile } from "@/lib/account-records";
+import { formatPersonName } from "@/lib/name-format";
 import { supabaseRequest } from "@/lib/supabase-server";
 
 type PreorderPayload = {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as PreorderPayload | null;
   const email = normalizeEmail(payload?.email);
   const product = clean(payload?.product);
-  const name = clean(payload?.name);
+  const name = formatPersonName(payload?.name);
   const phone = clean(payload?.phone);
   const company = clean(payload?.company);
   const notes = clean(payload?.notes);
@@ -47,8 +48,8 @@ export async function POST(request: Request) {
 
   await upsertProfile({
     email,
-    first_name: firstName || name,
-    last_name: lastParts.join(" "),
+    first_name: formatPersonName(firstName || name),
+    last_name: formatPersonName(lastParts.join(" ")),
     phone,
     company: company || existingProfile?.company || null,
     address: existingProfile?.address || null,
