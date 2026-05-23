@@ -11,6 +11,10 @@ const importsPath = path.join(repoRoot, "data", "news-imports.json");
 const newsAssetsRoot = path.join(repoRoot, "public", "assets", "news");
 const tempRoot = path.join(repoRoot, ".tmp", `dropbox-news-import-${Date.now()}`);
 const defaultAuthor = "Agentech";
+const sourceFolderAuthorOverrides = new Map([
+  ["2026-05-18", "Li Yang"],
+  ["2026-05-22", "Wang Yuan"]
+]);
 const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const videoExtensions = new Set([".mp4", ".mov", ".webm", ".m4v"]);
 const mediaExtensions = new Set([...imageExtensions, ...videoExtensions]);
@@ -501,7 +505,8 @@ async function importNews() {
     const { frontmatter, body } = parseFrontmatter(markdown);
     const date = frontmatter.date || folderMatch[1];
     const title = frontmatter.title || titleFromFolderHint(folderMatch[2] || "Agentech News");
-    const slug = slugify(title || sourceFolder) || slugify(sourceFolder) || `news-${date}`;
+    const titleSlug = slugify(title || sourceFolder);
+    const slug = slugify(`${sourceFolder}-${titleSlug || "news"}`) || slugify(sourceFolder) || `news-${date}`;
     const imported = importByFolder.get(sourceFolder);
     const finalSlug = imported?.slug || slug;
     const existingIndex = imported ? newsEntries.findIndex((item) => item.slug === imported.slug) : -1;
@@ -562,7 +567,13 @@ async function importNews() {
       title: translations.en?.title || translations.zh?.title || title,
       date,
       displayDate: formatDisplayDate(date),
-      author: frontmatter.author_override || frontmatter.authorOverride || frontmatter.agentech_author || existingEntry?.author || defaultAuthor,
+      author:
+        frontmatter.author_override ||
+        frontmatter.authorOverride ||
+        frontmatter.agentech_author ||
+        existingEntry?.author ||
+        sourceFolderAuthorOverrides.get(sourceFolder) ||
+        defaultAuthor,
       excerpt: translations.en?.excerpt || translations.zh?.excerpt || excerpt,
       coverImage: copied.coverImage,
       images: copied.images,
