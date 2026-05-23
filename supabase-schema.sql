@@ -58,6 +58,60 @@ alter table public.agentech_children add column if not exists preferred_location
 alter table public.agentech_children add column if not exists selected_course_code text;
 alter table public.agentech_children add column if not exists selected_course_title text;
 
+create or replace function public.agentech_title_case_name(value text)
+returns text
+language sql
+immutable
+as $$
+  select coalesce(nullif(initcap(lower(trim(value))), ''), '');
+$$;
+
+create or replace function public.agentech_normalize_profile_names()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.first_name = public.agentech_title_case_name(new.first_name);
+  new.last_name = public.agentech_title_case_name(new.last_name);
+  return new;
+end;
+$$;
+
+create or replace function public.agentech_normalize_child_names()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.first_name = public.agentech_title_case_name(new.first_name);
+  new.last_name = public.agentech_title_case_name(new.last_name);
+  return new;
+end;
+$$;
+
+drop trigger if exists agentech_profiles_normalize_names on public.agentech_profiles;
+create trigger agentech_profiles_normalize_names
+before insert or update of first_name, last_name
+on public.agentech_profiles
+for each row
+execute function public.agentech_normalize_profile_names();
+
+drop trigger if exists agentech_children_normalize_names on public.agentech_children;
+create trigger agentech_children_normalize_names
+before insert or update of first_name, last_name
+on public.agentech_children
+for each row
+execute function public.agentech_normalize_child_names();
+
+update public.agentech_profiles
+set
+  first_name = public.agentech_title_case_name(first_name),
+  last_name = public.agentech_title_case_name(last_name);
+
+update public.agentech_children
+set
+  first_name = public.agentech_title_case_name(first_name),
+  last_name = public.agentech_title_case_name(last_name);
+
 create table if not exists public.agentech_sites (
   site_name text primary key,
   info text,
