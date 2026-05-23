@@ -52,6 +52,7 @@ type DashboardData = {
       itemName: string;
       amount: number;
       sourceType: string;
+      invoiceEmailSentAt: string | null;
     }>;
   };
   error?: string;
@@ -174,6 +175,7 @@ export function AccountDashboard() {
   const profileName = data.profile
     ? formatFullName(data.profile.first_name, data.profile.last_name)
     : "";
+  const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
 
   return (
     <div className="space-y-8">
@@ -213,7 +215,7 @@ export function AccountDashboard() {
             <Link href="/agentech-education" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
               Add Course
             </Link>
-            {data.unpaidBalance?.lines.length ? (
+            {hasConfirmableRequest ? (
               <button
                 type="button"
                 onClick={confirmRequest}

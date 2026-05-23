@@ -43,6 +43,7 @@ export type BalanceLine = {
   sourceType: "robot" | "course" | "other";
   itemName: string;
   amount: number;
+  invoiceEmailSentAt: string | null;
   createdAt: string;
 };
 
@@ -104,6 +105,7 @@ export async function getUnpaidBalanceLines(email: string) {
     sourceType: item.source_type,
     itemName: formatInvoiceItemName(item.item_name),
     amount: toAmount(item.amount),
+    invoiceEmailSentAt: item.invoice_email_sent_at,
     createdAt: item.created_at
   }));
 
@@ -121,6 +123,7 @@ export async function getUnpaidBalanceLines(email: string) {
         sourceType: "course",
         itemName,
         amount: toAmount(enrollment.price),
+        invoiceEmailSentAt: enrollment.invoice_email_sent_at,
         createdAt: enrollment.created_at
       };
     });
@@ -136,7 +139,9 @@ export async function getUnpaidBalanceLines(email: string) {
 }
 
 export async function sendUnpaidBalanceInvoice(email: string, invoiceNumber: string) {
-  const { lines, total } = await getUnpaidBalanceLines(email);
+  const balance = await getUnpaidBalanceLines(email);
+  const lines = balance.lines.filter((line) => !line.invoiceEmailSentAt);
+  const total = lines.reduce((sum, line) => sum + line.amount, 0);
 
   if (!lines.length) {
     return { sent: false, total: 0, lineCount: 0 };

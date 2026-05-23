@@ -15,7 +15,9 @@ export async function POST(request: Request) {
   }
 
   const balance = await getUnpaidBalanceLines(email);
-  if (!balance.lines.length) {
+  const confirmableLines = balance.lines.filter((line) => !line.invoiceEmailSentAt);
+
+  if (!confirmableLines.length) {
     return NextResponse.json({ error: "There are no items to confirm." }, { status: 400 });
   }
 
