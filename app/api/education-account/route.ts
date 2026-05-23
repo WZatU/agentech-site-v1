@@ -30,6 +30,12 @@ function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function formatName(value: unknown) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+}
+
 function validate(payload: AccountPayload) {
   const accountType = payload.accountType;
   const limit = accountType === "group" ? 100 : 6;
@@ -87,8 +93,8 @@ export async function POST(request: Request) {
 
   await upsertProfile({
     email,
-    first_name: clean(payload.firstName),
-    last_name: clean(payload.lastName),
+    first_name: formatName(payload.firstName),
+    last_name: formatName(payload.lastName),
     phone: clean(payload.phone),
     company: null,
     address: clean(payload.address) || null,
@@ -99,8 +105,8 @@ export async function POST(request: Request) {
   const savedChildren = await replaceChildren(
     email,
     children.map((child) => ({
-      first_name: clean(child.firstName),
-      last_name: clean(child.lastName),
+      first_name: formatName(child.firstName),
+      last_name: formatName(child.lastName),
       dob: clean(child.dob),
       grade: clean(child.grade),
       sex: clean(child.sex),
