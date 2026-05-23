@@ -23,6 +23,7 @@ type FormState = {
   parentEmail: string;
   projects: string;
   uniqueness: string;
+  resume: File | null;
   notes: string;
   website: string;
 };
@@ -38,6 +39,7 @@ const initialState: FormState = {
   parentEmail: "",
   projects: "",
   uniqueness: "",
+  resume: null,
   notes: "",
   website: ""
 };
@@ -92,7 +94,7 @@ export function SummerSchoolForm() {
 
     event?.preventDefault();
     event?.stopPropagation();
-    router.push("/login?next=/talents");
+    router.push("/login?next=/ai-robotics-club/apply");
     return false;
   }
 
@@ -169,16 +171,28 @@ export function SummerSchoolForm() {
     setIsSubmitting(true);
 
     try {
+      const body = new FormData();
+      body.set("name", form.name);
+      body.set("email", form.email);
+      body.set("school", form.school);
+      body.set("grade", form.grade);
+      body.set("gpa", form.gpa);
+      body.set("experience", form.experience);
+      body.set("parentEmail", form.parentEmail);
+      body.set("projects", form.projects);
+      body.set("uniqueness", form.uniqueness);
+      body.set("notes", form.notes);
+      body.set("website", form.website);
+      body.set("accountEmail", session.email);
+      body.set("startedAt", String(startedAt));
+      form.interests.forEach((interest) => body.append("interests", interest));
+      if (form.resume) {
+        body.set("resume", form.resume);
+      }
+
       const response = await fetch("/api/summer-school", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ...form,
-          accountEmail: session.email,
-          startedAt
-        })
+        body
       });
 
       const result = (await response.json()) as {
@@ -288,6 +302,17 @@ export function SummerSchoolForm() {
         <label className="space-y-2 md:col-span-2">
           <FieldLabel>Tell us the uniqueness about you / 你觉得你特别的地方是什么？</FieldLabel>
           <textarea className={`${fieldClass} min-h-32 resize-y`} name="uniqueness" value={form.uniqueness} onChange={(event) => updateField("uniqueness", event.target.value)} />
+        </label>
+
+        <label className="space-y-2 md:col-span-2">
+          <FieldLabel required={false}>Resume Upload (PDF, optional)</FieldLabel>
+          <input
+            className={`${fieldClass} file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white`}
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(event) => updateField("resume", event.target.files?.[0] ?? null)}
+          />
+          <p className="text-sm !text-black">Optional PDF, up to 5MB</p>
         </label>
 
         <label className="space-y-2 md:col-span-2">

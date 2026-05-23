@@ -23,6 +23,7 @@ export type TechEducationApplication = {
   interests: TechEducationInterest[];
   experience: TechEducationExperience;
   parentEmail: string;
+  resumeFilename?: string;
   notes?: string;
 };
 
@@ -41,6 +42,7 @@ export function buildTechEducationText(application: TechEducationApplication) {
     `Interest Areas: ${application.interests.join(", ")}`,
     `Experience: ${application.experience}`,
     `Parent Email: ${application.parentEmail}`,
+    `Resume Filename: ${application.resumeFilename?.trim() || "N/A"}`,
     `Notes: ${application.notes?.trim() || "N/A"}`
   ].join("\n");
 }

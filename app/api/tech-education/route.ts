@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
 import { accountExists, saveWorkshopApplication } from "@/lib/talent-applications";
+import { sanitizeResumeFilename, uploadTalentResume, validateTalentResumeFile } from "@/lib/talent-resumes";
 import {
   TECH_EDUCATION_EXPERIENCE,
   TECH_EDUCATION_GRADES,
@@ -32,10 +33,11 @@ type TechEducationPayload = {
   notes?: string;
   website?: string;
   startedAt?: number;
+  resume?: File | null;
 };
 
-function clean(value: string | undefined, max = 200) {
-  return (value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
+function clean(value: unknown, max = 200) {
+  return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
 }
 
 function isEmail(value: string) {
@@ -52,7 +54,25 @@ function getClientKey(request: NextRequest) {
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-function validate(payload: TechEducationPayload): { data?: TechEducationApplication; error?: string } {
+function payloadFromFormData(formData: FormData): TechEducationPayload {
+  return {
+    accountEmail: clean(formData.get("accountEmail"), 160),
+    name: clean(formData.get("name"), 120),
+    email: clean(formData.get("email"), 160),
+    school: clean(formData.get("school"), 160),
+    grade: clean(formData.get("grade"), 10),
+    gpa: clean(formData.get("gpa"), 20),
+    interests: formData.getAll("interests").map((value) => clean(value, 40)),
+    experience: clean(formData.get("experience"), 40),
+    parentEmail: clean(formData.get("parentEmail"), 160),
+    notes: clean(formData.get("notes"), 1200),
+    website: clean(formData.get("website")),
+    startedAt: Number(formData.get("startedAt")),
+    resume: formData.get("resume") instanceof File ? formData.get("resume") as File : null
+  };
+}
+
+function validate(payload: TechEducationPayload, resumeFilename?: string): { data?: TechEducationApplication; error?: string } {
   if (payload.website?.trim()) {
     return { error: "Submission rejected." };
   }
@@ -105,6 +125,7 @@ function validate(payload: TechEducationPayload): { data?: TechEducationApplicat
       interests,
       experience,
       parentEmail,
+      resumeFilename,
       notes
     }
   };
@@ -158,14 +179,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload = (await request.json()) as TechEducationPayload;
-  const validation = validate(payload);
-
-  if (!validation.data) {
-    return NextResponse.json({ ok: false, message: validation.error }, { status: 400 });
-  }
-
+  const formData = await request.formData();
+  const payload = payloadFromFormData(formData);
   const accountEmail = clean(payload.accountEmail, 160).toLowerCase();
+  let uploadedResume: Awaited<ReturnType<typeof uploadTalentResume>> | null = null;
+  const resumeFilename = payload.resume ? sanitizeResumeFilename(payload.resume.name || "resume.pdf") : undefined;
+
+  if (payload.resume) {
+    const resumeError = validateTalentResumeFile(payload.resume);
+    if (resumeError) {
+      return NextResponse.json({ ok: false, message: resumeError }, { status: 400 });
+    }
+  }
 
   if (!accountEmail || !isEmail(accountEmail) || !(await accountExists(accountEmail))) {
     return NextResponse.json(
@@ -174,9 +199,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const validation = validate(payload, resumeFilename);
+
+  if (!validation.data) {
+    return NextResponse.json({ ok: false, message: validation.error }, { status: 400 });
+  }
+
+  if (payload.resume) {
+    uploadedResume = await uploadTalentResume(accountEmail, payload.resume);
+  }
+
   recentSubmissions.set(clientKey, Date.now());
 
-  await saveWorkshopApplication(accountEmail, validation.data);
+  await saveWorkshopApplication(accountEmail, validation.data, uploadedResume?.path);
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(validation.data, receiverEmail);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type EducationCourseButtonProps = {
@@ -8,13 +7,14 @@ type EducationCourseButtonProps = {
   className?: string;
 };
 
-export function EducationCourseButton({ courseCode, className }: EducationCourseButtonProps) {
-  const router = useRouter();
+const learningTreeEnrollmentUrl = "https://www.learningtrees.us/ai-summer-camp";
+
+export function EducationCourseButton({ className }: EducationCourseButtonProps) {
   const [status, setStatus] = useState<"idle" | "saving">("idle");
 
   async function addCourse() {
     setStatus("saving");
-    router.push(`/enroll?course=${courseCode}`);
+    window.location.href = learningTreeEnrollmentUrl;
   }
 
   return (

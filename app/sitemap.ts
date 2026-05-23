@@ -10,7 +10,9 @@ const routes = [
   "/agentech-robotic",
   "/agentech-education",
   "/agentech-bots",
-  "/summer-school",
+  "/ai-robotics-club",
+  "/ai-robotics-club/zh",
+  "/ai-robotics-club/apply",
   "/tech-education",
   "/talents"
 ];

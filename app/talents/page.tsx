@@ -6,7 +6,7 @@ const talentPrograms = [
   {
     title: "AI & Robotics Club",
     audience: "Middle School - High School and College",
-    href: "/summer-school",
+    href: "/ai-robotics-club",
     image: "/assets/programs/summer-school.png",
     alt: "Students collaborating in the Agentech AI and Robotics Club"
   },

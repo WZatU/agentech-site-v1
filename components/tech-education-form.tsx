@@ -21,6 +21,7 @@ type FormState = {
   interests: TechEducationInterest[];
   experience: TechEducationExperience | "";
   parentEmail: string;
+  resume: File | null;
   notes: string;
   website: string;
 };
@@ -34,6 +35,7 @@ const initialState: FormState = {
   interests: [],
   experience: "",
   parentEmail: "",
+  resume: null,
   notes: "",
   website: ""
 };
@@ -155,16 +157,26 @@ export function TechEducationForm() {
     setIsSubmitting(true);
 
     try {
+      const body = new FormData();
+      body.set("name", form.name);
+      body.set("email", form.email);
+      body.set("school", form.school);
+      body.set("grade", form.grade);
+      body.set("gpa", form.gpa);
+      body.set("experience", form.experience);
+      body.set("parentEmail", form.parentEmail);
+      body.set("notes", form.notes);
+      body.set("website", form.website);
+      body.set("accountEmail", session.email);
+      body.set("startedAt", String(startedAt));
+      form.interests.forEach((interest) => body.append("interests", interest));
+      if (form.resume) {
+        body.set("resume", form.resume);
+      }
+
       const response = await fetch("/api/tech-education", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ...form,
-          accountEmail: session.email,
-          startedAt
-        })
+        body
       });
 
       const result = (await response.json()) as {
@@ -271,6 +283,17 @@ export function TechEducationForm() {
           <textarea className={`${fieldClass} min-h-32 resize-y`} name="notes" value={form.notes} onChange={(event) => updateField("notes", event.target.value)} />
         </label>
       </div>
+
+      <label className="block space-y-2">
+        <FieldLabel required={false}>Resume Upload (PDF, optional)</FieldLabel>
+        <input
+          className={`${fieldClass} file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white`}
+          type="file"
+          accept="application/pdf,.pdf"
+          onChange={(event) => updateField("resume", event.target.files?.[0] ?? null)}
+        />
+        <p className="text-sm !text-black">Optional PDF, up to 5MB</p>
+      </label>
 
       {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
       {success ? <p className="text-sm font-semibold text-emerald-700">{success}</p> : null}

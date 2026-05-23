@@ -16,7 +16,7 @@ export async function accountExists(email: string) {
   return rows.length > 0;
 }
 
-export async function saveWorkshopApplication(accountEmail: string, application: TechEducationApplication) {
+export async function saveWorkshopApplication(accountEmail: string, application: TechEducationApplication, resumeStoragePath?: string | null) {
   await supabaseRequest<null>("agentech_workshop_applications", {
     method: "POST",
     body: [
@@ -30,6 +30,8 @@ export async function saveWorkshopApplication(accountEmail: string, application:
         interests: application.interests,
         experience: application.experience,
         parent_email: normalizeEmail(application.parentEmail),
+        resume_filename: application.resumeFilename || null,
+        resume_storage_path: resumeStoragePath || null,
         notes: application.notes || null
       }
     ],
@@ -37,7 +39,7 @@ export async function saveWorkshopApplication(accountEmail: string, application:
   });
 }
 
-export async function saveAiRoboticsClubApplication(accountEmail: string, application: SummerSchoolApplication) {
+export async function saveAiRoboticsClubApplication(accountEmail: string, application: SummerSchoolApplication, resumeStoragePath?: string | null) {
   await supabaseRequest<null>("agentech_ai_robotics_club_applications", {
     method: "POST",
     body: [
@@ -53,6 +55,8 @@ export async function saveAiRoboticsClubApplication(accountEmail: string, applic
         parent_email: normalizeEmail(application.parentEmail),
         projects: application.projects,
         uniqueness: application.uniqueness,
+        resume_filename: application.resumeFilename || null,
+        resume_storage_path: resumeStoragePath || null,
         notes: application.notes || null
       }
     ],

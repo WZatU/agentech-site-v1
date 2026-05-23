@@ -52,11 +52,12 @@ export function SiteHeader() {
 
     if (
       pathname.startsWith("/talents") ||
+      pathname.startsWith("/ai-robotics-club") ||
       pathname.startsWith("/tech-education") ||
       pathname.startsWith("/summer-school") ||
       pathname.startsWith("/career-intern")
     ) {
-      return "/login?next=/talents";
+      return `/login?next=${encodeURIComponent(pathname)}`;
     }
 
     return "/login";
@@ -91,7 +92,7 @@ export function SiteHeader() {
             const isActive =
               pathname === item.href ||
               childPaths.includes(pathname) ||
-              (item.href === "/talents" && pathname.startsWith("/talents"));
+              (item.href === "/talents" && (pathname.startsWith("/talents") || pathname.startsWith("/ai-robotics-club")));
             const linkClassName = `rounded-full px-3 py-2 transition ${
               isActive
                 ? "bg-white/8 text-white"
@@ -205,7 +206,7 @@ export function SiteHeader() {
       >
         <nav className="flex flex-col gap-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || (item.href === "/talents" && pathname.startsWith("/talents"));
+            const isActive = pathname === item.href || (item.href === "/talents" && (pathname.startsWith("/talents") || pathname.startsWith("/ai-robotics-club")));
             return (
               <Link
                 key={item.href}

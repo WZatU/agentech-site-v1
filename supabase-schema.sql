@@ -340,10 +340,15 @@ create table if not exists public.agentech_workshop_applications (
   interests text[] not null default '{}',
   experience text not null,
   parent_email text not null,
+  resume_filename text,
+  resume_storage_path text,
   notes text,
   status text not null default 'submitted',
   created_at timestamptz not null default now()
 );
+
+alter table public.agentech_workshop_applications add column if not exists resume_filename text;
+alter table public.agentech_workshop_applications add column if not exists resume_storage_path text;
 
 create index if not exists agentech_workshop_applications_account_idx
 on public.agentech_workshop_applications (account_email, created_at desc);
@@ -361,10 +366,15 @@ create table if not exists public.agentech_ai_robotics_club_applications (
   parent_email text not null,
   projects text not null,
   uniqueness text not null,
+  resume_filename text,
+  resume_storage_path text,
   notes text,
   status text not null default 'submitted',
   created_at timestamptz not null default now()
 );
+
+alter table public.agentech_ai_robotics_club_applications add column if not exists resume_filename text;
+alter table public.agentech_ai_robotics_club_applications add column if not exists resume_storage_path text;
 
 create index if not exists agentech_ai_robotics_club_applications_account_idx
 on public.agentech_ai_robotics_club_applications (account_email, created_at desc);

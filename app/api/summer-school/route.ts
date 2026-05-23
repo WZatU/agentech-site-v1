@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
 import { accountExists, saveAiRoboticsClubApplication } from "@/lib/talent-applications";
+import { sanitizeResumeFilename, uploadTalentResume, validateTalentResumeFile } from "@/lib/talent-resumes";
 import {
   SUMMER_SCHOOL_EXPERIENCE,
   SUMMER_SCHOOL_GRADES,
@@ -34,10 +35,11 @@ type SummerSchoolPayload = {
   notes?: string;
   website?: string;
   startedAt?: number;
+  resume?: File | null;
 };
 
-function clean(value: string | undefined, max = 200) {
-  return (value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
+function clean(value: unknown, max = 200) {
+  return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, max);
 }
 
 function isEmail(value: string) {
@@ -54,7 +56,27 @@ function getClientKey(request: NextRequest) {
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-function validate(payload: SummerSchoolPayload): { data?: SummerSchoolApplication; error?: string } {
+function payloadFromFormData(formData: FormData): SummerSchoolPayload {
+  return {
+    accountEmail: clean(formData.get("accountEmail"), 160),
+    name: clean(formData.get("name"), 120),
+    email: clean(formData.get("email"), 160),
+    school: clean(formData.get("school"), 160),
+    grade: clean(formData.get("grade"), 10),
+    gpa: clean(formData.get("gpa"), 20),
+    interests: formData.getAll("interests").map((value) => clean(value, 40)),
+    experience: clean(formData.get("experience"), 40),
+    parentEmail: clean(formData.get("parentEmail"), 160),
+    projects: clean(formData.get("projects"), 1200),
+    uniqueness: clean(formData.get("uniqueness"), 1200),
+    notes: clean(formData.get("notes"), 1200),
+    website: clean(formData.get("website")),
+    startedAt: Number(formData.get("startedAt")),
+    resume: formData.get("resume") instanceof File ? formData.get("resume") as File : null
+  };
+}
+
+function validate(payload: SummerSchoolPayload, resumeFilename?: string): { data?: SummerSchoolApplication; error?: string } {
   if (payload.website?.trim()) {
     return { error: "Submission rejected." };
   }
@@ -111,6 +133,7 @@ function validate(payload: SummerSchoolPayload): { data?: SummerSchoolApplicatio
       parentEmail,
       projects,
       uniqueness,
+      resumeFilename,
       notes
     }
   };
@@ -163,14 +186,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload = (await request.json()) as SummerSchoolPayload;
-  const validation = validate(payload);
-
-  if (!validation.data) {
-    return NextResponse.json({ ok: false, message: validation.error }, { status: 400 });
-  }
-
+  const formData = await request.formData();
+  const payload = payloadFromFormData(formData);
   const accountEmail = clean(payload.accountEmail, 160).toLowerCase();
+  let uploadedResume: Awaited<ReturnType<typeof uploadTalentResume>> | null = null;
+  const resumeFilename = payload.resume ? sanitizeResumeFilename(payload.resume.name || "resume.pdf") : undefined;
+
+  if (payload.resume) {
+    const resumeError = validateTalentResumeFile(payload.resume);
+    if (resumeError) {
+      return NextResponse.json({ ok: false, message: resumeError }, { status: 400 });
+    }
+  }
 
   if (!accountEmail || !isEmail(accountEmail) || !(await accountExists(accountEmail))) {
     return NextResponse.json(
@@ -179,9 +206,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const validation = validate(payload, resumeFilename);
+
+  if (!validation.data) {
+    return NextResponse.json({ ok: false, message: validation.error }, { status: 400 });
+  }
+
+  if (payload.resume) {
+    uploadedResume = await uploadTalentResume(accountEmail, payload.resume);
+  }
+
   recentSubmissions.set(clientKey, Date.now());
 
-  await saveAiRoboticsClubApplication(accountEmail, validation.data);
+  await saveAiRoboticsClubApplication(accountEmail, validation.data, uploadedResume?.path);
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(validation.data, receiverEmail);

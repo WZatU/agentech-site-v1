@@ -27,6 +27,7 @@ export type SummerSchoolApplication = {
   parentEmail: string;
   projects: string;
   uniqueness: string;
+  resumeFilename?: string;
   notes?: string;
 };
 
@@ -47,6 +48,7 @@ export function buildSummerSchoolText(application: SummerSchoolApplication) {
     `Parent Email: ${application.parentEmail}`,
     `Projects: ${application.projects}`,
     `Uniqueness: ${application.uniqueness}`,
+    `Resume Filename: ${application.resumeFilename?.trim() || "N/A"}`,
     `Notes: ${application.notes?.trim() || "N/A"}`
   ].join("\n");
 }
