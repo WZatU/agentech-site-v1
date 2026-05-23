@@ -96,7 +96,7 @@ export function EducationEnrollPage() {
       }
 
       setStatus("success");
-      setMessage("Enrollment request added. Taking you to your account...");
+      setMessage("Enrollment added to your request cart. Taking you to your account...");
       router.replace("/account");
   }
 

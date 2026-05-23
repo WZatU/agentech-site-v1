@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createInvoiceItem, sendUnpaidBalanceInvoice } from "@/lib/invoices";
+import { createInvoiceItem } from "@/lib/invoices";
 import { getEducationCourseByCode } from "@/lib/education-courses";
 import { accountExists } from "@/lib/talent-applications";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
@@ -125,10 +125,8 @@ export async function POST(request: Request) {
     childId
   });
 
-  await sendUnpaidBalanceInvoice(email, `COURSE-${course.courseCode}-${Date.now().toString().slice(-6)}`).catch(() => null);
-
   return NextResponse.json({
     ok: true,
-    message: "Course added. Agentech emailed your current unpaid balance."
+    message: "Course added to your account. Confirm your request from your account page when ready."
   });
 }

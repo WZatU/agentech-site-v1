@@ -62,6 +62,7 @@ export function AccountDashboard() {
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState("");
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -128,6 +129,31 @@ export function AccountDashboard() {
     setData(result);
   }
 
+  async function confirmRequest() {
+    if (!email) return;
+
+    setConfirming(true);
+    setActionMessage("");
+    const response = await fetch("/api/invoice-confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const result = (await response.json()) as { error?: string; message?: string };
+
+    if (!response.ok) {
+      setActionMessage(result.error || "Unable to confirm request.");
+      setConfirming(false);
+      return;
+    }
+
+    setActionMessage(result.message || "Request confirmed.");
+    const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
+    const accountResult = (await accountResponse.json()) as DashboardData;
+    setData(accountResult);
+    setConfirming(false);
+  }
+
   if (loading) {
     return <p className="text-slate">Loading account...</p>;
   }
@@ -178,10 +204,25 @@ export function AccountDashboard() {
 
       <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-2xl font-semibold text-white">Unpaid Balance Items</h2>
-          <Link href="/agentech-education" className="text-sm font-semibold text-accent">
-            Add Course
-          </Link>
+          <div>
+            <h2 className="text-2xl font-semibold text-white">Request Cart</h2>
+            <p className="mt-2 text-sm text-slate">Review these items before sending the invoice request.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/agentech-education" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+              Add Course
+            </Link>
+            {data.unpaidBalance?.lines.length ? (
+              <button
+                type="button"
+                onClick={confirmRequest}
+                disabled={confirming}
+                className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0b1220] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-white/40"
+              >
+                {confirming ? "Sending..." : "Confirm Request"}
+              </button>
+            ) : null}
+          </div>
         </div>
         {actionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{actionMessage}</p> : null}
         <div className="mt-5 space-y-3">
@@ -204,7 +245,7 @@ export function AccountDashboard() {
               </div>
             ))
           ) : (
-            <p className="text-slate">No unpaid balance items.</p>
+            <p className="text-slate">No request items yet.</p>
           )}
         </div>
       </section>
