@@ -96,7 +96,8 @@ export function EducationEnrollPage() {
       }
 
       setStatus("success");
-      setMessage(result.message || "Course added. Agentech emailed your current unpaid balance.");
+      setMessage("Enrollment request added. Taking you to your account...");
+      router.replace("/account");
   }
 
   return (

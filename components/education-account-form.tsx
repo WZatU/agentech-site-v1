@@ -500,7 +500,7 @@ export function EducationAccountForm() {
         })
       });
 
-      const result = (await response.json()) as { error?: string; childrenEnrolled?: number };
+      const result = (await response.json()) as { error?: string };
       if (!response.ok) {
         throw new Error(result.error || "Unable to create account.");
       }
@@ -509,7 +509,6 @@ export function EducationAccountForm() {
         setStatus("success");
         setHasExistingProfile(true);
         setHasExistingChildren(true);
-        setMessage("Profile saved. Choose which student to enroll next.");
         window.location.href = `/enroll?course=${encodeURIComponent(selectedCourseCode)}`;
         return;
       }
@@ -517,11 +516,8 @@ export function EducationAccountForm() {
       setStatus("success");
       setHasExistingProfile(true);
       setHasExistingChildren(true);
-      setMessage(
-        isExistingEducationProfile
-          ? `Changes saved. Total children enrolled: ${result.childrenEnrolled}.`
-          : `Profile saved. Total children enrolled: ${result.childrenEnrolled}.`
-      );
+      setMessage(isExistingEducationProfile ? "Changes saved. Taking you to your account..." : "Profile saved. Taking you to your account...");
+      window.location.href = "/account";
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Unable to create account.");
