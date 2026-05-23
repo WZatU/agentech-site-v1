@@ -325,11 +325,34 @@ export function EducationAccountForm() {
   const [rosterStatus, setRosterStatus] = useState("");
   const [rosterErrors, setRosterErrors] = useState<string[]>([]);
   const [selectedCourseCode, setSelectedCourseCode] = useState("");
+  const [hasExistingProfile, setHasExistingProfile] = useState(false);
+  const [hasExistingChildren, setHasExistingChildren] = useState(false);
 
   const childLimit = accountType === "group" ? 100 : 6;
   const canAddChild = children.length < childLimit;
   const selectedCourse = selectedCourseCode ? getEducationCourseByCode(selectedCourseCode) : null;
   const allowedGradeOptions = useMemo(() => getGradeOptionsForCourse(selectedCourseCode), [selectedCourseCode]);
+  const isExistingEducationProfile = hasExistingProfile && hasExistingChildren;
+  const actionHeading = selectedCourseCode
+    ? "Ready to continue enrollment?"
+    : isExistingEducationProfile
+      ? "Ready to save changes?"
+      : "Ready to create this account?";
+  const actionDescription = selectedCourseCode
+    ? "Save the student information first, then choose the student for this course."
+    : isExistingEducationProfile
+      ? "Your saved profile and children will be updated."
+      : "This profile will be connected to your verified Agentech account email.";
+  const actionLabel =
+    status === "saving"
+      ? "Saving..."
+      : selectedCourseCode
+        ? isExistingEducationProfile
+          ? "Save Changes and Continue to Enroll"
+          : "Save Student and Continue to Enroll"
+        : isExistingEducationProfile
+          ? "Save Changes"
+          : "Create Account";
 
   const completedRequired = useMemo(() => {
     const ownerComplete = Boolean(owner.email.trim() && owner.firstName.trim() && owner.lastName.trim() && owner.phone.trim());
@@ -376,6 +399,7 @@ export function EducationAccountForm() {
         .then((response) => response.json())
         .then((result: AccountLookup) => {
           if (result.profile) {
+            setHasExistingProfile(true);
             setOwner({
               email: result.profile.email,
               firstName: result.profile.first_name || "",
@@ -390,6 +414,7 @@ export function EducationAccountForm() {
           }
 
           if (result.children?.length) {
+            setHasExistingChildren(true);
             setChildren(
               applyPreferredCampus(
                 result.children.map((child) => ({
@@ -482,13 +507,21 @@ export function EducationAccountForm() {
 
       if (selectedCourseCode && owner.email) {
         setStatus("success");
+        setHasExistingProfile(true);
+        setHasExistingChildren(true);
         setMessage("Profile saved. Choose which student to enroll next.");
         window.location.href = `/enroll?course=${encodeURIComponent(selectedCourseCode)}`;
         return;
       }
 
       setStatus("success");
-      setMessage(`Profile saved. Total children enrolled: ${result.childrenEnrolled}.`);
+      setHasExistingProfile(true);
+      setHasExistingChildren(true);
+      setMessage(
+        isExistingEducationProfile
+          ? `Changes saved. Total children enrolled: ${result.childrenEnrolled}.`
+          : `Profile saved. Total children enrolled: ${result.childrenEnrolled}.`
+      );
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Unable to create account.");
@@ -745,14 +778,8 @@ export function EducationAccountForm() {
 
           <div className="flex flex-col gap-4 rounded-2xl border border-[#cbd5e1] bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-[#0b1220]">
-                {selectedCourseCode ? "Ready to continue enrollment?" : "Ready to create this account?"}
-              </h2>
-              <p className="mt-2 text-sm text-[#334155]">
-                {selectedCourseCode
-                  ? "Save the student information first, then choose the student for this course."
-                  : "This profile will be connected to your verified Agentech account email."}
-              </p>
+              <h2 className="text-xl font-semibold text-[#0b1220]">{actionHeading}</h2>
+              <p className="mt-2 text-sm text-[#334155]">{actionDescription}</p>
               {message ? <p className={`mt-3 text-sm ${status === "error" ? "text-red-500" : "text-emerald-600"}`}>{message}</p> : null}
             </div>
             <button
@@ -761,7 +788,7 @@ export function EducationAccountForm() {
               disabled={!completedRequired || status === "saving"}
               className="rounded-full bg-[#0b1220] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#1f2937] disabled:cursor-not-allowed disabled:bg-[#cbd5e1]"
             >
-              {status === "saving" ? "Saving..." : selectedCourseCode ? "Save Student and Continue to Enroll" : "Create Account"}
+              {actionLabel}
             </button>
           </div>
         </div>
