@@ -58,6 +58,10 @@ async function readTextFile(filePath) {
   const buffer = await fs.readFile(filePath);
   const utf8 = buffer.toString("utf8");
 
+  if (!utf8.includes("\uFFFD")) {
+    return utf8;
+  }
+
   try {
     const gb18030 = new TextDecoder("gb18030").decode(buffer);
     return decodedTextScore(gb18030) > decodedTextScore(utf8) ? gb18030 : utf8;
@@ -404,15 +408,12 @@ function splitLanguageSections(markdown) {
   }
 
   if (!sections.en && !sections.zh && buckets.default?.join("").trim()) {
-    const chunks = buckets.default
-      .join("\n")
-      .split(/\n\s*(?:[-–—⸻]{2,}|â¸»)\s*\n/u)
-      .map((chunk) => markdownToParagraphs(chunk).filter((paragraph) => cleanNewsLine(paragraph)))
-      .filter((chunk) => chunk.length);
+    const paragraphs = markdownToParagraphs(buckets.default.join("\n")).filter((paragraph) => cleanNewsLine(paragraph));
 
-    for (const chunk of chunks) {
-      const language = containsChinese(chunk.join("\n")) ? "zh" : "en";
-      sections[language] ||= chunk;
+    for (const paragraph of paragraphs) {
+      const language = containsChinese(paragraph) ? "zh" : "en";
+      sections[language] ||= [];
+      sections[language].push(paragraph);
     }
   }
 
@@ -611,24 +612,32 @@ async function importNews() {
     const languageSections = splitLanguageSections(body);
     const paragraphs = markdownToParagraphs(body);
     const defaultBody = languageSections.en || languageSections.zh || paragraphs;
+    const derivedTitleEn = languageSections.en?.[0] || "";
+    const derivedTitleZh = languageSections.zh?.[0] || "";
+    const derivedSummaryEn = languageSections.en?.find((paragraph, index) => index > 0 && paragraph.length > 60) || languageSections.en?.[1] || "";
+    const derivedSummaryZh = languageSections.zh?.find((paragraph, index) => index > 0 && paragraph.length > 40) || languageSections.zh?.[1] || "";
     const titleEn =
       frontmatter.title_en ||
       frontmatter.en_title ||
       (frontmatter.title && !containsChinese(frontmatter.title) ? frontmatter.title : "") ||
+      derivedTitleEn ||
       (languageSections.en ? "Agentech Official News" : "");
     const titleZh =
       frontmatter.title_zh ||
       frontmatter.zh_title ||
-      (frontmatter.title && containsChinese(frontmatter.title) ? frontmatter.title : "");
+      (frontmatter.title && containsChinese(frontmatter.title) ? frontmatter.title : "") ||
+      derivedTitleZh;
     const rawSummary = frontmatter.summary || frontmatter.subtitle || "";
     const summaryEn =
       frontmatter.summary_en ||
       frontmatter.en_summary ||
-      (rawSummary && !containsChinese(rawSummary) ? rawSummary : "");
+      (rawSummary && !containsChinese(rawSummary) ? rawSummary : "") ||
+      derivedSummaryEn;
     const summaryZh =
       frontmatter.summary_zh ||
       frontmatter.zh_summary ||
-      (rawSummary && containsChinese(rawSummary) ? rawSummary : "");
+      (rawSummary && containsChinese(rawSummary) ? rawSummary : "") ||
+      derivedSummaryZh;
     const excerpt = summaryEn || summaryZh || firstParagraph(defaultBody) || title;
     const translations = await completeTranslations({
       titleEn,
