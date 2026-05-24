@@ -13,6 +13,7 @@ const importsPath = path.join(repoRoot, "data", "news-imports.json");
 const newsAssetsRoot = path.join(repoRoot, "public", "assets", "news");
 const tempRoot = path.join(repoRoot, ".tmp", `dropbox-news-import-${Date.now()}`);
 const defaultAuthor = "Agentech";
+const importerFingerprintVersion = "2026-05-strip-derived-title-preview";
 const sourceFolderAuthorOverrides = new Map([
   ["2026-05-18", "Li Yang"],
   ["2026-05-22", "Wang Yuan"]
@@ -77,6 +78,8 @@ async function fileHash(filePath) {
 
 async function createFolderFingerprint({ indexPath, markdown, mediaItems }) {
   const hash = crypto.createHash("sha256");
+  hash.update(importerFingerprintVersion);
+  hash.update("\0");
   hash.update(path.basename(indexPath));
   hash.update("\0");
   hash.update(markdown);
@@ -424,6 +427,42 @@ function firstParagraph(paragraphs) {
   return paragraphs.find((paragraph) => paragraph.trim()) || "";
 }
 
+function bodyWithoutDerivedTitleAndSummary(paragraphs, title, summary) {
+  const body = [...(paragraphs || [])];
+
+  if (body[0] && title && body[0].trim() === title.trim()) {
+    body.shift();
+  }
+
+  if (body[0] && summary && body[0].trim() === summary.trim()) {
+    body.shift();
+  }
+
+  return body;
+}
+
+function firstSentence(paragraphs) {
+  const paragraph = firstParagraph(paragraphs);
+
+  if (!paragraph) {
+    return "";
+  }
+
+  return paragraph.match(/^.+?[.!?。！？](?:\s|$)/u)?.[0]?.trim() || paragraph;
+}
+
+function isLikelyPreviewLine(paragraph) {
+  if (!paragraph) {
+    return false;
+  }
+
+  if (paragraph.length > 150) {
+    return false;
+  }
+
+  return !/[.!?。！？]$/.test(paragraph.trim());
+}
+
 async function getTopLevelDirectories(sourceDir) {
   const entries = await fs.readdir(sourceDir, { withFileTypes: true });
   return entries
@@ -614,8 +653,14 @@ async function importNews() {
     const defaultBody = languageSections.en || languageSections.zh || paragraphs;
     const derivedTitleEn = languageSections.en?.[0] || "";
     const derivedTitleZh = languageSections.zh?.[0] || "";
-    const derivedSummaryEn = languageSections.en?.find((paragraph, index) => index > 0 && paragraph.length > 60) || languageSections.en?.[1] || "";
-    const derivedSummaryZh = languageSections.zh?.find((paragraph, index) => index > 0 && paragraph.length > 40) || languageSections.zh?.[1] || "";
+    const possibleSummaryEn = languageSections.en?.[1] || "";
+    const possibleSummaryZh = languageSections.zh?.[1] || "";
+    const derivedSummaryEn = isLikelyPreviewLine(possibleSummaryEn)
+      ? possibleSummaryEn
+      : firstSentence(bodyWithoutDerivedTitleAndSummary(languageSections.en, derivedTitleEn, ""));
+    const derivedSummaryZh = isLikelyPreviewLine(possibleSummaryZh)
+      ? possibleSummaryZh
+      : firstSentence(bodyWithoutDerivedTitleAndSummary(languageSections.zh, derivedTitleZh, ""));
     const titleEn =
       frontmatter.title_en ||
       frontmatter.en_title ||
@@ -638,6 +683,10 @@ async function importNews() {
       frontmatter.zh_summary ||
       (rawSummary && containsChinese(rawSummary) ? rawSummary : "") ||
       derivedSummaryZh;
+    const articleLanguageSections = {
+      en: languageSections.en ? bodyWithoutDerivedTitleAndSummary(languageSections.en, titleEn, summaryEn) : undefined,
+      zh: languageSections.zh ? bodyWithoutDerivedTitleAndSummary(languageSections.zh, titleZh, summaryZh) : undefined
+    };
     const excerpt = summaryEn || summaryZh || firstParagraph(defaultBody) || title;
     const translations = await completeTranslations({
       titleEn,
@@ -647,7 +696,7 @@ async function importNews() {
       defaultTitle: titleEn || titleZh || title,
       defaultExcerpt: excerpt,
       defaultBody: defaultBody.length ? defaultBody : [excerpt],
-      languageSections
+      languageSections: articleLanguageSections
     });
     const entry = {
       slug: finalSlug,
