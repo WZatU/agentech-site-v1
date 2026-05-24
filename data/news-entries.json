@@ -81,40 +81,55 @@
     "displayDate": "May 18, 2026",
     "author": "Li Yang",
     "excerpt": "Exploring the Future of AI, Robotics, and Education Integration",
-    "coverImage": "/assets/news/2026-05-18-agentech-news/media-1779581804908/01.jpg",
+    "coverImage": "/assets/news/2026-05-18-agentech-news/media-1779583215837/01.jpg",
     "images": [
-      "/assets/news/2026-05-18-agentech-news/media-1779581804908/01.jpg",
-      "/assets/news/2026-05-18-agentech-news/media-1779581804908/02.jpg",
-      "/assets/news/2026-05-18-agentech-news/media-1779581804908/03.jpg",
-      "/assets/news/2026-05-18-agentech-news/media-1779581804908/04.jpg",
-      "/assets/news/2026-05-18-agentech-news/media-1779581804908/05.jpg",
-      "/assets/news/2026-05-18-agentech-news/media-1779581804908/06.jpg"
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/01.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/02.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/03.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/04.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/05.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/06.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/07.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/08.jpg",
+      "/assets/news/2026-05-18-agentech-news/media-1779583215837/09.jpg"
     ],
     "videos": [],
     "media": [
       {
         "type": "image",
-        "src": "/assets/news/2026-05-18-agentech-news/media-1779581804908/01.jpg"
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/01.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-05-18-agentech-news/media-1779581804908/02.jpg"
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/02.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-05-18-agentech-news/media-1779581804908/03.jpg"
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/03.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-05-18-agentech-news/media-1779581804908/04.jpg"
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/04.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-05-18-agentech-news/media-1779581804908/05.jpg"
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/05.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-05-18-agentech-news/media-1779581804908/06.jpg"
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/06.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/07.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/08.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/2026-05-18-agentech-news/media-1779583215837/09.jpg"
       }
     ],
     "body": [
