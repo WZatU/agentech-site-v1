@@ -137,7 +137,22 @@ body::after {
   }
 
   .logo-roll {
+    --logo-roll-distance: 72rem;
     animation: logoRoll 26s linear infinite;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  @media (min-width: 640px) {
+    .logo-roll {
+      --logo-roll-distance: 84rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .logo-roll {
+      --logo-roll-distance: 96rem;
+    }
   }
 
   .talent-application-form,
@@ -300,10 +315,10 @@ body::after {
 
 @keyframes logoRoll {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform: translateX(-12.5%);
+    transform: translate3d(calc(var(--logo-roll-distance) * -1), 0, 0);
   }
 }
