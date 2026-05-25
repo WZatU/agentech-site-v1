@@ -4,8 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { accountSessionEvent, clearAccountSession, getAccountSession, setAccountSession } from "@/lib/account-session";
 
-type AuthMode = "signin" | "signup";
+type AuthMode = "signin" | "signup" | "forgot";
 type SignupStep = "email" | "verify";
+type ResetStep = "email" | "verify";
 
 type ApiResult = {
   ok?: boolean;
@@ -32,6 +33,7 @@ export function UniversalAuthForm() {
   const next = explicitNext || "/account-setup";
   const [mode, setMode] = useState<AuthMode>("signup");
   const [signupStep, setSignupStep] = useState<SignupStep>("email");
+  const [resetStep, setResetStep] = useState<ResetStep>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -192,6 +194,54 @@ export function UniversalAuthForm() {
     await rememberAndContinue(result.email, false);
   }
 
+  async function sendPasswordResetCode(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+    setDevCode("");
+
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const result = (await response.json()) as ApiResult;
+
+    if (!response.ok) {
+      setStatus("error");
+      setMessage(result.error || "Unable to send password reset code.");
+      return;
+    }
+
+    setStatus("success");
+    setResetStep("verify");
+    setMessage(result.message || "Password reset code sent.");
+    setDevCode(result.devCode || "");
+  }
+
+  async function resetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+
+    const response = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code, password })
+    });
+    const result = (await response.json()) as ApiResult;
+
+    if (!response.ok || !result.email) {
+      setStatus("error");
+      setMessage(result.error || "Unable to reset password.");
+      return;
+    }
+
+    setStatus("success");
+    setMessage("Password reset. Signing you in...");
+    await rememberAndContinue(result.email, false);
+  }
+
   return (
     <div className="rounded-[28px] border border-[#cbd5e1] bg-white p-7 shadow-xl shadow-slate-300/70 md:p-9">
       <div className="mb-8">
@@ -230,6 +280,8 @@ export function UniversalAuthForm() {
               setStatus("idle");
               setMessage("");
               setDevCode("");
+              setCode("");
+              setPassword("");
             }}
             className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
               mode === option ? "bg-white text-[#0b1220] shadow-sm" : "text-[#475569]"
@@ -314,6 +366,94 @@ export function UniversalAuthForm() {
           </label>
           <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
             {status === "loading" ? "Signing in..." : "Sign In"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("forgot");
+              setResetStep("email");
+              setStatus("idle");
+              setMessage("");
+              setDevCode("");
+              setCode("");
+              setPassword("");
+            }}
+            className="w-full text-sm font-semibold text-[#475569]"
+          >
+            Forgot password?
+          </button>
+        </form>
+      ) : null}
+
+      {!signedInEmail && mode === "forgot" && resetStep === "email" ? (
+        <form onSubmit={sendPasswordResetCode} className="space-y-5">
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Account Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+              required
+            />
+          </label>
+          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+            {status === "loading" ? "Sending..." : "Send Reset Code"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("signin");
+              setStatus("idle");
+              setMessage("");
+              setDevCode("");
+            }}
+            className="w-full text-sm font-semibold text-[#475569]"
+          >
+            Back to sign in
+          </button>
+        </form>
+      ) : null}
+
+      {!signedInEmail && mode === "forgot" && resetStep === "verify" ? (
+        <form onSubmit={resetPassword} className="space-y-5">
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Verification Code</span>
+            <input
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              inputMode="numeric"
+              className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+              required
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">New Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+              minLength={8}
+              required
+            />
+          </label>
+          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+            {status === "loading" ? "Saving..." : "Create New Password"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setResetStep("email");
+              setStatus("idle");
+              setMessage("");
+              setDevCode("");
+              setCode("");
+              setPassword("");
+            }}
+            className="w-full text-sm font-semibold text-[#475569]"
+          >
+            Use a different email
           </button>
         </form>
       ) : null}

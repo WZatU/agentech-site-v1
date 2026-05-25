@@ -41,6 +41,20 @@ export async function createAccount(account: StoredAccount) {
   });
 }
 
+export async function updateAccountPassword(email: string, password: string) {
+  const { passwordHash, salt } = createPasswordHash(password);
+
+  await supabaseRequest<null>("agentech_accounts", {
+    method: "PATCH",
+    query: `email=eq.${encodeURIComponent(email)}`,
+    prefer: "return=minimal",
+    body: {
+      password_hash: passwordHash,
+      salt
+    }
+  });
+}
+
 export async function findAccount(email: string) {
   const accounts = await supabaseRequest<StoredAccount[]>("agentech_accounts", {
     query: `email=eq.${encodeURIComponent(email)}&select=email,password_hash,salt,created_at,verified_at&limit=1`
