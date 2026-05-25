@@ -304,6 +304,6 @@ body::after {
   }
 
   to {
-    transform: translateX(-50%);
+    transform: translateX(-12.5%);
   }
 }

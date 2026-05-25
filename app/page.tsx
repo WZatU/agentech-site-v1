@@ -11,6 +11,8 @@ const partnerLogos = [
   { src: "/assets/partners/241_gray.png", alt: "241" }
 ] as const;
 
+const logoRollGroups = Array.from({ length: 8 }, (_, index) => index);
+
 export default function HomePage() {
   return (
     <AgentechGalaxyHero
@@ -19,7 +21,7 @@ export default function HomePage() {
       bottomContent={
         <div className="w-full overflow-hidden">
           <div className="logo-roll flex w-max items-center">
-            {[0, 1].map((groupIndex) => (
+            {logoRollGroups.map((groupIndex) => (
               <div key={groupIndex} className="flex shrink-0 items-center gap-16 pr-16">
                 {partnerLogos.map((logo) => (
                   <div
