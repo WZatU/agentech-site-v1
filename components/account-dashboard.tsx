@@ -119,13 +119,14 @@ export function AccountDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, itemId })
     });
+    const removeResult = (await response.json().catch(() => null)) as { message?: string; error?: string } | null;
 
     if (!response.ok) {
-      setActionMessage("Unable to remove that item.");
+      setActionMessage(removeResult?.error || "Unable to remove that item.");
       return;
     }
 
-    setActionMessage("Item removed.");
+    setActionMessage(removeResult?.message || "Item removed.");
     const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
     const result = (await accountResponse.json()) as DashboardData;
     setData(result);
