@@ -15,6 +15,7 @@ const tempRoot = path.join(repoRoot, ".tmp", `dropbox-news-import-${Date.now()}`
 const defaultAuthor = "Agentech";
 const importerFingerprintVersion = "2026-05-strip-derived-title-preview";
 const sourceFolderAuthorOverrides = new Map([
+  ["2026-05-14", "Bill"],
   ["2026-05-18", "Li Yang"],
   ["2026-05-22", "Wang Yuan"]
 ]);
