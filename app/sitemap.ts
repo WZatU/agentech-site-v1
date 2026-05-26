@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site-config";
+import { internshipRoles } from "@/lib/internship-roles";
 
 const routes = [
   "",
   "/about",
   "/news",
   "/career-intern",
+  "/career-intern/apply",
   "/career",
   "/agentech-robotic",
   "/agentech-education",
@@ -19,8 +21,9 @@ const routes = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
+  const roleRoutes = internshipRoles.map((role) => `/career-intern/${role.slug}`);
 
-  return routes.map((route) => ({
+  return [...routes, ...roleRoutes].map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified
   }));

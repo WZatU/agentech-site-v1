@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { INTERNSHIP_ROLE_INTERESTS, type InternshipRoleInterest } from "@/lib/internship";
 import { getAccountSession } from "@/lib/account-session";
@@ -39,6 +39,12 @@ const initialState: FormState = {
 
 const fieldClass =
   "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm !text-black outline-none transition placeholder:!text-black focus:border-slate-950 focus:ring-4 focus:ring-slate-200";
+
+const roleInterestBySlug: Record<string, InternshipRoleInterest> = {
+  "intelligent-hardware-development-intern": "Intelligent Hardware Development Intern",
+  "robotics-ai-software-engineering-intern": "Robotics, AI, and Software Engineering Intern",
+  "algorithm-research-intern": "Algorithm and Research Intern"
+};
 
 function FieldLabel({ children, required = true }: { children: React.ReactNode; required?: boolean }) {
   return (
@@ -80,6 +86,20 @@ export function InternshipForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [startedAt] = useState(() => Date.now());
 
+  useEffect(() => {
+    const roleSlug = new URLSearchParams(window.location.search).get("role") || "";
+    const selectedRole = roleInterestBySlug[roleSlug];
+
+    if (selectedRole) {
+      setForm((current) => ({
+        ...current,
+        roleInterests: current.roleInterests.includes(selectedRole)
+          ? current.roleInterests
+          : [selectedRole, ...current.roleInterests].slice(0, 2)
+      }));
+    }
+  }, []);
+
   function requireAccount(event?: React.SyntheticEvent) {
     if (getAccountSession()?.email) {
       return true;
@@ -87,7 +107,9 @@ export function InternshipForm() {
 
     event?.preventDefault();
     event?.stopPropagation();
-    router.push("/login?next=/talents");
+    const roleSlug = new URLSearchParams(window.location.search).get("role") || "";
+    const nextPath = roleSlug ? `/career-intern/apply?role=${encodeURIComponent(roleSlug)}` : "/career-intern/apply";
+    router.push(`/login?next=${encodeURIComponent(nextPath)}`);
     return false;
   }
 
@@ -278,7 +300,7 @@ export function InternshipForm() {
 
         <div className="space-y-3 md:col-span-2">
           <FieldLabel>Role Interest / 感兴趣方向</FieldLabel>
-          <p className="text-sm !text-black">Choose up to two / 最多选择两个</p>
+          <p className="text-sm !text-black">Choose your main track, with an optional second choice / 请选择主要方向，可选第二志愿</p>
           <div className="flex flex-wrap gap-3">
             {INTERNSHIP_ROLE_INTERESTS.map((interest) => (
               <ChoiceButton key={interest} active={form.roleInterests.includes(interest)} onClick={() => toggleRoleInterest(interest)}>

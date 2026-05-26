@@ -45,7 +45,7 @@ function buildResumeStoragePath(accountEmail: string, filename: string) {
 
 function getRoleInterests(formData: FormData) {
   const values = formData.getAll("roleInterests");
-  const uniqueValues = [...new Set(values.map((value) => clean(value, 40)))];
+  const uniqueValues = [...new Set(values.map((value) => clean(value, 120)))];
 
   return uniqueValues.filter((value): value is InternshipRoleInterest =>
     INTERNSHIP_ROLE_INTERESTS.includes(value as InternshipRoleInterest)

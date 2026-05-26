@@ -1,11 +1,7 @@
 export const INTERNSHIP_ROLE_INTERESTS = [
-  "Software",
-  "AI / Agents",
-  "Robotics",
-  "Hardware",
-  "Research",
-  "Operations",
-  "Business"
+  "Intelligent Hardware Development Intern",
+  "Robotics, AI, and Software Engineering Intern",
+  "Algorithm and Research Intern"
 ] as const;
 
 export type InternshipRoleInterest = (typeof INTERNSHIP_ROLE_INTERESTS)[number];

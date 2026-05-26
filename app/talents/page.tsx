@@ -99,7 +99,7 @@ export default function TalentsPage() {
         <div className="mx-auto mt-10 max-w-3xl text-center">
           <a
             href={`mailto:${company.contactEmail}`}
-            className="mt-8 inline-flex rounded-full border border-slate-950 px-8 py-3.5 text-base font-medium text-slate-950 transition hover:bg-slate-950 hover:text-white"
+            className="talent-contact-button mt-8 inline-flex rounded-full border px-8 py-3.5 text-base font-medium transition"
           >
             {company.contactEmail}
           </a>
