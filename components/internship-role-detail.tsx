@@ -13,7 +13,7 @@ function DetailSection({ title, items, columns = false }: { title: string; items
   return (
     <section className="border-t border-slate-200 pt-7">
       <h2 className="text-xl font-semibold">{title}</h2>
-      <ul className={`mt-4 text-base leading-7 ${columns ? "grid gap-3 md:grid-cols-2" : "space-y-3"}`}>
+      <ul className={`mt-4 text-base leading-7 ${columns ? "grid grid-cols-2 gap-x-4 gap-y-3" : "space-y-3"}`}>
         {items.map((item) => (
           <li key={item} className="flex gap-3">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
