@@ -12,6 +12,7 @@ export type NewsEntry = {
   videos?: string[];
   media?: NewsMedia[];
   body: string[];
+  visibility?: "public" | "company" | "private";
   translations?: {
     en?: NewsTranslation;
     zh?: NewsTranslation;

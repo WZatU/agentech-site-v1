@@ -1,8 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { accountSessionCookieName } from "@/lib/account-session";
+import { canViewNewsEntry } from "@/lib/news-access";
 import { newsEntries } from "@/lib/news";
 
-export default function NewsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewsPage() {
+  const cookieStore = await cookies();
+  const accountEmail = cookieStore.get(accountSessionCookieName)?.value;
+  const visibleEntries = newsEntries.filter((entry) => canViewNewsEntry(entry, accountEmail));
+
   return (
     <section className="border-b border-[#d8dde5] bg-[#eeeeee]">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
@@ -14,7 +23,7 @@ export default function NewsPage() {
         </div>
 
         <div className="space-y-5">
-          {newsEntries.map((entry) => (
+          {visibleEntries.map((entry) => (
             <Link
               key={entry.slug}
               href={`/news/${entry.slug}`}

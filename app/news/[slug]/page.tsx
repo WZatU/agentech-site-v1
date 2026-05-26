@@ -1,20 +1,19 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { NewsArticleContent } from "@/components/news-article-content";
 import { NewsSlideshow } from "@/components/news-slideshow";
-import { getNewsEntry, newsEntries } from "@/lib/news";
+import { accountSessionCookieName } from "@/lib/account-session";
+import { getNewsEntry } from "@/lib/news";
+import { canViewNewsEntry } from "@/lib/news-access";
+
+export const dynamic = "force-dynamic";
 
 type NewsArticlePageProps = {
   params: Promise<{
     slug: string;
   }>;
 };
-
-export function generateStaticParams() {
-  return newsEntries.map((entry) => ({
-    slug: entry.slug
-  }));
-}
 
 export async function generateMetadata({ params }: NewsArticlePageProps) {
   const { slug } = await params;
@@ -39,7 +38,10 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   const { slug } = await params;
   const entry = getNewsEntry(slug);
 
-  if (!entry) {
+  const cookieStore = await cookies();
+  const accountEmail = cookieStore.get(accountSessionCookieName)?.value;
+
+  if (!entry || !canViewNewsEntry(entry, accountEmail)) {
     notFound();
   }
 

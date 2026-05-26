@@ -312,6 +312,33 @@ function cleanNewsLine(line) {
   return isDividerLine(line) ? "" : line.trim();
 }
 
+function isPrivateMarkerLine(line) {
+  const normalized = line.trim().toLowerCase();
+  return normalized === "private" || normalized === "# private" || normalized === "## private" || normalized === "### private";
+}
+
+function getNewsVisibility(frontmatter, markdown) {
+  const rawVisibility = String(frontmatter.visibility || frontmatter.access || frontmatter.audience || "").trim().toLowerCase();
+
+  if (["private", "company", "internal"].includes(rawVisibility)) {
+    return "company";
+  }
+
+  if (markdown.split(/\r?\n/).some((line) => isPrivateMarkerLine(line))) {
+    return "company";
+  }
+
+  return undefined;
+}
+
+function stripPrivateMarkerLines(markdown) {
+  return markdown
+    .split(/\r?\n/)
+    .filter((line) => !isPrivateMarkerLine(line))
+    .join("\n")
+    .trim();
+}
+
 function isEnglishHeading(value) {
   const normalized = value.toLowerCase();
   return normalized === "english" || normalized === "en" || normalized.includes("english version");
@@ -611,6 +638,8 @@ async function importNews() {
 
     const markdown = await readTextFile(indexPath);
     const { frontmatter, body } = parseFrontmatter(markdown);
+    const visibility = getNewsVisibility(frontmatter, body);
+    const articleBody = stripPrivateMarkerLines(body);
     const date = frontmatter.date || folderMatch[1];
     const title = frontmatter.title || titleFromFolderHint(folderMatch[2] || "Agentech News");
     const titleSlug = slugify(title || sourceFolder);
@@ -649,8 +678,8 @@ async function importNews() {
     }
 
     const copied = await copyMedia(mediaSource.media, mediaSource.coverImage, finalSlug);
-    const languageSections = splitLanguageSections(body);
-    const paragraphs = markdownToParagraphs(body);
+    const languageSections = splitLanguageSections(articleBody);
+    const paragraphs = markdownToParagraphs(articleBody);
     const defaultBody = languageSections.en || languageSections.zh || paragraphs;
     const derivedTitleEn = languageSections.en?.[0] || "";
     const derivedTitleZh = languageSections.zh?.[0] || "";
@@ -717,6 +746,7 @@ async function importNews() {
       videos: copied.videos,
       media: copied.media,
       body: translations.en?.body || translations.zh?.body || (defaultBody.length ? defaultBody : [excerpt]),
+      ...(visibility ? { visibility } : {}),
       translations
     };
 

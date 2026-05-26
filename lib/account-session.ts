@@ -6,8 +6,13 @@ export type AgentechAccountSession = {
 export const accountSessionKey = "agentechAccount";
 export const legacyAccountEmailKey = "agentechAccountEmail";
 export const accountSessionEvent = "agentech-account-session-change";
+export const accountSessionCookieName = "agentech_account_email";
 
 const accountSessionKeys = [accountSessionKey, legacyAccountEmailKey];
+
+function setAccountCookie(email: string) {
+  window.document.cookie = `${accountSessionCookieName}=${encodeURIComponent(email)}; path=/; max-age=2592000; SameSite=Lax`;
+}
 
 export function getAccountSession() {
   if (typeof window === "undefined") return null;
@@ -17,6 +22,7 @@ export function getAccountSession() {
     try {
       const parsed = JSON.parse(raw) as AgentechAccountSession;
       if (parsed.email) {
+        setAccountCookie(parsed.email);
         return parsed;
       }
     } catch {
@@ -40,6 +46,7 @@ export function setAccountSession(email: string) {
 
   window.localStorage.setItem(accountSessionKey, JSON.stringify(session));
   window.localStorage.setItem(legacyAccountEmailKey, email);
+  setAccountCookie(email);
   window.dispatchEvent(new Event(accountSessionEvent));
   return session;
 }
@@ -49,5 +56,6 @@ export function clearAccountSession() {
     window.localStorage.removeItem(key);
     window.sessionStorage.removeItem(key);
   }
+  window.document.cookie = `${accountSessionCookieName}=; path=/; max-age=0; SameSite=Lax`;
   window.dispatchEvent(new Event(accountSessionEvent));
 }
