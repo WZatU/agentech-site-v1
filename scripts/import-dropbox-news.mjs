@@ -317,6 +317,17 @@ function isPrivateMarkerLine(line) {
   return normalized === "private" || normalized === "# private" || normalized === "## private" || normalized === "### private";
 }
 
+function isVisibilityMarkerLine(line) {
+  const normalized = line.trim().toLowerCase();
+  return (
+    isPrivateMarkerLine(line) ||
+    normalized === "public" ||
+    normalized === "# public" ||
+    normalized === "## public" ||
+    normalized === "### public"
+  );
+}
+
 function getNewsVisibility(frontmatter, markdown) {
   const rawVisibility = String(frontmatter.visibility || frontmatter.access || frontmatter.audience || "").trim().toLowerCase();
 
@@ -334,7 +345,7 @@ function getNewsVisibility(frontmatter, markdown) {
 function stripPrivateMarkerLines(markdown) {
   return markdown
     .split(/\r?\n/)
-    .filter((line) => !isPrivateMarkerLine(line))
+    .filter((line) => !isVisibilityMarkerLine(line))
     .join("\n")
     .trim();
 }
