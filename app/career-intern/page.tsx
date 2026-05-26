@@ -54,9 +54,6 @@ export default function CareerInternPage() {
                 <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-lg bg-rose-50 px-3 py-1 text-sm font-bold !text-rose-700">
-                        Multiple openings
-                      </span>
                       <span className="rounded-lg bg-slate-100 px-3 py-1 text-sm font-bold !text-black">
                         {role.schedule}
                       </span>
