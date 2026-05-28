@@ -291,7 +291,3 @@ npm run import:news
 npm run list:news
 npm run delete:news:number 1
 ```
-
-## Legacy Folder
-
-`trae-local/` is a legacy snapshot and is intentionally left separate from the current Next.js app.
