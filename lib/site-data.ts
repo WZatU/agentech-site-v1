@@ -67,15 +67,15 @@ export const leadership = [
     emphasis: "primary"
   },
   {
-    name: "David",
-    role: "Core Tech Lead",
-    bio: "Algorithm research and agentic architecture.",
-    emphasis: "secondary"
-  },
-  {
     name: "Wesley",
     role: "Core Tech Lead",
     bio: "Software development.",
+    emphasis: "secondary"
+  },
+  {
+    name: "David",
+    role: "Core Tech Lead",
+    bio: "Algorithm research and agentic architecture.",
     emphasis: "secondary"
   }
 ];
