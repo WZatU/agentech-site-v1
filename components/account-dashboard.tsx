@@ -91,6 +91,24 @@ function formatDate(value: string) {
   });
 }
 
+function formatRequestStatus(status: string) {
+  const normalized = status.replace(/_/g, " ").toLowerCase();
+
+  if (["removed from cart", "voided", "deleted", "cancelled", "canceled"].includes(normalized)) {
+    return "Voided / deleted";
+  }
+
+  if (normalized.includes("sent")) {
+    return "Invoice email sent";
+  }
+
+  if (normalized.includes("pending")) {
+    return "Invoice pending";
+  }
+
+  return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export function AccountDashboard() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -98,6 +116,7 @@ export function AccountDashboard() {
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [pendingRemovalId, setPendingRemovalId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -147,6 +166,7 @@ export function AccountDashboard() {
     if (!email) return;
 
     setActionMessage("");
+    setPendingRemovalId("");
     const response = await fetch("/api/invoice-item", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -198,7 +218,7 @@ export function AccountDashboard() {
     return (
       <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-8">
         <h1 className="text-3xl font-semibold text-white">Sign in required</h1>
-        <p className="mt-3 text-slate">Sign in to view your profile, students, and invoice requests.</p>
+        <p className="mt-3 text-slate">Sign in to view your profile, requests, applications, and enrollments.</p>
         <Link href="/login?next=/account" className="mt-6 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0b1220]">
           Sign In
         </Link>
@@ -209,7 +229,10 @@ export function AccountDashboard() {
   const profileName = data.profile
     ? formatFullName(data.profile.first_name, data.profile.last_name)
     : "";
+  const hasRequestItems = Boolean(data.unpaidBalance?.lines.length);
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
+  const hasRobotRequests = Boolean(data.requests?.length);
+  const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
 
   return (
     <div className="space-y-8">
@@ -239,6 +262,7 @@ export function AccountDashboard() {
         </div>
       </section>
 
+      {hasRequestItems || actionMessage ? (
       <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -271,13 +295,35 @@ export function AccountDashboard() {
                   <p className="mt-1 text-sm font-semibold text-accent">{formatUsd(line.amount)}</p>
                 </div>
                 {line.id.startsWith("item-") ? (
-                  <button
-                    type="button"
-                    onClick={() => removeUnpaidItem(line.id)}
-                    className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                  >
-                    Remove
-                  </button>
+                  pendingRemovalId === line.id ? (
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => removeUnpaidItem(line.id)}
+                        className="rounded-full border border-red-300 bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/25"
+                      >
+                        Confirm Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingRemovalId("")}
+                        className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionMessage("");
+                        setPendingRemovalId(line.id);
+                      }}
+                      className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                    >
+                      Remove
+                    </button>
+                  )
                 ) : null}
               </div>
             ))
@@ -286,12 +332,18 @@ export function AccountDashboard() {
           )}
         </div>
       </section>
+      ) : null}
 
       <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-2xl font-semibold text-white">Applications</h2>
+          <div>
+            <h2 className="text-2xl font-semibold text-white">Applications</h2>
+            <p className="mt-2 text-sm text-slate">
+              {hasApplications ? "Your submitted internship and club applications are listed here." : "Start or continue an internship or club application."}
+            </p>
+          </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/ai-robotics-club/apply" className="text-sm font-semibold text-accent">
+            <Link href="/ai-robotics-club" className="text-sm font-semibold text-accent">
               AI Robotics Club
             </Link>
             <Link href="/career-intern" className="text-sm font-semibold text-accent">
@@ -312,7 +364,9 @@ export function AccountDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-slate">No internship applications yet.</p>
+                <Link href="/career-intern" className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+                  View internship roles
+                </Link>
               )}
             </div>
           </div>
@@ -332,13 +386,16 @@ export function AccountDashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-slate">No AI Robotics Club applications yet.</p>
+                <Link href="/ai-robotics-club" className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+                  View club page
+                </Link>
               )}
             </div>
           </div>
         </div>
       </section>
 
+      {hasRobotRequests ? (
       <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-semibold text-white">Requests</h2>
@@ -351,7 +408,7 @@ export function AccountDashboard() {
             data.requests.map((request) => (
               <div key={request.invoice_number} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="font-semibold text-white">{request.product}</p>
-                <p className="mt-1 text-sm text-slate">{request.invoice_number} - {request.status}</p>
+                <p className="mt-1 text-sm text-slate">{request.invoice_number} - {formatRequestStatus(request.status)}</p>
               </div>
             ))
           ) : (
@@ -359,6 +416,7 @@ export function AccountDashboard() {
           )}
         </div>
       </section>
+      ) : null}
 
       <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
         <div className="flex items-center justify-between gap-4">
