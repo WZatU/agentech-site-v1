@@ -45,6 +45,25 @@ type DashboardData = {
       age_range: string;
     } | null;
   }>;
+  applications?: {
+    internships: Array<{
+      id: number;
+      name: string;
+      email: string;
+      role_interests: string[] | null;
+      resume_filename: string | null;
+      created_at: string;
+    }>;
+    aiRoboticsClub: Array<{
+      id: number;
+      name: string;
+      email: string;
+      grade: string | null;
+      interests: string[] | null;
+      resume_filename: string | null;
+      created_at: string;
+    }>;
+  };
   unpaidBalance?: {
     total: number;
     lines: Array<{
@@ -57,6 +76,20 @@ type DashboardData = {
   };
   error?: string;
 };
+
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
 
 export function AccountDashboard() {
   const router = useRouter();
@@ -251,6 +284,58 @@ export function AccountDashboard() {
           ) : (
             <p className="text-slate">No request items yet.</p>
           )}
+        </div>
+      </section>
+
+      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-2xl font-semibold text-white">Applications</h2>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/ai-robotics-club/apply" className="text-sm font-semibold text-accent">
+              AI Robotics Club
+            </Link>
+            <Link href="/career-intern" className="text-sm font-semibold text-accent">
+              Internship
+            </Link>
+          </div>
+        </div>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <h3 className="text-lg font-semibold text-white">Internship</h3>
+            <div className="mt-4 space-y-3">
+              {data.applications?.internships.length ? (
+                data.applications.internships.map((application) => (
+                  <div key={application.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="font-semibold text-white">{application.role_interests?.join(", ") || "Internship application"}</p>
+                    <p className="mt-1 text-sm text-slate">{application.name} - Submitted {formatDate(application.created_at)}</p>
+                    {application.resume_filename ? <p className="mt-1 text-sm text-slate">Resume: {application.resume_filename}</p> : null}
+                  </div>
+                ))
+              ) : (
+                <p className="text-slate">No internship applications yet.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <h3 className="text-lg font-semibold text-white">AI Robotics Club</h3>
+            <div className="mt-4 space-y-3">
+              {data.applications?.aiRoboticsClub.length ? (
+                data.applications.aiRoboticsClub.map((application) => (
+                  <div key={application.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="font-semibold text-white">{application.name}</p>
+                    <p className="mt-1 text-sm text-slate">
+                      {[application.grade, application.interests?.join(", ")].filter(Boolean).join(" - ")}
+                    </p>
+                    <p className="mt-1 text-sm text-slate">Submitted {formatDate(application.created_at)}</p>
+                    {application.resume_filename ? <p className="mt-1 text-sm text-slate">Resume: {application.resume_filename}</p> : null}
+                  </div>
+                ))
+              ) : (
+                <p className="text-slate">No AI Robotics Club applications yet.</p>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 

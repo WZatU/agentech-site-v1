@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
+import { sendInternshipReceipt } from "@/lib/application-receipts";
 import { uploadSupabaseStorageObject } from "@/lib/supabase-server";
 import { accountExists, saveInternshipApplication } from "@/lib/talent-applications";
 import {
@@ -216,6 +217,9 @@ export async function POST(request: NextRequest) {
   );
 
   await saveInternshipApplication(accountEmail, application.data, uploadedResume.path);
+  await sendInternshipReceipt(application.data).catch((error) => {
+    console.error("Unable to send internship receipt email", error);
+  });
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(application.data, receiverEmail, resume);

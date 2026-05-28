@@ -59,6 +59,25 @@ export type EnrollmentRecord = {
   } | null;
 };
 
+export type InternshipApplicationRecord = {
+  id: number;
+  name: string;
+  email: string;
+  role_interests: string[] | null;
+  resume_filename: string | null;
+  created_at: string;
+};
+
+export type AiRoboticsClubApplicationRecord = {
+  id: number;
+  name: string;
+  email: string;
+  grade: string | null;
+  interests: string[] | null;
+  resume_filename: string | null;
+  created_at: string;
+};
+
 export async function getProfile(email: string) {
   const rows = await supabaseRequest<AccountProfile[]>("agentech_profiles", {
     query: `email=eq.${encodeURIComponent(email)}&select=*&limit=1`
@@ -146,12 +165,34 @@ export async function getEnrollments(parentEmail: string) {
   }
 }
 
+export async function getInternshipApplications(accountEmail: string) {
+  try {
+    return await supabaseRequest<InternshipApplicationRecord[]>("agentech_internship_applications", {
+      query: `account_email=eq.${encodeURIComponent(accountEmail)}&select=id,name,email,role_interests,resume_filename,created_at&order=created_at.desc`
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getAiRoboticsClubApplications(accountEmail: string) {
+  try {
+    return await supabaseRequest<AiRoboticsClubApplicationRecord[]>("agentech_ai_robotics_club_applications", {
+      query: `account_email=eq.${encodeURIComponent(accountEmail)}&select=id,name,email,grade,interests,resume_filename,created_at&order=created_at.desc`
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function getAccountSummary(email: string) {
-  const [profile, children, requests, enrollments, unpaidBalance] = await Promise.all([
+  const [profile, children, requests, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance] = await Promise.all([
     getProfile(email),
     getChildren(email),
     getPreorderRequests(email),
     getEnrollments(email),
+    getInternshipApplications(email),
+    getAiRoboticsClubApplications(email),
     getUnpaidBalanceLines(email)
   ]);
 
@@ -160,6 +201,10 @@ export async function getAccountSummary(email: string) {
     children,
     requests,
     enrollments,
+    applications: {
+      internships: internshipApplications,
+      aiRoboticsClub: aiRoboticsClubApplications
+    },
     unpaidBalance
   };
 }

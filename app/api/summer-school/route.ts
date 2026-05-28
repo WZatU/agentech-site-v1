@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { company } from "@/lib/site-data";
+import { sendAiRoboticsClubReceipt } from "@/lib/application-receipts";
 import { accountExists, saveAiRoboticsClubApplication } from "@/lib/talent-applications";
 import { sanitizeResumeFilename, uploadTalentResume, validateTalentResumeFile } from "@/lib/talent-resumes";
 import {
@@ -219,6 +220,9 @@ export async function POST(request: NextRequest) {
   recentSubmissions.set(clientKey, Date.now());
 
   await saveAiRoboticsClubApplication(accountEmail, validation.data, uploadedResume?.path);
+  await sendAiRoboticsClubReceipt(validation.data).catch((error) => {
+    console.error("Unable to send AI Robotics Club receipt email", error);
+  });
 
   const receiverEmail = process.env.APPLICATION_RECEIVER_EMAIL || company.contactEmail;
   const result = await sendWithResend(validation.data, receiverEmail);
