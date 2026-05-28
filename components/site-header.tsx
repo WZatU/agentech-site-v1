@@ -67,7 +67,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-full w-full max-w-7xl flex-nowrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-2 sm:px-3 lg:px-4">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-3" onClick={closeMobileNav}>
           <BrandMark />
         </Link>
@@ -86,7 +86,7 @@ export function SiteHeader() {
           </span>
         </button>
 
-        <nav className="hidden flex-wrap items-center justify-end gap-1 text-sm text-slate md:flex">
+        <nav className="ml-auto hidden flex-nowrap items-center justify-end gap-1 pr-[152px] text-sm text-slate md:flex">
           {navigation.map((item) => {
             const childPaths = item.children?.map((child) => child.href.split("#")[0]) ?? [];
             const isActive =
@@ -171,25 +171,28 @@ export function SiteHeader() {
               </Link>
             );
           })}
+        </nav>
+
+        <div className="absolute right-2 top-1/2 hidden w-[140px] -translate-y-1/2 items-center justify-end gap-1 sm:right-3 md:flex lg:right-4">
           {accountEmail ? (
             <>
-              <Link href="/account" className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
+              <Link href="/account" className="rounded-full border border-white/10 px-2 py-2 text-[11px] font-semibold leading-none text-slate transition hover:bg-white/5 hover:text-white">
                 Requests
               </Link>
               <button
                 type="button"
                 onClick={signOut}
-                className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white"
+                className="rounded-full border border-white/10 px-2 py-2 text-[11px] font-semibold leading-none text-slate transition hover:bg-white/5 hover:text-white"
               >
                 Sign Out
               </button>
             </>
           ) : (
-            <Link href={loginHref} className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
+            <Link href={loginHref} className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
               Sign In
             </Link>
           )}
-        </nav>
+        </div>
       </div>
 
       <div
