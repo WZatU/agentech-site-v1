@@ -95,7 +95,7 @@ function formatRequestStatus(status: string) {
   const normalized = status.replace(/_/g, " ").toLowerCase();
 
   if (["removed from cart", "voided", "deleted", "cancelled", "canceled"].includes(normalized)) {
-    return "Voided / deleted";
+    return "Voided";
   }
 
   if (normalized.includes("sent")) {
