@@ -242,7 +242,8 @@ export function InternshipForm() {
       }
 
       setSuccess("Application sent successfully / 申请已发送");
-      setForm(initialState);
+      router.push("/account");
+      router.refresh();
     } catch {
       setError("Something went wrong / 提交失败");
     } finally {
