@@ -115,8 +115,10 @@ export function AccountDashboard() {
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState("");
+  const [childActionMessage, setChildActionMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [pendingRemovalId, setPendingRemovalId] = useState("");
+  const [pendingChildRemovalId, setPendingChildRemovalId] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +185,35 @@ export function AccountDashboard() {
     const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
     const result = (await accountResponse.json()) as DashboardData;
     setData(result);
+  }
+
+  async function refreshAccount() {
+    if (!email) return;
+
+    const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
+    const result = (await accountResponse.json()) as DashboardData;
+    setData(result);
+  }
+
+  async function removeChild(childId: number) {
+    if (!email) return;
+
+    setChildActionMessage("");
+    setPendingChildRemovalId(null);
+    const response = await fetch("/api/account-child", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, childId })
+    });
+    const result = (await response.json().catch(() => null)) as { message?: string; error?: string } | null;
+
+    if (!response.ok) {
+      setChildActionMessage(result?.error || "Unable to delete that child.");
+      return;
+    }
+
+    setChildActionMessage(result?.message || "Child deleted.");
+    await refreshAccount();
   }
 
   async function confirmRequest() {
@@ -285,7 +316,7 @@ export function AccountDashboard() {
             ) : null}
           </div>
         </div>
-        {actionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{actionMessage}</p> : null}
+        {childActionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{childActionMessage}</p> : null}
         <div className="mt-5 space-y-3">
           {data.unpaidBalance?.lines.length ? (
             data.unpaidBalance.lines.map((line) => (
@@ -425,14 +456,48 @@ export function AccountDashboard() {
             Edit Education Profile
           </Link>
         </div>
+        {actionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{actionMessage}</p> : null}
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {data.children?.length ? (
             data.children.map((child) => (
               <div key={child.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="font-semibold text-white">{formatFullName(child.first_name, child.last_name)}</p>
-                <p className="mt-1 text-sm text-slate">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
-                {child.school_info ? <p className="mt-1 text-sm text-slate">School: {child.school_info}</p> : null}
-                {child.preferred_location ? <p className="mt-1 text-sm text-slate">Preferred location: {child.preferred_location}</p> : null}
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-white">{formatFullName(child.first_name, child.last_name)}</p>
+                    <p className="mt-1 text-sm text-slate">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
+                    {child.school_info ? <p className="mt-1 text-sm text-slate">School: {child.school_info}</p> : null}
+                    {child.preferred_location ? <p className="mt-1 text-sm text-slate">Preferred location: {child.preferred_location}</p> : null}
+                  </div>
+                  {pendingChildRemovalId === child.id ? (
+                    <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => removeChild(child.id)}
+                        className="rounded-full border border-red-300 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-100 transition hover:bg-red-500/25"
+                      >
+                        Confirm Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingChildRemovalId(null)}
+                        className="rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChildActionMessage("");
+                        setPendingChildRemovalId(child.id);
+                      }}
+                      className="shrink-0 rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
             ))
           ) : (
