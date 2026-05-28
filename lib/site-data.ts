@@ -82,8 +82,7 @@ export const leadership = [
 
 export const supportTeam = [
   { name: "Lydia", role: "COO" },
-  { name: "Connie Sun", role: "CFO" },
-  { name: "Mei", role: "Investor" }
+  { name: "Connie Sun", role: "CFO" }
 ];
 
 export const exploreMetrics = [
