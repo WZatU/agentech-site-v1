@@ -2,6 +2,9 @@ import { sendEmail } from "@/lib/email";
 import type { InternshipApplication } from "@/lib/internship";
 import type { SummerSchoolApplication } from "@/lib/summer-school";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.agent-tech.ai";
+const logoUrl = new URL("/assets/logo/AGENTECH.png", siteUrl).toString();
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -25,6 +28,9 @@ function receiptHtml(title: string, body: string[], details: Array<[string, stri
 
   return `
     <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.5;">
+      <div style="margin: 0 0 22px;">
+        <img src="${escapeHtml(logoUrl)}" alt="Agentech" width="168" style="display: block; max-width: 168px; height: auto;" />
+      </div>
       <h1 style="margin: 0 0 12px;">${escapeHtml(title)}</h1>
       ${body.map((paragraph) => `<p style="margin: 0 0 14px;">${escapeHtml(paragraph)}</p>`).join("")}
       <table style="width: 100%; border-collapse: collapse; margin: 18px 0;">
@@ -38,28 +44,38 @@ function receiptHtml(title: string, body: string[], details: Array<[string, stri
 export async function sendInternshipReceipt(application: InternshipApplication) {
   await sendEmail({
     to: application.email,
-    subject: "Agentech received your internship application",
+    subject: "Agentech Internship Application Received",
     text: [
-      "We received your Agentech internship application.",
+      `Dear ${application.name},`,
       "",
-      `Name: ${application.name}`,
-      `Role interest: ${application.roleInterests.join(", ")}`,
-      `Resume: ${application.resumeFilename}`,
+      "Thank you for applying to the Agentech Internship Program. This email confirms that we have received your application materials.",
       "",
-      "Our team will review your application. You can sign in to your Agentech account to view your application record.",
+      "Application summary:",
+      `Applicant: ${application.name}`,
+      `Selected track(s): ${application.roleInterests.join(", ")}`,
+      `Resume file: ${application.resumeFilename}`,
       "",
-      "Agentech"
+      "Our team will review your submission carefully. If your background and interests align with our current internship needs, we will contact you with next steps.",
+      "",
+      "You can sign in to your Agentech account at any time to view your application record.",
+      "",
+      "Thank you again for your interest in Agentech.",
+      "",
+      "Sincerely,",
+      "Agentech Talent Team"
     ].join("\n"),
     html: receiptHtml(
-      "We received your internship application",
+      "Internship Application Received",
       [
-        "Thank you for applying to Agentech. Our team received your internship application and will review it.",
-        "This email is a confirmation that your submission was saved successfully."
+        `Dear ${application.name},`,
+        "Thank you for applying to the Agentech Internship Program. This email confirms that we have received your application materials.",
+        "Our team will review your submission carefully. If your background and interests align with our current internship needs, we will contact you with next steps.",
+        "Thank you again for your interest in Agentech."
       ],
       [
-        ["Name", application.name],
-        ["Role interest", application.roleInterests.join(", ")],
-        ["Resume", application.resumeFilename]
+        ["Applicant", application.name],
+        ["Selected track(s)", application.roleInterests.join(", ")],
+        ["Resume file", application.resumeFilename]
       ]
     )
   });
