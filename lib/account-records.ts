@@ -42,6 +42,10 @@ export type PreorderRequest = {
   created_at: string;
 };
 
+type RobotInvoiceReference = {
+  source_id: string | null;
+};
+
 export type EnrollmentRecord = {
   id: number;
   parent_email: string;
@@ -155,6 +159,12 @@ export async function getPreorderRequests(email: string) {
   });
 }
 
+async function getRobotInvoiceReferences(email: string) {
+  return supabaseRequest<RobotInvoiceReference[]>("agentech_invoice_items", {
+    query: `email=eq.${encodeURIComponent(email)}&source_type=eq.robot&select=source_id`
+  }).catch(() => []);
+}
+
 export async function getEnrollments(parentEmail: string) {
   try {
     return await supabaseRequest<EnrollmentRecord[]>("agentech_enrollments", {
@@ -185,21 +195,35 @@ export async function getAiRoboticsClubApplications(accountEmail: string) {
   }
 }
 
+function requestLooksActive(status: string) {
+  const normalized = status.replace(/_/g, " ").toLowerCase();
+
+  return normalized.includes("pending") || normalized.includes("sent");
+}
+
 export async function getAccountSummary(email: string) {
-  const [profile, children, requests, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance] = await Promise.all([
+  const [profile, children, requests, robotInvoiceReferences, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance] = await Promise.all([
     getProfile(email),
     getChildren(email),
     getPreorderRequests(email),
+    getRobotInvoiceReferences(email),
     getEnrollments(email),
     getInternshipApplications(email),
     getAiRoboticsClubApplications(email),
     getUnpaidBalanceLines(email)
   ]);
+  const robotInvoiceIds = new Set(robotInvoiceReferences.map((reference) => reference.source_id).filter(Boolean));
+  const normalizedRequests = requests.map((request) => ({
+    ...request,
+    status: requestLooksActive(request.status) && !robotInvoiceIds.has(request.invoice_number)
+      ? "removed_from_cart"
+      : request.status
+  }));
 
   return {
     profile,
     children,
-    requests,
+    requests: normalizedRequests,
     enrollments,
     applications: {
       internships: internshipApplications,
