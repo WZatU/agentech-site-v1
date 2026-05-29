@@ -158,6 +158,12 @@ https://agent-tech.ai/field-interest/agt-qr-2026
 
 Do not change this path or URL unless you intend to reprint or replace every QR code that has already been shared. The route is not linked from the public navigation, is not included in the sitemap, and is blocked in `robots.txt`.
 
+The permanent printable QR PNG is stored at:
+
+```text
+public/assets/qr/agentech-workshop-qr.png
+```
+
 ## News Auto-Update Through Dropbox
 
 News entries are imported from Dropbox into:
