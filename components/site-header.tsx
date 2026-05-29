@@ -65,6 +65,10 @@ export function SiteHeader() {
 
   const loginHref = getLoginHref();
 
+  if (pathname.startsWith("/field-interest")) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/75 backdrop-blur-xl">
       <div className="relative mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-2 sm:px-3 lg:px-4">

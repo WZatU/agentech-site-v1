@@ -1,6 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/field-interest")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-[#363d45]/70 bg-black">
       <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 text-sm font-medium uppercase tracking-[0.22em] text-slate lg:flex-row lg:items-center lg:justify-between lg:px-8">
