@@ -64,6 +64,7 @@ npm run serve:3001
 - `/tech-education`: workshop application form.
 - `/news`, `/news/[slug]`: news listing and article pages.
 - `/login`, `/account-setup`, `/account`: account login, family/student setup, requests dashboard.
+- `/field-interest/agt-qr-2026`: hidden QR-only field interest page for in-person outreach. Do not link this page in the public nav or sitemap.
 
 ## Quick Switches
 
@@ -140,6 +141,22 @@ const visibleGradePages = educationGradePages.filter((page) => page.slug !== "9-
 ```
 
 Remove that filter when Grade 9-12 should appear on the main Education page.
+
+### Hidden Field Interest QR
+
+The in-person QR capture page lives at:
+
+```text
+/field-interest/agt-qr-2026
+```
+
+The QR code is intentionally fixed to the official production URL:
+
+```text
+https://www.agent-tech.ai/field-interest/agt-qr-2026
+```
+
+Do not change this path or URL unless you intend to reprint or replace every QR code that has already been shared. The route is not linked from the public navigation, is not included in the sitemap, and is blocked in `robots.txt`.
 
 ## News Auto-Update Through Dropbox
 
@@ -232,6 +249,7 @@ Application and request tables include:
 - `agentech_workshop_applications`
 - `agentech_ai_robotics_club_applications`
 - `agentech_internship_applications`
+- `agentech_field_interest_leads`
 
 Resume uploads use Supabase Storage bucket:
 

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { FieldInterestForm } from "@/components/field-interest-form";
-import { siteUrl } from "@/lib/site-config";
 
 const hiddenPath = "/field-interest/agt-qr-2026";
-const hiddenUrl = `${siteUrl}${hiddenPath}`;
+const hiddenUrl = `https://www.agent-tech.ai${hiddenPath}`;
 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=18&data=${encodeURIComponent(hiddenUrl)}`;
 
 export const metadata: Metadata = {
