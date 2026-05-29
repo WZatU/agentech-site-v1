@@ -14,7 +14,7 @@ export default function FieldInterestQrPage() {
   return (
     <main className="min-h-screen bg-[#02050a] px-5 py-8 text-white md:px-8 md:py-12">
       <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-xl flex-col justify-center gap-8">
-        <div className="mx-auto w-48">
+        <div className="mx-auto w-72 md:w-80">
           <Image
             src="/assets/logo/AGENTECH.png"
             alt="Agentech"
