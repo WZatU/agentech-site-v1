@@ -35,6 +35,7 @@ export function FieldInterestForm() {
     setEmail("");
     setWorkshopChecked(false);
     setMessage(result?.message || "Thanks. We saved your interest.");
+    window.location.href = "/";
   }
 
   return (

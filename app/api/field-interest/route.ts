@@ -31,32 +31,35 @@ async function sendFieldInterestReceipt(email: string) {
 
   return sendEmail({
     to: email,
-    subject: "Thank you for sharing your thoughts with Agentech",
+    subject: "Thank you for your interest in Agentech",
     text: [
-      "Thank you for sharing your thoughts with Agentech.",
+      "Hi,",
       "",
-      "We appreciate you taking a moment to tell us your opinion, idea, or area of interest.",
+      "Thank you for sharing your opinion with Agentech.",
       "",
-      "Selected interest: Workshop",
+      "We received your workshop interest. Our team may reach out to you with more information if there is a good fit.",
       "",
-      "Our team may reach out if there is a good opportunity to continue the conversation.",
+      "You can learn more about Agentech here:",
+      websiteUrl,
       "",
-      `Website: ${websiteUrl}`,
-      "",
-      "Agentech"
+      "Thank you,",
+      "The Agentech Team"
     ].join("\n"),
     html: `
-      <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.5;">
-        <div style="margin: 0 0 22px;">
+      <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6; max-width: 560px;">
+        <div style="margin: 0 0 24px;">
           <img src="${escapeHtml(logoUrl)}" alt="Agentech" width="168" style="display: block; max-width: 168px; height: auto;" />
         </div>
-        <h1 style="margin: 0 0 12px;">Thank you for sharing your thoughts with Agentech.</h1>
-        <p style="margin: 0 0 14px;">We appreciate you taking a moment to tell us your opinion, idea, or area of interest.</p>
-        <p style="margin: 0 0 14px;">Selected interest: <strong>Workshop</strong></p>
-        <p style="margin: 0 0 18px;">Our team may reach out if there is a good opportunity to continue the conversation.</p>
+        <p style="margin: 0 0 16px;">Hi,</p>
+        <p style="margin: 0 0 16px;">Thank you for sharing your opinion with Agentech.</p>
+        <p style="margin: 0 0 20px;">We received your workshop interest. Our team may reach out to you with more information if there is a good fit.</p>
+        <p style="margin: 0 0 20px;">
+          You can learn more about Agentech here:<br />
+          <a href="${escapeHtml(websiteUrl)}" style="color: #2563eb; font-weight: 700;">${escapeHtml(websiteUrl)}</a>
+        </p>
         <p style="margin: 0;">
-          Website:
-          <a href="${escapeHtml(websiteUrl)}" style="color: #0f172a; font-weight: 700;">${escapeHtml(websiteUrl)}</a>
+          Thank you,<br />
+          The Agentech Team
         </p>
       </div>
     `
