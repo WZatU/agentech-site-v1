@@ -2,19 +2,11 @@
 
 import { useState } from "react";
 
-const interestOptions = [
-  "Agentech Robots",
-  "AI Robotics Club",
-  "Agentech Education",
-  "Product idea",
-  "Partnership",
-  "General updates"
-];
+const workshopInterest = "Workshop";
 
 export function FieldInterestForm() {
   const [email, setEmail] = useState("");
-  const [interest, setInterest] = useState(interestOptions[0]);
-  const [notes, setNotes] = useState("");
+  const [workshopChecked, setWorkshopChecked] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -27,8 +19,7 @@ export function FieldInterestForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
-        interest,
-        notes,
+        interest: workshopChecked ? workshopInterest : "",
         source: "field_qr"
       })
     });
@@ -42,18 +33,17 @@ export function FieldInterestForm() {
 
     setStatus("success");
     setEmail("");
-    setInterest(interestOptions[0]);
-    setNotes("");
+    setWorkshopChecked(false);
     setMessage(result?.message || "Thanks. We saved your interest.");
   }
 
   return (
     <div className="rounded-[28px] border border-white/10 bg-white/[0.06] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur md:p-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">Quick Interest</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">Stay connected with Agentech.</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">Workshop Interest</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">Connect with Agentech.</h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Leave your email and choose what you want to hear about. No account needed.
+          Leave your email if you are interested in our workshop. No account needed.
         </p>
       </div>
 
@@ -69,30 +59,17 @@ export function FieldInterestForm() {
           />
         </label>
 
-        <label className="block space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Interest</span>
-          <select
-            value={interest}
-            onChange={(event) => setInterest(event.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-200 focus:ring-4 focus:ring-cyan-200/10"
-          >
-            {interestOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Idea or note</span>
-          <textarea
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            placeholder="Optional"
-            rows={4}
-            className="w-full resize-none rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-200 focus:ring-4 focus:ring-cyan-200/10"
+        <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/45 p-4">
+          <input
+            type="checkbox"
+            checked={workshopChecked}
+            onChange={(event) => setWorkshopChecked(event.target.checked)}
+            className="mt-1 h-5 w-5 rounded border-white/20 bg-black text-cyan-200 accent-cyan-200"
           />
+          <span>
+            <span className="block text-sm font-semibold text-white">I am interested in the workshop.</span>
+            <span className="mt-1 block text-sm leading-6 text-slate-400">Agentech may contact me with more information.</span>
+          </span>
         </label>
 
         <button

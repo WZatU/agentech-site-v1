@@ -4,19 +4,11 @@ import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 import { siteUrl } from "@/lib/site-config";
 import { supabaseRequest } from "@/lib/supabase-server";
 
-const allowedInterests = new Set([
-  "Agentech Robots",
-  "AI Robotics Club",
-  "Agentech Education",
-  "Product idea",
-  "Partnership",
-  "General updates"
-]);
+const allowedInterests = new Set(["Workshop"]);
 
 type InterestPayload = {
   email?: string;
   interest?: string;
-  notes?: string;
   source?: string;
 };
 
@@ -33,7 +25,7 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#039;");
 }
 
-async function sendFieldInterestReceipt(email: string, interest: string) {
+async function sendFieldInterestReceipt(email: string) {
   const logoUrl = new URL("/assets/logo/AGENTECH.png", siteUrl).toString();
   const websiteUrl = siteUrl;
 
@@ -45,7 +37,7 @@ async function sendFieldInterestReceipt(email: string, interest: string) {
       "",
       "We appreciate you taking a moment to tell us your opinion, idea, or area of interest.",
       "",
-      `Selected interest: ${interest}`,
+      "Selected interest: Workshop",
       "",
       "Our team may reach out if there is a good opportunity to continue the conversation.",
       "",
@@ -60,7 +52,7 @@ async function sendFieldInterestReceipt(email: string, interest: string) {
         </div>
         <h1 style="margin: 0 0 12px;">Thank you for sharing your thoughts with Agentech.</h1>
         <p style="margin: 0 0 14px;">We appreciate you taking a moment to tell us your opinion, idea, or area of interest.</p>
-        <p style="margin: 0 0 14px;">Selected interest: <strong>${escapeHtml(interest)}</strong></p>
+        <p style="margin: 0 0 14px;">Selected interest: <strong>Workshop</strong></p>
         <p style="margin: 0 0 18px;">Our team may reach out if there is a good opportunity to continue the conversation.</p>
         <p style="margin: 0;">
           Website:
@@ -75,7 +67,6 @@ export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as InterestPayload | null;
   const email = normalizeEmail(payload?.email);
   const interest = clean(payload?.interest, 80);
-  const notes = clean(payload?.notes, 1200);
   const source = clean(payload?.source, 80) || "field_qr";
 
   if (!isValidEmail(email)) {
@@ -91,12 +82,12 @@ export async function POST(request: Request) {
     body: {
       email,
       interest_area: interest,
-      notes: notes || null,
+      notes: null,
       source,
       status: "new"
     }
   });
-  const emailResult = await sendFieldInterestReceipt(email, interest).catch(() => ({ sent: false }));
+  const emailResult = await sendFieldInterestReceipt(email).catch(() => ({ sent: false }));
 
   return NextResponse.json({
     ok: true,

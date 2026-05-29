@@ -153,7 +153,7 @@ The in-person QR capture page lives at:
 The QR code is intentionally fixed to the official production URL:
 
 ```text
-https://www.agent-tech.ai/field-interest/agt-qr-2026
+https://agent-tech.ai/field-interest/agt-qr-2026
 ```
 
 Do not change this path or URL unless you intend to reprint or replace every QR code that has already been shared. The route is not linked from the public navigation, is not included in the sitemap, and is blocked in `robots.txt`.
