@@ -12,3 +12,4 @@ dist
 data/accounts.json
 data/verification-codes.json
 data/preorder-invoices.json
+teaching-materials/
