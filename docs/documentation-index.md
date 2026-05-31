@@ -1,14 +1,24 @@
 # Agentech Documentation Index
 
-This Markdown page is the source note for the hidden website documents page:
+This Markdown file is the source note for the hidden website documents page:
 
 ```text
 /agentech-products/documents
 ```
 
-The first version tracks two important repositories.
+The page is intentionally hidden from public navigation. It is the first version of a company-wide documentation system for turning code, curriculum, automation, APIs, robot capabilities, and internal tools into reusable Agentech product knowledge.
 
-## Agentech Website
+## Documentation Workflow
+
+```text
+Write Markdown
+-> Push to GitHub
+-> Review
+-> Merge
+-> Website links to updated docs
+```
+
+## Repository 1: Agentech Website
 
 Repository:
 
@@ -16,49 +26,136 @@ Repository:
 https://github.com/WZatU/agentech-site-v1
 ```
 
-Local path:
+Primary docs:
 
 ```text
-D:\Agentech\Agentech Website
+README.md
+docs/dropbox-news-automation.md
 ```
 
-Documents and systems covered:
+Current documentation structure:
 
-- Website automation.
-- Dropbox News flow.
-- Supabase forms and database.
-- Hidden robot preorder switch.
-- Hidden education enroll and grade visibility switches.
-- Main public route map.
+```text
+agentech-site-v1/
+|-- README.md
+|-- Overview
+|-- Architecture
+|-- News Automation
+|-- Supabase Data Model
+|-- Account and Application Flows
+|-- Launch Switches
+|-- Deployment
+`-- Troubleshooting
+```
 
-## Grades 3-5 Teaching Materials
+Covered topics:
+
+- What the website contains and which business areas it supports.
+- Next.js route structure, shared components, service helpers, generated data, and static assets.
+- Dropbox News importer architecture, folder format, media handling, generated JSON, and article routing.
+- Supabase tables for accounts, profiles, children, enrollments, invoices, preorder requests, and talent applications.
+- Environment variables and server-only secrets.
+- Local development, production build, preview server, and GitHub workflow.
+- Hidden preorder, enroll, grade visibility, and QR route switch points.
+
+Next expansion targets:
+
+- Dedicated architecture page.
+- Dedicated deployment page.
+- Dedicated Supabase schema reference.
+- Dedicated troubleshooting page for News, Supabase, and email failures.
+
+## Repository 2: Grades 3-5 Teaching Materials
 
 Repository:
 
 ```text
-https://github.com/agent-tech/grades-3-5-teaching-materials
+https://github.com/Agent-tech-ai/grades-3-5-teaching-materials
 ```
 
-Local path:
+Primary docs:
 
 ```text
-D:\Agentech\grades-3-5-teaching-materials
+README.md
+input-output/README.md
+functions/README.md
+if-else/README.md
+one_hour_combined_teacher_script.md
 ```
 
-Documents and systems covered:
-
-- Input and output lesson.
-- Functions lesson.
-- If/else lesson.
-- One-hour combined teacher script.
-- Python classroom simulators.
-
-## Documentation Workflow
+Current documentation structure:
 
 ```text
-Developers write Markdown
--> Push to GitHub
--> Review
--> Merge
--> Website links to updated docs
+grades-3-5-teaching-materials/
+|-- README.md
+|-- Overview
+|-- Curriculum Map
+|-- Lesson Structure
+|-- Input and Output
+|-- Functions
+|-- If/Else
+|-- Teacher Guide
+|-- Student Exercises
+|-- Simulator Guide
+`-- Maintenance Workflow
 ```
+
+Covered topics:
+
+- Curriculum map for input/output, functions, if/else, and the combined one-hour lesson.
+- Teacher-facing scripts and classroom pacing.
+- Python examples and simulator commands.
+- Robot-connected programming concepts.
+- Lesson maintenance workflow and publishing checklist.
+
+Next expansion targets:
+
+- Student worksheets.
+- Simulator guide with screenshots.
+- Teacher setup guide.
+- Lesson assessment rubric.
+- Parent-facing curriculum summary.
+
+## Planned Repository: Robotics Secondary Development
+
+English term:
+
+```text
+Secondary development
+```
+
+Chinese reference:
+
+```text
+二次开发
+```
+
+Planned repository:
+
+```text
+https://github.com/Agent-tech-ai/robotics-secondary-development
+```
+
+Planned documentation structure:
+
+```text
+robotics-secondary-development/
+|-- README.md
+|-- Overview
+|-- Secondary Development Guide
+|-- Robot SDK
+|-- Robot Skills
+|-- Hardware Interfaces
+|-- Software Interfaces
+|-- Examples
+`-- Troubleshooting
+```
+
+Planned topics:
+
+- How developers build on top of Agentech robots.
+- Robot SDK usage.
+- Robot skills and reusable capabilities.
+- Hardware and software interfaces.
+- Integrations and examples.
+- Safe operating assumptions and troubleshooting.
