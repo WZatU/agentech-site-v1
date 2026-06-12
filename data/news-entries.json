@@ -69,80 +69,82 @@
   },
   {
     "slug": "2026-06-09-agentech-news",
-    "title": "Agentech, FF, and Learning Tree Hold Strategic Meetings to Advance Robotics and AI Education Collaboration",
+    "title": "Agentech Team Visits FF Robotics Lab: Bridging AI Education with Real-World Robotics Development",
     "date": "2026-06-09",
     "displayDate": "June 9, 2026",
     "author": "Li Yang",
-    "excerpt": "Following Agentech’s company restructuring and strategic transition into an AI-native organization, Agentech recently held a series of important meetings with Faraday Future (FF) and Learning Tree to explore future collaboration opportunities in robotics technology, AI education, and intelligent systems development.",
-    "coverImage": "/assets/news/2026-06-09-agentech-news/media-1781222469236/01.jpg",
+    "excerpt": "Recently, Agentech organized an immersive AI and robotics experience at the FF Robotics Lab for its technical team and a group of middle school students.",
+    "coverImage": "/assets/news/2026-06-09-agentech-news/media-1781233315833/01.jpg",
     "images": [
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/01.jpg",
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/02.jpg",
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/03.jpg",
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/04.jpg",
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/05.jpg",
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/06.jpg",
-      "/assets/news/2026-06-09-agentech-news/media-1781222469236/07.jpg"
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/01.jpg",
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/02.jpg",
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/03.jpg",
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/04.jpg",
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/05.jpg",
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/06.jpg",
+      "/assets/news/2026-06-09-agentech-news/media-1781233315833/07.jpg"
     ],
     "videos": [],
     "media": [
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/01.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/01.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/02.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/02.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/03.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/03.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/04.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/04.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/05.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/05.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/06.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/06.jpg"
       },
       {
         "type": "image",
-        "src": "/assets/news/2026-06-09-agentech-news/media-1781222469236/07.jpg"
+        "src": "/assets/news/2026-06-09-agentech-news/media-1781233315833/07.jpg"
       }
     ],
     "body": [
-      "During the first meeting, FF’s VP and CTO visited Agentech for in-depth discussions focused on robotics technologies, intelligent agent systems, AI-native educational frameworks, and future technology learning environments. Both sides exchanged ideas on AI infrastructure, robotics applications, curriculum development, and the integration of intelligent systems into real-world educational scenarios. The meeting established strong alignment between the two teams and laid an important foundation for future cooperation.",
-      "Following the discussions with FF, Agentech and Learning Tree — an existing long-term educational partner of Agentech — organized a three-party strategic meeting together with the FF team. During the meeting, all parties conducted friendly and productive discussions surrounding robotics education, AI curriculum implementation, future innovation labs, and the commercialization potential of intelligent technologies within educational environments.",
-      "The meetings further strengthened the shared vision among the three organizations and ultimately helped facilitate the official collaboration that followed shortly afterward.",
-      "Agentech believes that the future of education will be deeply connected with AI, robotics, and intelligent systems. By combining advanced technologies with real-world learning experiences, the company aims to help students not only learn about AI, but also directly interact with the technologies shaping the future.",
-      "As Agentech continues expanding its collaborations with industry and educational partners, the company remains committed to building AI-native learning ecosystems that bridge technology, education, and practical innovation."
+      "Recently, Agentech organized an immersive AI and robotics experience at the FF Robotics Lab for its technical team and a group of middle school students. Through hands-on exposure to a real robotics research environment, cutting-edge robotic systems, and live data collection experiments, participants gained valuable insight into how artificial intelligence and robotics technologies are applied in the real world. The visit also provided Agentech’s technical team with an early introduction to future development platforms and research environments.",
+      "During the visit, students explored advanced technologies including humanoid robots, robotic dexterous hands, robotic vision systems, and other state-of-the-art equipment. Guided by engineers and researchers, they learned about artificial intelligence, large language models (LLMs), robotic control systems, and the future direction of the robotics industry.",
+      "As part of the interactive learning experience, students participated in robotics-related AI activities and explored how AI technologies are integrated into robotic applications. A key highlight of the visit was a live dexterous-hand data collection experiment, where students observed and participated in the process of recording robotic grasping data. This hands-on experience helped them understand how robots learn from data and continuously improve their perception and manipulation capabilities through machine learning and AI training.",
+      "The experience provided students with a unique opportunity to connect classroom learning with real-world research and development. By entering a professional robotics laboratory, interacting with advanced equipment, and observing real engineering workflows, students gained a deeper understanding of emerging technologies and future career possibilities.",
+      "At the same time, Agentech’s technical team participated throughout the visit to gain firsthand exposure to industrial-grade robotics platforms and development environments. Moving forward, Agentech engineers will collaborate within the FF Robotics Lab on robotics platform customization, secondary development, AI application integration, and related research projects. These efforts will further strengthen Agentech’s capabilities in AI education, robotics development, and innovation-driven learning programs.",
+      "Agentech remains committed to its mission of connecting education with future technologies. Through real-world experiences and hands-on learning opportunities, the company aims to inspire students to explore artificial intelligence, robotics, and innovation while developing the skills and mindset needed to thrive in the future technology-driven world."
     ],
     "translations": {
       "en": {
-        "title": "Agentech, FF, and Learning Tree Hold Strategic Meetings to Advance Robotics and AI Education Collaboration",
-        "excerpt": "Following Agentech’s company restructuring and strategic transition into an AI-native organization, Agentech recently held a series of important meetings with Faraday Future (FF) and Learning Tree to explore future collaboration opportunities in robotics technology, AI education, and intelligent systems development.",
+        "title": "Agentech Team Visits FF Robotics Lab: Bridging AI Education with Real-World Robotics Development",
+        "excerpt": "Recently, Agentech organized an immersive AI and robotics experience at the FF Robotics Lab for its technical team and a group of middle school students.",
         "body": [
-          "During the first meeting, FF’s VP and CTO visited Agentech for in-depth discussions focused on robotics technologies, intelligent agent systems, AI-native educational frameworks, and future technology learning environments. Both sides exchanged ideas on AI infrastructure, robotics applications, curriculum development, and the integration of intelligent systems into real-world educational scenarios. The meeting established strong alignment between the two teams and laid an important foundation for future cooperation.",
-          "Following the discussions with FF, Agentech and Learning Tree — an existing long-term educational partner of Agentech — organized a three-party strategic meeting together with the FF team. During the meeting, all parties conducted friendly and productive discussions surrounding robotics education, AI curriculum implementation, future innovation labs, and the commercialization potential of intelligent technologies within educational environments.",
-          "The meetings further strengthened the shared vision among the three organizations and ultimately helped facilitate the official collaboration that followed shortly afterward.",
-          "Agentech believes that the future of education will be deeply connected with AI, robotics, and intelligent systems. By combining advanced technologies with real-world learning experiences, the company aims to help students not only learn about AI, but also directly interact with the technologies shaping the future.",
-          "As Agentech continues expanding its collaborations with industry and educational partners, the company remains committed to building AI-native learning ecosystems that bridge technology, education, and practical innovation."
+          "Recently, Agentech organized an immersive AI and robotics experience at the FF Robotics Lab for its technical team and a group of middle school students. Through hands-on exposure to a real robotics research environment, cutting-edge robotic systems, and live data collection experiments, participants gained valuable insight into how artificial intelligence and robotics technologies are applied in the real world. The visit also provided Agentech’s technical team with an early introduction to future development platforms and research environments.",
+          "During the visit, students explored advanced technologies including humanoid robots, robotic dexterous hands, robotic vision systems, and other state-of-the-art equipment. Guided by engineers and researchers, they learned about artificial intelligence, large language models (LLMs), robotic control systems, and the future direction of the robotics industry.",
+          "As part of the interactive learning experience, students participated in robotics-related AI activities and explored how AI technologies are integrated into robotic applications. A key highlight of the visit was a live dexterous-hand data collection experiment, where students observed and participated in the process of recording robotic grasping data. This hands-on experience helped them understand how robots learn from data and continuously improve their perception and manipulation capabilities through machine learning and AI training.",
+          "The experience provided students with a unique opportunity to connect classroom learning with real-world research and development. By entering a professional robotics laboratory, interacting with advanced equipment, and observing real engineering workflows, students gained a deeper understanding of emerging technologies and future career possibilities.",
+          "At the same time, Agentech’s technical team participated throughout the visit to gain firsthand exposure to industrial-grade robotics platforms and development environments. Moving forward, Agentech engineers will collaborate within the FF Robotics Lab on robotics platform customization, secondary development, AI application integration, and related research projects. These efforts will further strengthen Agentech’s capabilities in AI education, robotics development, and innovation-driven learning programs.",
+          "Agentech remains committed to its mission of connecting education with future technologies. Through real-world experiences and hands-on learning opportunities, the company aims to inspire students to explore artificial intelligence, robotics, and innovation while developing the skills and mindset needed to thrive in the future technology-driven world."
         ]
       },
       "zh": {
-        "title": "Agentech、FF 与 Learning Tree 举行战略会议，推进机器人与人工智能教育合作",
-        "excerpt": "在 Agentech 完成公司重组并正式迈向 AI Native（AI 原生）发展方向之后，公司近期与 Faraday Future（FF）以及长期教育合作伙伴 Learning Tree 举行了多场重要战略会议，共同探讨机器人技术、AI 教育以及智能系统未来的发展合作。",
+        "title": "Agentech团队走进FF机器人实验室：让AI教育与真实机器人研发零距离连接",
+        "excerpt": "近日，Agentech组织公司技术团队以及多位中学生走进FF机器人实验室，开展了一场沉浸式AI与机器人科技体验活动。通过真实实验室场景、前沿机器人设备展示以及现场数据采集实验，让学生们近距离感受人工智能与机器人技术的实际应用，也让公司技术团队提前深入了解未来研发平台和开发环境。",
         "body": [
-          "在首次会议中，FF 的 VP 与 CTO 来到 Agentech 公司，与团队围绕机器人技术、智能体系统（Agent Systems）、AI 原生教育框架以及未来科技学习场景进行了深入交流。双方重点讨论了 AI 基础设施、机器人应用、课程研发以及智能系统在真实教育环境中的落地可能性，并在多个方向上达成了高度共识，为后续合作奠定了重要基础。",
-          "随后，在与 FF 完成深入沟通后，Agentech 联合长期合作伙伴 Learning Tree，与 FF 团队共同举行了三方战略会议。会议期间，三方围绕机器人教育、AI 课程体系建设、未来创新实验室以及智能技术在教育领域中的商业化应用等方向展开了积极且富有成效的讨论。",
-          "此次系列会议进一步加强了三方之间的合作愿景，并最终推动了后续正式合作关系的达成。",
-          "Agentech 始终认为，未来教育将与人工智能、机器人以及智能系统深度融合。公司希望通过将先进技术与真实学习场景结合，让学生不仅学习 AI 知识，更能够真正接触、理解并参与未来科技的发展过程。",
-          "未来，Agentech 也将继续联合产业与教育合作伙伴，共同推动 AI 原生学习生态、机器人实践平台以及智能教育创新的发展。"
+          "活动当天，同学们首先参观了实验室内的人形机器人、机器人灵巧手、机器人视觉系统等前沿设备。在工程师的讲解下，大家了解了人工智能、大模型、机器人控制系统以及未来机器人产业的发展方向。",
+          "在体验环节中，同学们亲自参与了机器人相关课程内容，学习AI技术在机器人领域中的应用逻辑，并通过实际操作进一步理解人工智能如何与现实世界进行交互。现场还特别进行了机器人灵巧手抓取数据采集实验，通过真实的数据录制流程，让学生们了解到机器人学习和训练背后的技术原理，亲身体验机器人如何通过大量数据不断提升感知与执行能力。",
+          "此次活动不仅为学生们打开了人工智能和机器人世界的大门，也让大家真正感受到课堂知识与真实科研环境之间的连接。通过走进实验室、接触真实设备、参与实际项目，学生们对未来科技发展有了更加直观和深刻的认识。",
+          "与此同时，Agentech技术团队也全程参与本次实验室实践活动。未来，公司研发团队将陆续进入FF机器人实验室开展机器人平台二次开发、AI应用开发以及相关技术研究工作。通过深入接触真实机器人研发环境和产业级开发平台，进一步推动Agentech在人工智能教育、机器人技术研发以及创新实践项目方面的持续发展。",
+          "Agentech始终坚持“让教育连接未来科技”的理念，希望通过更多真实场景实践，让学生不仅学习AI知识，更能够走进实验室、接触前沿科技，在探索与实践中培养创新能力和未来竞争力。"
         ]
       }
     }
