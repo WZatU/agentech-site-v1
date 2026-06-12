@@ -47,7 +47,7 @@ export function NewsSlideshow({ images, media, title }: { images: string[]; medi
               fill
               priority={index === 0}
               sizes="100vw"
-              className={`object-cover transition-opacity duration-700 ${
+              className={`object-contain transition-opacity duration-700 ${
                 index === activeIndex ? "opacity-100" : "opacity-0"
               }`}
             />
