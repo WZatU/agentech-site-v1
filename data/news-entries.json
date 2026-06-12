@@ -1,5 +1,73 @@
 [
   {
+    "slug": "2026-06-11-agentech-news",
+    "title": "Agentech Launches AI Education Program at Learning Tree Campus",
+    "date": "2026-06-11",
+    "displayDate": "June 11, 2026",
+    "author": "Agentech",
+    "excerpt": "Upcoming Robot Dog Curriculum Brings AI and Robotics Learning to Life",
+    "coverImage": "/assets/news/2026-06-11-agentech-news/media-1781232081830/01.jpg",
+    "images": [
+      "/assets/news/2026-06-11-agentech-news/media-1781232081830/01.jpg",
+      "/assets/news/2026-06-11-agentech-news/media-1781232081830/02.jpg",
+      "/assets/news/2026-06-11-agentech-news/media-1781232081830/03.jpg",
+      "/assets/news/2026-06-11-agentech-news/media-1781232081830/04.jpg"
+    ],
+    "videos": [],
+    "media": [
+      {
+        "type": "image",
+        "src": "/assets/news/2026-06-11-agentech-news/media-1781232081830/01.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/2026-06-11-agentech-news/media-1781232081830/02.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/2026-06-11-agentech-news/media-1781232081830/03.jpg"
+      },
+      {
+        "type": "image",
+        "src": "/assets/news/2026-06-11-agentech-news/media-1781232081830/04.jpg"
+      }
+    ],
+    "body": [
+      "In June 2026, the Agentech AI Education Team officially launched its AI learning program at Learning Tree, combining artificial intelligence education with the company’s upcoming Robot Dog Curriculum to provide students with an immersive technology learning experience.",
+      "Centered around the theme of “AI + Robotics,” the program introduced students to cutting-edge technologies through interactive lessons, hands-on activities, and live robotics demonstrations. Students had the opportunity to explore the fundamentals of artificial intelligence while engaging directly with robotic systems and intelligent interactions.",
+      "Throughout the program, students demonstrated remarkable enthusiasm and curiosity. They actively participated in classroom activities, eagerly explored new concepts, and embraced challenges with excitement and confidence. The experience helped students develop not only an understanding of AI concepts, but also critical thinking, problem-solving skills, creativity, and teamwork.",
+      "This program represents another important step in Agentech’s mission to bring innovative AI and robotics education into real-world learning environments. The upcoming Robot Dog Curriculum will further integrate artificial intelligence, robotics control, computer vision, and practical applications, providing students with a comprehensive project-based learning experience that empowers them to become creators of technology rather than simply users of it.",
+      "Agentech remains committed to advancing AI and robotics education through partnerships with schools, educational organizations, and community programs. By making emerging technologies accessible to young learners, Agentech aims to inspire the next generation of innovators, engineers, and future leaders.",
+      "At Agentech, we believe that education is not only about acquiring knowledge—it is about fostering curiosity, creativity, and the skills needed to thrive in a technology-driven future."
+    ],
+    "translations": {
+      "en": {
+        "title": "Agentech Launches AI Education Program at Learning Tree Campus",
+        "excerpt": "Upcoming Robot Dog Curriculum Brings AI and Robotics Learning to Life",
+        "body": [
+          "In June 2026, the Agentech AI Education Team officially launched its AI learning program at Learning Tree, combining artificial intelligence education with the company’s upcoming Robot Dog Curriculum to provide students with an immersive technology learning experience.",
+          "Centered around the theme of “AI + Robotics,” the program introduced students to cutting-edge technologies through interactive lessons, hands-on activities, and live robotics demonstrations. Students had the opportunity to explore the fundamentals of artificial intelligence while engaging directly with robotic systems and intelligent interactions.",
+          "Throughout the program, students demonstrated remarkable enthusiasm and curiosity. They actively participated in classroom activities, eagerly explored new concepts, and embraced challenges with excitement and confidence. The experience helped students develop not only an understanding of AI concepts, but also critical thinking, problem-solving skills, creativity, and teamwork.",
+          "This program represents another important step in Agentech’s mission to bring innovative AI and robotics education into real-world learning environments. The upcoming Robot Dog Curriculum will further integrate artificial intelligence, robotics control, computer vision, and practical applications, providing students with a comprehensive project-based learning experience that empowers them to become creators of technology rather than simply users of it.",
+          "Agentech remains committed to advancing AI and robotics education through partnerships with schools, educational organizations, and community programs. By making emerging technologies accessible to young learners, Agentech aims to inspire the next generation of innovators, engineers, and future leaders.",
+          "At Agentech, we believe that education is not only about acquiring knowledge—it is about fostering curiosity, creativity, and the skills needed to thrive in a technology-driven future."
+        ]
+      },
+      "zh": {
+        "title": "Agentech AI课程正式落地 Learning Tree校园",
+        "excerpt": "机器狗课程即将上线，开启AI与机器人教育新体验",
+        "body": [
+          "2026年6月，Agentech AI教育团队正式走进 Learning Tree 校园，将人工智能课程与即将发布的机器狗课程相结合，为学生们带来沉浸式AI与机器人学习体验。",
+          "本次课程以“AI + Robotics”为主题，通过互动教学、实践体验和机器人展示，让学生们近距离感受人工智能与机器人技术的魅力。课堂上，小朋友们热情满满、积极参与，在老师的引导下学习AI基础知识，并通过实际操作体验机器人控制与智能交互。",
+          "在课程过程中，孩子们展现出极高的专注度与学习热情。每个孩子都认真投入课堂活动，积极探索科技世界，脸上洋溢着兴奋与成就感。学生们不仅学习了人工智能的基础概念，更在实践中培养了创新思维、逻辑能力以及解决问题的能力。",
+          "此次课程也是Agentech机器人教育体系的重要实践。即将推出的机器狗课程将进一步融合人工智能、机器人控制、计算机视觉以及真实应用场景，为学生提供更加系统化、项目化的学习体验，让孩子们从科技体验者成长为科技创造者。",
+          "Agentech始终致力于推动AI教育与机器人科技在校园中的落地应用。未来，公司将持续与学校、教育机构及社区合作，为更多学生提供接触前沿科技的机会，帮助下一代建立面向未来的创新能力与科技素养。",
+          "我们相信，未来教育不仅是知识的传授，更是创造力、探索精神与科技能力的培养。Agentech将继续以创新教育为使命，连接科技与未来。"
+        ]
+      }
+    }
+  },
+  {
     "slug": "2026-06-09-agentech-news",
     "title": "Agentech, FF, and Learning Tree Hold Strategic Meetings to Advance Robotics and AI Education Collaboration",
     "date": "2026-06-09",
