@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import { fileURLToPath } from "node:url";
 import { TextDecoder } from "node:util";
 
@@ -17,7 +18,10 @@ const importerFingerprintVersion = "2026-05-strip-derived-title-preview";
 const sourceFolderAuthorOverrides = new Map([
   ["2026-05-14", "Bill"],
   ["2026-05-18", "Li Yang"],
-  ["2026-05-22", "Wang Yuan"]
+  ["2026-05-22", "Bill"],
+  ["2026-06-07", "Li Yang"],
+  ["2026-06-09", "Li Yang"],
+  ["2026-06-11", "Li Yang"]
 ]);
 const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const videoExtensions = new Set([".mp4", ".mov", ".webm", ".m4v"]);
@@ -567,7 +571,13 @@ async function copyMedia(mediaItems, coverImagePath, slug) {
     const ext = path.extname(item.path).toLowerCase() || (item.type === "video" ? ".mp4" : ".jpg");
     const filename = `${String(index + 1).padStart(2, "0")}${ext}`;
     const destination = path.join(destinationDir, filename);
-    await fs.copyFile(item.path, destination);
+
+    if (item.type === "image") {
+      await sharp(item.path).rotate().toFile(destination);
+    } else {
+      await fs.copyFile(item.path, destination);
+    }
+
     const publicPath = `/assets/news/${slug}/${runFolder}/${filename}`;
     copiedMedia.push({
       type: item.type,
