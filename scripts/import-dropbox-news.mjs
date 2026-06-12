@@ -522,6 +522,16 @@ function mediaSortValue(file) {
   return Number.isFinite(number) ? number : Number.MAX_SAFE_INTEGER;
 }
 
+function mediaExtensionSortValue(file) {
+  const ext = path.extname(file).toLowerCase();
+  return {
+    ".png": 0,
+    ".jpg": 1,
+    ".jpeg": 1,
+    ".webp": 2
+  }[ext] ?? 3;
+}
+
 async function getMedia(folderPath) {
   const imageDir = existsSync(path.join(folderPath, "image")) ? path.join(folderPath, "image") : folderPath;
   const files = (await fs.readdir(imageDir, { withFileTypes: true }))
@@ -535,7 +545,11 @@ async function getMedia(folderPath) {
       return leftIsVideo ? -1 : 1;
     }
 
-    return mediaSortValue(left) - mediaSortValue(right) || left.localeCompare(right, undefined, { numeric: true });
+    return (
+      mediaSortValue(left) - mediaSortValue(right) ||
+      mediaExtensionSortValue(left) - mediaExtensionSortValue(right) ||
+      left.localeCompare(right, undefined, { numeric: true })
+    );
   });
   const images = sorted.filter((file) => imageExtensions.has(path.extname(file).toLowerCase()));
   const coverCandidates = images.filter((file) => {
