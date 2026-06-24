@@ -243,6 +243,30 @@ body::after {
     color: #fff !important;
   }
 
+  .topic-image-panel {
+    background:
+      radial-gradient(circle at 50% 18%, rgba(83, 217, 255, 0.16), transparent 34%),
+      #12164a;
+  }
+
+  .topic-image {
+    transition:
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .topic-feature-row:hover .topic-image {
+    transform: translateY(-6px) scale(1.018);
+    filter: saturate(1.08) contrast(1.03);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .topic-image {
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+
   .internship-light-page,
   .internship-light-page * {
     color: #020617 !important;
