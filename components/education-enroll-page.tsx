@@ -12,6 +12,7 @@ type ApiResult = {
   ok?: boolean;
   error?: string;
   message?: string;
+  emailSent?: boolean;
 };
 
 type AccountChild = {
@@ -110,7 +111,7 @@ export function EducationEnrollPage() {
       }
 
       setStatus("success");
-      setMessage("Enrollment added to your request cart. Taking you to your account...");
+      setMessage(result.message || "Enrollment request added to your account. Taking you to your account...");
       router.replace("/account");
   }
 
