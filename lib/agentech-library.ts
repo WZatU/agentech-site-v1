@@ -26,7 +26,7 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.cmd_vel(linear=+speed, angular=0.0)",
     example: "Agentech.forward(speed=0.3, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. Valid range: 0.0 to 0.6." },
+      { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. Valid range from report_zh: 0.0 to 2.37." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to walk. Valid range: 0.0 to 10.0." }
     ]
   },
@@ -39,8 +39,8 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.cmd_vel(linear=-speed, angular=0.0)",
     example: "Agentech.backward(speed=0.2, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. Positive values only." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward." }
+      { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. Valid range from report_zh: 0.0 to 2.37." },
+      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward. Valid range: 0.0 to 10.0." }
     ]
   },
   {
@@ -52,8 +52,8 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.cmd_vel(linear=0.0, angular=speed)",
     example: "Agentech.yaw(speed=0.35, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate in radians per second. Positive turns left, negative turns right." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to hold the yaw command." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate in radians per second. Valid range from report_zh: -2.09 to 2.09. Positive turns left, negative turns right." },
+      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to hold the yaw command. Valid range: 0.0 to 10.0." }
     ]
   },
   {
@@ -65,8 +65,8 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.attitude_control(pitch_vel=+speed)",
     example: "Agentech.look_up(angle=15)",
     params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward attitude/camera tilt change in degrees. Valid range: 0 to 45." },
-      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Safe range: 0.03 to 0.5." }
+      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward attitude/camera tilt change in degrees. Valid range from Aegis tilt viewer: 0 to 20." },
+      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Valid API range: 0.03 to 0.5; recommended first tests stay near 0.10 to 0.15." }
     ]
   },
   {
@@ -78,8 +78,8 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.attitude_control(pitch_vel=-speed)",
     example: "Agentech.look_down(angle=15)",
     params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward attitude/camera tilt change in degrees. Valid range: 0 to 45." },
-      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Safe range: 0.03 to 0.5." }
+      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward attitude/camera tilt change in degrees. Valid range from Aegis tilt viewer: 0 to 25." },
+      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Valid API range: 0.03 to 0.5; recommended first tests stay near 0.10 to 0.15." }
     ]
   },
   {
@@ -91,8 +91,8 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.attitude_control(pitch_vel=signed_speed)",
     example: "Agentech.camera_pitch(angle=-8)",
     params: [
-      { name: "angle", type: "float", defaultValue: "10", description: "Signed pitch change in degrees. Positive up, negative down." },
-      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity used to estimate bounded command duration, streamed at 20 Hz." }
+      { name: "angle", type: "float", defaultValue: "10", description: "Signed pitch change in degrees. Valid range: -25 down to +20 up." },
+      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity used to estimate bounded command duration. Valid range: 0.03 to 0.5 rad/s." }
     ]
   },
   {
@@ -104,8 +104,8 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.attitude_control(pitch_vel=speed)",
     example: "Agentech.pitch(speed=0.12, seconds=0.5)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second. Positive up, negative down." },
-      { name: "seconds", type: "float", defaultValue: "0.5", description: "How long to hold the pitch command." },
+      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second. Valid range: -0.5 to 0.5. Positive up, negative down." },
+      { name: "seconds", type: "float", defaultValue: "0.5", description: "How long to hold the pitch command. Valid range: 0.0 to 10.0." },
       { name: "hz", type: "float", defaultValue: "20", description: "How often to resend attitude_control while holding the pitch command." }
     ]
   },
@@ -119,7 +119,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.rotate(angle=-90)",
     params: [
       { name: "angle", type: "float", defaultValue: "90", description: "Target yaw change in degrees. Valid range: -360 to 360." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used to estimate turn duration." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used to estimate turn duration. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
   {
@@ -132,7 +132,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.left(angle=45)",
     params: [
       { name: "angle", type: "float", defaultValue: "45", description: "Left turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
   {
@@ -145,7 +145,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.right(angle=45)",
     params: [
       { name: "angle", type: "float", defaultValue: "45", description: "Right turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
   {
@@ -158,7 +158,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.turn_left(angle=45)",
     params: [
       { name: "angle", type: "float", defaultValue: "45", description: "Left turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
   {
@@ -171,7 +171,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.turn_right(angle=45)",
     params: [
       { name: "angle", type: "float", defaultValue: "45", description: "Right turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
   {

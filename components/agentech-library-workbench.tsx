@@ -320,9 +320,11 @@ branch = "main"`;
             <div className="border border-[#2a3440] bg-[#0d1117] p-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safety Limits</p>
               <div className="mt-3 space-y-2 text-sm leading-6 text-[#cdd6df]">
-                <p>Walking speed is capped at 0.6 m/s.</p>
+                <p>Linear speed is capped at 2.37 m/s.</p>
+                <p>Yaw rate is capped at +/-2.09 rad/s.</p>
+                <p>Look up is capped at 20 degrees; look down is capped at 25 degrees.</p>
+                <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Motion commands are capped at 10 seconds.</p>
-                <p>Tilt commands are capped at 45 degrees.</p>
                 <p>Emergency stop is exposed as `Agentech.emergency_stop()`.</p>
               </div>
             </div>
@@ -357,11 +359,30 @@ branch = "main"`;
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Complete Function Reference</p>
           </div>
-          <div className="grid gap-px bg-[#2a3440] md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-px bg-[#2a3440] md:grid-cols-2 xl:grid-cols-3">
             {agentechFunctions.map((item) => (
               <div key={item.name} className="bg-[#0d1117] p-4">
                 <p className="font-mono text-sm text-[#8fdc8f]">{item.signature}</p>
                 <p className="mt-2 min-h-12 text-sm leading-6 text-[#cdd6df]">{item.summary}</p>
+                <div className="mt-4 border-t border-[#2a3440] pt-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Parameters</p>
+                  {item.params.length ? (
+                    <div className="mt-2 space-y-2">
+                      {item.params.map((param) => (
+                        <div key={param.name} className="border border-[#26313c] bg-[#090d12] p-2">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="font-mono text-xs text-[#8fdc8f]">{param.name}</span>
+                            <span className="font-mono text-[11px] text-[#93c5fd]">{param.type}</span>
+                            <span className="font-mono text-[11px] text-[#f5d06f]">default {param.defaultValue ?? "required"}</span>
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">{param.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs leading-5 text-[#aeb8c2]">No parameters.</p>
+                  )}
+                </div>
                 <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Internal card</p>
                 <p className="mt-1 font-mono text-xs leading-5 text-[#93c5fd]">{item.actionCard}</p>
               </div>
@@ -443,13 +464,16 @@ export function AgentechLibraryWorkbench() {
     setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
     setSimFrameIndex(0);
     setRenderedFrames([]);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
     try {
       const response = await fetch("/api/agentech-simulate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code }),
+        signal: controller.signal
       });
-      const payload = await response.json();
+      const payload = await response.json().catch(() => ({ error: "Simulation returned an unreadable response." }));
       if (!response.ok) {
         throw new Error(payload.error ?? "Simulation failed");
       }
@@ -462,8 +486,9 @@ export function AgentechLibraryWorkbench() {
         `MuJoCo ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, tilt=${(pose.pitch ?? 0).toFixed(1)}deg.`
       );
     } catch (error) {
-      setMujocoStatus(error instanceof Error ? error.message : "Simulation failed.");
+      setMujocoStatus(error instanceof Error && error.name === "AbortError" ? "Simulation timed out after 15s. Try fewer commands or run again." : error instanceof Error ? error.message : "Simulation failed.");
     } finally {
+      window.clearTimeout(timeout);
       setIsSimulating(false);
     }
   }
@@ -500,6 +525,16 @@ export function AgentechLibraryWorkbench() {
 
   return (
     <div className="min-h-screen bg-[#0b0d10] text-white">
+      <style>{`
+        nextjs-portal,
+        [data-nextjs-toast],
+        [data-nextjs-dialog-overlay],
+        [data-nextjs-dialog],
+        [data-nextjs-dev-tools-button],
+        [data-nextjs-devtools] {
+          display: none !important;
+        }
+      `}</style>
       <section className="border-b border-[#2a3440] bg-[#101418]">
         <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
           <div className="min-w-0">

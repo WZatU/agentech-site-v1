@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
+import { validateAgentechCode } from "@/lib/agentech-validation";
 
 type SubmissionPayload = {
   developerName?: string;
@@ -75,6 +76,11 @@ export async function POST(request: NextRequest) {
 
     if ((!code || !commands.length) && !githubRepoUrl) {
       return NextResponse.json({ error: "Paste Agentech code or provide a GitHub repository link." }, { status: 400 });
+    }
+
+    const validationErrors = validateAgentechCode(code);
+    if (validationErrors.length) {
+      return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
     }
 
     const submittedAt = new Date().toISOString();
