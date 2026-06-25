@@ -314,7 +314,7 @@ export function AgentechLibraryWorkbench() {
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
   const [mujocoStatus, setMujocoStatus] = useState("Aegis MuJoCo URDF is installed locally. Run the code to move the dog preview.");
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.33, yaw: 0, pitch: 0 }]);
+  const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
   const [simFrameIndex, setSimFrameIndex] = useState(0);
   const [renderedFrames, setRenderedFrames] = useState<string[]>([]);
 
@@ -344,8 +344,7 @@ export function AgentechLibraryWorkbench() {
     const interval = window.setInterval(() => {
       setSimFrameIndex((current) => {
         if (current >= simFrames.length - 1) {
-          window.clearInterval(interval);
-          return simFrames.length - 1;
+          return 0;
         }
         return current + 1;
       });
@@ -369,7 +368,7 @@ export function AgentechLibraryWorkbench() {
   async function runMuJoCoSimulation() {
     setIsSimulating(true);
     setMujocoStatus("Running Aegis MuJoCo simulation...");
-    setSimFrames([{ x: 0, y: 0, z: 0.33, yaw: 0, pitch: 0 }]);
+    setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
     setSimFrameIndex(0);
     setRenderedFrames([]);
     try {
@@ -498,7 +497,7 @@ export function AgentechLibraryWorkbench() {
         </div>
       </section>
 
-      <main className="mx-auto grid max-w-7xl gap-0 border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)_330px]">
+      <main className="mx-auto grid max-w-7xl gap-0 border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
         <aside className="border-b border-[#2a3440] bg-[#11151b] lg:border-b-0 lg:border-r">
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Library</p>
@@ -541,7 +540,7 @@ export function AgentechLibraryWorkbench() {
           <div className="border-b border-[#2a3440] bg-[#181d24] px-4 py-3">
             <p className="font-mono text-sm text-[#cdd6df]">agentech_quickstart.py</p>
           </div>
-          <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(430px,0.85fr)]">
             <div>
               <textarea
                 value={code}
@@ -552,17 +551,24 @@ export function AgentechLibraryWorkbench() {
             </div>
             <div className="border-t border-[#2a3440] bg-[#11151b] xl:border-l xl:border-t-0">
               <div className="border-b border-[#2a3440] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">MuJoCo Preview</p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">MuJoCo Preview</p>
+                  <p className="font-mono text-xs text-[#93c5fd]">fixed observer camera</p>
+                </div>
               </div>
               <div className="p-4">
-                <div className="relative mx-auto aspect-[4/3] max-w-[360px] overflow-hidden border border-[#2a3440] bg-black">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-mono text-xs uppercase tracking-[0.12em] text-[#8fdc8f]">Aegis MuJoCo render</p>
+                  <p className="font-mono text-xs text-[#7f8c99]">real model frames</p>
+                </div>
+                <div className="relative mx-auto aspect-[13/9] w-full overflow-hidden border border-[#2a3440] bg-black">
                   <div className="absolute inset-0 bg-black" />
                   {renderedFrame ? (
                     <Image
                       src={renderedFrame}
                       alt="Rendered Aegis MuJoCo simulation frame"
                       fill
-                      sizes="256px"
+                      sizes="(min-width: 1280px) 430px, 100vw"
                       unoptimized
                       className="object-contain"
                     />
@@ -571,18 +577,12 @@ export function AgentechLibraryWorkbench() {
                       src="/assets/products/aegis-mujoco-ready.png?v=ff-demo-gait"
                       alt="Aegis MuJoCo model ready"
                       fill
-                      sizes="256px"
+                      sizes="(min-width: 1280px) 430px, 100vw"
                       unoptimized
                       className="object-contain"
                       priority
                     />
                   )}
-                  <div className="absolute left-4 top-4 border border-[#2a3440] bg-[#0d1117]/92 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#93c5fd]">
-                    Aegis MuJoCo render
-                  </div>
-                  <div className="absolute bottom-4 right-4 font-mono text-[10px] text-[#7f8c99]">
-                    real model frames
-                  </div>
                 </div>
                 <div className="mt-4 grid grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs">
                   <div className="border-r border-[#2a3440] p-2">model ready</div>
@@ -602,6 +602,9 @@ export function AgentechLibraryWorkbench() {
                   <div className="border-r border-[#2a3440] p-2">yaw {previewFrame.yaw.toFixed(1)}deg</div>
                   <div className="p-2">tilt {cameraPitch.toFixed(1)}deg</div>
                 </div>
+                <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
+                  frame {Math.min(simFrameIndex + 1, simFrames.length)} / {simFrames.length}
+                </div>
                 <div className="mt-4 max-h-52 space-y-2 overflow-auto">
                   {plan.trace.map((line, index) => (
                     <p key={`${line}-${index}`} className="border border-[#2a3440] bg-[#0d1117] px-3 py-2 font-mono text-xs text-[#cdd6df]">
@@ -618,7 +621,7 @@ export function AgentechLibraryWorkbench() {
           </div>
         </section>
 
-        <aside className="border-t border-[#2a3440] bg-[#11151b] lg:border-l lg:border-t-0">
+        <aside className="border-t border-[#2a3440] bg-[#11151b] lg:col-start-2">
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Robot Session</p>
           </div>
