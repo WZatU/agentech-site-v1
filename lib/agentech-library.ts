@@ -60,12 +60,12 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "look_up",
     category: "Sensing",
     signature: "Agentech.look_up(angle=15, speed=0.12)",
-    summary: "Tilt the standing robot body/camera upward before taking the top height photo.",
+    summary: "Tilt the Aegis attitude/camera upward before taking the top height photo.",
     actionCard: "aegis.camera_pitch",
     grounding: "motion.attitude_control(pitch_vel=+speed)",
     example: "Agentech.look_up(angle=15)",
     params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward body/camera pitch change in degrees. Valid range: 0 to 45." },
+      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward attitude/camera tilt change in degrees. Valid range: 0 to 45." },
       { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Safe range: 0.03 to 0.5." }
     ]
   },
@@ -73,12 +73,12 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "look_down",
     category: "Sensing",
     signature: "Agentech.look_down(angle=15, speed=0.12)",
-    summary: "Tilt the standing robot body/camera downward before taking the bottom height photo.",
+    summary: "Tilt the Aegis attitude/camera downward before taking the bottom height photo.",
     actionCard: "aegis.camera_pitch",
     grounding: "motion.attitude_control(pitch_vel=-speed)",
     example: "Agentech.look_down(angle=15)",
     params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward body/camera pitch change in degrees. Valid range: 0 to 45." },
+      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward attitude/camera tilt change in degrees. Valid range: 0 to 45." },
       { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Safe range: 0.03 to 0.5." }
     ]
   },
@@ -86,7 +86,7 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "camera_pitch",
     category: "Sensing",
     signature: "Agentech.camera_pitch(angle=10, speed=0.12)",
-    summary: "Signed body/camera pitch control for height workflows. Positive looks up; negative looks down.",
+    summary: "Signed attitude/camera tilt control for height workflows. Positive looks up; negative looks down.",
     actionCard: "aegis.camera_pitch",
     grounding: "motion.attitude_control(pitch_vel=signed_speed)",
     example: "Agentech.camera_pitch(angle=-8)",

@@ -175,7 +175,7 @@ export function AgentechLibraryWorkbench() {
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
   const [mujocoStatus, setMujocoStatus] = useState("Aegis MuJoCo URDF is installed locally. Run the code to move the dog preview.");
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.45, yaw: 0, pitch: 0 }]);
+  const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.33, yaw: 0, pitch: 0 }]);
   const [simFrameIndex, setSimFrameIndex] = useState(0);
   const [renderedFrames, setRenderedFrames] = useState<string[]>([]);
 
@@ -230,7 +230,7 @@ export function AgentechLibraryWorkbench() {
   async function runMuJoCoSimulation() {
     setIsSimulating(true);
     setMujocoStatus("Running Aegis MuJoCo simulation...");
-    setSimFrames([{ x: 0, y: 0, z: 0.45, yaw: 0, pitch: 0 }]);
+    setSimFrames([{ x: 0, y: 0, z: 0.33, yaw: 0, pitch: 0 }]);
     setSimFrameIndex(0);
     setRenderedFrames([]);
     try {
@@ -249,7 +249,7 @@ export function AgentechLibraryWorkbench() {
       setSimFrameIndex(0);
       setRenderedFrames(Array.isArray(payload.rendered_frames) ? payload.rendered_frames : []);
       setMujocoStatus(
-        `MuJoCo ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, pitch=${(pose.pitch ?? 0).toFixed(1)}deg.`
+        `MuJoCo ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, tilt=${(pose.pitch ?? 0).toFixed(1)}deg.`
       );
     } catch (error) {
       setMujocoStatus(error instanceof Error ? error.message : "Simulation failed.");
@@ -445,7 +445,7 @@ export function AgentechLibraryWorkbench() {
                 <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{mujocoStatus}</p>
                 <div className="mt-3 grid grid-cols-2 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs text-[#cdd6df]">
                   <div className="border-r border-[#2a3440] p-2">yaw {previewFrame.yaw.toFixed(1)}deg</div>
-                  <div className="p-2">camera pitch {cameraPitch.toFixed(1)}deg</div>
+                  <div className="p-2">tilt {cameraPitch.toFixed(1)}deg</div>
                 </div>
                 <div className="mt-4 max-h-52 space-y-2 overflow-auto">
                   {plan.trace.map((line, index) => (
