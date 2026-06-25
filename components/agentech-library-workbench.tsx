@@ -446,6 +446,7 @@ export function AgentechLibraryWorkbench() {
         Math.max(0, Math.round((simFrameIndex / Math.max(1, simFrames.length - 1)) * Math.max(0, renderedFrames.length - 1)))
       )
     ];
+  const displayRenderedFrame = previewRenderer === "hosted-preview" ? undefined : renderedFrame;
 
   useEffect(() => {
     if (renderedFrames.length <= 1 || simFrames.length <= 1) {
@@ -519,6 +520,8 @@ export function AgentechLibraryWorkbench() {
         `${statusPrefix} ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, tilt=${(pose.pitch ?? 0).toFixed(1)}deg.${warning}`
       );
     } catch (error) {
+      setRenderedFrames([]);
+      setPreviewRenderer("mujoco");
       setMujocoStatus(error instanceof Error && error.name === "AbortError" ? "Simulation timed out after 15s. Try fewer commands or run again." : error instanceof Error ? error.message : "Simulation failed.");
     } finally {
       window.clearTimeout(timeout);
@@ -710,22 +713,19 @@ export function AgentechLibraryWorkbench() {
                 </div>
                 <div className="relative mx-auto aspect-[13/9] w-full overflow-hidden border border-[#2a3440] bg-black">
                   <div className="absolute inset-0 bg-black" />
-                  {renderedFrame ? (
+                  {displayRenderedFrame ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={renderedFrame}
+                      src={displayRenderedFrame}
                       alt="Rendered Aegis MuJoCo simulation frame"
                       className="h-full w-full object-contain"
                     />
                   ) : (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src="/assets/products/aegis-mujoco-ready.png?v=ff-demo-gait"
                       alt="Aegis MuJoCo model ready"
-                      fill
-                      sizes="(min-width: 1280px) 430px, 100vw"
-                      unoptimized
-                      className="object-contain"
-                      priority
+                      className="h-full w-full object-contain"
                     />
                   )}
                 </div>
