@@ -410,6 +410,7 @@ export function AgentechLibraryWorkbench() {
   const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
   const [simFrameIndex, setSimFrameIndex] = useState(0);
   const [renderedFrames, setRenderedFrames] = useState<string[]>([]);
+  const [previewRenderer, setPreviewRenderer] = useState<"mujoco" | "hosted-preview">("mujoco");
 
   const filteredFunctions = useMemo(
     () => agentechFunctions.filter((item) => activeCategory === "All" || item.category === activeCategory),
@@ -464,6 +465,7 @@ export function AgentechLibraryWorkbench() {
     setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
     setSimFrameIndex(0);
     setRenderedFrames([]);
+    setPreviewRenderer("mujoco");
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 15_000);
     try {
@@ -482,8 +484,11 @@ export function AgentechLibraryWorkbench() {
       setSimFrames(frames);
       setSimFrameIndex(0);
       setRenderedFrames(Array.isArray(payload.rendered_frames) ? payload.rendered_frames : []);
+      setPreviewRenderer(payload.renderer === "hosted-preview" ? "hosted-preview" : "mujoco");
+      const statusPrefix = payload.renderer === "hosted-preview" ? "Hosted simulator preview" : "MuJoCo";
+      const warning = typeof payload.warning === "string" ? ` ${payload.warning}` : "";
       setMujocoStatus(
-        `MuJoCo ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, tilt=${(pose.pitch ?? 0).toFixed(1)}deg.`
+        `${statusPrefix} ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, tilt=${(pose.pitch ?? 0).toFixed(1)}deg.${warning}`
       );
     } catch (error) {
       setMujocoStatus(error instanceof Error && error.name === "AbortError" ? "Simulation timed out after 15s. Try fewer commands or run again." : error instanceof Error ? error.message : "Simulation failed.");
@@ -667,19 +672,19 @@ export function AgentechLibraryWorkbench() {
               </div>
               <div className="p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-mono text-xs uppercase tracking-[0.12em] text-[#8fdc8f]">Aegis MuJoCo render</p>
-                  <p className="font-mono text-xs text-[#7f8c99]">real model frames</p>
+                  <p className="font-mono text-xs uppercase tracking-[0.12em] text-[#8fdc8f]">
+                    {previewRenderer === "hosted-preview" ? "Aegis hosted preview" : "Aegis MuJoCo render"}
+                  </p>
+                  <p className="font-mono text-xs text-[#7f8c99]">{previewRenderer === "hosted-preview" ? "validated frames" : "real model frames"}</p>
                 </div>
                 <div className="relative mx-auto aspect-[13/9] w-full overflow-hidden border border-[#2a3440] bg-black">
                   <div className="absolute inset-0 bg-black" />
                   {renderedFrame ? (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src={renderedFrame}
                       alt="Rendered Aegis MuJoCo simulation frame"
-                      fill
-                      sizes="(min-width: 1280px) 430px, 100vw"
-                      unoptimized
-                      className="object-contain"
+                      className="h-full w-full object-contain"
                     />
                   ) : (
                     <Image
