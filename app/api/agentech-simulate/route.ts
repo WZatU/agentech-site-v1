@@ -186,7 +186,7 @@ export async function POST(request: Request) {
   }
 
   const simulatorScript = path.join(aegisHeightRoot, "scripts", "agentech_simulate_code.py");
-  if (process.env.VERCEL || !fs.existsSync(simulatorScript)) {
+  if (!fs.existsSync(simulatorScript)) {
     const payload = hostedPreviewPayload(code, "Hosted preview active; command path and safety limits validated.");
     simulationCache.set(cacheKey, { createdAt: Date.now(), payload });
     return NextResponse.json(payload);

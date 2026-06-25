@@ -21,26 +21,28 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "forward",
     category: "Movement",
     signature: "Agentech.forward(speed=0.3, seconds=1.0)",
-    summary: "Move the Aegis robot dog forward for a bounded time.",
+    summary: "Stand the Aegis robot dog, wait briefly, then move forward for a bounded time.",
     actionCard: "aegis.walk_forward",
     grounding: "motion.cmd_vel(linear=+speed, angular=0.0)",
     example: "Agentech.forward(speed=0.3, seconds=1)",
     params: [
       { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. Valid range from report_zh: 0.0 to 2.37." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to walk. Valid range: 0.0 to 10.0." }
+      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to walk. Valid range: 0.0 to 10.0." },
+      { name: "stand_wait", type: "float", defaultValue: "1.0", description: "Automatic wait after stand before motion starts. Set to 0 only if posture is already managed." }
     ]
   },
   {
     name: "backward",
     category: "Movement",
     signature: "Agentech.backward(speed=0.3, seconds=1.0)",
-    summary: "Move backward using the same simple speed and duration controls.",
+    summary: "Stand the robot if needed, wait briefly, then move backward.",
     actionCard: "aegis.walk_backward",
     grounding: "motion.cmd_vel(linear=-speed, angular=0.0)",
     example: "Agentech.backward(speed=0.2, seconds=1)",
     params: [
       { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. Valid range from report_zh: 0.0 to 2.37." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward. Valid range: 0.0 to 10.0." }
+      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward. Valid range: 0.0 to 10.0." },
+      { name: "stand_wait", type: "float", defaultValue: "1.0", description: "Automatic wait after stand before motion starts." }
     ]
   },
   {

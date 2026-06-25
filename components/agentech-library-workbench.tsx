@@ -255,6 +255,13 @@ Agentech.left(angle=45)
 # Option 2: submit a GitHub repo and branch
 repo = "https://github.com/team/robot-project"
 branch = "main"`;
+  const robotRunnerExample = `# student_forward.py
+from agentech import Agentech
+
+Agentech.forward()
+
+# Agentech deployment runner copies it to the robot over SSH:
+python scripts/run_agentech_on_robot.py student_forward.py --host 192.168.234.1`;
 
   return (
     <section id="agentech-docs" className="border-t border-[#2a3440] bg-[#0f1318]">
@@ -353,6 +360,17 @@ branch = "main"`;
               Students can paste code directly into the editor or submit a GitHub repository URL plus branch. The request is stored for review before any supervised live robot run.
             </div>
           </div>
+          <div className="border border-[#2a3440] bg-[#0d1117] lg:col-span-2">
+            <div className="border-b border-[#2a3440] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot Hotspot Deployment</p>
+            </div>
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{robotRunnerExample}</pre>
+              <div className="border-t border-[#2a3440] p-4 text-sm leading-6 text-[#aeb8c2] lg:border-l lg:border-t-0">
+                The student file stays tiny. The runner connects through the robot hotspot, copies the file over SSH, sets the Aegis variant, disables dry-run, and runs the code on the robot. `Agentech.forward()` then stands, waits, moves forward, stops, and closes safely.
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="complete-function-reference" className="mt-8 scroll-mt-6 border border-[#2a3440] bg-[#0d1117]">
@@ -447,9 +465,18 @@ export function AgentechLibraryWorkbench() {
     return () => window.clearInterval(interval);
   }, [renderedFrames, simFrames]);
 
+  function resetPreview() {
+    setMujocoStatus("Aegis MuJoCo URDF is installed locally. Run the code to move the dog preview.");
+    setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
+    setSimFrameIndex(0);
+    setRenderedFrames([]);
+    setPreviewRenderer("mujoco");
+  }
+
   function loadExample(item: AgentechFunction) {
     setActiveName(item.name);
     setCode(`from agentech import Agentech\n\n${item.example}`);
+    resetPreview();
   }
 
   function loadCategory(category: Category) {
@@ -457,6 +484,7 @@ export function AgentechLibraryWorkbench() {
     setActiveCategory(category);
     setActiveName(example.activeName);
     setCode(example.code);
+    resetPreview();
   }
 
   async function runMuJoCoSimulation() {
@@ -658,7 +686,10 @@ export function AgentechLibraryWorkbench() {
             <div>
               <textarea
                 value={code}
-                onChange={(event) => setCode(event.target.value)}
+                onChange={(event) => {
+                  setCode(event.target.value);
+                  resetPreview();
+                }}
                 spellCheck={false}
                 className="h-[520px] w-full resize-none border-0 bg-[#0d1117] p-5 font-mono text-sm leading-7 text-[#e5edf5] outline-none selection:bg-[#275c37]"
               />
@@ -817,7 +848,7 @@ export function AgentechLibraryWorkbench() {
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safety Defaults</p>
               <ul className="mt-3 space-y-2 text-sm text-[#cdd6df]">
                 <li>Dry-run first</li>
-                <li>Speed capped at 0.6 m/s</li>
+                <li>Speed capped at 2.37 m/s</li>
                 <li>Motion capped at 10 seconds</li>
                 <li>Emergency stop is always available</li>
               </ul>
