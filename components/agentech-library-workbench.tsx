@@ -437,31 +437,32 @@ export function AgentechLibraryWorkbench() {
 
   const activeFunction = agentechFunctions.find((item) => item.name === activeName) ?? agentechFunctions[0];
   const plan = useMemo(() => commandPlan(code), [code]);
-  const previewFrame = simFrames[Math.min(simFrameIndex, simFrames.length - 1)] ?? simFrames[0];
+  const previewFrameIndex =
+    renderedFrames.length > 1
+      ? Math.min(
+          simFrames.length - 1,
+          Math.max(0, Math.round((simFrameIndex / Math.max(1, renderedFrames.length - 1)) * Math.max(0, simFrames.length - 1)))
+        )
+      : Math.min(simFrameIndex, simFrames.length - 1);
+  const previewFrame = simFrames[previewFrameIndex] ?? simFrames[0];
   const cameraPitch = Math.max(-45, Math.min(45, previewFrame.pitch ?? 0));
-  const renderedFrame =
-    renderedFrames[
-      Math.min(
-        renderedFrames.length - 1,
-        Math.max(0, Math.round((simFrameIndex / Math.max(1, simFrames.length - 1)) * Math.max(0, renderedFrames.length - 1)))
-      )
-    ];
+  const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
   const displayRenderedFrame = previewRenderer === "hosted-preview" ? undefined : renderedFrame;
 
   useEffect(() => {
-    if (renderedFrames.length <= 1 || simFrames.length <= 1) {
+    if (renderedFrames.length <= 1) {
       return;
     }
 
     setSimFrameIndex(0);
     const interval = window.setInterval(() => {
       setSimFrameIndex((current) => {
-        if (current >= simFrames.length - 1) {
+        if (current >= renderedFrames.length - 1) {
           return 0;
         }
         return current + 1;
       });
-    }, 70);
+    }, 42);
 
     return () => window.clearInterval(interval);
   }, [renderedFrames, simFrames]);
@@ -747,7 +748,7 @@ export function AgentechLibraryWorkbench() {
                   <div className="p-2">tilt {cameraPitch.toFixed(1)}deg</div>
                 </div>
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
-                  frame {Math.min(simFrameIndex + 1, simFrames.length)} / {simFrames.length}
+                  frame {Math.min(simFrameIndex + 1, renderedFrames.length || simFrames.length)} / {renderedFrames.length || simFrames.length}
                 </div>
                 <div className="mt-4 max-h-52 space-y-2 overflow-auto">
                   {plan.trace.map((line, index) => (

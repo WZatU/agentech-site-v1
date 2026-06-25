@@ -8,7 +8,7 @@ import { validateAgentechCode } from "@/lib/agentech-validation";
 const aegisHeightRoot = path.resolve(process.cwd(), "..", "Aegies-Height");
 const simulationCache = new Map<string, { createdAt: number; payload: unknown }>();
 const cacheTtlMs = 5 * 60 * 1000;
-const simulationTimeoutMs = 12_000;
+const simulationTimeoutMs = 20_000;
 const remoteSimulatorUrl = process.env.AGENTECH_SIMULATOR_URL;
 
 async function runRemoteSimulator(code: string) {
@@ -18,7 +18,7 @@ async function runRemoteSimulator(code: string) {
   const response = await fetch(remoteSimulatorUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, max_render_frames: 12, render_width: 480, render_height: 320 })
+    body: JSON.stringify({ code, max_render_frames: 32, render_width: 480, render_height: 320 })
   });
   const payload = await response.json().catch(() => null);
   if (!response.ok || payload === null) {
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     child.on("close", (status) => {
       finish(status ?? 1);
     });
-    child.stdin.end(JSON.stringify({ code, max_render_frames: 12, render_width: 480, render_height: 320 }));
+    child.stdin.end(JSON.stringify({ code, max_render_frames: 32, render_width: 480, render_height: 320 }));
   });
 
   if (result.status !== 0) {
