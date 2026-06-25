@@ -712,7 +712,6 @@ export function AgentechLibraryWorkbench() {
                   <p className="font-mono text-xs text-[#7f8c99]">{previewRenderer === "hosted-preview" ? "validated frames" : "real model frames"}</p>
                 </div>
                 <div className="relative mx-auto aspect-[13/9] w-full overflow-hidden border border-[#2a3440] bg-black">
-                  <div className="absolute inset-0 bg-black" />
                   {displayRenderedFrame ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
