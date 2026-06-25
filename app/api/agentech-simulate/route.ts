@@ -111,51 +111,9 @@ function buildHostedFrames(code: string) {
   return frames.length > 1 ? frames : [{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }];
 }
 
-function svgFrame(frame: SimFrame, index: number) {
-  const stride = Math.sin(index * 0.8) * 12;
-  const bodyPitch = frame.pitch * -0.8;
-  const yawOffset = Math.sin((frame.yaw * Math.PI) / 180) * 24;
-  const travel = Math.max(-45, Math.min(45, frame.x * 80));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">
-  <rect width="480" height="320" fill="#020407"/>
-  <linearGradient id="floor" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#18202a"/><stop offset="1" stop-color="#0a0e14"/></linearGradient>
-  <polygon points="45,245 410,245 455,292 0,292" fill="url(#floor)"/>
-  <polygon points="75,230 135,230 160,260 92,262" fill="#2f80ed"/>
-  <polygon points="335,226 405,226 428,265 350,266" fill="#48e87b"/>
-  <g transform="translate(${240 + travel},146) skewX(${yawOffset / 5}) rotate(${bodyPitch})">
-    <ellipse cx="0" cy="98" rx="122" ry="18" fill="#000" opacity=".4"/>
-    <rect x="-86" y="-34" width="172" height="58" rx="8" fill="#f4f7fb"/>
-    <rect x="-76" y="-25" width="152" height="38" rx="4" fill="#dce3eb" stroke="#9aa5af" stroke-width="2"/>
-    <circle cx="-92" cy="-4" r="20" fill="#d6dce4"/>
-    <circle cx="92" cy="-4" r="20" fill="#d6dce4"/>
-    <g stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="13">
-      <path d="M-68,12 C-76,42 -82,58 -96,91" stroke="#f28a16"/>
-      <path d="M-96,91 C-88,112 -72,121 -52,130" stroke="#151e29"/>
-      <path d="M-52,130 C-41,136 -30,137 -22,133" stroke="#222c38"/>
-      <path d="M68,12 C76,42 82,58 96,91" stroke="#f28a16"/>
-      <path d="M96,91 C88,112 72,121 52,130" stroke="#151e29"/>
-      <path d="M52,130 C41,136 30,137 22,133" stroke="#222c38"/>
-      <path d="M-42,12 C-48,42 -50,62 ${-62 + stride},96" stroke="#f28a16"/>
-      <path d="M${-62 + stride},96 C${-58 + stride},113 ${-46 + stride},126 ${-32 + stride},134" stroke="#151e29"/>
-      <path d="M42,12 C48,42 50,62 ${62 - stride},96" stroke="#f28a16"/>
-      <path d="M${62 - stride},96 C${58 - stride},113 ${46 - stride},126 ${32 - stride},134" stroke="#151e29"/>
-    </g>
-    <g fill="#2b3540">
-      <ellipse cx="-22" cy="134" rx="15" ry="8"/>
-      <ellipse cx="22" cy="134" rx="15" ry="8"/>
-      <ellipse cx="${-32 + stride}" cy="134" rx="15" ry="8"/>
-      <ellipse cx="${32 - stride}" cy="134" rx="15" ry="8"/>
-    </g>
-  </g>
-  <text x="22" y="32" fill="#8fdc8f" font-family="monospace" font-size="12" letter-spacing="2">HOSTED AEGIS PREVIEW</text>
-  <text x="292" y="292" fill="#93c5fd" font-family="monospace" font-size="12">validated command path</text>
-</svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
 function hostedPreviewPayload(code: string, reason: string) {
   const frames = buildHostedFrames(code);
-  const renderedFrames = frames.slice(0, 24).map((frame, index) => svgFrame(frame, index));
+  const renderedFrames = frames.slice(0, 24).map(() => "/assets/products/aegis-mujoco-ready.png?v=hosted-preview-safe");
   return {
     steps: frames.length,
     frames,
@@ -179,7 +137,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
   }
 
-  const cacheKey = crypto.createHash("sha1").update(code).digest("hex");
+  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v4:${code}`).digest("hex");
   const cached = simulationCache.get(cacheKey);
   if (cached && Date.now() - cached.createdAt < cacheTtlMs) {
     return NextResponse.json({ ...(cached.payload as object), cached: true });

@@ -731,7 +731,7 @@ export function AgentechLibraryWorkbench() {
                 </div>
                 <div className="mt-4 grid grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs">
                   <div className="border-r border-[#2a3440] p-2">model ready</div>
-                  <div className="border-r border-[#2a3440] p-2">mujoco</div>
+                  <div className="border-r border-[#2a3440] p-2">{previewRenderer === "hosted-preview" ? "hosted" : "mujoco"}</div>
                   <div className="p-2">{plan.motionCount} moves</div>
                 </div>
                 <button
