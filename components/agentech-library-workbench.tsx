@@ -146,7 +146,7 @@ function FunctionReference({ item }: { item: AgentechFunction }) {
         </div>
         <div className="space-y-3">
           <div className="border border-[#2a3440] bg-[#0d1117] p-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Action Card</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Internal Mapping</p>
             <p className="mt-2 font-mono text-sm text-[#8fdc8f]">{item.actionCard}</p>
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117] p-3">
@@ -159,6 +159,77 @@ function FunctionReference({ item }: { item: AgentechFunction }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function DocsOverview() {
+  const groupedFunctions = categories
+    .filter((category) => category !== "All")
+    .map((category) => ({
+      category,
+      items: agentechFunctions.filter((item) => item.category === category)
+    }));
+
+  return (
+    <section className="border-b border-[#2a3440] bg-[#0f1318]">
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Library Documentation</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">Start here: install, import, call one function.</h2>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-[#b8c2cc]">
+              This page is the documentation. Students can learn the library, see every function, test code in MuJoCo, and submit pasted code or a GitHub branch for robot review without leaving this screen.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a href="#agentech-docs" className="border border-[#8fdc8f] bg-[#17351f] px-4 py-2 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]">
+                Read Full Docs
+              </a>
+              <a href="#complete-function-reference" className="border border-[#93c5fd] bg-[#101d2e] px-4 py-2 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f]">
+                Function Reference
+              </a>
+              <a href="#code-workbench" className="border border-[#2a3440] bg-[#0d1117] px-4 py-2 text-sm font-semibold text-[#cdd6df] transition hover:border-[#8fdc8f] hover:text-white">
+                Try Code
+              </a>
+            </div>
+          </div>
+          <div className="border border-[#2a3440] bg-[#0d1117] p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Quick Start</p>
+            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#e5edf5]">{`pip install git+https://github.com/agent-tech0316/Aegies-Height.git
+
+from agentech import Agentech
+
+Agentech.forward()
+Agentech.left(angle=45)
+Agentech.look_up(angle=15)`}</pre>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-px overflow-hidden border border-[#2a3440] bg-[#2a3440] md:grid-cols-2 lg:grid-cols-3">
+          {groupedFunctions.map((group) => (
+            <div key={group.category} className="bg-[#0d1117] p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">{group.category}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {group.items.map((item) => (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => {
+                      setTimeout(() => {
+                        document.getElementById("code-workbench")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 0);
+                    }}
+                    className="border border-[#2a3440] bg-[#11151b] px-2 py-1 font-mono text-xs text-[#cdd6df]"
+                    title={item.summary}
+                  >
+                    {item.name}()
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -186,7 +257,7 @@ repo = "https://github.com/team/robot-project"
 branch = "main"`;
 
   return (
-    <section className="border-t border-[#2a3440] bg-[#0f1318]">
+    <section id="agentech-docs" className="border-t border-[#2a3440] bg-[#0f1318]">
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Agentech Docs</p>
@@ -282,16 +353,17 @@ branch = "main"`;
           </div>
         </div>
 
-        <div className="mt-8 border border-[#2a3440] bg-[#0d1117]">
+        <div id="complete-function-reference" className="mt-8 scroll-mt-6 border border-[#2a3440] bg-[#0d1117]">
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Complete Function Reference</p>
           </div>
           <div className="grid gap-px bg-[#2a3440] md:grid-cols-2 lg:grid-cols-4">
             {agentechFunctions.map((item) => (
               <div key={item.name} className="bg-[#0d1117] p-4">
-                <p className="font-mono text-sm text-[#8fdc8f]">{item.name}()</p>
+                <p className="font-mono text-sm text-[#8fdc8f]">{item.signature}</p>
                 <p className="mt-2 min-h-12 text-sm leading-6 text-[#cdd6df]">{item.summary}</p>
-                <p className="mt-3 font-mono text-xs leading-5 text-[#93c5fd]">{item.actionCard}</p>
+                <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Internal card</p>
+                <p className="mt-1 font-mono text-xs leading-5 text-[#93c5fd]">{item.actionCard}</p>
               </div>
             ))}
           </div>
@@ -497,7 +569,9 @@ export function AgentechLibraryWorkbench() {
         </div>
       </section>
 
-      <main className="mx-auto grid max-w-7xl gap-0 border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
+      <DocsOverview />
+
+      <main id="code-workbench" className="mx-auto grid max-w-7xl scroll-mt-6 gap-0 border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
         <aside className="border-b border-[#2a3440] bg-[#11151b] lg:border-b-0 lg:border-r">
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Library</p>
