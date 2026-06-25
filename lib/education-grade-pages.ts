@@ -27,12 +27,12 @@ export const educationGradePages = [
     flyerImage: "/assets/class advertisements/Flyers/6-8.png"
   },
   {
-    slug: "9-12",
+    slug: "agentech-ff-eai-robotics-future-founder-immersion-program",
     grade: "Grade 9-12",
-    title: "Grade 9-12 Advanced AI & Robotics",
-    subtitle: "High school students work toward portfolio-ready engineering and AI projects.",
-    image: "/assets/class advertisements/9-12.png",
-    flyerImage: "/assets/class advertisements/Flyers/9-12.png"
+    title: "Agentech FF EAI Robotics Future Founder Immersion Program",
+    subtitle: "High school students explore EAI robotics, embodied intelligence, and future-founder thinking through an immersive program experience.",
+    image: "/assets/logo/AGENTECH_ff_immersion_program.png",
+    flyerImage: "/assets/logo/AGENTECH_ff_immersion_program.png"
   }
 ] as const;
 

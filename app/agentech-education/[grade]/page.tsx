@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EaiImmersionLandingPage } from "@/components/eai-immersion-landing-page";
 import { EducationCourseButton } from "@/components/education-course-button";
 import { getEducationCoursesByGrade } from "@/lib/education-courses";
 import { educationGradePages, getEducationGradePage } from "@/lib/education-grade-pages";
+import { eaiImmersionSlug } from "@/lib/program-journey-data";
 import { formatUsd } from "@/lib/pricing";
 
 type GradePageProps = {
@@ -26,6 +28,14 @@ export async function generateMetadata({ params }: GradePageProps) {
     return {};
   }
 
+  if (page.slug === eaiImmersionSlug) {
+    return {
+      title: "EAI Robotics Future Founder Immersion Program | Agentech Education",
+      description:
+        "A 10-day journey where high school students build, pitch, and launch an AI robotics startup inside a real robotics company."
+    };
+  }
+
   return {
     title: `${page.grade} | Agentech Education`,
     description: page.subtitle
@@ -38,6 +48,10 @@ export default async function EducationGradePage({ params }: GradePageProps) {
 
   if (!page) {
     notFound();
+  }
+
+  if (page.slug === eaiImmersionSlug) {
+    return <EaiImmersionLandingPage />;
   }
 
   const courses = getEducationCoursesByGrade(page.slug);

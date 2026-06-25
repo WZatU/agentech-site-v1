@@ -12,7 +12,7 @@ export function BrandMark({ scale = "sm", stacked = false }: BrandMarkProps) {
     return (
       <div className="flex items-center">
         <Image
-          src="/assets/logo/AGENTECH.png"
+          src="/assets/logo/AGENTECH-white.png"
           alt="Agentech"
           width={1000}
           height={101}
@@ -26,7 +26,7 @@ export function BrandMark({ scale = "sm", stacked = false }: BrandMarkProps) {
   return (
     <div className="space-y-2 text-center">
       <Image
-        src="/assets/logo/AGENTECH.png"
+        src="/assets/logo/AGENTECH-white.png"
         alt="Agentech"
         width={1000}
         height={101}

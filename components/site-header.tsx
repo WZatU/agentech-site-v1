@@ -63,6 +63,10 @@ export function SiteHeader() {
     return "/login";
   }
 
+  function isActiveNavItem(href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   const loginHref = getLoginHref();
 
   if (pathname.startsWith("/field-interest")) {
@@ -92,28 +96,22 @@ export function SiteHeader() {
 
         <nav className={`ml-auto hidden flex-nowrap items-center justify-end gap-1 text-sm text-slate md:flex ${accountEmail ? "pr-[152px]" : ""}`}>
           {navigation.map((item) => {
-            const childPaths = item.children?.map((child) => child.href.split("#")[0]) ?? [];
-            const isActive =
-              pathname === item.href ||
-              childPaths.includes(pathname) ||
-              (item.href === "/talents" && (pathname.startsWith("/talents") || pathname.startsWith("/ai-robotics-club")));
-            const linkClassName = `rounded-full px-3 py-2 transition ${
-              isActive
-                ? "bg-white/8 text-white"
-                : "text-slate hover:bg-white/5 hover:text-white"
-            }`;
+            const linkClassName = "px-3 py-2";
+            const isActive = isActiveNavItem(item.href);
+            const navImageSrc = isActive && item.activeImage ? item.activeImage : item.image;
+            const navImageClassName = "max-h-7 w-auto max-w-44 object-contain";
 
             if (item.children?.length) {
               return (
                 <div key={item.href} className="group relative flex items-center">
                   <Link href={item.href} className={`${linkClassName} flex items-center gap-2`}>
-                    {item.image ? (
+                    {navImageSrc ? (
                       <Image
-                        src={item.image}
+                        src={navImageSrc}
                         alt={item.label}
                         width={1000}
                         height={247}
-                        className="max-h-7 w-auto max-w-44 object-contain"
+                        className={navImageClassName}
                       />
                     ) : (
                       <span>{item.label}</span>
@@ -161,13 +159,13 @@ export function SiteHeader() {
                 href={item.href}
                 className={linkClassName}
               >
-                {item.image ? (
+                {navImageSrc ? (
                   <Image
-                    src={item.image}
+                    src={navImageSrc}
                     alt={item.label}
                     width={1000}
                     height={247}
-                    className="max-h-7 w-auto max-w-44 object-contain"
+                    className={navImageClassName}
                   />
                 ) : (
                   item.label
@@ -212,19 +210,18 @@ export function SiteHeader() {
       >
         <nav className="flex flex-col gap-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || (item.href === "/talents" && (pathname.startsWith("/talents") || pathname.startsWith("/ai-robotics-club")));
+            const isActive = isActiveNavItem(item.href);
+            const navImageSrc = isActive && item.activeImage ? item.activeImage : item.image;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={closeMobileNav}
-                className={`rounded-xl px-4 py-4 text-sm font-semibold transition ${
-                  isActive ? "bg-white/10 text-white" : "text-slate hover:bg-white/6 hover:text-white"
-                }`}
+                className="rounded-xl px-4 py-4 text-sm font-semibold text-white"
               >
-                {item.image ? (
+                {navImageSrc ? (
                   <Image
-                    src={item.image}
+                    src={navImageSrc}
                     alt={item.label}
                     width={1000}
                     height={247}

@@ -2,6 +2,7 @@ export type NavItem = {
   label: string;
   href: string;
   image?: string;
+  activeImage?: string;
   children?: Array<{
     label: string;
     href: string;
@@ -9,10 +10,30 @@ export type NavItem = {
 };
 
 export const navigation: NavItem[] = [
-  { label: "Agentech Robotic", href: "/agentech-robotic", image: "/assets/logo/AGENTECH-robotic.png" },
-  { label: "Agentech Education", href: "/agentech-education", image: "/assets/logo/AGENTECH-education.png" },
-  { label: "Agentech Bots", href: "/agentech-bots", image: "/assets/logo/AGENTECH-products.png" },
-  { label: "Agentech Talents", href: "/talents", image: "/assets/logo/AGENTECH-talents.png" }
+  {
+    label: "Agentech Robotic",
+    href: "/agentech-robotic",
+    image: "/assets/logo/AGENTECH-robotic-grey191.png",
+    activeImage: "/assets/logo/AGENTECH-robotic-solid.png"
+  },
+  {
+    label: "Agentech Education",
+    href: "/agentech-education",
+    image: "/assets/logo/AGENTECH-education-grey191.png",
+    activeImage: "/assets/logo/AGENTECH-education-solid.png"
+  },
+  {
+    label: "Agentech Bots",
+    href: "/agentech-bots",
+    image: "/assets/logo/AGENTECH-products-grey191.png",
+    activeImage: "/assets/logo/AGENTECH-products-solid.png"
+  },
+  {
+    label: "Agentech Talents",
+    href: "/talents",
+    image: "/assets/logo/AGENTECH-talents-grey191.png",
+    activeImage: "/assets/logo/AGENTECH-talents-solid.png"
+  }
 ];
 
 export const company = {
