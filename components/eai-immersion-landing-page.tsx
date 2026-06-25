@@ -8,6 +8,7 @@ import {
   programJourneyDays,
   type ProgramDay
 } from "@/lib/program-journey-data";
+import { eaiImmersionCourseCode } from "@/lib/education-courses";
 
 type Language = "en" | "zh";
 
@@ -20,6 +21,8 @@ const guideDownloadNames: Record<Language, string> = {
   en: "agentech-ff-eai-robotics-future-founder-program-guide-en.pdf",
   zh: "agentech-ff-eai-robotics-future-founder-program-guide-zh.pdf"
 };
+
+const enrollmentHref = `/enroll?course=${eaiImmersionCourseCode}`;
 
 const flyerHrefs: Record<Language, string> = {
   en: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
@@ -641,7 +644,7 @@ function HeroSection({
             <a href={guideHref} download={guideDownloadName} className="ff-button-light w-full sm:w-auto">
               {text.guideCta}
             </a>
-            <Link href="#contact" className="ff-button-ghost w-full sm:w-auto">
+            <Link href={enrollmentHref} className="ff-button-ghost w-full sm:w-auto">
               {text.applyCta}
             </Link>
           </div>
@@ -1192,9 +1195,9 @@ function FinalCTA({ language, text }: { language: Language; text: typeof copy.en
           {text.title}
         </h2>
         <div className="mt-10 flex justify-center">
-          <button type="button" className="inline-flex items-center justify-center rounded-[10px] bg-[#1a73e8] px-5 py-3 text-base font-semibold text-white shadow-[0_2px_6px_rgba(26,115,232,0.34)] transition hover:bg-[#185abc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8]">
+          <Link href={enrollmentHref} className="inline-flex items-center justify-center rounded-[10px] bg-[#1a73e8] px-5 py-3 text-base font-semibold text-white shadow-[0_2px_6px_rgba(26,115,232,0.34)] transition hover:bg-[#185abc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8]">
             {text.apply}
-          </button>
+          </Link>
         </div>
         <p className="mt-16 text-sm font-semibold uppercase tracking-[0.24em] text-[#6d6a63]">
           {text.footer}

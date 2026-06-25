@@ -21,6 +21,8 @@ export type EducationCourse = {
   detailFlyerImages?: string[];
 };
 
+export const eaiImmersionCourseCode = "EAI001";
+
 export const educationCourses: EducationCourse[] = [
   {
     slug: "walnut-2026-summer-k-2",
@@ -87,6 +89,32 @@ export const educationCourses: EducationCourse[] = [
     detailFlyerImages: [
       "/assets/class advertisements/Flyers/6-8.png",
       "/assets/class advertisements/Flyers/6-8 chinese.png"
+    ]
+  },
+  {
+    slug: "agentech-ff-eai-robotics-future-founder-immersion-program",
+    courseCode: eaiImmersionCourseCode,
+    gradeSlug: "agentech-ff-eai-robotics-future-founder-immersion-program",
+    title: "Agentech FF EAI Robotics Future Founder Immersion Program",
+    previewDescription:
+      "High school students explore EAI robotics, embodied intelligence, and future-founder thinking through a 10-day immersion experience.",
+    description:
+      "A 10-day journey where high school students build, pitch, and launch an AI robotics startup inside a real robotics company.",
+    city: "Los Angeles",
+    state: "CA",
+    locationCode: "FFHQ",
+    locationName: "FF Headquarters near LAX",
+    courseName: "EAI Robotics Future Founder Immersion Program",
+    classTime: "Mid-July 2026",
+    startingDate: "2026-07-15",
+    ageRange: "Grades 9-12",
+    minAge: 13,
+    maxAge: 19,
+    price: 0,
+    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
+    detailFlyerImages: [
+      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
+      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png"
     ]
   }
 ];

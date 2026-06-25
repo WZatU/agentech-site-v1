@@ -7,14 +7,12 @@ type EducationCourseButtonProps = {
   className?: string;
 };
 
-const learningTreeEnrollmentUrl = "https://www.learningtrees.us/ai-summer-camp";
-
-export function EducationCourseButton({ className }: EducationCourseButtonProps) {
+export function EducationCourseButton({ courseCode, className }: EducationCourseButtonProps) {
   const [status, setStatus] = useState<"idle" | "saving">("idle");
 
-  async function addCourse() {
+  function addCourse() {
     setStatus("saving");
-    window.location.href = learningTreeEnrollmentUrl;
+    window.location.href = `/enroll?course=${encodeURIComponent(courseCode)}`;
   }
 
   return (
