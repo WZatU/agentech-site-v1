@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
-import { getEducationCourseByCode } from "@/lib/education-courses";
+import { getEducationCourseByCode, getEligibleGradesForEducationCourse } from "@/lib/education-courses";
 import { formatFullName } from "@/lib/name-format";
+import { formatUsd } from "@/lib/pricing";
 
 type ApiResult = {
   ok?: boolean;
@@ -54,14 +55,26 @@ export function EducationEnrollPage() {
       const response = await fetch(`/api/account?email=${encodeURIComponent(session.email)}`);
       const result = (await response.json()) as AccountResult;
       const savedChildren = result.children || [];
+      const eligibleGrades = getEligibleGradesForEducationCourse(course);
+      const eligibleChildren = eligibleGrades.length
+        ? savedChildren.filter((child) => eligibleGrades.includes(child.grade))
+        : savedChildren;
 
       if (!savedChildren.length) {
         router.replace(`/account-setup?campus=walnut&course=${course.courseCode}`);
         return;
       }
 
-      setChildren(savedChildren);
-      setSelectedChildId(String(savedChildren[0].id));
+      if (!eligibleChildren.length) {
+        setChildren([]);
+        setSelectedChildId("");
+        setStatus("error");
+        setMessage(`You don't have a child eligible for this program. This program is for ${course.ageRange}.`);
+        return;
+      }
+
+      setChildren(eligibleChildren);
+      setSelectedChildId(String(eligibleChildren[0].id));
       setStatus("ready");
       setMessage("Choose the student you want to enroll.");
     }
@@ -108,7 +121,7 @@ export function EducationEnrollPage() {
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Enrollment</h1>
         {course ? (
           <p className="mt-3 text-base leading-7 text-slate-600">
-            {course.title} ({course.courseCode}) - ${course.price}
+            {course.title} ({course.courseCode}){course.price > 0 ? ` - ${formatUsd(course.price)}` : ""}
           </p>
         ) : null}
         <p className={`mt-6 text-sm font-semibold ${status === "error" ? "text-red-600" : "text-emerald-700"}`}>
@@ -147,6 +160,11 @@ export function EducationEnrollPage() {
           {status === "success" ? (
             <Link href="/account" className="education-enroll-button rounded-full px-6 py-3 text-sm font-semibold transition">
               View Account
+            </Link>
+          ) : null}
+          {status === "error" && course ? (
+            <Link href={`/account-setup?course=${encodeURIComponent(course.courseCode)}`} className="education-enroll-button rounded-full px-6 py-3 text-sm font-semibold transition">
+              Edit Students
             </Link>
           ) : null}
         </div>

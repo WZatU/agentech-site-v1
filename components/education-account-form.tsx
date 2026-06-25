@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
-import { getEducationCourseByCode } from "@/lib/education-courses";
+import { getEducationCourseByCode, getEligibleGradesForEducationCourse } from "@/lib/education-courses";
 
 type AccountType = "individual" | "group";
 
@@ -193,17 +193,10 @@ function normalizeGrade(value: string) {
 
 function getGradeOptionsForCourse(courseCode: string) {
   const course = courseCode ? getEducationCourseByCode(courseCode) : null;
+  const eligibleGrades = course ? getEligibleGradesForEducationCourse(course) : [];
 
-  if (course?.gradeSlug === "k-2") {
-    return ["Kindergarten", "Grade 1", "Grade 2"];
-  }
-
-  if (course?.gradeSlug === "3-5") {
-    return ["Grade 3", "Grade 4", "Grade 5"];
-  }
-
-  if (course?.gradeSlug === "6-8") {
-    return ["Grade 6", "Grade 7", "Grade 8"];
+  if (eligibleGrades.length) {
+    return eligibleGrades;
   }
 
   return gradeOptions;

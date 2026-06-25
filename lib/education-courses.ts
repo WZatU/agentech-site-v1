@@ -130,3 +130,23 @@ export function getEducationCourse(gradeSlug: string, courseSlug: string) {
 export function getEducationCourseByCode(courseCode: string) {
   return educationCourses.find((course) => course.courseCode === courseCode);
 }
+
+export function getEligibleGradesForEducationCourse(course: EducationCourse) {
+  if (course.gradeSlug === "k-2") {
+    return ["Kindergarten", "Grade 1", "Grade 2"];
+  }
+
+  if (course.gradeSlug === "3-5") {
+    return ["Grade 3", "Grade 4", "Grade 5"];
+  }
+
+  if (course.gradeSlug === "6-8") {
+    return ["Grade 6", "Grade 7", "Grade 8"];
+  }
+
+  if (course.courseCode === eaiImmersionCourseCode) {
+    return ["Grade 9", "Grade 10", "Grade 11", "Grade 12"];
+  }
+
+  return [];
+}

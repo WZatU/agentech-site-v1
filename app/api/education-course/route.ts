@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createInvoiceItem } from "@/lib/invoices";
-import { getEducationCourseByCode } from "@/lib/education-courses";
+import { getEducationCourseByCode, getEligibleGradesForEducationCourse } from "@/lib/education-courses";
 import { formatFullName, formatPersonName } from "@/lib/name-format";
 import { accountExists } from "@/lib/talent-applications";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
@@ -92,6 +92,16 @@ export async function POST(request: Request) {
 
   if (!child) {
     return NextResponse.json({ error: "Add at least one student before enrolling in a course." }, { status: 400 });
+  }
+
+  const eligibleGrades = getEligibleGradesForEducationCourse(course);
+  if (eligibleGrades.length && !eligibleGrades.includes(child.grade)) {
+    return NextResponse.json(
+      {
+        error: `${formatPersonName(child.first_name)} is not eligible for ${course.title}. This program is for ${course.ageRange}.`
+      },
+      { status: 400 }
+    );
   }
 
   const childAge = getAgeOnDate(child.dob, course.startingDate);
