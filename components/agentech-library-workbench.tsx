@@ -162,6 +162,145 @@ function FunctionReference({ item }: { item: AgentechFunction }) {
   );
 }
 
+function DocsSection() {
+  const beginnerFunctions = agentechFunctions.filter((item) =>
+    ["forward", "backward", "left", "right", "yaw", "look_up", "look_down", "stand", "stop", "capture_image"].includes(item.name)
+  );
+  const workflowExample = `from agentech import Agentech
+
+with Agentech.robot(dry_run=True) as dog:
+    dog.stand()
+    dog.forward(speed=0.25, seconds=1)
+    dog.left(angle=45)
+    dog.look_up(angle=15)
+    dog.capture_image(output="height_top.jpg")
+    dog.look_down(angle=15)
+    dog.capture_image(output="height_bottom.jpg")
+    dog.stop()`;
+  const submitExample = `# Option 1: paste code into this page
+Agentech.forward()
+Agentech.left(angle=45)
+
+# Option 2: submit a GitHub repo and branch
+repo = "https://github.com/team/robot-project"
+branch = "main"`;
+
+  return (
+    <section className="border-t border-[#2a3440] bg-[#0f1318]">
+      <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Agentech Docs</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">One page to install, write, simulate, and submit robot dog code.</h2>
+          <p className="mt-4 text-sm leading-7 text-[#b8c2cc]">
+            These docs are written for students and developers who need to move the Aegis robot quickly without reading the FF SDK internals first. The common path is simple: install the package, import Agentech, write one-line commands, preview in MuJoCo, then submit code or a GitHub branch for a supervised robot session.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          <div className="border border-[#2a3440] bg-[#0d1117] p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">1. Install</p>
+            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#8fdc8f]">pip install git+https://github.com/agent-tech0316/Aegies-Height.git</pre>
+            <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">Use this GitHub install now. Later, after PyPI publishing, the target command becomes `pip install agentech`.</p>
+          </div>
+          <div className="border border-[#2a3440] bg-[#0d1117] p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">2. Import</p>
+            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#e5edf5]">from agentech import Agentech</pre>
+            <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">Everything students need starts from this one class. The method names are intentionally plain English.</p>
+          </div>
+          <div className="border border-[#2a3440] bg-[#0d1117] p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">3. Run Safely</p>
+            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#e5edf5]">with Agentech.robot(dry_run=True) as dog:</pre>
+            <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">Use dry-run on laptops. Use a supervised robot session before allowing real hardware movement.</p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="border border-[#2a3440] bg-[#0d1117]">
+            <div className="border-b border-[#2a3440] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Beginner API</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-[#11151b] text-xs uppercase tracking-[0.14em] text-[#7f8c99]">
+                  <tr>
+                    <th className="px-4 py-3">Function</th>
+                    <th className="px-4 py-3">Use it for</th>
+                    <th className="px-4 py-3">Easy parameters</th>
+                    <th className="px-4 py-3">SDK grounding</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2a3440] text-[#cdd6df]">
+                  {beginnerFunctions.map((item) => (
+                    <tr key={item.name}>
+                      <td className="px-4 py-3 font-mono text-[#8fdc8f]">{item.signature}</td>
+                      <td className="px-4 py-3 text-[#aeb8c2]">{item.summary}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#f5d06f]">
+                        {item.params.length ? item.params.map((param) => `${param.name}=${param.defaultValue ?? "required"}`).join(", ") : "none"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#93c5fd]">{item.grounding}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="border border-[#2a3440] bg-[#0d1117] p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safety Limits</p>
+              <div className="mt-3 space-y-2 text-sm leading-6 text-[#cdd6df]">
+                <p>Walking speed is capped at 0.6 m/s.</p>
+                <p>Motion commands are capped at 10 seconds.</p>
+                <p>Tilt commands are capped at 45 degrees.</p>
+                <p>Emergency stop is exposed as `Agentech.emergency_stop()`.</p>
+              </div>
+            </div>
+            <div className="border border-[#2a3440] bg-[#0d1117] p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">MuJoCo Preview</p>
+              <p className="mt-3 text-sm leading-6 text-[#cdd6df]">
+                The preview uses the Aegis MuJoCo model from the FF assets. Forward and backward move the dog, left/right/yaw rotate it, and look up/down tilt the robot body/camera like the height-photo demo while the observer view stays stable.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="border border-[#2a3440] bg-[#0d1117]">
+            <div className="border-b border-[#2a3440] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Real Example: Height Photos</p>
+            </div>
+            <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{workflowExample}</pre>
+          </div>
+          <div className="border border-[#2a3440] bg-[#0d1117]">
+            <div className="border-b border-[#2a3440] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Submit Workflow</p>
+            </div>
+            <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{submitExample}</pre>
+            <div className="border-t border-[#2a3440] p-4 text-sm leading-6 text-[#aeb8c2]">
+              Students can paste code directly into the editor or submit a GitHub repository URL plus branch. The request is stored for review before any supervised live robot run.
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 border border-[#2a3440] bg-[#0d1117]">
+          <div className="border-b border-[#2a3440] px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Complete Function Reference</p>
+          </div>
+          <div className="grid gap-px bg-[#2a3440] md:grid-cols-2 lg:grid-cols-4">
+            {agentechFunctions.map((item) => (
+              <div key={item.name} className="bg-[#0d1117] p-4">
+                <p className="font-mono text-sm text-[#8fdc8f]">{item.name}()</p>
+                <p className="mt-2 min-h-12 text-sm leading-6 text-[#cdd6df]">{item.summary}</p>
+                <p className="mt-3 font-mono text-xs leading-5 text-[#93c5fd]">{item.actionCard}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function AgentechLibraryWorkbench() {
   const [code, setCode] = useState(starterCode);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
@@ -324,6 +463,22 @@ export function AgentechLibraryWorkbench() {
               <div className="p-4">
                 <p className="text-2xl font-semibold text-[#93c5fd]">Dry</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safe First</p>
+              </div>
+            </div>
+            <div className="mt-5 grid max-w-4xl gap-3 md:grid-cols-3">
+              <div className="border border-[#2a3440] bg-[#0d1117] p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Install</p>
+                <p className="mt-2 break-all font-mono text-xs leading-5 text-[#8fdc8f]">
+                  pip install git+https://github.com/agent-tech0316/Aegies-Height.git
+                </p>
+              </div>
+              <div className="border border-[#2a3440] bg-[#0d1117] p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">One line</p>
+                <p className="mt-2 font-mono text-xs leading-5 text-[#e5edf5]">Agentech.forward(speed=0.3, seconds=1)</p>
+              </div>
+              <div className="border border-[#2a3440] bg-[#0d1117] p-3">
+                <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Session</p>
+                <p className="mt-2 font-mono text-xs leading-5 text-[#e5edf5]">with Agentech.robot() as dog:</p>
               </div>
             </div>
           </div>
@@ -553,6 +708,7 @@ export function AgentechLibraryWorkbench() {
           </div>
         </aside>
       </main>
+      <DocsSection />
     </div>
   );
 }
