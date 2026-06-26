@@ -39,6 +39,14 @@ function detectPrimaryPreviewCommand(code: string) {
   return "stand";
 }
 
+function previewAssetForCode(code: string, preferredCommand?: string) {
+  const command = preferredCommand && localPreviewAssets[preferredCommand] ? preferredCommand : detectPrimaryPreviewCommand(code);
+  return {
+    command,
+    gif: localPreviewAssets[command] ?? localPreviewFallback
+  };
+}
+
 function previewCommandLabel(command: string) {
   const labels: Record<string, string> = {
     forward: "Forward",
@@ -453,8 +461,9 @@ export function AgentechLibraryWorkbench() {
   const [githubRepoUrl, setGithubRepoUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-  const [previewGif, setPreviewGif] = useState<string>(localPreviewFallback);
-  const [previewCommand, setPreviewCommand] = useState<string>("stand");
+  const initialPreview = previewAssetForCode(starterCode, "forward");
+  const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
+  const [previewCommand, setPreviewCommand] = useState<string>(initialPreview.command);
   const [previewStatus, setPreviewStatus] = useState(
     useRealMuJoCoPreview ? "Local simulator preview ready. Run your code to render the real Aegis model." : "Official GIF preview ready. Run your code to play a matching clip."
   );
@@ -486,21 +495,23 @@ export function AgentechLibraryWorkbench() {
     return () => window.clearInterval(interval);
   }, [renderedFrames]);
 
-  function resetPreview() {
+  function resetPreview(nextCode = code, preferredCommand?: string) {
+    const nextPreview = previewAssetForCode(nextCode, preferredCommand);
     setPreviewStatus(
       useRealMuJoCoPreview ? "Local simulator preview ready. Run your code to render the real Aegis model." : "Official GIF preview ready. Run your code to play a matching clip."
     );
-    setPreviewGif(localPreviewFallback);
-    setPreviewCommand("stand");
+    setPreviewGif(nextPreview.gif);
+    setPreviewCommand(nextPreview.command);
     setRenderedFrames([]);
     setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
     setSimFrameIndex(0);
   }
 
   function loadExample(item: AgentechFunction) {
+    const nextCode = `from agentech import Agentech\n\n${item.example}`;
     setActiveName(item.name);
-    setCode(`from agentech import Agentech\n\n${item.example}`);
-    resetPreview();
+    setCode(nextCode);
+    resetPreview(nextCode, item.name);
   }
 
   function loadCategory(category: Category) {
@@ -508,7 +519,7 @@ export function AgentechLibraryWorkbench() {
     setActiveCategory(category);
     setActiveName(example.activeName);
     setCode(example.code);
-    resetPreview();
+    resetPreview(example.code, example.activeName);
   }
 
   async function runPreviewSimulation() {
@@ -723,8 +734,9 @@ export function AgentechLibraryWorkbench() {
               <textarea
                 value={code}
                 onChange={(event) => {
-                  setCode(event.target.value);
-                  resetPreview();
+                  const nextCode = event.target.value;
+                  setCode(nextCode);
+                  resetPreview(nextCode);
                 }}
                 spellCheck={false}
                 className="h-[520px] w-full resize-none border-0 bg-[#0d1117] p-5 font-mono text-sm leading-7 text-[#e5edf5] outline-none selection:bg-[#275c37]"
@@ -786,7 +798,7 @@ export function AgentechLibraryWorkbench() {
                 </button>
                 <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{previewStatus}</p>
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
-                  detected command: {plan.trace[0] ?? "none"} - frame {Math.min(simFrameIndex + 1, previewFrameCount)} / {previewFrameCount}
+                  detected command: {plan.trace[0] ?? "none"} - {useRealMuJoCoPreview || renderedFrames.length ? `frame ${Math.min(simFrameIndex + 1, previewFrameCount)} / ${previewFrameCount}` : "official clip"}
                 </div>
                 <div className="mt-4 max-h-52 space-y-2 overflow-auto">
                   {plan.trace.map((line, index) => (
