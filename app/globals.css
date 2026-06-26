@@ -67,11 +67,33 @@ body:has(.account-illustrated-page) main.flex-1 {
   background: transparent !important;
 }
 
+.account-shooting-stars-layer {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(10, 12, 35, 0.04), rgba(10, 12, 35, 0.12)),
+    url("/assets/backgrounds/account-dashboard-shooting-stars.png") right center / cover fixed no-repeat;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+body.account-stars-revealed .account-shooting-stars-layer {
+  opacity: 1;
+}
+
 @media (max-width: 1024px) {
   body:has(.account-illustrated-page) {
     background:
       linear-gradient(180deg, rgba(10, 12, 35, 0.08), rgba(10, 12, 35, 0.18)),
       url("/assets/backgrounds/account-dashboard-background.png") 65% center / cover fixed no-repeat !important;
+  }
+
+  .account-shooting-stars-layer {
+    background:
+      linear-gradient(180deg, rgba(10, 12, 35, 0.08), rgba(10, 12, 35, 0.18)),
+      url("/assets/backgrounds/account-dashboard-shooting-stars.png") 65% center / cover fixed no-repeat;
   }
 }
 
@@ -80,6 +102,12 @@ body:has(.account-illustrated-page) main.flex-1 {
     background:
       linear-gradient(180deg, rgba(10, 12, 35, 0.12), rgba(10, 12, 35, 0.22)),
       url("/assets/backgrounds/account-dashboard-background.png") 58% center / cover fixed no-repeat !important;
+  }
+
+  .account-shooting-stars-layer {
+    background:
+      linear-gradient(180deg, rgba(10, 12, 35, 0.12), rgba(10, 12, 35, 0.22)),
+      url("/assets/backgrounds/account-dashboard-shooting-stars.png") 58% center / cover fixed no-repeat;
   }
 
   .account-illustrated-page {
@@ -109,6 +137,14 @@ body:has(.account-illustrated-page) footer * {
 
 .account-white-page,
 .account-white-page * {
+  opacity: 1 !important;
+}
+
+.account-white-page .account-shooting-stars-layer {
+  opacity: 0 !important;
+}
+
+body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
   opacity: 1 !important;
 }
 
