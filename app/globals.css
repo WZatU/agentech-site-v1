@@ -52,6 +52,42 @@ body:has(.account-white-page) main.flex-1 {
   color: #0f172a;
 }
 
+body:has(.account-illustrated-page) {
+  background:
+    linear-gradient(180deg, rgba(10, 12, 35, 0.04), rgba(10, 12, 35, 0.12)),
+    url("/assets/backgrounds/account-requests-background.png") center center / cover fixed no-repeat !important;
+  color: #0f172a;
+}
+
+body:has(.account-illustrated-page) main.flex-1 {
+  background: transparent;
+}
+
+.account-illustrated-page {
+  background: transparent !important;
+}
+
+@media (max-width: 1024px) {
+  body:has(.account-illustrated-page) {
+    background:
+      linear-gradient(180deg, rgba(10, 12, 35, 0.08), rgba(10, 12, 35, 0.18)),
+      url("/assets/backgrounds/account-requests-background.png") 46% center / cover fixed no-repeat !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body:has(.account-illustrated-page) {
+    background:
+      linear-gradient(180deg, rgba(10, 12, 35, 0.12), rgba(10, 12, 35, 0.22)),
+      url("/assets/backgrounds/account-requests-background.png") 42% center / cover fixed no-repeat !important;
+  }
+
+  .account-illustrated-page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
 body:has(.account-white-page) footer {
   border-color: #dbe3ef;
   background: #f8fafc;
@@ -59,6 +95,16 @@ body:has(.account-white-page) footer {
 
 body:has(.account-white-page) footer * {
   color: #334155 !important;
+}
+
+body:has(.account-illustrated-page) footer {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+body:has(.account-illustrated-page) footer * {
+  color: rgba(255, 255, 255, 0.72) !important;
 }
 
 .account-white-page,
