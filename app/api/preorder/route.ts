@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
-import { createInvoiceItem, sendUnpaidBalanceInvoice } from "@/lib/invoices";
+import { createBillingInvoiceFromCart, sendBillingInvoiceEmail } from "@/lib/billing";
+import { createInvoiceItem } from "@/lib/invoices";
 import { getProductPrice, formatUsd } from "@/lib/pricing";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 import { getProfile, upsertProfile } from "@/lib/account-records";
@@ -82,16 +83,18 @@ export async function POST(request: Request) {
   });
 
   try {
-    const balanceEmail = await sendUnpaidBalanceInvoice(email, invoiceNumber);
+    const billingInvoice = await createBillingInvoiceFromCart(email);
+    const billingEmail = billingInvoice ? await sendBillingInvoiceEmail(billingInvoice).catch(() => ({ sent: false })) : { sent: false };
 
     await sendEmail({
       to: process.env.RESEND_REPLY_TO || "info@agent-tech.ai",
       subject: `New robot preorder invoice request: ${product}`,
       text: [
         `Invoice: ${invoiceNumber}`,
+        `Billing invoice: ${billingInvoice?.invoice_number || "-"}`,
         `Product: ${product}`,
         `Robot amount: ${formatUsd(productPrice.total)}`,
-        `Customer unpaid balance emailed: ${formatUsd(balanceEmail.total)}`,
+        `Customer invoice emailed: ${billingEmail.sent ? "Yes" : "No"}`,
         `Name: ${name}`,
         `Email: ${email}`,
         `Phone: ${phone}`,
@@ -104,7 +107,7 @@ export async function POST(request: Request) {
       method: "PATCH",
       query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}`,
       body: {
-        status: "balance_invoice_email_sent"
+        status: billingEmail.sent ? "billing_invoice_email_sent" : "billing_invoice_created"
       }
     });
   } catch {
@@ -122,6 +125,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     invoiceNumber,
-    message: "Invoice request created. Agentech emailed your current unpaid balance; no online payment is accepted."
+    message: "Invoice request created. Agentech emailed your invoice when email is configured."
   });
 }

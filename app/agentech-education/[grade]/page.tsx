@@ -122,7 +122,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
                       <p className="text-sm font-semibold text-slate-500">{course.courseCode}</p>
                       <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
                       <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
-                      <p className="mt-4 text-xl font-semibold text-slate-950">{formatUsd(course.price)}</p>
+                      {course.price > 0 ? <p className="mt-4 text-xl font-semibold text-slate-950">{formatUsd(course.price)}</p> : null}
                       <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
                     </Link>
                     <div className="sm:justify-self-end">

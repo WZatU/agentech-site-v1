@@ -1,5 +1,6 @@
 import { supabaseRequest } from "@/lib/supabase-server";
 import { getUnpaidBalanceLines } from "@/lib/invoices";
+import { getBillingInvoicesForEmail, type BillingInvoice } from "@/lib/billing";
 
 export type AccountProfile = {
   email: string;
@@ -202,7 +203,7 @@ function requestLooksActive(status: string) {
 }
 
 export async function getAccountSummary(email: string) {
-  const [profile, children, requests, robotInvoiceReferences, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance] = await Promise.all([
+  const [profile, children, requests, robotInvoiceReferences, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance, invoices] = await Promise.all([
     getProfile(email),
     getChildren(email),
     getPreorderRequests(email),
@@ -210,7 +211,8 @@ export async function getAccountSummary(email: string) {
     getEnrollments(email),
     getInternshipApplications(email),
     getAiRoboticsClubApplications(email),
-    getUnpaidBalanceLines(email)
+    getUnpaidBalanceLines(email),
+    getBillingInvoicesForEmail(email)
   ]);
   const robotInvoiceIds = new Set(robotInvoiceReferences.map((reference) => reference.source_id).filter(Boolean));
   const normalizedRequests = requests.map((request) => ({
@@ -229,6 +231,7 @@ export async function getAccountSummary(email: string) {
       internships: internshipApplications,
       aiRoboticsClub: aiRoboticsClubApplications
     },
-    unpaidBalance
+    unpaidBalance,
+    invoices: invoices satisfies BillingInvoice[]
   };
 }

@@ -248,7 +248,7 @@ export function UniversalAuthForm() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#334155]">Universal Account</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#0b1220]">Agentech sign in</h2>
         <p className="mt-3 text-sm leading-6 text-[#334155]">
-          Use one account for education programs and robot preorders. Online payment is not accepted right now.
+          Use one account for education programs, robot preorders, invoices, and payments.
         </p>
       </div>
 

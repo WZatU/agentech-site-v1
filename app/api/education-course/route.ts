@@ -121,7 +121,7 @@ async function sendCourseEnrollmentReceipt(
       ...priceLine,
       "",
       "Our team will review the request and follow up with any additional program details, payment instructions, or next steps as needed.",
-      "Online payment is not accepted at this time. If a program price is finalized later, it will appear in your Agentech account and related invoice communications.",
+      "If a program price is finalized later, it will appear in your Agentech account and related invoice communications. Card payment will be available when online payment is enabled.",
       "",
       `You can review your request in your Agentech account: ${accountUrl}`,
       "",
@@ -162,7 +162,7 @@ async function sendCourseEnrollmentReceipt(
           </tbody>
         </table>
         <p style="margin: 0 0 16px;">Our team will review the request and follow up with any additional program details, payment instructions, or next steps as needed.</p>
-        <p style="margin: 0 0 18px;">Online payment is not accepted at this time. If a program price is finalized later, it will appear in your Agentech account and related invoice communications.</p>
+        <p style="margin: 0 0 18px;">If a program price is finalized later, it will appear in your Agentech account and related invoice communications. Card payment will be available when online payment is enabled.</p>
         <p style="margin: 0 0 20px;">
           You can review your request in your Agentech account:<br />
           <a href="${escapeHtml(accountUrl)}" style="color: #2563eb; font-weight: 700;">${escapeHtml(accountUrl)}</a>

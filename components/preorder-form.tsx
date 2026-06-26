@@ -75,7 +75,7 @@ export function PreorderForm({ product }: PreorderFormProps) {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Invoice Request</p>
         <h1 className="mt-3 text-3xl font-semibold text-white md:text-5xl">{product}</h1>
         <p className="mt-4 text-sm leading-6 text-slate">
-          We do not accept online payment right now. Submit this request and Agentech will send an invoice to your email.
+          Submit this request and Agentech will send an invoice to your email. Card payment is available when online payment is enabled.
         </p>
       </div>
 

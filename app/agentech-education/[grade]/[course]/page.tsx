@@ -60,7 +60,7 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{courseData.courseCode}</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">{courseData.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">{courseData.description}</p>
-            <p className="mt-5 text-2xl font-semibold text-slate-950">{formatUsd(courseData.price)}</p>
+            {courseData.price > 0 ? <p className="mt-5 text-2xl font-semibold text-slate-950">{formatUsd(courseData.price)}</p> : null}
           </div>
           <div className="flex lg:min-w-64 lg:justify-center">
             <EducationCourseButton

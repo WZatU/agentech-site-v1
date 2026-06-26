@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUnpaidBalanceLines, sendUnpaidBalanceInvoice } from "@/lib/invoices";
+import { createBillingInvoiceFromCart, sendBillingInvoiceEmail } from "@/lib/billing";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
 type ConfirmPayload = {
@@ -14,22 +14,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
   }
 
-  const balance = await getUnpaidBalanceLines(email);
-  const confirmableLines = balance.lines.filter((line) => !line.invoiceEmailSentAt);
+  const invoice = await createBillingInvoiceFromCart(email);
 
-  if (!confirmableLines.length) {
+  if (!invoice) {
     return NextResponse.json({ error: "There are no items to confirm." }, { status: 400 });
   }
 
-  const invoiceNumber = `REQ-${Date.now().toString().slice(-8)}`;
-  const result = await sendUnpaidBalanceInvoice(email, invoiceNumber);
-
-  if (!result.sent) {
-    return NextResponse.json({ error: "Unable to send invoice email." }, { status: 500 });
-  }
+  const emailResult = await sendBillingInvoiceEmail(invoice).catch(() => ({ sent: false }));
 
   return NextResponse.json({
     ok: true,
-    message: "Request confirmed. Agentech emailed your invoice."
+    invoiceNumber: invoice.invoice_number,
+    emailSent: emailResult.sent,
+    message: emailResult.sent
+      ? "Request confirmed. Agentech emailed your invoice."
+      : "Request confirmed. Invoice was created, but email is not configured yet."
   });
 }

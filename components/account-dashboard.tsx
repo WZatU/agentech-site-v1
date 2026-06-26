@@ -74,6 +74,15 @@ type DashboardData = {
       invoiceEmailSentAt: string | null;
     }>;
   };
+  invoices?: Array<{
+    invoice_number: string;
+    customer_name: string | null;
+    status: string;
+    total_amount: number | string;
+    amount_paid: number | string;
+    created_at: string;
+    paid_at: string | null;
+  }>;
   error?: string;
 };
 
@@ -107,6 +116,14 @@ function formatRequestStatus(status: string) {
   }
 
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatInvoiceStatus(status: string) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function looksLikeAdminEmail(email: string) {
+  return email.trim().toLowerCase().endsWith("@agent-tech.ai");
 }
 
 export function AccountDashboard() {
@@ -226,7 +243,7 @@ export function AccountDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
     });
-    const result = (await response.json()) as { error?: string; message?: string };
+    const result = (await response.json()) as { error?: string; message?: string; invoiceNumber?: string };
 
     if (!response.ok) {
       setActionMessage(result.error || "Unable to confirm request.");
@@ -234,7 +251,7 @@ export function AccountDashboard() {
       return;
     }
 
-    setActionMessage(result.message || "Request confirmed.");
+    setActionMessage(result.invoiceNumber ? `${result.message || "Request confirmed."} Invoice: ${result.invoiceNumber}.` : result.message || "Request confirmed.");
     const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
     const accountResult = (await accountResponse.json()) as DashboardData;
     setData(accountResult);
@@ -242,15 +259,15 @@ export function AccountDashboard() {
   }
 
   if (loading) {
-    return <p className="text-slate">Loading account...</p>;
+    return <p className="text-slate-600">Loading account...</p>;
   }
 
   if (!email) {
     return (
-      <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-8">
-        <h1 className="text-3xl font-semibold text-white">Sign in required</h1>
-        <p className="mt-3 text-slate">Sign in to view your profile, requests, applications, and enrollments.</p>
-        <Link href="/login?next=/account" className="mt-6 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0b1220]">
+      <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
+        <h1 className="text-3xl font-semibold text-slate-950">Sign in required</h1>
+        <p className="mt-3 text-slate-600">Sign in to view your profile, requests, applications, and enrollments.</p>
+        <Link href="/login?next=/account" className="mt-6 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white">
           Sign In
         </Link>
       </div>
@@ -264,18 +281,26 @@ export function AccountDashboard() {
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
   const hasRobotRequests = Boolean(data.requests?.length);
   const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
+  const hasInvoices = Boolean(data.invoices?.length);
 
   return (
     <div className="space-y-8">
-      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
+      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Account</p>
-            <h1 className="mt-3 text-3xl font-semibold text-white md:text-5xl">{profileName || email}</h1>
-            <p className="mt-3 text-slate">{email}</p>
-            {data.profile?.phone ? <p className="mt-1 text-slate">{data.profile.phone}</p> : null}
-            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-slate">Unpaid Balance</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{formatUsd(data.unpaidBalance?.total ?? 0)}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f70c8]">Account</p>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-950 md:text-5xl">{profileName || email}</h1>
+            <p className="mt-3 text-slate-600">{email}</p>
+            {data.profile?.phone ? <p className="mt-1 text-slate-600">{data.profile.phone}</p> : null}
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Open Cart Balance</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-950">
+              {(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}
+            </p>
+            {looksLikeAdminEmail(email) ? (
+              <Link href="/admin/invoices" className="mt-5 inline-flex rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
+                Admin Invoices
+              </Link>
+            ) : null}
           </div>
           <button
             type="button"
@@ -286,7 +311,7 @@ export function AccountDashboard() {
               router.replace("/login?signedOut=1");
               router.refresh();
             }}
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
           >
             Sign Out
           </button>
@@ -294,130 +319,165 @@ export function AccountDashboard() {
       </section>
 
       {hasRequestItems || actionMessage ? (
-      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Request Cart</h2>
-            <p className="mt-2 text-sm text-slate">Review these items before sending the invoice request.</p>
+        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-950">Request Cart</h2>
+              <p className="mt-2 text-sm text-slate-600">Review these items before generating an official invoice.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/agentech-education" className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
+                Add Course
+              </Link>
+              {hasConfirmableRequest ? (
+                <button
+                  type="button"
+                  onClick={confirmRequest}
+                  disabled={confirming}
+                  className="rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {confirming ? "Generating..." : "Generate Invoice"}
+                </button>
+              ) : null}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/agentech-education" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-              Add Course
-            </Link>
-            {hasConfirmableRequest ? (
-              <button
-                type="button"
-                onClick={confirmRequest}
-                disabled={confirming}
-                className="rounded-full border border-white bg-white px-5 py-3 text-sm font-semibold text-[#0b1220] transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:border-transparent disabled:bg-white/40 disabled:text-[#0b1220]"
-              >
-                {confirming ? "Sending..." : "Confirm Request"}
-              </button>
-            ) : null}
-          </div>
-        </div>
-        {childActionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{childActionMessage}</p> : null}
-        <div className="mt-5 space-y-3">
-          {data.unpaidBalance?.lines.length ? (
-            data.unpaidBalance.lines.map((line) => (
-              <div key={line.id} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div>
-                  <p className="font-semibold text-white">{formatInvoiceItemName(line.itemName)}</p>
-                  <p className="mt-1 text-sm font-semibold text-accent">{formatUsd(line.amount)}</p>
+          {actionMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{actionMessage}</p> : null}
+          <div className="mt-5 space-y-3">
+            {data.unpaidBalance?.lines.length ? (
+              data.unpaidBalance.lines.map((line) => (
+                <div key={line.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div>
+                    <p className="font-semibold text-slate-950">{formatInvoiceItemName(line.itemName)}</p>
+                    {line.amount > 0 ? <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatUsd(line.amount)}</p> : null}
+                  </div>
+                  {line.id.startsWith("item-") ? (
+                    pendingRemovalId === line.id ? (
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => removeUnpaidItem(line.id)}
+                          className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                        >
+                          Confirm Delete
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPendingRemovalId("")}
+                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActionMessage("");
+                          setPendingRemovalId(line.id);
+                        }}
+                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                      >
+                        Remove
+                      </button>
+                    )
+                  ) : null}
                 </div>
-                {line.id.startsWith("item-") ? (
-                  pendingRemovalId === line.id ? (
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => removeUnpaidItem(line.id)}
-                        className="rounded-full border border-red-300 bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-100 transition hover:bg-red-500/25"
-                      >
-                        Confirm Delete
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPendingRemovalId("")}
-                        className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActionMessage("");
-                        setPendingRemovalId(line.id);
-                      }}
-                      className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                    >
-                      Remove
-                    </button>
-                  )
-                ) : null}
-              </div>
-            ))
-          ) : (
-            <p className="text-slate">No request items yet.</p>
-          )}
-        </div>
-      </section>
+              ))
+            ) : (
+              <p className="text-slate-600">No request items yet.</p>
+            )}
+          </div>
+        </section>
       ) : null}
 
-      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
+      {hasInvoices ? (
+        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-950">Invoices</h2>
+              <p className="mt-2 text-sm text-slate-600">View official invoice details and pay online when card payment is enabled.</p>
+            </div>
+          </div>
+          <div className="mt-5 space-y-3">
+            {data.invoices?.map((invoice) => {
+              const total = Number(invoice.total_amount ?? 0);
+              return (
+                <div key={invoice.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div>
+                    <p className="font-semibold text-slate-950">{invoice.invoice_number}</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {formatDate(invoice.created_at)} - {formatInvoiceStatus(invoice.status)}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-[#2f70c8]">
+                      {Number.isFinite(total) && total > 0 ? formatUsd(total) : "No amount due"}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/invoice/${invoice.invoice_number}`}
+                    className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                  >
+                    View Invoice
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-white">Applications</h2>
-            <p className="mt-2 text-sm text-slate">
+            <h2 className="text-2xl font-semibold text-slate-950">Applications</h2>
+            <p className="mt-2 text-sm text-slate-600">
               {hasApplications ? "Your submitted internship and club applications are listed here." : "Start or continue an internship or club application."}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/ai-robotics-club" className="text-sm font-semibold text-accent">
+            <Link href="/ai-robotics-club" className="text-sm font-semibold text-[#2f70c8]">
               AI Robotics Club
             </Link>
-            <Link href="/career-intern" className="text-sm font-semibold text-accent">
+            <Link href="/career-intern" className="text-sm font-semibold text-[#2f70c8]">
               Internship
             </Link>
           </div>
         </div>
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <h3 className="text-lg font-semibold text-white">Internship</h3>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <h3 className="text-lg font-semibold text-slate-950">Internship</h3>
             <div className="mt-4 space-y-3">
               {data.applications?.internships.length ? (
                 data.applications.internships.map((application) => (
-                  <div key={application.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                    <p className="font-semibold text-white">{application.role_interests?.join(", ") || "Internship application"}</p>
-                    <p className="mt-1 text-sm text-slate">{application.name} - Submitted {formatDate(application.created_at)}</p>
-                    {application.resume_filename ? <p className="mt-1 text-sm text-slate">Resume: {application.resume_filename}</p> : null}
+                  <div key={application.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="font-semibold text-slate-950">{application.role_interests?.join(", ") || "Internship application"}</p>
+                    <p className="mt-1 text-sm text-slate-600">{application.name} - Submitted {formatDate(application.created_at)}</p>
+                    {application.resume_filename ? <p className="mt-1 text-sm text-slate-600">Resume: {application.resume_filename}</p> : null}
                   </div>
                 ))
               ) : (
-                <Link href="/career-intern" className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+                <Link href="/career-intern" className="inline-flex rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
                   View internship roles
                 </Link>
               )}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <h3 className="text-lg font-semibold text-white">AI Robotics Club</h3>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <h3 className="text-lg font-semibold text-slate-950">AI Robotics Club</h3>
             <div className="mt-4 space-y-3">
               {data.applications?.aiRoboticsClub.length ? (
                 data.applications.aiRoboticsClub.map((application) => (
-                  <div key={application.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                    <p className="font-semibold text-white">{application.name}</p>
-                    <p className="mt-1 text-sm text-slate">
+                  <div key={application.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="font-semibold text-slate-950">{application.name}</p>
+                    <p className="mt-1 text-sm text-slate-600">
                       {[application.grade, application.interests?.join(", ")].filter(Boolean).join(" - ")}
                     </p>
-                    <p className="mt-1 text-sm text-slate">Submitted {formatDate(application.created_at)}</p>
-                    {application.resume_filename ? <p className="mt-1 text-sm text-slate">Resume: {application.resume_filename}</p> : null}
+                    <p className="mt-1 text-sm text-slate-600">Submitted {formatDate(application.created_at)}</p>
+                    {application.resume_filename ? <p className="mt-1 text-sm text-slate-600">Resume: {application.resume_filename}</p> : null}
                   </div>
                 ))
               ) : (
-                <Link href="/ai-robotics-club" className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+                <Link href="/ai-robotics-club" className="inline-flex rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
                   View club page
                 </Link>
               )}
@@ -427,60 +487,60 @@ export function AccountDashboard() {
       </section>
 
       {hasRobotRequests ? (
-      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-semibold text-white">Requests</h2>
-          <Link href="/agentech-robotic" className="text-sm font-semibold text-accent">
-            New Robot Request
-          </Link>
-        </div>
-        <div className="mt-5 space-y-3">
-          {data.requests?.length ? (
-            data.requests.map((request) => (
-              <div key={request.invoice_number} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="font-semibold text-white">{request.product}</p>
-                <p className="mt-1 text-sm text-slate">{request.invoice_number} - {formatRequestStatus(request.status)}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-slate">No invoice requests yet.</p>
-          )}
-        </div>
-      </section>
+        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-2xl font-semibold text-slate-950">Requests</h2>
+            <Link href="/agentech-robotic" className="text-sm font-semibold text-[#2f70c8]">
+              New Robot Request
+            </Link>
+          </div>
+          <div className="mt-5 space-y-3">
+            {data.requests?.length ? (
+              data.requests.map((request) => (
+                <div key={request.invoice_number} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="font-semibold text-slate-950">{request.product}</p>
+                  <p className="mt-1 text-sm text-slate-600">{request.invoice_number} - {formatRequestStatus(request.status)}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-slate-600">No invoice requests yet.</p>
+            )}
+          </div>
+        </section>
       ) : null}
 
-      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
+      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-semibold text-white">Children</h2>
-          <Link href="/account-setup" className="text-sm font-semibold text-accent">
+          <h2 className="text-2xl font-semibold text-slate-950">Children</h2>
+          <Link href="/account-setup" className="text-sm font-semibold text-[#2f70c8]">
             Edit Education Profile
           </Link>
         </div>
-        {actionMessage ? <p className="mt-3 text-sm font-semibold text-accent">{actionMessage}</p> : null}
+        {childActionMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{childActionMessage}</p> : null}
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           {data.children?.length ? (
             data.children.map((child) => (
-              <div key={child.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div key={child.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-white">{formatFullName(child.first_name, child.last_name)}</p>
-                    <p className="mt-1 text-sm text-slate">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
-                    {child.school_info ? <p className="mt-1 text-sm text-slate">School: {child.school_info}</p> : null}
-                    {child.preferred_location ? <p className="mt-1 text-sm text-slate">Preferred location: {child.preferred_location}</p> : null}
+                    <p className="font-semibold text-slate-950">{formatFullName(child.first_name, child.last_name)}</p>
+                    <p className="mt-1 text-sm text-slate-600">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
+                    {child.school_info ? <p className="mt-1 text-sm text-slate-600">School: {child.school_info}</p> : null}
+                    {child.preferred_location ? <p className="mt-1 text-sm text-slate-600">Preferred location: {child.preferred_location}</p> : null}
                   </div>
                   {pendingChildRemovalId === child.id ? (
                     <div className="flex shrink-0 flex-wrap justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => removeChild(child.id)}
-                        className="rounded-full border border-red-300 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-100 transition hover:bg-red-500/25"
+                        className="rounded-full border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                       >
                         Confirm Delete
                       </button>
                       <button
                         type="button"
                         onClick={() => setPendingChildRemovalId(null)}
-                        className="rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                        className="rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-slate-100"
                       >
                         Cancel
                       </button>
@@ -492,7 +552,7 @@ export function AccountDashboard() {
                         setChildActionMessage("");
                         setPendingChildRemovalId(child.id);
                       }}
-                      className="shrink-0 rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                      className="shrink-0 rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-slate-100"
                     >
                       Delete
                     </button>
@@ -501,30 +561,30 @@ export function AccountDashboard() {
               </div>
             ))
           ) : (
-            <p className="text-slate">No children saved yet.</p>
+            <p className="text-slate-600">No children saved yet.</p>
           )}
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 md:p-8">
-        <h2 className="text-2xl font-semibold text-white">Enrollments</h2>
+      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+        <h2 className="text-2xl font-semibold text-slate-950">Enrollments</h2>
         <div className="mt-5 space-y-3">
           {data.enrollments?.length ? (
             data.enrollments.map((enrollment) => (
-              <div key={enrollment.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="font-semibold text-white">
+              <div key={enrollment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="font-semibold text-slate-950">
                   {enrollment.agentech_classes?.class_name || enrollment.class_id || "Class enrollment"}
                 </p>
-                <p className="mt-1 text-sm text-slate">
+                <p className="mt-1 text-sm text-slate-600">
                   {[enrollment.site_name, enrollment.agentech_classes?.class_time, enrollment.agentech_classes?.starting_date]
                     .filter(Boolean)
                     .join(" - ")}
                 </p>
-                <p className="mt-1 text-sm text-slate">{enrollment.paid ? "Paid" : "Payment pending"}</p>
+                <p className="mt-1 text-sm text-slate-600">{enrollment.paid ? "Paid" : "Payment pending"}</p>
               </div>
             ))
           ) : (
-            <p className="text-slate">No class enrollments yet.</p>
+            <p className="text-slate-600">No class enrollments yet.</p>
           )}
         </div>
       </section>
