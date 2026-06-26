@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 
@@ -619,17 +620,25 @@ export function AgentechLibraryWorkbench() {
         <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <Image
-                src="/assets/logo/AGENTECH-products.png"
-                alt="Agentech Products"
-                width={260}
-                height={64}
-                className="h-9 w-auto object-contain"
-                priority
-              />
+              <Link href="/products" aria-label="Go to Agentech Products" className="block border border-transparent transition hover:border-[#8fdc8f]/40">
+                <Image
+                  src="/assets/logo/AGENTECH-products.png"
+                  alt="Agentech Products"
+                  width={260}
+                  height={64}
+                  className="h-9 w-auto object-contain"
+                  priority
+                />
+              </Link>
               <span className="border border-[#8fdc8f]/50 bg-[#132117] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">
                 Hidden Developer Lab
               </span>
+              <Link
+                href="/"
+                className="border border-[#2a3440] bg-[#0d1117] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#cdd6df] transition hover:border-[#93c5fd] hover:text-[#93c5fd]"
+              >
+                Home
+              </Link>
             </div>
             <h1 className="mt-8 max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-6xl">
               Agentech Robot Dog Library
