@@ -4,9 +4,56 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 
-const categories = ["All", "Movement", "Posture", "Safety", "Sensing", "Interaction", "Workflow"] as const;
+const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 type Category = (typeof categories)[number];
 type SimFrame = { x: number; y: number; z: number; yaw: number; pitch?: number };
+const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
+
+const localPreviewAssets: Record<string, string> = {
+  forward: "/assets/products/aegis-previews/forward.gif",
+  backward: "/assets/products/aegis-previews/backward.gif",
+  turn_left: "/assets/products/aegis-previews/turn_left.gif",
+  turn_right: "/assets/products/aegis-previews/turn_right.gif",
+  look_up: "/assets/products/aegis-previews/look_up.gif",
+  look_down: "/assets/products/aegis-previews/look_down.gif",
+  stand: "/assets/products/aegis-previews/stand.gif",
+  sit: "/assets/products/aegis-previews/sit.gif",
+  stop: "/assets/products/aegis-previews/stop.gif",
+  get_battery_status: "/assets/products/aegis-previews/stand.gif"
+};
+const localPreviewFallback = "/assets/products/aegis-previews/stand.gif";
+
+function detectPrimaryPreviewCommand(code: string) {
+  const lines = code.split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const match = line.match(/(?:Agentech|dog)\.(\w+)\((.*)\)/);
+    if (!match) {
+      continue;
+    }
+    const [, command] = match;
+    if (localPreviewAssets[command]) {
+      return command;
+    }
+  }
+  return "stand";
+}
+
+function previewCommandLabel(command: string) {
+  const labels: Record<string, string> = {
+    forward: "Forward",
+    backward: "Backward",
+    turn_left: "Turn Left",
+    turn_right: "Turn Right",
+    look_up: "Look Up",
+    look_down: "Look Down",
+    stand: "Stand",
+    sit: "Sit",
+    stop: "Stop",
+    get_battery_status: "Get Battery Status"
+  };
+  return labels[command] ?? command;
+}
 
 const categoryExamples: Record<Category, { activeName: string; code: string }> = {
   All: {
@@ -15,13 +62,12 @@ const categoryExamples: Record<Category, { activeName: string; code: string }> =
 
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
-Agentech.left(angle=45)
-Agentech.right(angle=45)
-Agentech.yaw(speed=0.25, seconds=1)
+Agentech.turn_left(angle=45)
+Agentech.turn_right(angle=45)
 Agentech.stand()
 Agentech.look_up(angle=15)
-Agentech.capture_image(output="height_photo.jpg")
 Agentech.look_down(angle=15)
+print(Agentech.get_battery_status())
 Agentech.stop()`
   },
   Movement: {
@@ -30,9 +76,8 @@ Agentech.stop()`
 
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
-Agentech.left(angle=45)
-Agentech.right(angle=45)
-Agentech.yaw(speed=0.25, seconds=1)`
+Agentech.turn_left(angle=45)
+Agentech.turn_right(angle=45)`
   },
   Posture: {
     activeName: "stand",
@@ -46,7 +91,7 @@ Agentech.sit()`
     code: `from agentech import Agentech
 
 Agentech.stop()
-Agentech.emergency_stop(reason="operator stop")`
+Agentech.get_battery_status()`
   },
   Sensing: {
     activeName: "look_up",
@@ -54,32 +99,10 @@ Agentech.emergency_stop(reason="operator stop")`
 
 Agentech.stand()
 Agentech.look_up(angle=15)
-Agentech.capture_image(output="height_top.jpg")
 Agentech.look_down(angle=15)
-Agentech.capture_image(output="height_bottom.jpg")`
-  },
-  Interaction: {
-    activeName: "say",
-    code: `from agentech import Agentech
-
-Agentech.say("Hello from Agentech")`
-  },
-  Workflow: {
-    activeName: "run_sequence",
-    code: `from agentech import Agentech
-
-Agentech.run_sequence([
-    {"action": "forward", "params": {"speed": 0.3, "seconds": 1}},
-    {"action": "left", "params": {"angle": 45}},
-    {"action": "stop"}
-])`
+print(Agentech.get_battery_status())`
   }
 };
-
-function stringArg(args: string, name: string, fallback: string) {
-  const match = args.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`));
-  return match ? match[1] : fallback;
-}
 
 function commandPlan(code: string) {
   const trace: string[] = [];
@@ -94,13 +117,12 @@ function commandPlan(code: string) {
 
     const [, command, args] = match;
     const displayArgs = args.trim() ? `(${args.trim()})` : "()";
-    const label = command === "say" ? `say("${stringArg(args, "text", args.replace(/^["']|["']$/g, "") || "message")}")` : `${command}${displayArgs}`;
-    trace.push(label);
+    trace.push(`${command}${displayArgs}`);
   }
 
   return {
     trace: trace.length ? trace : ["No Agentech commands found yet."],
-    motionCount: trace.filter((line) => /forward|backward|left|right|turn_left|turn_right|yaw|rotate|look_up|look_down|camera_pitch|pitch/.test(line)).length
+    motionCount: trace.filter((line) => /forward|backward|turn_left|turn_right|look_up|look_down/.test(line)).length
   };
 }
 
@@ -178,7 +200,7 @@ function DocsOverview() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Library Documentation</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">Start here: install, import, call one function.</h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[#b8c2cc]">
-              This page is the documentation. Students can learn the library, see every function, test code in MuJoCo, and submit pasted code or a GitHub branch for robot review without leaving this screen.
+              This page is the documentation. Students can learn the library, see every beginner function, preview approved motion GIFs, and submit pasted code or a GitHub branch for robot review without leaving this screen.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a href="#agentech-docs" className="border border-[#8fdc8f] bg-[#17351f] px-4 py-2 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]">
@@ -199,7 +221,7 @@ function DocsOverview() {
 from agentech import Agentech
 
 Agentech.forward()
-Agentech.left(angle=45)
+Agentech.turn_left(angle=45)
 Agentech.look_up(angle=15)`}</pre>
           </div>
         </div>
@@ -235,22 +257,21 @@ Agentech.look_up(angle=15)`}</pre>
 
 function DocsSection() {
   const beginnerFunctions = agentechFunctions.filter((item) =>
-    ["forward", "backward", "left", "right", "yaw", "look_up", "look_down", "stand", "stop", "capture_image"].includes(item.name)
+    ["forward", "backward", "turn_left", "turn_right", "look_up", "look_down", "stand", "sit", "stop", "get_battery_status"].includes(item.name)
   );
   const workflowExample = `from agentech import Agentech
 
 with Agentech.robot(dry_run=True) as dog:
     dog.stand()
     dog.forward(speed=0.25, seconds=1)
-    dog.left(angle=45)
+    dog.turn_left(angle=45)
     dog.look_up(angle=15)
-    dog.capture_image(output="height_top.jpg")
     dog.look_down(angle=15)
-    dog.capture_image(output="height_bottom.jpg")
+    battery = dog.get_battery_status()
     dog.stop()`;
   const submitExample = `# Option 1: paste code into this page
 Agentech.forward()
-Agentech.left(angle=45)
+Agentech.turn_left(angle=45)
 
 # Option 2: submit a GitHub repo and branch
 repo = "https://github.com/team/robot-project"
@@ -260,17 +281,20 @@ from agentech import Agentech
 
 Agentech.forward()
 
-# Agentech deployment runner copies it to the robot over SSH:
-python scripts/run_agentech_on_robot.py student_forward.py --host 192.168.234.1`;
+# After review, the scheduled robot session sends approved code
+# to the Raspberry Pi bridge connected to the robot hotspot.`;
+  const liveRunExample = `Student code -> Website submission -> Human review -> Scheduled slot
+Scheduled slot -> Pi bridge -> Robot hotspot -> Aegis dog executes
+Live camera -> Website viewer -> Student watches the run`;
 
   return (
     <section id="agentech-docs" className="border-t border-[#2a3440] bg-[#0f1318]">
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Agentech Docs</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">One page to install, write, simulate, and submit robot dog code.</h2>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">One page to install, write, preview, and submit robot dog code.</h2>
           <p className="mt-4 text-sm leading-7 text-[#b8c2cc]">
-            These docs are written for students and developers who need to move the Aegis robot quickly without reading the FF SDK internals first. The common path is simple: install the package, import Agentech, write one-line commands, preview in MuJoCo, then submit code or a GitHub branch for a supervised robot session.
+            These docs are written for students and developers who need to move the Aegis robot quickly without reading the FF SDK internals first. The common path is simple: install the package, import Agentech, write one-line commands, preview approved action clips, then submit code or a GitHub branch for a reviewed robot session.
           </p>
         </div>
 
@@ -332,13 +356,13 @@ python scripts/run_agentech_on_robot.py student_forward.py --host 192.168.234.1`
                 <p>Look up is capped at 20 degrees; look down is capped at 25 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Motion commands are capped at 10 seconds.</p>
-                <p>Emergency stop is exposed as `Agentech.emergency_stop()`.</p>
+                <p>`Agentech.stop()` is the beginner stop command exposed on this page.</p>
               </div>
             </div>
             <div className="border border-[#2a3440] bg-[#0d1117] p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">MuJoCo Preview</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Official Preview</p>
               <p className="mt-3 text-sm leading-6 text-[#cdd6df]">
-                The preview uses the Aegis MuJoCo model from the FF assets. Forward and backward move the dog, left/right/yaw rotate it, and look up/down tilt the robot body/camera like the height-photo demo while the observer view stays stable.
+                The official website shows approved GIF previews only. The preview is for learning and review; the real robot moves later during a scheduled supervised run.
               </p>
             </div>
           </div>
@@ -362,14 +386,20 @@ python scripts/run_agentech_on_robot.py student_forward.py --host 192.168.234.1`
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117] lg:col-span-2">
             <div className="border-b border-[#2a3440] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot Hotspot Deployment</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Scheduled Robot Run</p>
             </div>
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
               <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{robotRunnerExample}</pre>
               <div className="border-t border-[#2a3440] p-4 text-sm leading-6 text-[#aeb8c2] lg:border-l lg:border-t-0">
-                The student file stays tiny. The runner connects through the robot hotspot, copies the file over SSH, sets the Aegis variant, disables dry-run, and runs the code on the robot. `Agentech.forward()` then stands, waits, moves forward, stops, and closes safely.
+                The student file stays tiny. After review and scheduling, the website sends approved code to the Raspberry Pi bridge. The Pi is connected to the robot hotspot, runs the code on the robot, and the live camera stream lets the student watch the result on the website.
               </div>
             </div>
+          </div>
+          <div className="border border-[#2a3440] bg-[#0d1117] lg:col-span-2">
+            <div className="border-b border-[#2a3440] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">End-To-End Process</p>
+            </div>
+            <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{liveRunExample}</pre>
           </div>
         </div>
 
@@ -423,12 +453,15 @@ export function AgentechLibraryWorkbench() {
   const [githubRepoUrl, setGithubRepoUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-  const [mujocoStatus, setMujocoStatus] = useState("Aegis MuJoCo URDF is installed locally. Run the code to move the dog preview.");
+  const [previewGif, setPreviewGif] = useState<string>(localPreviewFallback);
+  const [previewCommand, setPreviewCommand] = useState<string>("stand");
+  const [previewStatus, setPreviewStatus] = useState(
+    useRealMuJoCoPreview ? "Local simulator preview ready. Run your code to render the real Aegis model." : "Official GIF preview ready. Run your code to play a matching clip."
+  );
   const [isSimulating, setIsSimulating] = useState(false);
   const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
   const [simFrameIndex, setSimFrameIndex] = useState(0);
   const [renderedFrames, setRenderedFrames] = useState<string[]>([]);
-  const [previewRenderer, setPreviewRenderer] = useState<"mujoco" | "hosted-preview">("mujoco");
 
   const filteredFunctions = useMemo(
     () => agentechFunctions.filter((item) => activeCategory === "All" || item.category === activeCategory),
@@ -437,17 +470,8 @@ export function AgentechLibraryWorkbench() {
 
   const activeFunction = agentechFunctions.find((item) => item.name === activeName) ?? agentechFunctions[0];
   const plan = useMemo(() => commandPlan(code), [code]);
-  const previewFrameIndex =
-    renderedFrames.length > 1
-      ? Math.min(
-          simFrames.length - 1,
-          Math.max(0, Math.round((simFrameIndex / Math.max(1, renderedFrames.length - 1)) * Math.max(0, simFrames.length - 1)))
-        )
-      : Math.min(simFrameIndex, simFrames.length - 1);
-  const previewFrame = simFrames[previewFrameIndex] ?? simFrames[0];
-  const cameraPitch = Math.max(-45, Math.min(45, previewFrame.pitch ?? 0));
   const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
-  const displayRenderedFrame = previewRenderer === "hosted-preview" ? undefined : renderedFrame;
+  const previewFrameCount = renderedFrames.length || simFrames.length;
 
   useEffect(() => {
     if (renderedFrames.length <= 1) {
@@ -456,23 +480,21 @@ export function AgentechLibraryWorkbench() {
 
     setSimFrameIndex(0);
     const interval = window.setInterval(() => {
-      setSimFrameIndex((current) => {
-        if (current >= renderedFrames.length - 1) {
-          return 0;
-        }
-        return current + 1;
-      });
+      setSimFrameIndex((current) => (current >= renderedFrames.length - 1 ? 0 : current + 1));
     }, 42);
 
     return () => window.clearInterval(interval);
-  }, [renderedFrames, simFrames]);
+  }, [renderedFrames]);
 
   function resetPreview() {
-    setMujocoStatus("Aegis MuJoCo URDF is installed locally. Run the code to move the dog preview.");
+    setPreviewStatus(
+      useRealMuJoCoPreview ? "Local simulator preview ready. Run your code to render the real Aegis model." : "Official GIF preview ready. Run your code to play a matching clip."
+    );
+    setPreviewGif(localPreviewFallback);
+    setPreviewCommand("stand");
+    setRenderedFrames([]);
     setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
     setSimFrameIndex(0);
-    setRenderedFrames([]);
-    setPreviewRenderer("mujoco");
   }
 
   function loadExample(item: AgentechFunction) {
@@ -489,13 +511,21 @@ export function AgentechLibraryWorkbench() {
     resetPreview();
   }
 
-  async function runMuJoCoSimulation() {
+  async function runPreviewSimulation() {
     setIsSimulating(true);
-    setMujocoStatus("Running Aegis MuJoCo simulation...");
-    setSimFrames([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
-    setSimFrameIndex(0);
+    const primary = detectPrimaryPreviewCommand(code);
+    setPreviewCommand(primary);
+    setPreviewGif(localPreviewAssets[primary] ?? localPreviewFallback);
     setRenderedFrames([]);
-    setPreviewRenderer("mujoco");
+    setSimFrameIndex(0);
+
+    if (!useRealMuJoCoPreview) {
+      setPreviewStatus(`Playing official GIF preview for ${previewCommandLabel(primary)}.`);
+      setIsSimulating(false);
+      return;
+    }
+
+    setPreviewStatus("Running local simulator preview...");
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 15_000);
     try {
@@ -509,21 +539,23 @@ export function AgentechLibraryWorkbench() {
       if (!response.ok) {
         throw new Error(payload.error ?? "Simulation failed");
       }
-      const pose = payload.final_pose;
-      const frames = Array.isArray(payload.frames) && payload.frames.length ? payload.frames : [pose];
-      setSimFrames(frames);
-      setSimFrameIndex(0);
-      setRenderedFrames(Array.isArray(payload.rendered_frames) ? payload.rendered_frames : []);
-      setPreviewRenderer(payload.renderer === "hosted-preview" ? "hosted-preview" : "mujoco");
-      const statusPrefix = payload.renderer === "hosted-preview" ? "Hosted simulator preview" : "MuJoCo";
-      const warning = typeof payload.warning === "string" ? ` ${payload.warning}` : "";
-      setMujocoStatus(
-        `${statusPrefix} ran ${payload.steps} steps. Final pose x=${pose.x.toFixed(2)}, y=${pose.y.toFixed(2)}, yaw=${pose.yaw.toFixed(1)}deg, tilt=${(pose.pitch ?? 0).toFixed(1)}deg.${warning}`
-      );
+      const frames = Array.isArray(payload.frames) && payload.frames.length ? payload.frames : [];
+      const rendered = Array.isArray(payload.rendered_frames) ? payload.rendered_frames : [];
+      setSimFrames(frames.length ? frames : [{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
+      setRenderedFrames(rendered);
+      const pose = payload.final_pose ?? frames.at(-1) ?? {};
+      const yaw = Number(pose.yaw ?? 0);
+      const pitch = Number(pose.pitch ?? 0);
+      setPreviewStatus(`Local simulator rendered ${payload.steps ?? 0} steps. yaw=${yaw.toFixed(1)}deg, tilt=${pitch.toFixed(1)}deg.`);
     } catch (error) {
       setRenderedFrames([]);
-      setPreviewRenderer("mujoco");
-      setMujocoStatus(error instanceof Error && error.name === "AbortError" ? "Simulation timed out after 15s. Try fewer commands or run again." : error instanceof Error ? error.message : "Simulation failed.");
+      setPreviewStatus(
+        error instanceof Error && error.name === "AbortError"
+          ? `Local simulator timed out. Showing ${previewCommandLabel(primary)} GIF instead.`
+          : error instanceof Error
+            ? `${error.message} Showing ${previewCommandLabel(primary)} GIF instead.`
+            : `Local simulator failed. Showing ${previewCommandLabel(primary)} GIF instead.`
+      );
     } finally {
       window.clearTimeout(timeout);
       setIsSimulating(false);
@@ -592,7 +624,7 @@ export function AgentechLibraryWorkbench() {
               Agentech Robot Dog Library
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: movement, posture, yaw, safety, camera, status, and short sequences in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: forward, backward, turns, posture, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">
@@ -701,54 +733,60 @@ export function AgentechLibraryWorkbench() {
             <div className="border-t border-[#2a3440] bg-[#11151b] xl:border-l xl:border-t-0">
               <div className="border-b border-[#2a3440] px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">MuJoCo Preview</p>
-                  <p className="font-mono text-xs text-[#93c5fd]">fixed observer camera</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Preview</p>
+                  <p className="font-mono text-xs text-[#93c5fd]">{useRealMuJoCoPreview ? "local simulator" : "official GIF"}</p>
                 </div>
               </div>
               <div className="p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <p className="font-mono text-xs uppercase tracking-[0.12em] text-[#8fdc8f]">
-                    {previewRenderer === "hosted-preview" ? "Aegis hosted preview" : "Aegis MuJoCo render"}
+                    {previewCommandLabel(previewCommand)}
                   </p>
-                  <p className="font-mono text-xs text-[#7f8c99]">{previewRenderer === "hosted-preview" ? "validated frames" : "real model frames"}</p>
+                  <p className="font-mono text-xs text-[#7f8c99]">{renderedFrames.length ? "real rendered frames" : "approved GIF asset"}</p>
                 </div>
                 <div className="relative mx-auto aspect-[13/9] w-full overflow-hidden border border-[#2a3440] bg-black">
-                  {displayRenderedFrame ? (
+                  {renderedFrame ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={displayRenderedFrame}
-                      alt="Rendered Aegis MuJoCo simulation frame"
+                      src={renderedFrame}
+                      alt={`Aegis simulator render for ${previewCommandLabel(previewCommand)}`}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : previewGif ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previewGif}
+                      alt={`Aegis preview for ${previewCommandLabel(previewCommand)}`}
+                      onError={() => {
+                        setPreviewGif(localPreviewFallback);
+                      }}
                       className="h-full w-full object-contain"
                     />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src="/assets/products/aegis-mujoco-ready.png?v=ff-demo-gait"
-                      alt="Aegis MuJoCo model ready"
+                      src={localPreviewFallback}
+                      alt="Aegis preview placeholder"
                       className="h-full w-full object-contain"
                     />
                   )}
                 </div>
                 <div className="mt-4 grid grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs">
                   <div className="border-r border-[#2a3440] p-2">model ready</div>
-                  <div className="border-r border-[#2a3440] p-2">{previewRenderer === "hosted-preview" ? "hosted" : "mujoco"}</div>
+                  <div className="border-r border-[#2a3440] p-2">{renderedFrames.length ? "sim" : "gif"}</div>
                   <div className="p-2">{plan.motionCount} moves</div>
                 </div>
                 <button
                   type="button"
-                  onClick={runMuJoCoSimulation}
+                  onClick={runPreviewSimulation}
                   disabled={isSimulating}
                   className="mt-4 w-full border border-[#93c5fd] bg-[#101d2e] px-3 py-2 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f]"
                 >
-                  {isSimulating ? "Running MuJoCo..." : "Run MuJoCo Simulation"}
+                  {isSimulating ? "Preparing preview..." : "Run Preview"}
                 </button>
-                <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{mujocoStatus}</p>
-                <div className="mt-3 grid grid-cols-2 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs text-[#cdd6df]">
-                  <div className="border-r border-[#2a3440] p-2">yaw {previewFrame.yaw.toFixed(1)}deg</div>
-                  <div className="p-2">tilt {cameraPitch.toFixed(1)}deg</div>
-                </div>
+                <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{previewStatus}</p>
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
-                  frame {Math.min(simFrameIndex + 1, renderedFrames.length || simFrames.length)} / {renderedFrames.length || simFrames.length}
+                  detected command: {plan.trace[0] ?? "none"} - frame {Math.min(simFrameIndex + 1, previewFrameCount)} / {previewFrameCount}
                 </div>
                 <div className="mt-4 max-h-52 space-y-2 overflow-auto">
                   {plan.trace.map((line, index) => (

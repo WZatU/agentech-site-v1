@@ -11,6 +11,19 @@ export const agentechLimits = {
   minPitchRate: 0.03
 } as const;
 
+const allowedPublicActions = new Set([
+  "forward",
+  "backward",
+  "turn_left",
+  "turn_right",
+  "look_up",
+  "look_down",
+  "stand",
+  "sit",
+  "stop",
+  "get_battery_status"
+]);
+
 type ParsedCall = {
   action: string;
   args: string;
@@ -43,6 +56,11 @@ function requireRange(errors: string[], action: string, name: string, value: num
 export function validateAgentechCode(code: string): string[] {
   const errors: string[] = [];
   for (const call of parseCalls(code)) {
+    if (!allowedPublicActions.has(call.action)) {
+      errors.push(`${call.action} is not in the current Agentech beginner API. Use forward, backward, turn_left, turn_right, look_up, look_down, stand, sit, stop, or get_battery_status.`);
+      continue;
+    }
+
     const speed = numberArg(call.args, "speed");
     const seconds = numberArg(call.args, "seconds");
     const angle = numberArg(call.args, "angle");
