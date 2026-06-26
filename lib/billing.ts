@@ -62,6 +62,19 @@ type BillingProfile = {
   address: string | null;
 };
 
+type LegacyPreorderInvoice = {
+  invoice_number: string;
+  product: string;
+  email: string;
+  name: string;
+  phone: string;
+  company: string | null;
+  notes: string | null;
+  status: string;
+  total_amount: number | string | null;
+  created_at: string;
+};
+
 const defaultTerms = "Payment is due upon receipt unless otherwise agreed in writing. Online card payments are securely processed by Stripe when enabled.";
 const defaultNotes = "Thank you for choosing Agentech.";
 
@@ -124,6 +137,92 @@ export function createInvoiceNumber(prefix = "INV") {
   return `AGT-${prefix}-${year}-${suffix}`;
 }
 
+function legacyStatusToBillingStatus(status: string): BillingInvoiceStatus {
+  const normalized = status.replace(/_/g, " ").toLowerCase();
+
+  if (normalized.includes("paid")) return "paid";
+  if (normalized.includes("void") || normalized.includes("cancel") || normalized.includes("removed")) return "void";
+  return "sent";
+}
+
+async function getLegacyPreorderInvoice(invoiceNumber: string) {
+  const rows = await supabaseRequest<LegacyPreorderInvoice[]>("agentech_preorder_invoices", {
+    query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}&select=invoice_number,product,email,name,phone,company,notes,status,total_amount,created_at&limit=1`
+  }).catch(() => []);
+  const request = rows[0];
+
+  if (!request) {
+    return null;
+  }
+
+  const itemRows = await supabaseRequest<InvoiceItem[]>("agentech_invoice_items", {
+    query: `source_type=eq.robot&source_id=eq.${encodeURIComponent(invoiceNumber)}&select=*&order=created_at.asc`
+  }).catch(() => []);
+  const fallbackAmount = toAmount(request.total_amount);
+  const createdAt = request.created_at || nowIso();
+  const lines: BillingInvoiceLine[] = itemRows.length
+    ? itemRows.map((item) => ({
+        id: item.id,
+        invoice_number: invoiceNumber,
+        source_item_id: item.id,
+        source_type: "robot",
+        source_id: item.source_id,
+        description: formatInvoiceItemName(item.item_name),
+        quantity: item.quantity,
+        unit_price: toAmount(item.unit_price),
+        amount: toAmount(item.amount),
+        child_id: item.child_id,
+        class_id: item.class_id,
+        created_at: item.created_at
+      }))
+    : [
+        {
+          id: 0,
+          invoice_number: invoiceNumber,
+          source_item_id: null,
+          source_type: "robot",
+          source_id: invoiceNumber,
+          description: request.product,
+          quantity: 1,
+          unit_price: fallbackAmount,
+          amount: fallbackAmount,
+          child_id: null,
+          class_id: null,
+          created_at: createdAt
+        }
+      ];
+  const totals = invoiceTotals(lines);
+  const status = legacyStatusToBillingStatus(request.status);
+
+  return {
+    id: 0,
+    invoice_number: invoiceNumber,
+    email: request.email,
+    customer_name: request.name || request.email,
+    customer_phone: request.phone || null,
+    customer_company: request.company || null,
+    customer_address: null,
+    status,
+    currency: "usd",
+    subtotal: totals.subtotal,
+    tax_rate: totals.taxRate,
+    tax_amount: totals.taxAmount,
+    discount_amount: totals.discountAmount,
+    total_amount: totals.totalAmount,
+    amount_paid: status === "paid" ? totals.totalAmount : 0,
+    notes: request.notes || defaultNotes,
+    terms: defaultTerms,
+    stripe_checkout_session_id: null,
+    stripe_payment_intent_id: null,
+    due_date: null,
+    sent_at: createdAt,
+    paid_at: status === "paid" ? createdAt : null,
+    created_at: createdAt,
+    updated_at: createdAt,
+    lines
+  } satisfies BillingInvoiceWithLines;
+}
+
 export async function getBillingInvoice(invoiceNumber: string) {
   const invoices = await supabaseRequest<BillingInvoice[]>("agentech_billing_invoices", {
     query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}&select=*&limit=1`
@@ -131,7 +230,7 @@ export async function getBillingInvoice(invoiceNumber: string) {
   const invoice = invoices[0];
 
   if (!invoice) {
-    return null;
+    return getLegacyPreorderInvoice(invoiceNumber);
   }
 
   const lines = await supabaseRequest<BillingInvoiceLine[]>("agentech_billing_invoice_lines", {

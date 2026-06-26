@@ -390,16 +390,22 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
-      {hasInvoices ? (
-        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-950">Invoices</h2>
-              <p className="mt-2 text-sm text-slate-600">View official invoice details and pay online when card payment is enabled.</p>
-            </div>
+      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Billing</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Invoices</h2>
+            <p className="mt-2 text-sm text-slate-600">Official invoices and payment status appear here.</p>
           </div>
-          <div className="mt-5 space-y-3">
-            {data.invoices?.map((invoice) => {
+          {looksLikeAdminEmail(email) ? (
+            <Link href="/admin/invoices" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
+              Admin Dashboard
+            </Link>
+          ) : null}
+        </div>
+        <div className="mt-5 space-y-3">
+          {hasInvoices ? (
+            data.invoices?.map((invoice) => {
               const total = Number(invoice.total_amount ?? 0);
               return (
                 <div key={invoice.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
@@ -414,16 +420,23 @@ export function AccountDashboard() {
                   </div>
                   <Link
                     href={`/invoice/${invoice.invoice_number}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                    className="rounded-full bg-[#2f70c8] px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-[#245da7]"
                   >
                     View Invoice
                   </Link>
                 </div>
               );
-            })}
-          </div>
-        </section>
-      ) : null}
+            })
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+              <p className="font-semibold text-slate-950">No official billing invoices yet.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                New invoices generated from the request cart will appear here. Existing robot request numbers are listed in Requests below and can be opened as invoice records.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -497,9 +510,18 @@ export function AccountDashboard() {
           <div className="mt-5 space-y-3">
             {data.requests?.length ? (
               data.requests.map((request) => (
-                <div key={request.invoice_number} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="font-semibold text-slate-950">{request.product}</p>
-                  <p className="mt-1 text-sm text-slate-600">{request.invoice_number} - {formatRequestStatus(request.status)}</p>
+                <div key={request.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div>
+                    <p className="font-semibold text-slate-950">{request.product}</p>
+                    <p className="mt-1 text-sm text-slate-600">Request invoice: {request.invoice_number}</p>
+                    <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatRequestStatus(request.status)}</p>
+                  </div>
+                  <Link
+                    href={`/invoice/${request.invoice_number}`}
+                    className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                  >
+                    View Invoice
+                  </Link>
                 </div>
               ))
             ) : (

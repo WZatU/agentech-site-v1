@@ -14,6 +14,7 @@ type InvoiceLine = {
 };
 
 type Invoice = {
+  id: number;
   invoice_number: string;
   email: string;
   customer_name: string | null;
@@ -154,7 +155,7 @@ export function InvoiceDetail({ invoiceNumber }: InvoiceDetailProps) {
     );
   }
 
-  const canPay = invoice.status !== "paid" && totals.total > 0;
+  const canPay = invoice.id > 0 && invoice.status !== "paid" && totals.total > 0;
   const hasAmountDue = totals.total > 0 || invoice.lines.some((line) => toAmount(line.amount) > 0 || toAmount(line.unit_price) > 0);
 
   return (
@@ -268,6 +269,11 @@ export function InvoiceDetail({ invoiceNumber }: InvoiceDetailProps) {
               </button>
             ) : null}
             {message ? <p className="mt-4 text-sm font-semibold text-red-600">{message}</p> : null}
+            {invoice.id === 0 && hasAmountDue ? (
+              <p className="mt-4 max-w-md text-sm leading-6 text-slate-600">
+                This invoice was generated from an existing request record. Online payment will be available after Agentech issues the official billing invoice.
+              </p>
+            ) : null}
           </div>
           <div className="text-left md:text-right">
             <p className="text-xl font-bold">Agentech</p>

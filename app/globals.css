@@ -37,6 +37,51 @@ body::after {
   background: radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.42) 100%);
 }
 
+body:has(.account-white-page) {
+  background: #f3f6fb !important;
+  color: #0f172a;
+}
+
+body:has(.account-white-page)::before,
+body:has(.account-white-page)::after {
+  display: none;
+}
+
+body:has(.account-white-page) main.flex-1 {
+  background: #f3f6fb;
+  color: #0f172a;
+}
+
+body:has(.account-white-page) footer {
+  border-color: #dbe3ef;
+  background: #f8fafc;
+}
+
+body:has(.account-white-page) footer * {
+  color: #334155 !important;
+}
+
+.account-white-page,
+.account-white-page * {
+  opacity: 1 !important;
+}
+
+.account-white-page .text-slate-950 {
+  color: #0f172a !important;
+}
+
+.account-white-page .text-slate-700 {
+  color: #334155 !important;
+}
+
+.account-white-page .text-slate-600 {
+  color: #475569 !important;
+}
+
+.account-white-page .text-slate-500 {
+  color: #64748b !important;
+}
+
 @layer base {
   h1,
   h2,
