@@ -55,7 +55,7 @@ body:has(.account-white-page) main.flex-1 {
 body:has(.account-illustrated-page) {
   background:
     linear-gradient(180deg, rgba(10, 12, 35, 0.04), rgba(10, 12, 35, 0.12)),
-    url("/assets/backgrounds/account-requests-background.png") center center / cover fixed no-repeat !important;
+    url("/assets/backgrounds/account-moon-background.png") center center / cover fixed no-repeat !important;
   color: #0f172a;
 }
 
@@ -67,11 +67,99 @@ body:has(.account-illustrated-page) main.flex-1 {
   background: transparent !important;
 }
 
+.account-moon {
+  top: clamp(92px, 9vw, 150px);
+  right: clamp(44px, 9vw, 170px);
+  width: clamp(90px, 9vw, 156px);
+  aspect-ratio: 1;
+}
+
+.account-moon-glow {
+  position: absolute;
+  inset: -28%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(219, 233, 255, 0.34), rgba(154, 192, 255, 0.13) 42%, transparent 72%);
+  filter: blur(1px);
+}
+
+.account-moon-disk {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.9), transparent 8%),
+    radial-gradient(circle at 64% 60%, rgba(109, 124, 164, 0.22), transparent 13%),
+    radial-gradient(circle at 44% 72%, rgba(93, 109, 146, 0.18), transparent 10%),
+    radial-gradient(circle at 62% 24%, rgba(92, 109, 150, 0.2), transparent 9%),
+    radial-gradient(circle at 35% 52%, rgba(74, 91, 132, 0.16), transparent 12%),
+    radial-gradient(circle at 42% 34%, #f9fbff, #dfe8ff 52%, #9fb2dd 100%);
+  box-shadow:
+    inset -16px -18px 30px rgba(60, 75, 122, 0.38),
+    inset 10px 12px 24px rgba(255, 255, 255, 0.42),
+    0 0 34px rgba(191, 218, 255, 0.56),
+    0 0 82px rgba(98, 147, 255, 0.24);
+}
+
+.account-moon-shadow {
+  position: absolute;
+  top: -1%;
+  bottom: -1%;
+  z-index: 3;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, rgba(5, 9, 38, 0.86), rgba(10, 14, 52, 0.94));
+  box-shadow: 0 0 18px rgba(7, 12, 40, 0.35);
+}
+
+.account-moon-crater {
+  position: absolute;
+  z-index: 2;
+  border-radius: 999px;
+  background: rgba(88, 104, 145, 0.18);
+  box-shadow: inset 2px 2px 4px rgba(53, 67, 103, 0.16), inset -2px -2px 5px rgba(255, 255, 255, 0.28);
+}
+
+.account-moon-crater-a {
+  left: 24%;
+  top: 26%;
+  width: 17%;
+  height: 17%;
+}
+
+.account-moon-crater-b {
+  right: 25%;
+  top: 39%;
+  width: 11%;
+  height: 11%;
+}
+
+.account-moon-crater-c {
+  left: 38%;
+  bottom: 22%;
+  width: 14%;
+  height: 14%;
+}
+
+.account-moon-crater-d {
+  right: 38%;
+  top: 18%;
+  width: 7%;
+  height: 7%;
+}
+
 @media (max-width: 1024px) {
   body:has(.account-illustrated-page) {
     background:
       linear-gradient(180deg, rgba(10, 12, 35, 0.08), rgba(10, 12, 35, 0.18)),
-      url("/assets/backgrounds/account-requests-background.png") 46% center / cover fixed no-repeat !important;
+      url("/assets/backgrounds/account-moon-background.png") 46% center / cover fixed no-repeat !important;
+  }
+
+  .account-moon {
+    top: 92px;
+    right: 34px;
+    width: 92px;
   }
 }
 
@@ -79,12 +167,19 @@ body:has(.account-illustrated-page) main.flex-1 {
   body:has(.account-illustrated-page) {
     background:
       linear-gradient(180deg, rgba(10, 12, 35, 0.12), rgba(10, 12, 35, 0.22)),
-      url("/assets/backgrounds/account-requests-background.png") 42% center / cover fixed no-repeat !important;
+      url("/assets/backgrounds/account-moon-background.png") 42% center / cover fixed no-repeat !important;
   }
 
   .account-illustrated-page {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .account-moon {
+    top: 88px;
+    right: 18px;
+    width: 62px;
+    opacity: 0.9;
   }
 }
 
