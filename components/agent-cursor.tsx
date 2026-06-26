@@ -10,6 +10,7 @@ export function AgentCursor() {
     if (!cursor) {
       return;
     }
+    const cursorElement = cursor;
 
     const finePointer = window.matchMedia("(pointer: fine)");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -41,18 +42,18 @@ export function AgentCursor() {
       const target = document.elementFromPoint(event.clientX, event.clientY);
       const intent = target?.closest("[data-cursor-intent='nav']") ?? null;
       setActiveIntent(intent);
-      cursor.classList.toggle("is-nav", Boolean(intent));
+      cursorElement.classList.toggle("is-nav", Boolean(intent));
     }
 
     function onPointerMove(event: PointerEvent) {
       targetX = event.clientX;
       targetY = event.clientY;
-      cursor.classList.add("is-visible");
+      cursorElement.classList.add("is-visible");
       updateIntent(event);
     }
 
     function onPointerLeave() {
-      cursor.classList.remove("is-visible", "is-nav");
+      cursorElement.classList.remove("is-visible", "is-nav");
       setActiveIntent(null);
     }
 
@@ -64,9 +65,9 @@ export function AgentCursor() {
       const deltaY = currentY - previousY;
       const speed = Math.hypot(deltaX, deltaY);
       const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
-      const stretch = cursor.classList.contains("is-nav") ? 0 : Math.min(speed * 0.025, 0.7);
+      const stretch = cursorElement.classList.contains("is-nav") ? 0 : Math.min(speed * 0.025, 0.7);
 
-      cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) rotate(${angle}deg) scale(${1 + stretch}, ${1 - Math.min(stretch * 0.34, 0.22)})`;
+      cursorElement.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%) rotate(${angle}deg) scale(${1 + stretch}, ${1 - Math.min(stretch * 0.34, 0.22)})`;
 
       previousX = currentX;
       previousY = currentY;
