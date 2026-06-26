@@ -361,9 +361,13 @@ Live camera -> Website viewer -> Student watches the run`;
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safety Limits</p>
               <div className="mt-3 space-y-2 text-sm leading-6 text-[#cdd6df]">
                 <p>Linear speed is capped at 2.37 m/s.</p>
-                <p>Yaw rate is capped at +/-2.09 rad/s.</p>
-                <p>Look up is capped at 20 degrees; look down is capped at 25 degrees.</p>
+                <p>Backward speed is capped at 2.365 m/s.</p>
+                <p>Lateral speed benchmark is 0.78 m/s.</p>
+                <p>Yaw rate is capped at +/-2.09 rad/s; slow yaw reference is 1.05 rad/s.</p>
+                <p>Look up is capped at 19 degrees; look down is capped at 21 degrees.</p>
+                <p>Roll benchmark limit is 28 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
+                <p>Linear acceleration benchmark is about 2.5 m/s^2.</p>
                 <p>Motion commands are capped at 10 seconds.</p>
                 <p>`Agentech.stop()` is the beginner stop command exposed on this page.</p>
               </div>
@@ -907,7 +911,7 @@ export function AgentechLibraryWorkbench() {
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safety Defaults</p>
               <ul className="mt-3 space-y-2 text-sm text-[#cdd6df]">
                 <li>Dry-run first</li>
-                <li>Speed capped at 2.37 m/s</li>
+                <li>Forward capped at 2.37 m/s; backward capped at 2.365 m/s</li>
                 <li>Motion capped at 10 seconds</li>
                 <li>Emergency stop is always available</li>
               </ul>

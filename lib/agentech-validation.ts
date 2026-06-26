@@ -1,12 +1,17 @@
 export const agentechLimits = {
   maxLinearVelocity: 2.37,
+  maxBackwardVelocity: 2.365,
+  maxLateralVelocity: 0.78,
+  maxLinearAcceleration: 2.5,
   maxYawRate: 2.09,
+  slowYawRate: 1.05,
   maxPitchRate: 0.5,
   recommendedPitchRate: 0.15,
   maxSeconds: 10,
   maxRotateAngle: 360,
-  maxLookUpAngle: 20,
-  maxLookDownAngle: 25,
+  maxLookUpAngle: 19,
+  maxLookDownAngle: 21,
+  maxRollAngle: 28,
   minTurnRate: 0.05,
   minPitchRate: 0.03
 } as const;
@@ -66,7 +71,7 @@ export function validateAgentechCode(code: string): string[] {
     const angle = numberArg(call.args, "angle");
 
     if (call.action === "forward" || call.action === "backward") {
-      requireRange(errors, call.action, "speed", speed, 0, agentechLimits.maxLinearVelocity);
+      requireRange(errors, call.action, "speed", speed, 0, call.action === "backward" ? agentechLimits.maxBackwardVelocity : agentechLimits.maxLinearVelocity);
       requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
     }
 
