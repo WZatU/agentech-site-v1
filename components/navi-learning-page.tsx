@@ -60,7 +60,7 @@ const projectLessons: NaviLesson[] = [
       en: "Kids snap logic blocks together, test the idea, then watch Navi turn the plan into motion.",
       zh: "孩子把逻辑积木拼在一起，先测试想法，再看 Navi 把计划变成动作。"
     },
-    visual: "blocks",
+    image: "/assets/education/navi-skills/brain-blocks-navi.png",
     tone: "mint"
   },
   {
@@ -70,7 +70,7 @@ const projectLessons: NaviLesson[] = [
       en: "Students describe a trick, a game, or a helper routine, then refine it like talking to a creative teammate.",
       zh: "学生描述一个动作、游戏或助手流程，再像和创意队友聊天一样持续修改。"
     },
-    visual: "buddy",
+    image: "/assets/education/navi-skills/buddy-vibe-coding-navi.png",
     tone: "violet"
   },
   {
@@ -170,7 +170,7 @@ const projectLessons: NaviLesson[] = [
       en: "Classic playground rules become robot state machines that kids can see, hear, and debug.",
       zh: "经典游戏变成机器人状态机，孩子能看见、听见并调试规则。"
     },
-    image: "/assets/education/navi-skills/red-light-green-light.png",
+    image: "/assets/education/navi-skills/red-light-green-light-navi.png",
     tone: "coral"
   },
   {
@@ -180,7 +180,7 @@ const projectLessons: NaviLesson[] = [
       en: "A Navi shell can become a dog, fox, cat, or classroom mascot through student-designed 3D printed tops.",
       zh: "学生设计 3D 打印上装，让 Navi 变成小狗、狐狸、小猫或班级 mascot。"
     },
-    visual: "printTop",
+    image: "/assets/education/navi-skills/navi-3d-printed-tops.png",
     tone: "sun"
   },
   {
@@ -190,7 +190,7 @@ const projectLessons: NaviLesson[] = [
       en: "With safe sensors and parent-approved workflows, Navi can help capture photos, stories, milestones, and daily reflections.",
       zh: "在安全传感器和家长允许的流程下，Navi 可以帮助记录照片、故事、里程碑和每天的心情。"
     },
-    visual: "companion",
+    image: "/assets/education/navi-skills/navi-growing-companion.png",
     tone: "sky"
   },
   {
@@ -200,7 +200,7 @@ const projectLessons: NaviLesson[] = [
       en: "A future Navi skill can cheer on running, jumping, and outdoor play while turning progress into friendly feedback.",
       zh: "未来的 Navi skill 可以为跑步、跳跃和户外游戏加油，并把进步变成友好的反馈。"
     },
-    visual: "growth",
+    image: "/assets/education/navi-skills/navi-run-jump-grow.png",
     tone: "mint"
   },
   {
@@ -210,7 +210,7 @@ const projectLessons: NaviLesson[] = [
       en: "Agentech builds skill graphs on top of Navi: small abilities combine into useful routines kids can understand.",
       zh: "Agentech 在 Navi 上构建 skill graphs：把小能力组合成孩子能理解、能使用的日常流程。"
     },
-    visual: "skillGraph",
+    image: "/assets/education/navi-skills/navi-skill-graph-library.png",
     tone: "violet"
   }
 ];
