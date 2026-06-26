@@ -70,41 +70,50 @@ export const homeTracks = [
 ];
 
 export const aboutIntro = {
-  title: "Built with a clear technical point of view.",
-  body: "Agentech focuses on AI-native systems across hardware, software, and applied experimentation."
+  title: "Leadership and technical members.",
+  body: "Agentech team directory."
 };
 
 export const leadership = [
   {
-    name: "Bill",
-    role: "Founder & CEO",
-    bio: "Tech mindset, source thinking, and company leadership.",
+    name: "Bill Wang",
+    role: "Founder and CEO",
+    bio: "",
     emphasis: "primary"
   },
   {
-    name: "Gaoxin",
-    role: "CTO",
-    bio: "Hardware development, robotic design, and implementation.",
+    name: "Mario Li",
+    role: "Co-founder and COO",
+    bio: "",
     emphasis: "primary"
   },
   {
-    name: "Wesley",
-    role: "Core Tech Lead",
-    bio: "Software development.",
+    name: "Connie Sun",
+    role: "Co-founder and Strategy Advisor",
+    bio: "",
+    emphasis: "primary"
+  },
+  {
+    name: "Xin Gao",
+    role: "CTO and Senior Hardware Engineer",
+    bio: "",
     emphasis: "secondary"
   },
   {
-    name: "David",
-    role: "Core Tech Lead",
-    bio: "Algorithm research and agentic architecture.",
+    name: "Wesley Fan",
+    role: "Senior Software Engineer",
+    bio: "",
+    emphasis: "secondary"
+  },
+  {
+    name: "David Wang",
+    role: "Senior Algorithm Engineer",
+    bio: "",
     emphasis: "secondary"
   }
 ];
 
-export const supportTeam = [
-  { name: "Lydia", role: "COO" },
-  { name: "Connie Sun", role: "CFO" }
-];
+export const supportTeam: Array<{ name: string; role: string }> = [];
 
 export const exploreMetrics = [
   { label: "Active Projects", value: "06", delta: "Hardware, software, and edge tracks" },

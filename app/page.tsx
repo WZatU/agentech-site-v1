@@ -22,7 +22,7 @@ export default function HomePage() {
         <div className="w-full overflow-hidden">
           <div className="logo-roll flex w-max items-center">
             {logoRollGroups.map((groupIndex) => (
-              <div key={groupIndex} className="flex shrink-0 items-center gap-16 pr-16">
+              <div key={groupIndex} className="flex shrink-0 items-center gap-4 pr-4 sm:gap-16 sm:pr-16">
                 {partnerLogos.map((logo) => (
                   <div
                     key={`${logo.src}-${groupIndex}`}

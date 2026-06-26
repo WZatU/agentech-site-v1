@@ -8,6 +8,47 @@ import { BrandMark } from "@/components/brand-mark";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { navigation } from "@/lib/site-data";
 
+function NavWordmark({
+  active,
+  activeImage,
+  alt,
+  image,
+  imageClassName
+}: {
+  active: boolean;
+  activeImage?: string;
+  alt: string;
+  image?: string;
+  imageClassName: string;
+}) {
+  if (!image) {
+    return <span>{alt}</span>;
+  }
+
+  const highlightedImage = activeImage ?? image;
+
+  return (
+    <span className="agent-nav-logo relative grid place-items-center">
+      <Image
+        src={image}
+        alt={active ? "" : alt}
+        aria-hidden={active ? "true" : undefined}
+        width={1000}
+        height={247}
+        className={`${imageClassName} agent-nav-logo-base col-start-1 row-start-1 ${active ? "opacity-0" : "opacity-100"}`}
+      />
+      <Image
+        src={highlightedImage}
+        alt={active ? alt : ""}
+        aria-hidden={active ? undefined : "true"}
+        width={1000}
+        height={247}
+        className={`${imageClassName} agent-nav-logo-active col-start-1 row-start-1 ${active ? "opacity-100" : "opacity-0"}`}
+      />
+    </span>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
@@ -74,7 +115,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/75 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/80 backdrop-blur-xl">
       <div className="relative mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-2 sm:px-3 lg:px-4">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-3" onClick={closeMobileNav}>
           <BrandMark />
@@ -96,26 +137,25 @@ export function SiteHeader() {
 
         <nav className={`ml-auto hidden flex-nowrap items-center justify-end gap-1 text-sm text-slate md:flex ${accountEmail ? "pr-[152px]" : ""}`}>
           {navigation.map((item) => {
-            const linkClassName = "px-3 py-2";
+            const linkClassName = "agent-nav-link px-3 py-2";
             const isActive = isActiveNavItem(item.href);
-            const navImageSrc = isActive && item.activeImage ? item.activeImage : item.image;
             const navImageClassName = "max-h-7 w-auto max-w-44 object-contain";
 
             if (item.children?.length) {
               return (
                 <div key={item.href} className="group relative flex items-center">
-                  <Link href={item.href} className={`${linkClassName} flex items-center gap-2`}>
-                    {navImageSrc ? (
-                      <Image
-                        src={navImageSrc}
-                        alt={item.label}
-                        width={1000}
-                        height={247}
-                        className={navImageClassName}
-                      />
-                    ) : (
-                      <span>{item.label}</span>
-                    )}
+                  <Link
+                    href={item.href}
+                    className={`${linkClassName} flex items-center gap-2 ${isActive ? "is-active" : ""}`}
+                    data-cursor-intent="nav"
+                  >
+                    <NavWordmark
+                      active={isActive}
+                      activeImage={item.activeImage}
+                      alt={item.label}
+                      image={item.image}
+                      imageClassName={navImageClassName}
+                    />
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 12 12"
@@ -157,19 +197,16 @@ export function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={linkClassName}
+                className={`${linkClassName} ${isActive ? "is-active" : ""}`}
+                data-cursor-intent="nav"
               >
-                {navImageSrc ? (
-                  <Image
-                    src={navImageSrc}
-                    alt={item.label}
-                    width={1000}
-                    height={247}
-                    className={navImageClassName}
-                  />
-                ) : (
-                  item.label
-                )}
+                <NavWordmark
+                  active={isActive}
+                  activeImage={item.activeImage}
+                  alt={item.label}
+                  image={item.image}
+                  imageClassName={navImageClassName}
+                />
               </Link>
             );
           })}

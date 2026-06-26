@@ -2,217 +2,320 @@ import Image from "next/image";
 
 const products = [
   {
-    name: "AEGIS PRO",
+    name: "FX Navi",
+    price: "$1,990+",
+    package: ["Modular", "Skill Package"],
+    image: "/assets/robotics/ff-navi-white.jpg",
+    imageFit: "object-contain",
+    imageClass: "origin-bottom object-bottom scale-[0.82] p-3 md:scale-[0.84] xl:scale-[0.88]",
+    accent: "navi",
+    summary: "A compact Navi quadruped for younger builders, classroom demos, and first robotics projects."
+  },
+  {
+    name: "Aegis Pro",
     price: "$4,490",
-    package: "NO SKILL PACKAGE",
-    image: "/assets/products/aegis-pro.png",
-    accent: "cyan"
+    package: ["No", "Skill Package"],
+    image: "/assets/robotics/ff-aegis-pro-sku.jpg",
+    imageFit: "object-contain",
+    imageClass: "origin-bottom object-bottom scale-[1.15] md:scale-[1.2] xl:scale-[1.35]",
+    accent: "aegis",
+    summary: "A professional embodied-AI quadruped for patrol, field mobility, demos, and prototyping."
   },
   {
-    name: "AEGIS ULTRA",
+    name: "Aegis Edu",
     price: "$9,990",
-    package: "+ $3,000 SKILL PACKAGE",
-    image: "/assets/products/aegis-ultra.png",
-    accent: "cyan"
+    package: ["Includes $1,000", "Skill Package"],
+    image: "/assets/robotics/ff-aegis-edu-sku.jpg",
+    imageFit: "object-contain",
+    imageClass: "origin-bottom object-bottom scale-[1.15] md:scale-[1.2] xl:scale-[1.35]",
+    accent: "aegis",
+    summary: "The Aegis education package for robotics courses, research training, and developer expansion."
   },
   {
-    name: "MASTER EDU",
-    price: "$27,990",
-    package: "+ $10,000 SKILL PACKAGE",
-    image: "/assets/master-edu.png",
-    accent: "violet"
-  },
-  {
-    name: "MASTER ULTRA",
-    price: "$49,990",
-    package: "+ $15,000 SKILL PACKAGE",
-    image: "/assets/master-ultra.png",
-    accent: "violet"
+    name: "Master Ultra",
+    price: "$64,990",
+    package: ["Includes $15,000", "Skill Package"],
+    image: "/assets/robotics/ff-master-ultra.jpg",
+    imageFit: "object-contain",
+    imageClass: "origin-top object-top scale-[1.55] md:scale-[1.65] xl:scale-[1.85]",
+    accent: "master",
+    summary: "The FF Master humanoid model Agentech currently carries, with expanded sensing and compute."
   }
 ] as const;
 
-const showPreorderButtons = false;
-
 const sections = [
   {
-    title: "MECHANICAL",
+    title: "LINEUP & PACKAGE",
     rows: [
-      ["FORM", "QUAD", "QUAD", "HUMANOID", "HUMANOID"],
-      ["DIMENSIONS", "-", "-", "131 x 46 x 21 CM", "131 x 46 x 21 CM"],
-      ["WEIGHT", "15 KG", "16 KG", "35 KG", "39 KG"],
-      ["MATERIALS", "-", "-", "MG ALLOY + AI + POLYURETHANE", "MG ALLOY + AI + POLYURETHANE"],
-      ["DOF", "12 DOF", "12 DOF", "25 DOF / NOT INCL. HAND", "30 DOF"],
-      ["PAYLOAD", "8 KG", "10 KG", "MAX 3 KG", "MAX 3 KG"],
-      ["MAX SPEED", "3.7 M/S", "5 M/S", "1.8 M/S", "1.8 M/S"],
-      ["PEAK TORQUE", "-", "-", "120 N*M", "120 N*M"],
-      ["STAIR CLIMB", "16 CM", "16 CM", "-", "-"],
-      ["OBSTACLE", "35 CM", "35 CM", "-", "-"],
-      ["PROTECTION LEVEL", "IP32", "IP54", "-", "-"],
-      ["SLOPE", "30\u00b0", "30-40\u00b0", "-", "-"]
+      ["ROBOT TYPE", "Compact Quadruped", "Pro Quadruped", "Edu Quadruped", "Humanoid"],
+      ["PRIMARY USE", "Youth / Classroom", "Patrol / Demo", "Education / Research", "Research / Performance"],
+      ["REFERENCE PRICE", "$1,990+", "$4,490", "$9,990", "$64,990"],
+      ["SKILL SET", "Youth AI / Classroom", "--", "$1,000 Valued Skill Package", "$15,000 Valued Skill Package"],
+      ["AGENTECH ORDERING", "Permit Pending", "Permit Pending", "Permit Pending", "Permit Pending"]
     ]
   },
   {
-    title: "POWER",
+    title: "MECHANICAL & MOTION",
     rows: [
-      ["BATTERY", "216 WH", "216 WH", "\u2265500 WH", "\u2265500 WH"],
-      ["RUNTIME", "1-2 H", "1-2 H", "2 H WALKING", "2 H WALKING"],
-      ["CHARGE", "1 H", "1 H", "\u2264 1.5 H / DIRECT + SWAP", "\u2264 1.5 H / AUTO-DOCK OPTION"],
-      ["CONNECTIVITY", "-", "-", "WI-FI, BLUETOOTH", "WI-FI, BLUETOOTH, 4G/5G"],
-      ["MOBILE APP", "-", "-", "UNDER DEV", "UNDER DEV"],
-      ["VR TELEOPERATION", "-", "-", "-", "YES"]
+      ["DIMENSIONS", "112 (308 Stand) x 298 x 515 mm", "610 x 370 x 406 mm", "610 x 370 x 406 mm", "1310 H x 460 W x 210 L mm"],
+      ["HEIGHT", "515 mm", "406 mm Stand", "406 mm Stand", "1310 mm"],
+      ["WEIGHT", "Approx. 8 kg", "15 kg", "15 kg", "39 kg"],
+      ["MATERIALS", "Carbon-fiber Composite + Soft Fabric", "Aluminum Alloy + Engineering Plastics", "Aluminum Alloy + Engineering Plastics", "Mg Alloy + Al + Polyurethane"],
+      ["DOF", "12 DOF", "12 DOF", "12 DOF", "30 DOF"],
+      ["MOTORS", "12 Joint Motors", "12 Joint Actuators", "12 Joint Actuators", "30 Motors"],
+      ["MAX SPEED", "2 m/s", "3.7 m/s", "3.7 m/s", "1.8 m/s Walking"],
+      ["PEAK TORQUE", "12 N*m Joint Torque", "48 N*m", "48 N*m", "120 N*m"],
+      ["STAIR CLIMB", "--", "16 cm", "16 cm", "--"],
+      ["PAYLOAD", "Light Payload", "Max 8 kg", "Max 8 kg", "Max 3 kg"],
+      ["OBSTACLE CROSSING", "Up to 34 cm", "35 cm", "35 cm", "--"],
+      ["MAX CLIMBING SLOPE", "--", "30 deg", "30 deg", "--"],
+      ["PROTECTION LEVEL", "--", "IP32", "IP32", "--"]
     ]
   },
   {
-    title: "INTELLIGENCE",
+    title: "POWER & CONNECTIVITY",
     rows: [
-      ["CAMERA", "4K WIDE", "4K WIDE", "RGB CAMERA", "INTERACTIVE + DUAL RGB + REAR + RGB-D"],
-      ["LIDAR", "-", "-", "-", "3D LIDAR"],
-      ["DISPLAY", "-", "-", "SCREEN + LIGHTS", "SCREEN + LIGHTS"],
-      ["IMU", "-", "-", "6-AXIS", "6-AXIS"],
-      ["SDK/DEV", "NO", "YES", "-", "-"]
+      ["RUNTIME", "Approx. 2 h", "1-2 h", "1-2 h", "Approx. 2 h Walking"],
+      ["BATTERY", "0.2-0.3 kWh Built-in Lithium", "216 Wh / 43.2 V", "216 Wh / 43.2 V", "Approx. 500 Wh"],
+      ["CHARGING TIME", "Direct US-spec Charging", "1 h", "1 h", "<= 1.5 h"],
+      ["AUTO CHARGING", "Optional Dock", "--", "In Development", "Optional Auto Dock"],
+      ["NETWORK", "Wi-Fi / Bluetooth / 4G / 5G", "Wi-Fi / Bluetooth", "Wi-Fi / Bluetooth", "Wi-Fi / Bluetooth / 4G / 5G"],
+      ["INPUT VOLTAGE", "US Household Power", "110-220 V", "110-220 V", "110-220 V"],
+      ["REMOTE CONTROL", "Remote Controller + Mobile App", "Remote Controller + App", "Remote Controller + App", "Remote Controller + App / VR"]
     ]
   },
   {
-    title: "CONTROLS & ACCESSORIES",
+    title: "PERCEPTION & COMPUTE",
     rows: [
-      ["CONTROLLER", "YES", "YES", "YES", "YES"],
-      ["APP CONTROL", "YES", "YES", "UNDER DEV", "UNDER DEV"],
-      ["COSTUME", "YES", "YES", "-", "-"],
-      ["EXPANSION", "-", "ETH,USB,SBUS,UART", "-", "-"]
+      ["COMPUTING PLATFORM", "Phone App + Localized UI", "--", "--", "NVIDIA Orin NX 16 GB"],
+      ["COMPUTING POWER", "Not Disclosed", "--", "--", "157 TOPS"],
+      ["CAMERAS", "Phone Camera / Mic / Display", "4K Wide-angle", "4K Wide-angle", "Interactive + Dual RGB + Rear + RGB-D"],
+      ["LIDAR", "Hardware Expansion API", "--", "--", "3D LiDAR"],
+      ["IMU", "--", "Supported", "Supported", "High-precision 6-axis"],
+      ["DISPLAY / EXPRESSIONS", "App Display + 10 Expressions", "--", "--", "Screen + Lights / 30+ Expressions"],
+      ["LANGUAGE INTERACTION", "50 Languages via App", "--", "--", "50+ Languages"]
     ]
   },
   {
-    title: "INTELLIGENCE & PLATFORM",
+    title: "PLATFORM & SKILLS",
     rows: [
-      ["COMPUTING", "-", "-", "-", "ORIN NX 16G / 157 TOPS"],
-      ["II & LM PLATFORM", "-", "-", "YES", "YES"],
-      ["OTA UPDATES", "-", "-", "YES", "YES"],
-      ["SECONDARY DEV", "-", "-", "-", "SDK / APIS"],
-      ["FACE RECOGNITION", "-", "-", "UNDER DEV", "UNDER DEV"]
-    ]
-  },
-  {
-    title: "PORTS & EXPANSION",
-    rows: [
-      ["USB", "-", "-", "TYPE-Ax1 + TYPE-Cx1", "TYPE-Ax2 + TYPE-Cx2"],
-      ["LAN", "-", "-", "-", "RJ45 x 2"],
-      ["VIDEO OUTPUT", "-", "-", "-", "MINI DP x 1"]
+      ["SECONDARY DEVELOPMENT", "Low-level Interface + Python SDK", "--", "SDK / APIs + Isaac Sim + Python", "SDK / APIs + Ubuntu 22.04"],
+      ["VISUAL PROGRAMMING", "Supported", "--", "Basic Platform", "Advanced + Python Code"],
+      ["OTA UPDATES", "Supported", "--", "--", "Continuous OTA Unlocks"],
+      ["AUTONOMOUS PATROL", "Command-driven", "--", "Auto Nav in Development", "--"],
+      ["AUTONOMOUS FOLLOWING", "--", "--", "--", "--"],
+      ["PRESET MOTIONS", "5+ Biomimetic Behaviors", "--", "--", "Body Motion + Performance Skills"],
+      ["EXPANSION PORTS", "5V / 12V + USB + Back Bolts", "--", "Ethernet / USB / SBUS / UART", "--"],
+      ["EXPANDABLE PERIPHERALS", "Sensors + Hardware Expansion", "Costume Included", "Edu Port Expansion", "Expandable Dexterous Hands"]
     ]
   },
 ] as const;
 
 const accentText = {
-  cyan: "text-[#1fb7ff]",
-  violet: "text-[#bd65ff]"
+  navi: "text-[#8fd8c8]",
+  aegis: "text-[#a8bdd6]",
+  master: "text-[#c9b8f2]"
 } as const;
 
-const accentBorder = {
-  cyan: "border-[#1fb7ff]/80 shadow-[0_0_40px_rgba(31,183,255,0.12)]",
-  violet: "border-[#bd65ff]/80 shadow-[0_0_40px_rgba(189,101,255,0.12)]"
-} as const;
+const runtimeLevels = [
+  "L0.0 Primitive Motors",
+  "L0.5 Atomic Actions",
+  "L1.0 Behaviors",
+  "L1.5 Tasks",
+  "L2.0 Agentic Workflows",
+  "L2.5 Missions"
+] as const;
 
 export default function AgentechRoboticPage() {
   return (
-    <>
+    <div className="overflow-x-hidden bg-[#030506] text-white">
       <div id="top" />
-      <section className="border-b border-[#363d45]/70">
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-          <Image
-            src="/assets/Agentech Robotic.png"
-            alt="Agentech Robotic"
-            width={1000}
-            height={247}
-            className="h-auto w-full max-w-3xl"
-            priority
-          />
+
+      <section className="relative isolate min-h-[430px] overflow-hidden border-b border-white/10 bg-[#030506] lg:min-h-[500px]">
+        <Image
+          src="/assets/ff-robotics/ff-master-x2-hero.jpg"
+          alt="FF Master humanoid robot"
+          fill
+          sizes="100vw"
+          className="object-cover object-[68%_center] opacity-88"
+          priority
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,#030506_0%,rgba(3,5,6,0.98)_26%,rgba(3,5,6,0.48)_58%,rgba(3,5,6,0.10)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#030506] to-transparent" />
+
+        <div className="relative mx-auto flex min-h-[430px] max-w-7xl items-center px-6 py-14 lg:min-h-[500px] lg:px-8">
+          <div className="min-w-0 max-w-2xl">
+            <Image
+              src="/assets/logo/AGENTECH-robotic-solid.png"
+              alt="Agentech Robotics"
+              width={1000}
+              height={247}
+              className="h-auto w-full max-w-[280px] opacity-95 sm:max-w-[340px] lg:max-w-[380px]"
+              priority
+            />
+            <p
+              className="mt-10 text-xs font-semibold uppercase tracking-[0.34em] text-[#91dfff]"
+              style={{ fontFamily: "var(--font-sans)" }}
+            >
+              Physical AI Robotics Platform
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-3 py-10 font-[var(--font-brand)] text-white sm:px-5 md:px-6 lg:px-8 lg:py-20">
-        <div className="overflow-x-auto bg-[#020509] shadow-[0_0_90px_rgba(31,183,255,0.08)]">
-          <div className="min-w-[900px] lg:min-w-0">
-          <div className="grid grid-cols-4 border border-[#1b5f91]/70">
-            {products.map((product) => (
-              <article
-                key={product.name}
-                className={`relative flex min-h-[23rem] flex-col items-center border-l border-[#1b5f91]/70 bg-[radial-gradient(circle_at_center,rgba(31,183,255,0.12),transparent_35%),linear-gradient(180deg,rgba(8,18,27,0.72),rgba(1,3,7,0.96))] px-4 pb-6 pt-5 text-center first:border-l-0 lg:min-h-[28rem] lg:px-6 lg:pb-8 lg:pt-7 ${accentBorder[product.accent]}`}
-              >
-                <div className="relative h-40 w-full lg:h-56">
+      <section id="robotics-products" className="mx-auto max-w-7xl px-6 pb-3 pt-16 lg:px-8 lg:pb-4 lg:pt-20">
+        <div className="flex justify-end">
+          <div className="min-w-0 max-w-xl text-right">
+            <p
+              className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#91dfff]"
+              style={{ fontFamily: "var(--font-sans)" }}
+            >
+              Robot Lineup
+            </p>
+            <h2
+              className="mt-4 break-words text-2xl font-semibold leading-[1.12] tracking-[0.04em] text-white md:text-3xl"
+              style={{ fontFamily: "var(--font-brand)" }}
+            >
+              Choose the body, sensors, and access level for the build.
+            </h2>
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-y-14 md:grid-cols-2 md:gap-x-8 xl:grid-cols-5 xl:gap-x-0">
+          <div className="hidden xl:block" aria-hidden="true" />
+          {products.map((product) => (
+            <article
+              key={product.name}
+              className="group relative min-w-0 xl:px-4"
+            >
+              <div className="relative flex min-h-[26rem] flex-col">
+                <div className="relative h-56 min-w-0 overflow-hidden rounded-sm bg-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition duration-500 group-hover:shadow-[0_24px_70px_rgba(0,0,0,0.34)] md:h-64">
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
-                    sizes="(min-width: 1024px) 25vw, 225px"
-                    className="object-contain"
-                    priority={product.name === "AEGIS PRO"}
+                    sizes="(min-width: 1280px) 20vw, (min-width: 768px) 50vw, 100vw"
+                    className={`${product.imageFit} transition duration-500 group-hover:brightness-105 ${product.imageClass}`}
+                    priority={product.name === "FX Navi"}
                   />
                 </div>
-                <div className="relative z-10 mt-7 lg:mt-10">
-                  <h2 className={`text-2xl tracking-[0.04em] lg:text-4xl ${accentText[product.accent]}`}>
-                    {product.name}
-                  </h2>
-                  <p className="mt-4 text-xl tracking-[0.03em] text-white lg:mt-5 lg:text-2xl">{product.price}</p>
-                  <p className={`mt-3 text-xs tracking-[0.04em] lg:text-sm ${accentText[product.accent]}`}>
-                    {product.package}
-                  </p>
-                  {showPreorderButtons ? (
-                    <a
-                      href={`/login?next=${encodeURIComponent(`/preorder?product=${encodeURIComponent(product.name)}`)}`}
-                      className={`mt-6 inline-flex border px-6 py-2.5 text-base tracking-[0.05em] transition hover:bg-white/10 lg:mt-7 lg:px-8 lg:py-3 lg:text-lg ${accentText[product.accent]} ${accentBorder[product.accent]}`}
-                    >
-                      PRE-ORDER
-                    </a>
-                  ) : null}
-                </div>
-              </article>
-            ))}
-          </div>
 
-          <div className="border-x border-b border-[#1b5f91]/70">
-            {sections.map((section) => (
-              <section key={section.title} className="border-t border-[#1b5f91]/70 first:border-t-0">
-                <h2 className="border-b border-white/15 px-5 py-4 text-base tracking-[0.06em] text-[#1fb7ff] lg:px-8 lg:py-6 lg:text-xl">
-                  {section.title}
-                </h2>
-                <div>
-                  <table className="w-full border-collapse text-left">
-                    <tbody>
-                      {section.rows.map(([label, aegisPro, aegisUltra, masterEdu, masterUltra]) => (
-                        <tr key={label} className="border-b border-white/15 last:border-b-0">
-                          <th className="w-1/5 px-5 py-4 text-sm font-medium tracking-[0.03em] text-white lg:px-8 lg:py-5 lg:text-lg">
-                            {label}
-                          </th>
-                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#1fb7ff] lg:px-6 lg:py-5 lg:text-base">
-                            {aegisPro}
-                          </td>
-                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#1fb7ff] lg:px-6 lg:py-5 lg:text-base">
-                            {aegisUltra}
-                          </td>
-                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#bd65ff] lg:px-6 lg:py-5 lg:text-base">
-                            {masterEdu}
-                          </td>
-                          <td className="w-1/5 border-l border-white/15 px-4 py-4 text-center text-sm tracking-[0.02em] text-[#bd65ff] lg:px-6 lg:py-5 lg:text-base">
-                            {masterUltra}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="mt-6 flex min-w-0 flex-1 flex-col">
+                  <p
+                    className={`min-h-9 text-xs font-semibold leading-[1.45] tracking-[0.18em] ${accentText[product.accent]}`}
+                    style={{ fontFamily: "var(--font-brand)" }}
+                  >
+                    {product.package.map((line) => (
+                      <span key={line} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </p>
+                  <h3
+                    className="mt-3 break-words text-2xl font-semibold tracking-[0.04em] text-white"
+                    style={{ fontFamily: "var(--font-brand)" }}
+                  >
+                    {product.name}
+                  </h3>
+                  <p
+                    className="mt-3 text-2xl font-semibold tracking-[0.03em] text-slate-100"
+                    style={{ fontFamily: "var(--font-brand)" }}
+                  >
+                    {product.price}
+                  </p>
+                  <p
+                    className="mt-4 break-words text-sm leading-6 text-slate-400"
+                    style={{ fontFamily: "var(--font-sans)" }}
+                  >
+                    {product.summary}
+                  </p>
+
                 </div>
-              </section>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="robotics-specs" className="mx-auto max-w-7xl px-3 pb-16 sm:px-5 md:px-6 lg:px-8 lg:pb-24">
+        <div className="overflow-x-auto rounded-lg border border-[#1b5f91]/70 bg-[#020509] shadow-[0_32px_110px_rgba(31,183,255,0.08)]">
+          <table className="min-w-[960px] w-full border-collapse text-left">
+            {sections.map((section) => (
+              <tbody key={section.title}>
+                <tr className="border-t border-[#1b5f91]/70 first:border-t-0">
+                  <th
+                    colSpan={5}
+                    className="bg-[#04101a] px-5 py-5 text-sm font-semibold uppercase tracking-[0.22em] text-[#91dfff] lg:px-8 lg:py-6"
+                  >
+                    {section.title}
+                  </th>
+                </tr>
+                {section.rows.map(([label, ...values]) => (
+                  <tr key={label} className="border-t border-white/10 transition hover:bg-white/[0.03]">
+                    <th className="w-1/5 px-5 py-4 text-sm font-semibold tracking-[0.04em] text-slate-200 lg:px-8 lg:py-5">
+                      {label}
+                    </th>
+                    {values.map((value, index) => (
+                      <td
+                        key={`${label}-${products[index]?.name ?? index}`}
+                        className={`w-1/5 break-words border-l border-white/10 px-4 py-4 text-center text-sm font-medium leading-[1.62] tracking-normal lg:px-6 lg:py-5 ${accentText[products[index]?.accent ?? "aegis"]}`}
+                        style={{ fontFamily: "var(--font-mono)" }}
+                      >
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
             ))}
+          </table>
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#05080c] px-6 py-14 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#91dfff]">Agentech Runtime Layer</p>
+            <h2
+              className="mt-3 break-words text-3xl font-semibold tracking-[0.02em] text-white md:text-4xl"
+              style={{ fontFamily: "var(--font-brand)" }}
+            >
+              Robot bodies become systems when the skill graph sits above them.
+            </h2>
+            <p
+              className="mt-5 max-w-2xl text-xs leading-6 tracking-[0.02em] text-slate-400 md:text-sm md:leading-7"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              The platforms above are the physical layer. Agentech focuses on the runtime, skill graph, and agentic workflow that turn hardware into controllable, repeatable, and increasingly autonomous work.
+            </p>
           </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:justify-self-end">
+            {runtimeLevels.map((level) => (
+              <div
+                key={level}
+                className="rounded-sm border border-white/10 bg-white/[0.035] px-4 py-3 text-xs uppercase tracking-[0.14em] text-[#9fe8d2]"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                {level}
+              </div>
+            ))}
           </div>
         </div>
+        <p
+          id="robotics-ordering-remark"
+          className="mx-auto mt-8 max-w-7xl text-right text-[10px] leading-5 text-slate-500 opacity-70"
+        >
+          Remark: ordering availability is pending reseller permit approval.
+        </p>
       </section>
       <a
         href="#top"
         aria-label="Back to top"
-        className="fixed right-4 z-[60] grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-black/80 text-xs font-semibold tracking-[0.16em] text-white shadow-[0_16px_45px_rgba(0,0,0,0.45)] backdrop-blur transition hover:bg-white hover:text-black sm:right-6"
+        className="fixed right-4 z-[60] hidden h-12 w-12 place-items-center rounded-full border border-white/15 bg-black/80 text-xs font-semibold tracking-[0.16em] text-white shadow-[0_16px_45px_rgba(0,0,0,0.45)] backdrop-blur transition hover:bg-white hover:text-black sm:right-6 md:grid"
         style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
       >
         TOP
       </a>
-    </>
+    </div>
   );
 }

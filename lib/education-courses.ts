@@ -111,10 +111,10 @@ export const educationCourses: EducationCourse[] = [
     minAge: 13,
     maxAge: 19,
     price: 0,
-    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
+    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr",
     detailFlyerImages: [
-      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
-      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png"
+      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr",
+      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png?v=20260626-qr"
     ]
   }
 ];
