@@ -25,8 +25,8 @@ const guideDownloadNames: Record<Language, string> = {
 const enrollmentHref = `/enroll?course=${eaiImmersionCourseCode}`;
 
 const flyerHrefs: Record<Language, string> = {
-  en: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
-  zh: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png"
+  en: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr",
+  zh: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png?v=20260626-qr"
 };
 
 const flyerDownloadNames: Record<Language, string> = {

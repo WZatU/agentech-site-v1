@@ -30,14 +30,14 @@ export default function TalentsPage() {
   return (
     <div className="min-h-screen bg-white text-black">
       <section className="border-b border-slate-200">
-        <div className="mx-auto flex max-w-7xl justify-center px-6 py-14 lg:px-8 lg:py-20">
+        <div className="mx-auto flex max-w-7xl justify-center px-6 py-8 lg:px-8 lg:py-10">
           <Image
             src="/assets/logo/AGENTECH-talents.png"
             alt="Agentech Talents"
             width={900}
             height={180}
             priority
-            className="h-auto w-[min(78vw,520px)] object-contain sm:w-[min(68vw,640px)] lg:w-[min(52vw,760px)]"
+            className="h-auto w-full max-w-md object-contain"
           />
         </div>
       </section>

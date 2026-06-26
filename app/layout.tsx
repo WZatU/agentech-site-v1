@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope, Oxanium, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
+import { AgentCursor } from "@/components/agent-cursor";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { gaMeasurementId, siteUrl } from "@/lib/site-config";
@@ -79,6 +80,7 @@ export default function RootLayout({
           `}
         </Script>
         <div className="relative flex min-h-screen flex-col">
+          <AgentCursor />
           <SiteHeader />
           <main className="flex-1">{children}</main>
           <SiteFooter />

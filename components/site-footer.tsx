@@ -12,9 +12,9 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-[#363d45]/70 bg-black">
-      <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 text-sm font-medium uppercase tracking-[0.22em] text-slate lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-[11px] font-medium uppercase tracking-[0.18em] text-slate sm:gap-5 sm:px-6 sm:py-8 sm:text-sm sm:tracking-[0.22em] lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <p>Agentech, Inc.</p>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-8">
+        <div className="flex gap-6 sm:flex-col sm:gap-5 lg:flex-row lg:items-center lg:gap-8">
           <Link href="/about" className="transition hover:text-white">
             About
           </Link>
