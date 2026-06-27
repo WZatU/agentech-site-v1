@@ -24,12 +24,26 @@ const localPreviewAssets: Record<string, string> = {
   stand: "/assets/products/aegis-previews/stand.gif",
   sit: "/assets/products/aegis-previews/sit.gif",
   stop: "/assets/products/aegis-previews/stop.gif",
-  get_battery_status: "/assets/products/aegis-previews/stand.gif"
+  get_battery_status: "/assets/products/aegis-previews/battery_status.gif"
 };
 const localPreviewFallback = "/assets/products/aegis-previews/stand.gif";
+const protectedStandLine = "Agentech.stand(stand_wait=5)";
+const commandsRequiringStand = new Set([
+  "forward",
+  "backward",
+  "lateral_left",
+  "lateral_right",
+  "turn_left",
+  "turn_right",
+  "twist_left",
+  "twist_right",
+  "look_up",
+  "look_down"
+]);
 
 function detectPrimaryPreviewCommand(code: string) {
   const lines = code.split(/\r?\n/);
+  let fallbackCommand = "stand";
   for (const rawLine of lines) {
     const line = rawLine.trim();
     const match = line.match(/(?:Agentech|dog)\.(\w+)\((.*)\)/);
@@ -38,10 +52,45 @@ function detectPrimaryPreviewCommand(code: string) {
     }
     const [, command] = match;
     if (localPreviewAssets[command]) {
+      if (command === "stand") {
+        fallbackCommand = "stand";
+        continue;
+      }
       return command;
     }
   }
-  return "stand";
+  return fallbackCommand;
+}
+
+function codeUsesStandRequiredCommand(code: string) {
+  const pattern = /(?:Agentech|dog)\.(\w+)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(code)) !== null) {
+    if (commandsRequiringStand.has(match[1])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function codeHasStandCommand(code: string) {
+  return /(?:Agentech|dog)\.stand\s*\(/.test(code);
+}
+
+function ensureRequiredStand(code: string) {
+  if (!codeUsesStandRequiredCommand(code) || codeHasStandCommand(code)) {
+    return code;
+  }
+
+  const lines = code.split(/\r?\n/);
+  const importIndex = lines.findIndex((line) => line.trim() === "from agentech import Agentech");
+  if (importIndex >= 0) {
+    const nextLines = [...lines];
+    nextLines.splice(importIndex + 1, 0, "", protectedStandLine);
+    return nextLines.join("\n");
+  }
+
+  return `from agentech import Agentech\n\n${protectedStandLine}\n${code.trimStart()}`;
 }
 
 function previewAssetForCode(code: string, preferredCommand?: string) {
@@ -552,24 +601,32 @@ export function AgentechLibraryWorkbench() {
     setSimFrameIndex(0);
   }
 
+  function updateCode(nextCode: string, preferredCommand?: string) {
+    const normalizedCode = ensureRequiredStand(nextCode);
+    setCode(normalizedCode);
+    resetPreview(normalizedCode, preferredCommand);
+  }
+
   function loadExample(item: AgentechFunction) {
-    const nextCode = `from agentech import Agentech\n\n${item.example}`;
+    const nextCode = ensureRequiredStand(`from agentech import Agentech\n\n${item.example}`);
     setActiveName(item.name);
-    setCode(nextCode);
-    resetPreview(nextCode, item.name);
+    updateCode(nextCode, item.name);
   }
 
   function loadCategory(category: Category) {
     const example = categoryExamples[category];
     setActiveCategory(category);
     setActiveName(example.activeName);
-    setCode(example.code);
-    resetPreview(example.code, example.activeName);
+    updateCode(example.code, example.activeName);
   }
 
   async function runPreviewSimulation() {
+    const runnableCode = ensureRequiredStand(code);
+    if (runnableCode !== code) {
+      setCode(runnableCode);
+    }
     setIsSimulating(true);
-    const primary = detectPrimaryPreviewCommand(code);
+    const primary = detectPrimaryPreviewCommand(runnableCode);
     setPreviewCommand(primary);
     setPreviewGif(localPreviewAssets[primary] ?? localPreviewFallback);
     setRenderedFrames([]);
@@ -588,7 +645,7 @@ export function AgentechLibraryWorkbench() {
       const response = await fetch("/api/agentech-simulate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code: runnableCode }),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({ error: "Simulation returned an unreadable response." }));
@@ -619,6 +676,11 @@ export function AgentechLibraryWorkbench() {
   }
 
   async function submitCodeForReview() {
+    const reviewCode = ensureRequiredStand(code);
+    if (reviewCode !== code) {
+      setCode(reviewCode);
+    }
+    const reviewPlan = commandPlan(reviewCode);
     setIsSubmittingCode(true);
     setRequestStatus("Submitting code package for robot review...");
     try {
@@ -629,10 +691,10 @@ export function AgentechLibraryWorkbench() {
           developerName,
           robotModel,
           runMode,
-          code,
+          code: reviewCode,
           githubRepoUrl,
           githubBranch,
-          commands: plan.trace
+          commands: reviewPlan.trace
         })
       });
       const payload = await response.json();
@@ -787,13 +849,14 @@ export function AgentechLibraryWorkbench() {
               <textarea
                 value={code}
                 onChange={(event) => {
-                  const nextCode = event.target.value;
-                  setCode(nextCode);
-                  resetPreview(nextCode);
+                  updateCode(event.target.value);
                 }}
                 spellCheck={false}
                 className="h-[520px] w-full resize-none border-0 bg-[#0d1117] p-5 font-mono text-sm leading-7 text-[#e5edf5] outline-none selection:bg-[#275c37]"
               />
+              <div className="border-t border-[#2a3440] bg-[#0d1117] px-5 py-3 text-xs leading-5 text-[#8fdc8f]">
+                Required for motion code: <span className="font-mono">{protectedStandLine}</span>. Students can change parameters, but motion previews and submissions keep a stand command before movement.
+              </div>
             </div>
             <div className="border-t border-[#2a3440] bg-[#11151b] xl:border-l xl:border-t-0">
               <div className="border-b border-[#2a3440] px-4 py-3">
