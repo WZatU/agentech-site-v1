@@ -243,12 +243,8 @@ function FunctionReference({ item }: { item: AgentechFunction }) {
         </div>
         <div className="space-y-3">
           <div className="border border-[#2a3440] bg-[#0d1117] p-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Internal Mapping</p>
-            <p className="mt-2 font-mono text-sm text-[#8fdc8f]">{item.actionCard}</p>
-          </div>
-          <div className="border border-[#2a3440] bg-[#0d1117] p-3">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">FF SDK Grounding</p>
-            <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{item.grounding}</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Student Call</p>
+            <p className="mt-2 font-mono text-sm text-[#8fdc8f]">{item.signature}</p>
           </div>
           <pre className="overflow-x-auto border border-[#2a3440] bg-[#0d1117] p-3 font-mono text-xs leading-5 text-[#e5edf5]">
             {item.example}
@@ -275,7 +271,7 @@ function DocsOverview() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Library Documentation</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">Start here: install, import, call one function.</h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[#b8c2cc]">
-              This page is the documentation. Students can learn the library, see every beginner function, preview approved motion GIFs, and submit pasted code or a GitHub branch for robot review without leaving this screen.
+              This page is the documentation. Students can learn the public Agentech API, see every beginner function, preview approved motion GIFs, and submit pasted code or a GitHub branch for robot review without leaving this screen.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a href="#agentech-docs" className="border border-[#8fdc8f] bg-[#17351f] px-4 py-2 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]">
@@ -392,7 +388,7 @@ Live camera -> Website viewer -> Student watches the run`;
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Agentech Docs</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">One page to install, write, preview, and submit robot dog code.</h2>
           <p className="mt-4 text-sm leading-7 text-[#b8c2cc]">
-            These docs are written for students and developers who need to move the Aegis robot quickly without reading the FF SDK internals first. The common path is simple: install the package, import Agentech, write one-line commands, preview approved action clips, then submit code or a GitHub branch for a reviewed robot session.
+            These docs are written for students and developers who need to move the Aegis robot quickly using the public Agentech API. The common path is simple: install the package, import Agentech, write one-line commands, preview approved action clips, then submit code or a GitHub branch for a reviewed robot session.
           </p>
         </div>
 
@@ -426,7 +422,7 @@ Live camera -> Website viewer -> Student watches the run`;
                     <th className="px-4 py-3">Function</th>
                     <th className="px-4 py-3">Use it for</th>
                     <th className="px-4 py-3">Easy parameters</th>
-                    <th className="px-4 py-3">SDK grounding</th>
+                    <th className="px-4 py-3">Example</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#2a3440] text-[#cdd6df]">
@@ -437,7 +433,7 @@ Live camera -> Website viewer -> Student watches the run`;
                       <td className="px-4 py-3 font-mono text-xs text-[#f5d06f]">
                         {item.params.length ? item.params.map((param) => `${param.name}=${param.defaultValue ?? "required"}`).join(", ") : "none"}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-[#93c5fd]">{item.grounding}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#93c5fd]">{item.example}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -533,8 +529,8 @@ Live camera -> Website viewer -> Student watches the run`;
                     <p className="mt-2 text-xs leading-5 text-[#aeb8c2]">No parameters.</p>
                   )}
                 </div>
-                <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Internal card</p>
-                <p className="mt-1 font-mono text-xs leading-5 text-[#93c5fd]">{item.actionCard}</p>
+                <p className="mt-3 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Public API</p>
+                <p className="mt-1 font-mono text-xs leading-5 text-[#93c5fd]">{item.signature}</p>
               </div>
             ))}
           </div>
