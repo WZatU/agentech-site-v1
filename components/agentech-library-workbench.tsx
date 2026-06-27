@@ -13,8 +13,12 @@ const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
 const localPreviewAssets: Record<string, string> = {
   forward: "/assets/products/aegis-previews/forward.gif",
   backward: "/assets/products/aegis-previews/backward.gif",
+  lateral_left: "/assets/products/aegis-previews/lateral_left.gif",
+  lateral_right: "/assets/products/aegis-previews/lateral_right.gif",
   turn_left: "/assets/products/aegis-previews/turn_left.gif",
   turn_right: "/assets/products/aegis-previews/turn_right.gif",
+  twist_left: "/assets/products/aegis-previews/twist_left.gif",
+  twist_right: "/assets/products/aegis-previews/twist_right.gif",
   look_up: "/assets/products/aegis-previews/look_up.gif",
   look_down: "/assets/products/aegis-previews/look_down.gif",
   stand: "/assets/products/aegis-previews/stand.gif",
@@ -52,8 +56,12 @@ function previewCommandLabel(command: string) {
   const labels: Record<string, string> = {
     forward: "Forward",
     backward: "Backward",
+    lateral_left: "Lateral Left",
+    lateral_right: "Lateral Right",
     turn_left: "Turn Left",
     turn_right: "Turn Right",
+    twist_left: "Twist Left",
+    twist_right: "Twist Right",
     look_up: "Look Up",
     look_down: "Look Down",
     stand: "Stand",
@@ -66,14 +74,18 @@ function previewCommandLabel(command: string) {
 
 const categoryExamples: Record<Category, { activeName: string; code: string }> = {
   All: {
-    activeName: "forward",
+    activeName: "stand",
     code: `from agentech import Agentech
 
+Agentech.stand(stand_wait=5)
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
+Agentech.lateral_left(speed=0.2, seconds=1)
+Agentech.lateral_right(speed=0.2, seconds=1)
 Agentech.turn_left(angle=45)
 Agentech.turn_right(angle=45)
-Agentech.stand()
+Agentech.twist_left(angle=28)
+Agentech.twist_right(angle=28)
 Agentech.look_up(angle=15)
 Agentech.look_down(angle=15)
 print(Agentech.get_battery_status())
@@ -83,16 +95,21 @@ Agentech.stop()`
     activeName: "forward",
     code: `from agentech import Agentech
 
+Agentech.stand(stand_wait=5)
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
+Agentech.lateral_left(speed=0.2, seconds=1)
+Agentech.lateral_right(speed=0.2, seconds=1)
 Agentech.turn_left(angle=45)
-Agentech.turn_right(angle=45)`
+Agentech.turn_right(angle=45)
+Agentech.twist_left(angle=28)
+Agentech.twist_right(angle=28)`
   },
   Posture: {
     activeName: "stand",
     code: `from agentech import Agentech
 
-Agentech.stand()
+Agentech.stand(stand_wait=5)
 Agentech.sit()`
   },
   Safety: {
@@ -106,7 +123,7 @@ Agentech.get_battery_status()`
     activeName: "look_up",
     code: `from agentech import Agentech
 
-Agentech.stand()
+Agentech.stand(stand_wait=5)
 Agentech.look_up(angle=15)
 Agentech.look_down(angle=15)
 print(Agentech.get_battery_status())`
@@ -131,7 +148,7 @@ function commandPlan(code: string) {
 
   return {
     trace: trace.length ? trace : ["No Agentech commands found yet."],
-    motionCount: trace.filter((line) => /forward|backward|turn_left|turn_right|look_up|look_down/.test(line)).length
+    motionCount: trace.filter((line) => /forward|backward|lateral_left|lateral_right|turn_left|turn_right|twist_left|twist_right|look_up|look_down/.test(line)).length
   };
 }
 
@@ -229,9 +246,11 @@ function DocsOverview() {
 
 from agentech import Agentech
 
-Agentech.forward()
-Agentech.turn_left(angle=45)
-Agentech.look_up(angle=15)`}</pre>
+Agentech.stand(stand_wait=5)
+Agentech.forward(speed=0.3, seconds=1)
+Agentech.backward(speed=0.2, seconds=1)
+Agentech.lateral_left(speed=0.2, seconds=1)
+Agentech.lateral_right(speed=0.2, seconds=1)`}</pre>
           </div>
         </div>
 
@@ -266,21 +285,41 @@ Agentech.look_up(angle=15)`}</pre>
 
 function DocsSection() {
   const beginnerFunctions = agentechFunctions.filter((item) =>
-    ["forward", "backward", "turn_left", "turn_right", "look_up", "look_down", "stand", "sit", "stop", "get_battery_status"].includes(item.name)
+    [
+      "forward",
+      "backward",
+      "lateral_left",
+      "lateral_right",
+      "turn_left",
+      "turn_right",
+      "twist_left",
+      "twist_right",
+      "look_up",
+      "look_down",
+      "stand",
+      "sit",
+      "stop",
+      "get_battery_status"
+    ].includes(item.name)
   );
   const workflowExample = `from agentech import Agentech
 
 with Agentech.robot(dry_run=True) as dog:
-    dog.stand()
+    dog.stand(stand_wait=5)
     dog.forward(speed=0.25, seconds=1)
+    dog.backward(speed=0.2, seconds=1)
+    dog.lateral_left(speed=0.2, seconds=1)
+    dog.lateral_right(speed=0.2, seconds=1)
     dog.turn_left(angle=45)
+    dog.twist_right(angle=28)
     dog.look_up(angle=15)
     dog.look_down(angle=15)
     battery = dog.get_battery_status()
     dog.stop()`;
   const submitExample = `# Option 1: paste code into this page
+Agentech.stand(stand_wait=5)
 Agentech.forward()
-Agentech.turn_left(angle=45)
+Agentech.lateral_left(speed=0.2, seconds=1)
 
 # Option 2: submit a GitHub repo and branch
 repo = "https://github.com/team/robot-project"
@@ -288,6 +327,7 @@ branch = "main"`;
   const robotRunnerExample = `# student_forward.py
 from agentech import Agentech
 
+Agentech.stand(stand_wait=5)
 Agentech.forward()
 
 # After review, the scheduled robot session sends approved code
@@ -364,7 +404,7 @@ Live camera -> Website viewer -> Student watches the run`;
                 <p>Backward speed is capped at 2.365 m/s.</p>
                 <p>Lateral speed benchmark is 0.78 m/s.</p>
                 <p>Yaw rate is capped at +/-2.09 rad/s; slow yaw reference is 1.05 rad/s.</p>
-                <p>Look up is capped at 19 degrees; look down is capped at 21 degrees.</p>
+                <p>Look up and look down are capped at 25 degrees so the dog does not tilt unrealistically.</p>
                 <p>Roll benchmark limit is 28 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Linear acceleration benchmark is about 2.5 m/s^2.</p>
@@ -458,7 +498,7 @@ Live camera -> Website viewer -> Student watches the run`;
 export function AgentechLibraryWorkbench() {
   const [code, setCode] = useState(starterCode);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
-  const [activeName, setActiveName] = useState("forward");
+  const [activeName, setActiveName] = useState("stand");
   const [requestStatus, setRequestStatus] = useState("Ready for a supervised robot session request.");
   const [developerName, setDeveloperName] = useState("");
   const [robotModel, setRobotModel] = useState("Aegis Ultra");
@@ -466,7 +506,7 @@ export function AgentechLibraryWorkbench() {
   const [githubRepoUrl, setGithubRepoUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-  const initialPreview = previewAssetForCode(starterCode, "forward");
+  const initialPreview = previewAssetForCode(starterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
   const [previewCommand, setPreviewCommand] = useState<string>(initialPreview.command);
   const [previewStatus, setPreviewStatus] = useState(
@@ -648,7 +688,7 @@ export function AgentechLibraryWorkbench() {
               Agentech Robot Dog Library
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: forward, backward, turns, posture, stop, and battery status in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, twist, posture, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">
@@ -912,6 +952,7 @@ export function AgentechLibraryWorkbench() {
               <ul className="mt-3 space-y-2 text-sm text-[#cdd6df]">
                 <li>Dry-run first</li>
                 <li>Forward capped at 2.37 m/s; backward capped at 2.365 m/s</li>
+                <li>Lateral walking capped at 0.78 m/s</li>
                 <li>Motion capped at 10 seconds</li>
                 <li>Emergency stop is always available</li>
               </ul>

@@ -28,7 +28,7 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [
       { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. report_zh Aegis v0.1 limit: 0.0 to 2.37 m/s." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to walk. Valid range: 0.0 to 10.0." },
-      { name: "stand_wait", type: "float", defaultValue: "1.0", description: "Automatic wait after stand before motion starts. Set to 0 only if posture is already managed." }
+      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts. Set to 0 only if posture is already managed." }
     ]
   },
   {
@@ -42,7 +42,35 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [
       { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. report_zh Aegis v0.1 measured limit: 0.0 to 2.365 m/s." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward. Valid range: 0.0 to 10.0." },
-      { name: "stand_wait", type: "float", defaultValue: "1.0", description: "Automatic wait after stand before motion starts." }
+      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
+    ]
+  },
+  {
+    name: "lateral_left",
+    category: "Movement",
+    signature: "Agentech.lateral_left(speed=0.2, seconds=1.0)",
+    summary: "Walk sideways to the robot's left using the FF SDK lateral velocity channel.",
+    actionCard: "aegis.walk_lateral_left",
+    grounding: "motion.cmd_vel(linear=0.0, lateral=+speed, angular=0.0)",
+    example: "Agentech.lateral_left(speed=0.2, seconds=1)",
+    params: [
+      { name: "speed", type: "float", defaultValue: "0.2", description: "Left lateral speed in meters per second. report_zh Aegis v0.1 lateral benchmark limit: 0.0 to 0.78 m/s." },
+      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move laterally. Valid range: 0.0 to 10.0." },
+      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
+    ]
+  },
+  {
+    name: "lateral_right",
+    category: "Movement",
+    signature: "Agentech.lateral_right(speed=0.2, seconds=1.0)",
+    summary: "Walk sideways to the robot's right using the FF SDK lateral velocity channel.",
+    actionCard: "aegis.walk_lateral_right",
+    grounding: "motion.cmd_vel(linear=0.0, lateral=-speed, angular=0.0)",
+    example: "Agentech.lateral_right(speed=0.2, seconds=1)",
+    params: [
+      { name: "speed", type: "float", defaultValue: "0.2", description: "Right lateral speed in meters per second. report_zh Aegis v0.1 lateral benchmark limit: 0.0 to 0.78 m/s." },
+      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move laterally. Valid range: 0.0 to 10.0." },
+      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
     ]
   },
   {
@@ -54,7 +82,7 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.attitude_control(pitch_vel=+speed)",
     example: "Agentech.look_up(angle=15)",
     params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward attitude/camera tilt change in degrees. report_zh pitch limit: 0 to 19 degrees." },
+      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward attitude/camera tilt change in degrees. Capped at 25 degrees so the motion stays realistic." },
       { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Valid API range: 0.03 to 0.5; recommended first tests stay near 0.10 to 0.15." }
     ]
   },
@@ -67,7 +95,7 @@ export const agentechFunctions: AgentechFunction[] = [
     grounding: "motion.attitude_control(pitch_vel=-speed)",
     example: "Agentech.look_down(angle=15)",
     params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward attitude/camera tilt change in degrees. report_zh pitch limit: 0 to 21 degrees." },
+      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward attitude/camera tilt change in degrees. Capped at 25 degrees so the motion stays realistic." },
       { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Valid API range: 0.03 to 0.5; recommended first tests stay near 0.10 to 0.15." }
     ]
   },
@@ -98,6 +126,32 @@ export const agentechFunctions: AgentechFunction[] = [
     ]
   },
   {
+    name: "twist_left",
+    category: "Movement",
+    signature: "Agentech.twist_left(angle=28, speed=0.35)",
+    summary: "Fixed-foot left body twist for small in-place heading adjustment.",
+    actionCard: "aegis.twist_left",
+    grounding: "motion.cmd_vel(angular=+speed) with fixed-foot twist preview",
+    example: "Agentech.twist_left(angle=28)",
+    params: [
+      { name: "angle", type: "float", defaultValue: "28", description: "Left twist angle in degrees. report_zh roll/twist benchmark reference: 28 degrees." },
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the twist. Valid range: 0.05 to 2.09 rad/s." }
+    ]
+  },
+  {
+    name: "twist_right",
+    category: "Movement",
+    signature: "Agentech.twist_right(angle=28, speed=0.35)",
+    summary: "Fixed-foot right body twist for small in-place heading adjustment.",
+    actionCard: "aegis.twist_right",
+    grounding: "motion.cmd_vel(angular=-speed) with fixed-foot twist preview",
+    example: "Agentech.twist_right(angle=28)",
+    params: [
+      { name: "angle", type: "float", defaultValue: "28", description: "Right twist angle in degrees. report_zh roll/twist benchmark reference: 28 degrees." },
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the twist. Valid range: 0.05 to 2.09 rad/s." }
+    ]
+  },
+  {
     name: "stand",
     category: "Posture",
     signature: "Agentech.stand()",
@@ -105,7 +159,9 @@ export const agentechFunctions: AgentechFunction[] = [
     actionCard: "aegis.stand",
     grounding: "motion.stand()",
     example: "Agentech.stand()",
-    params: []
+    params: [
+      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Wait after FF SDK motion.stand() so the dog fully stands before moving. Valid range: 0.0 to 10.0." }
+    ]
   },
   {
     name: "sit",
@@ -141,12 +197,9 @@ export const agentechFunctions: AgentechFunction[] = [
 
 export const starterCode = `from agentech import Agentech
 
+Agentech.stand(stand_wait=5)
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
-Agentech.turn_left(angle=45)
-Agentech.turn_right(angle=45)
-Agentech.stand()
-Agentech.look_up(angle=15)
-Agentech.look_down(angle=15)
-print(Agentech.get_battery_status())
+Agentech.lateral_left(speed=0.2, seconds=1)
+Agentech.lateral_right(speed=0.2, seconds=1)
 Agentech.stop()`;

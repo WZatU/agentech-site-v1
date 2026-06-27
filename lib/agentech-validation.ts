@@ -9,8 +9,8 @@ export const agentechLimits = {
   recommendedPitchRate: 0.15,
   maxSeconds: 10,
   maxRotateAngle: 360,
-  maxLookUpAngle: 19,
-  maxLookDownAngle: 21,
+  maxLookUpAngle: 25,
+  maxLookDownAngle: 25,
   maxRollAngle: 28,
   minTurnRate: 0.05,
   minPitchRate: 0.03
@@ -19,8 +19,12 @@ export const agentechLimits = {
 const allowedPublicActions = new Set([
   "forward",
   "backward",
+  "lateral_left",
+  "lateral_right",
   "turn_left",
   "turn_right",
+  "twist_left",
+  "twist_right",
   "look_up",
   "look_down",
   "stand",
@@ -62,7 +66,7 @@ export function validateAgentechCode(code: string): string[] {
   const errors: string[] = [];
   for (const call of parseCalls(code)) {
     if (!allowedPublicActions.has(call.action)) {
-      errors.push(`${call.action} is not in the current Agentech beginner API. Use forward, backward, turn_left, turn_right, look_up, look_down, stand, sit, stop, or get_battery_status.`);
+      errors.push(`${call.action} is not in the current Agentech beginner API. Use forward, backward, lateral_left, lateral_right, turn_left, turn_right, twist_left, twist_right, look_up, look_down, stand, sit, stop, or get_battery_status.`);
       continue;
     }
 
@@ -75,14 +79,23 @@ export function validateAgentechCode(code: string): string[] {
       requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
     }
 
+    if (call.action === "lateral_left" || call.action === "lateral_right") {
+      requireRange(errors, call.action, "speed", speed, 0, agentechLimits.maxLateralVelocity);
+      requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
+    }
+
     if (call.action === "yaw") {
       requireRange(errors, call.action, "speed", speed, -agentechLimits.maxYawRate, agentechLimits.maxYawRate);
       requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
     }
 
-    if (["rotate", "left", "right", "turn_left", "turn_right"].includes(call.action)) {
+    if (["rotate", "left", "right", "turn_left", "turn_right", "twist_left", "twist_right"].includes(call.action)) {
       requireRange(errors, call.action, "angle", angle, -agentechLimits.maxRotateAngle, agentechLimits.maxRotateAngle);
       requireRange(errors, call.action, "speed", speed, agentechLimits.minTurnRate, agentechLimits.maxYawRate);
+    }
+
+    if (call.action === "stand") {
+      requireRange(errors, call.action, "stand_wait", numberArg(call.args, "stand_wait"), 0, agentechLimits.maxSeconds);
     }
 
     if (call.action === "look_up") {
