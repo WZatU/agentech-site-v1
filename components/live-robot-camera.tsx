@@ -41,8 +41,8 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
         }
 
         const room = new Room({
-          adaptiveStream: true,
-          dynacast: true
+          adaptiveStream: false,
+          dynacast: false
         });
         activeRoom = room;
 
