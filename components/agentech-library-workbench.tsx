@@ -4,11 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
+import { LiveRobotCamera } from "@/components/live-robot-camera";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 type Category = (typeof categories)[number];
 type SimFrame = { x: number; y: number; z: number; yaw: number; pitch?: number };
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
+const liveRobotRoomName = process.env.NEXT_PUBLIC_LIVEKIT_ROOM_NAME || "aegis-lab-1";
+const liveRobotCameraConfigured = Boolean(process.env.NEXT_PUBLIC_LIVEKIT_URL);
 
 const localPreviewAssets: Record<string, string> = {
   forward: "/assets/products/aegis-previews/forward.gif",
@@ -1005,6 +1008,21 @@ export function AgentechLibraryWorkbench() {
               Request Robot Slot
             </button>
             <p className="border border-[#2a3440] bg-[#0d1117] p-3 text-sm leading-6 text-[#aeb8c2]">{requestStatus}</p>
+
+            <div className="border border-[#2a3440] bg-[#0d1117] p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Live Robot Camera</p>
+                  <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">
+                    {liveRobotCameraConfigured ? "Official supervised-session camera feed." : "LiveKit camera feed is not configured yet."}
+                  </p>
+                </div>
+                <span className={`h-2.5 w-2.5 ${liveRobotCameraConfigured ? "bg-[#8fdc8f]" : "bg-[#7f8c99]"}`} aria-hidden="true" />
+              </div>
+              <div className="mx-auto mt-3 aspect-square w-full max-w-[640px] overflow-hidden border border-[#2a3440] bg-black">
+                <LiveRobotCamera roomName={liveRobotRoomName} />
+              </div>
+            </div>
 
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Safety Defaults</p>
