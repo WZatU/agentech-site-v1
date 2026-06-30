@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRobotSession, getAccessProfiles, getAccountRecord } from "@/lib/account-records";
+import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
 type RobotSlotPayload = {
@@ -73,6 +74,78 @@ function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60 * 1000);
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatDateTime(date: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short"
+  }).format(date);
+}
+
+async function sendRobotSlotConfirmation(input: {
+  email: string;
+  accountName: string;
+  profileUsername: string;
+  profileType: string;
+  robotModel: string;
+  presetDemo: string;
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  timeZone: string;
+}) {
+  const scheduledWindow = `${formatDateTime(input.scheduledStart, input.timeZone)} - ${formatDateTime(input.scheduledEnd, input.timeZone)}`;
+  const subject = "Agentech robot slot request received";
+  const text = [
+    `Hi ${input.accountName || "there"},`,
+    "",
+    "We received your robot viewing slot request.",
+    "",
+    `Profile: @${input.profileUsername} (${input.profileType})`,
+    `Robot: ${input.robotModel}`,
+    `Time: ${scheduledWindow}`,
+    `Demo: ${input.presetDemo}`,
+    "",
+    "For now, robot slots run as preset demos. Custom code will require the benchmark gate to be available and passed first.",
+    "",
+    "Agentech"
+  ].join("\n");
+  const html = `
+    <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.5; max-width: 640px;">
+      <h1 style="font-size: 24px; margin: 0 0 16px;">Robot slot request received</h1>
+      <p>Hi ${escapeHtml(input.accountName || "there")},</p>
+      <p>We received your robot viewing slot request.</p>
+      <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+        <tr><td style="padding: 8px 0; color: #6b7280;">Profile</td><td style="padding: 8px 0; font-weight: 700;">@${escapeHtml(input.profileUsername)} (${escapeHtml(input.profileType)})</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280;">Robot</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(input.robotModel)}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280;">Time</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(scheduledWindow)}</td></tr>
+        <tr><td style="padding: 8px 0; color: #6b7280;">Demo</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(input.presetDemo)}</td></tr>
+      </table>
+      <p>For now, robot slots run as preset demos. Custom code will require the benchmark gate to be available and passed first.</p>
+      <p style="margin-top: 24px;">Agentech</p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: input.email,
+    subject,
+    text,
+    html
+  });
+}
+
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as RobotSlotPayload | null;
   const email = normalizeEmail(payload?.email);
@@ -140,5 +213,18 @@ export async function POST(request: Request) {
     notes: clean(payload?.notes) || null
   });
 
-  return NextResponse.json({ ok: true, session });
+  const accountName = [account.first_name, account.last_name].filter(Boolean).join(" ");
+  const emailResult = await sendRobotSlotConfirmation({
+    email,
+    accountName,
+    profileUsername: selectedProfile.username,
+    profileType: selectedProfile.profile_type,
+    robotModel,
+    presetDemo,
+    scheduledStart,
+    scheduledEnd,
+    timeZone
+  }).catch(() => ({ sent: false }));
+
+  return NextResponse.json({ ok: true, session, emailSent: emailResult.sent });
 }

@@ -553,7 +553,7 @@ export function AccountDashboard() {
         notes: robotSlotNotes
       })
     });
-    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+    const result = (await response.json().catch(() => null)) as { error?: string; emailSent?: boolean } | null;
 
     if (!response.ok) {
       setRobotSlotMessage(result?.error || "Unable to request that robot slot.");
@@ -563,7 +563,11 @@ export function AccountDashboard() {
 
     setRobotSlotNotes("");
     setRobotSlotStart(getDefaultRobotSlotValue());
-    setRobotSlotMessage("Robot slot requested. This will stay as a preset demo until the benchmark gate is available and passed.");
+    setRobotSlotMessage(
+      result?.emailSent
+        ? "Robot slot requested. Confirmation email sent. This will stay as a preset demo until the benchmark gate is available and passed."
+        : "Robot slot requested. Confirmation email is not configured yet. This will stay as a preset demo until the benchmark gate is available and passed."
+    );
     await refreshAccount();
     setRequestingRobotSlot(false);
   }
