@@ -2,6 +2,35 @@ import { supabaseRequest } from "@/lib/supabase-server";
 import { getUnpaidBalanceLines } from "@/lib/invoices";
 import { getBillingInvoicesForEmail, type BillingInvoice } from "@/lib/billing";
 
+export type AccountRecord = {
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  credit_balance: number;
+  paid_credit_balance: number;
+  bonus_credit_balance: number;
+  created_at: string;
+  verified_at: string;
+};
+
+export type AccessProfileType = "developer" | "student" | "teacher" | "talent";
+
+export type AccessProfile = {
+  id: number;
+  account_email: string;
+  profile_type: AccessProfileType;
+  username: string;
+  display_name: string;
+  credit_limit: number;
+  credits_used: number;
+  monthly_credit_limit: number;
+  monthly_credits_used: number;
+  monthly_usage_period: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AccountProfile = {
   email: string;
   first_name: string;
@@ -82,6 +111,240 @@ export type AiRoboticsClubApplicationRecord = {
   resume_filename: string | null;
   created_at: string;
 };
+
+export async function getAccountRecord(email: string) {
+  const rows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
+    query: `email=eq.${encodeURIComponent(email)}&select=email,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at&limit=1`
+  });
+
+  return rows[0] ?? null;
+}
+
+export async function getAccessProfiles(email: string) {
+  return supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
+    query: `account_email=eq.${encodeURIComponent(email)}&select=id,account_email,profile_type,username,display_name,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&order=created_at.desc`
+  }).catch(() => []);
+}
+
+export async function getAccessProfileByUsername(username: string) {
+  const normalizedUsername = normalizeProfileUsername(username);
+  if (!normalizedUsername) {
+    return null;
+  }
+
+  const rows = await supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
+    query: `username=eq.${encodeURIComponent(normalizedUsername)}&select=id,account_email,profile_type,username,display_name,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&limit=1`
+  });
+
+  return rows[0] ?? null;
+}
+
+export function isAccessProfileType(value: unknown): value is AccessProfileType {
+  return value === "developer" || value === "student" || value === "teacher" || value === "talent";
+}
+
+export function normalizeProfileUsername(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+export function isValidProfileUsername(username: string) {
+  return /^[a-z0-9][a-z0-9._-]{2,31}$/.test(username);
+}
+
+function getCurrentUsagePeriod() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+function getProfileMonthlyCreditsUsed(profile: Pick<AccessProfile, "monthly_credits_used" | "monthly_usage_period">) {
+  return profile.monthly_usage_period === getCurrentUsagePeriod() ? Number(profile.monthly_credits_used ?? 0) : 0;
+}
+
+export function buildCreditSummary(account: AccountRecord | null, accessProfiles: AccessProfile[]) {
+  const legacyPaidCredits = Number(account?.credit_balance ?? 0);
+  const storedPaidCredits = Number(account?.paid_credit_balance ?? 0);
+  const bonus = Number(account?.bonus_credit_balance ?? 0);
+  const paid = storedPaidCredits > 0 || bonus > 0 ? storedPaidCredits : legacyPaidCredits;
+  const balance = paid + bonus;
+  const monthlyLimitTotal = accessProfiles.reduce((total, profile) => total + Number(profile.monthly_credit_limit ?? profile.credit_limit ?? 0), 0);
+  const used = accessProfiles.reduce((total, profile) => total + Number(profile.credits_used ?? 0), 0);
+  const monthlyUsed = accessProfiles.reduce((total, profile) => total + getProfileMonthlyCreditsUsed(profile), 0);
+
+  return {
+    balance,
+    paid,
+    bonus,
+    assigned: monthlyLimitTotal,
+    monthlyLimitTotal,
+    used,
+    monthlyUsed,
+    unassigned: balance,
+    rechargeRequired: balance <= 0
+  };
+}
+
+export function allocateCreditSpend(account: Pick<AccountRecord, "credit_balance" | "paid_credit_balance" | "bonus_credit_balance">, requestedCredits: number) {
+  const requested = Math.max(0, Math.floor(requestedCredits));
+  const credits = buildCreditSummary(account as AccountRecord, []);
+  const paidCreditsUsed = Math.min(credits.paid, requested);
+  const remainingAfterPaid = requested - paidCreditsUsed;
+  const bonusCreditsUsed = Math.min(credits.bonus, remainingAfterPaid);
+  const shortfall = remainingAfterPaid - bonusCreditsUsed;
+
+  return {
+    requested,
+    paidCreditsUsed,
+    bonusCreditsUsed,
+    shortfall,
+    paidCreditBalanceAfter: credits.paid - paidCreditsUsed,
+    bonusCreditBalanceAfter: credits.bonus - bonusCreditsUsed,
+    rechargeRequired: shortfall > 0
+  };
+}
+
+export async function addAccountCredits(email: string, creditType: "paid" | "bonus", creditsToAdd: number) {
+  const account = await getAccountRecord(email);
+  if (!account) {
+    return null;
+  }
+
+  const amount = Math.max(0, Math.floor(creditsToAdd));
+  const current = buildCreditSummary(account, []);
+  const paidCreditBalance = creditType === "paid" ? current.paid + amount : current.paid;
+  const bonusCreditBalance = creditType === "bonus" ? current.bonus + amount : current.bonus;
+
+  await supabaseRequest<null>("agentech_accounts", {
+    method: "PATCH",
+    query: `email=eq.${encodeURIComponent(email)}`,
+    prefer: "return=minimal",
+    body: {
+      credit_balance: paidCreditBalance,
+      paid_credit_balance: paidCreditBalance,
+      bonus_credit_balance: bonusCreditBalance
+    }
+  });
+
+  return {
+    email,
+    paid: paidCreditBalance,
+    bonus: bonusCreditBalance,
+    balance: paidCreditBalance + bonusCreditBalance
+  };
+}
+
+export async function spendAccountCredits(email: string, requestedCredits: number) {
+  const account = await getAccountRecord(email);
+  if (!account) {
+    return null;
+  }
+
+  const spend = allocateCreditSpend(account, requestedCredits);
+  if (spend.rechargeRequired) {
+    return spend;
+  }
+
+  await supabaseRequest<null>("agentech_accounts", {
+    method: "PATCH",
+    query: `email=eq.${encodeURIComponent(email)}`,
+    prefer: "return=minimal",
+    body: {
+      credit_balance: spend.paidCreditBalanceAfter,
+      paid_credit_balance: spend.paidCreditBalanceAfter,
+      bonus_credit_balance: spend.bonusCreditBalanceAfter
+    }
+  });
+
+  return spend;
+}
+
+export async function spendProfileCredits(username: string, requestedCredits: number) {
+  const profile = await getAccessProfileByUsername(username);
+  if (!profile) {
+    return null;
+  }
+
+  const requested = Math.max(0, Math.floor(requestedCredits));
+  const monthlyCreditsUsed = getProfileMonthlyCreditsUsed(profile);
+  const monthlyCreditLimit = Number(profile.monthly_credit_limit ?? profile.credit_limit ?? 0);
+  const monthlyCreditsRemaining = Math.max(0, monthlyCreditLimit - monthlyCreditsUsed);
+
+  if (requested > monthlyCreditsRemaining) {
+    return {
+      requested,
+      profile,
+      monthlyCreditLimit,
+      monthlyCreditsUsed,
+      monthlyCreditsRemaining,
+      monthlyLimitExceeded: true,
+      rechargeRequired: false,
+      shortfall: requested - monthlyCreditsRemaining
+    };
+  }
+
+  const spend = await spendAccountCredits(profile.account_email, requested);
+  if (!spend || spend.rechargeRequired) {
+    return {
+      requested,
+      profile,
+      monthlyCreditLimit,
+      monthlyCreditsUsed,
+      monthlyCreditsRemaining,
+      monthlyLimitExceeded: false,
+      rechargeRequired: true,
+      shortfall: spend?.shortfall ?? requested
+    };
+  }
+
+  const nextMonthlyCreditsUsed = monthlyCreditsUsed + requested;
+  const nextCreditsUsed = Number(profile.credits_used ?? 0) + requested;
+
+  await supabaseRequest<null>("agentech_account_profiles", {
+    method: "PATCH",
+    query: `id=eq.${profile.id}`,
+    prefer: "return=minimal",
+    body: {
+      credits_used: nextCreditsUsed,
+      monthly_credits_used: nextMonthlyCreditsUsed,
+      monthly_usage_period: getCurrentUsagePeriod(),
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return {
+    ...spend,
+    profile,
+    monthlyCreditLimit,
+    monthlyCreditsUsed: nextMonthlyCreditsUsed,
+    monthlyCreditsRemaining: Math.max(0, monthlyCreditLimit - nextMonthlyCreditsUsed),
+    monthlyLimitExceeded: false
+  };
+}
+
+export async function createAccessProfile(input: {
+  accountEmail: string;
+  profileType: AccessProfileType;
+  username: string;
+  displayName: string;
+  monthlyCreditLimit: number;
+}) {
+  const monthlyCreditLimit = Math.max(0, Math.floor(input.monthlyCreditLimit));
+  const rows = await supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
+    method: "POST",
+    body: {
+      account_email: input.accountEmail,
+      profile_type: input.profileType,
+      username: input.username,
+      display_name: input.displayName,
+      credit_limit: monthlyCreditLimit,
+      credits_used: 0,
+      monthly_credit_limit: monthlyCreditLimit,
+      monthly_credits_used: 0,
+      monthly_usage_period: getCurrentUsagePeriod(),
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return rows[0] ?? null;
+}
 
 export async function getProfile(email: string) {
   const rows = await supabaseRequest<AccountProfile[]>("agentech_profiles", {
@@ -203,7 +466,9 @@ function requestLooksActive(status: string) {
 }
 
 export async function getAccountSummary(email: string) {
-  const [profile, children, requests, robotInvoiceReferences, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance, invoices] = await Promise.all([
+  const [account, accessProfiles, profile, children, requests, robotInvoiceReferences, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance, invoices] = await Promise.all([
+    getAccountRecord(email),
+    getAccessProfiles(email),
     getProfile(email),
     getChildren(email),
     getPreorderRequests(email),
@@ -223,6 +488,9 @@ export async function getAccountSummary(email: string) {
   }));
 
   return {
+    account,
+    accessProfiles,
+    creditSummary: buildCreditSummary(account, accessProfiles),
     profile,
     children,
     requests: normalizedRequests,

@@ -5,6 +5,12 @@ export type StoredAccount = {
   email: string;
   password_hash: string;
   salt: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  credit_balance?: number;
+  paid_credit_balance?: number;
+  bonus_credit_balance?: number;
   created_at: string;
   verified_at: string;
 };
@@ -30,7 +36,7 @@ export function isValidPassword(password: unknown) {
 
 export async function readAccounts() {
   return supabaseRequest<StoredAccount[]>("agentech_accounts", {
-    query: "select=email,password_hash,salt,created_at,verified_at"
+    query: "select=email,password_hash,salt,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at"
   });
 }
 
@@ -57,7 +63,7 @@ export async function updateAccountPassword(email: string, password: string) {
 
 export async function findAccount(email: string) {
   const accounts = await supabaseRequest<StoredAccount[]>("agentech_accounts", {
-    query: `email=eq.${encodeURIComponent(email)}&select=email,password_hash,salt,created_at,verified_at&limit=1`
+    query: `email=eq.${encodeURIComponent(email)}&select=email,password_hash,salt,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at&limit=1`
   });
   return accounts[0] ?? null;
 }

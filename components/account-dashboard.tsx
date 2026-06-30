@@ -8,6 +8,38 @@ import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 
 type DashboardData = {
+  account?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    credit_balance: number;
+    paid_credit_balance: number;
+    bonus_credit_balance: number;
+  } | null;
+  accessProfiles?: Array<{
+    id: number;
+    profile_type: "developer" | "student" | "teacher" | "talent";
+    username: string;
+    display_name: string;
+    credit_limit: number;
+    credits_used: number;
+    monthly_credit_limit: number;
+    monthly_credits_used: number;
+    monthly_usage_period: string;
+    created_at: string;
+  }>;
+  creditSummary?: {
+    balance: number;
+    paid: number;
+    bonus: number;
+    assigned: number;
+    monthlyLimitTotal: number;
+    used: number;
+    monthlyUsed: number;
+    unassigned: number;
+    rechargeRequired: boolean;
+  };
   profile?: {
     first_name: string;
     last_name: string;
@@ -86,6 +118,15 @@ type DashboardData = {
   error?: string;
 };
 
+type AccessProfileType = "developer" | "student" | "teacher" | "talent";
+
+const profileOptions: Array<{ type: AccessProfileType; label: string; description: string }> = [
+  { type: "developer", label: "Developer", description: "Build, test, and manage developer tools." },
+  { type: "student", label: "Student", description: "Access learning programs and student work." },
+  { type: "teacher", label: "Teacher", description: "Manage education activity and classroom needs." },
+  { type: "talent", label: "Talent", description: "Use talent, application, and portfolio features." }
+];
+
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -122,6 +163,23 @@ function formatInvoiceStatus(status: string) {
   return status.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function formatCredits(value: number | string | undefined | null) {
+  const amount = Number(value ?? 0);
+  if (!Number.isFinite(amount)) {
+    return "0 credits";
+  }
+
+  return `${Math.max(0, Math.floor(amount)).toLocaleString()} credits`;
+}
+
+function formatProfileType(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getCurrentUsagePeriod() {
+  return new Date().toISOString().slice(0, 7);
+}
+
 function looksLikeAdminEmail(email: string) {
   return email.trim().toLowerCase().endsWith("@agent-tech.ai");
 }
@@ -136,6 +194,17 @@ export function AccountDashboard() {
   const [confirming, setConfirming] = useState(false);
   const [pendingRemovalId, setPendingRemovalId] = useState("");
   const [pendingChildRemovalId, setPendingChildRemovalId] = useState<number | null>(null);
+  const [profileType, setProfileType] = useState<AccessProfileType>("student");
+  const [profileUsername, setProfileUsername] = useState("");
+  const [profileName, setProfileName] = useState("");
+  const [profileMonthlyLimit, setProfileMonthlyLimit] = useState("0");
+  const [profileMessage, setProfileMessage] = useState("");
+  const [creatingProfile, setCreatingProfile] = useState(false);
+  const [adminCreditTargetEmail, setAdminCreditTargetEmail] = useState("");
+  const [adminCreditType, setAdminCreditType] = useState<"paid" | "bonus">("paid");
+  const [adminCreditAmount, setAdminCreditAmount] = useState("");
+  const [adminCreditMessage, setAdminCreditMessage] = useState("");
+  const [addingCredits, setAddingCredits] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -180,6 +249,12 @@ export function AccountDashboard() {
       window.removeEventListener("storage", loadAccount);
     };
   }, []);
+
+  useEffect(() => {
+    if (email && looksLikeAdminEmail(email) && !adminCreditTargetEmail) {
+      setAdminCreditTargetEmail(email);
+    }
+  }, [adminCreditTargetEmail, email]);
 
   async function removeUnpaidItem(itemId: string) {
     if (!email) return;
@@ -258,6 +333,71 @@ export function AccountDashboard() {
     setConfirming(false);
   }
 
+  async function createProfile() {
+    if (!email) return;
+
+    setCreatingProfile(true);
+    setProfileMessage("");
+
+    const response = await fetch("/api/account-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        profileType,
+        username: profileUsername,
+        displayName: profileName,
+        monthlyCreditLimit: profileMonthlyLimit
+      })
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setProfileMessage(result?.error || "Unable to create profile.");
+      setCreatingProfile(false);
+      return;
+    }
+
+    setProfileUsername("");
+    setProfileName("");
+    setProfileMonthlyLimit("0");
+    setProfileMessage("Profile created.");
+    await refreshAccount();
+    setCreatingProfile(false);
+  }
+
+  async function addAdminCredits() {
+    if (!email) return;
+
+    setAddingCredits(true);
+    setAdminCreditMessage("");
+
+    const response = await fetch("/api/admin/account-credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        adminEmail: email,
+        targetEmail: adminCreditTargetEmail,
+        creditType: adminCreditType,
+        credits: adminCreditAmount
+      })
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string; balance?: number } | null;
+
+    if (!response.ok) {
+      setAdminCreditMessage(result?.error || "Unable to add credits.");
+      setAddingCredits(false);
+      return;
+    }
+
+    setAdminCreditAmount("");
+    setAdminCreditMessage(`Credits added. New total: ${formatCredits(result?.balance ?? 0)}.`);
+    if (adminCreditTargetEmail.trim().toLowerCase() === email.trim().toLowerCase()) {
+      await refreshAccount();
+    }
+    setAddingCredits(false);
+  }
+
   if (loading) {
     return <p className="text-slate-600">Loading account...</p>;
   }
@@ -274,14 +414,26 @@ export function AccountDashboard() {
     );
   }
 
-  const profileName = data.profile
+  const accountName = data.account
+    ? formatFullName(data.account.first_name, data.account.last_name)
+    : "";
+  const legacyProfileName = data.profile
     ? formatFullName(data.profile.first_name, data.profile.last_name)
     : "";
+  const displayName = accountName || legacyProfileName || email;
+  const phone = data.account?.phone || data.profile?.phone || "";
   const hasRequestItems = Boolean(data.unpaidBalance?.lines.length);
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
   const hasRobotRequests = Boolean(data.requests?.length);
   const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
   const hasInvoices = Boolean(data.invoices?.length);
+  const hasAccessProfiles = Boolean(data.accessProfiles?.length);
+  const creditBalance = data.creditSummary?.balance ?? data.account?.credit_balance ?? 0;
+  const paidCredits = data.creditSummary?.paid ?? data.account?.paid_credit_balance ?? 0;
+  const bonusCredits = data.creditSummary?.bonus ?? data.account?.bonus_credit_balance ?? 0;
+  const monthlyLimitTotal = data.creditSummary?.monthlyLimitTotal ?? data.creditSummary?.assigned ?? 0;
+  const monthlyUsed = data.creditSummary?.monthlyUsed ?? 0;
+  const isAdminAccount = looksLikeAdminEmail(email);
 
   return (
     <div className="space-y-8">
@@ -289,14 +441,41 @@ export function AccountDashboard() {
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f70c8]">Account</p>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-950 md:text-5xl">{profileName || email}</h1>
+            <h1 className="mt-3 text-3xl font-semibold text-slate-950 md:text-5xl">{displayName}</h1>
             <p className="mt-3 text-slate-600">{email}</p>
-            {data.profile?.phone ? <p className="mt-1 text-slate-600">{data.profile.phone}</p> : null}
-            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Open Cart Balance</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-950">
-              {(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}
-            </p>
-            {looksLikeAdminEmail(email) ? (
+            {phone ? <p className="mt-1 text-slate-600">{phone}</p> : null}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Credits Left</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-950">{formatCredits(creditBalance)}</p>
+                <p className="mt-1 text-sm text-slate-600">1 credit = 1 US cent</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Open Cart Balance</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-950">
+                  {(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}
+                </p>
+                <p className="mt-1 text-sm text-slate-600">Credits remaining: {formatCredits(creditBalance)}</p>
+              </div>
+            </div>
+            {data.creditSummary?.rechargeRequired ? (
+              <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+                No credits are available. Recharge this account before profiles can spend credits.
+              </p>
+            ) : null}
+            {isAdminAccount ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[#2f70c8]/25 bg-[#eff6ff] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#245da7]">Paid Credits</p>
+                  <p className="mt-2 text-2xl font-semibold text-slate-950">{formatCredits(paidCredits)}</p>
+                </div>
+                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Bonus Credits</p>
+                  <p className="mt-2 text-2xl font-semibold text-slate-950">{formatCredits(bonusCredits)}</p>
+                </div>
+              </div>
+            ) : null}
+            {isAdminAccount ? (
               <Link href="/admin/invoices" className="mt-5 inline-flex rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
                 Admin Invoices
               </Link>
@@ -315,6 +494,180 @@ export function AccountDashboard() {
           >
             Sign Out
           </button>
+        </div>
+      </section>
+
+      {isAdminAccount ? (
+        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Admin Credits</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Manual Credit Add</h2>
+              <p className="mt-2 text-sm text-slate-600">Paid credits are used before bonus credits when a profile spends.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+              <p className="font-semibold text-slate-950">Visible to @agent-tech.ai only</p>
+              <p className="mt-1 text-slate-600">Total shown above: {formatCredits(creditBalance)}</p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_0.7fr_0.7fr_auto] lg:items-end">
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Target Account Email</span>
+              <input
+                type="email"
+                value={adminCreditTargetEmail}
+                onChange={(event) => setAdminCreditTargetEmail(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Credit Type</span>
+              <select
+                value={adminCreditType}
+                onChange={(event) => setAdminCreditType(event.target.value === "bonus" ? "bonus" : "paid")}
+                className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none focus:ring-4 ${
+                  adminCreditType === "bonus"
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-800 focus:border-emerald-500 focus:ring-emerald-100"
+                    : "border-[#2f70c8]/25 bg-[#eff6ff] text-[#245da7] focus:border-[#2f70c8] focus:ring-[#dbeafe]"
+                }`}
+              >
+                <option value="paid">Paid Credits</option>
+                <option value="bonus">Bonus Credits</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Credits To Add</span>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={adminCreditAmount}
+                onChange={(event) => setAdminCreditAmount(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={addAdminCredits}
+              disabled={addingCredits}
+              className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              {addingCredits ? "Adding..." : "Add Credits"}
+            </button>
+          </div>
+          {adminCreditMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{adminCreditMessage}</p> : null}
+        </section>
+      ) : null}
+
+      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Profiles</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Account Profiles</h2>
+            <p className="mt-2 text-sm text-slate-600">Create developer, student, teacher, or talent profiles when this account needs those features.</p>
+          </div>
+          <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
+            <p>{data.accessProfiles?.length ?? 0} active profiles</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Monthly caps: {formatCredits(monthlyLimitTotal)} - Used {formatCredits(monthlyUsed)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-3">
+            {hasAccessProfiles ? (
+              data.accessProfiles?.map((profile) => {
+                const monthlyLimit = Number(profile.monthly_credit_limit ?? profile.credit_limit ?? 0);
+                const monthlyUsedForPeriod = profile.monthly_usage_period === getCurrentUsagePeriod()
+                  ? Number(profile.monthly_credits_used ?? 0)
+                  : 0;
+                const monthlyRemaining = Math.max(0, monthlyLimit - monthlyUsedForPeriod);
+                return (
+                  <div key={profile.id} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
+                    <div>
+                      <p className="font-semibold text-slate-950">{profile.display_name || `${formatProfileType(profile.profile_type)} Profile`}</p>
+                      <p className="mt-1 text-sm text-slate-600">@{profile.username} - {formatProfileType(profile.profile_type)}</p>
+                    </div>
+                    <div className="text-sm md:text-right">
+                      <p className="font-semibold text-[#2f70c8]">{formatCredits(monthlyRemaining)} left this month</p>
+                      <p className="mt-1 text-slate-600">
+                        Monthly limit {formatCredits(monthlyLimit)} - Used {formatCredits(monthlyUsedForPeriod)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+                <p className="font-semibold text-slate-950">No profiles created yet.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  This account can stay profile-free for robot purchases and billing.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <h3 className="text-lg font-semibold text-slate-950">Create Profile</h3>
+            <div className="mt-4 space-y-4">
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Profile Type</span>
+                <select
+                  value={profileType}
+                  onChange={(event) => setProfileType(event.target.value as AccessProfileType)}
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                >
+                  {profileOptions.map((option) => (
+                    <option key={option.type} value={option.type}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-2 block text-sm text-slate-600">{profileOptions.find((option) => option.type === profileType)?.description}</span>
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Username</span>
+                <input
+                  value={profileUsername}
+                  onChange={(event) => setProfileUsername(event.target.value.toLowerCase())}
+                  placeholder="example.username"
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                />
+                <span className="mt-2 block text-sm text-slate-600">Used to sign in to profile-based apps and features.</span>
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Display Name</span>
+                <input
+                  value={profileName}
+                  onChange={(event) => setProfileName(event.target.value)}
+                  placeholder={`${formatProfileType(profileType)} Profile`}
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Monthly Credit Limit</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={profileMonthlyLimit}
+                  onChange={(event) => setProfileMonthlyLimit(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                />
+                <span className="mt-2 block text-sm text-slate-600">This caps monthly profile spending. It does not reserve account credits.</span>
+              </label>
+              {profileMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{profileMessage}</p> : null}
+              <button
+                type="button"
+                onClick={createProfile}
+                disabled={creatingProfile}
+                className="w-full rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                {creatingProfile ? "Creating..." : "Create Profile"}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -397,7 +750,7 @@ export function AccountDashboard() {
             <h2 className="mt-2 text-2xl font-semibold text-slate-950">Invoices</h2>
             <p className="mt-2 text-sm text-slate-600">Official invoices and payment status appear here.</p>
           </div>
-          {looksLikeAdminEmail(email) ? (
+          {isAdminAccount ? (
             <Link href="/admin/invoices" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
               Admin Dashboard
             </Link>
@@ -438,6 +791,7 @@ export function AccountDashboard() {
         </div>
       </section>
 
+      {hasAccessProfiles ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -498,6 +852,7 @@ export function AccountDashboard() {
           </div>
         </div>
       </section>
+      ) : null}
 
       {hasRobotRequests ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
@@ -531,6 +886,7 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
+      {hasAccessProfiles ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-semibold text-slate-950">Children</h2>
@@ -587,7 +943,9 @@ export function AccountDashboard() {
           )}
         </div>
       </section>
+      ) : null}
 
+      {hasAccessProfiles ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <h2 className="text-2xl font-semibold text-slate-950">Enrollments</h2>
         <div className="mt-5 space-y-3">
@@ -610,6 +968,7 @@ export function AccountDashboard() {
           )}
         </div>
       </section>
+      ) : null}
     </div>
   );
 }

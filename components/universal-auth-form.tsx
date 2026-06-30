@@ -17,6 +17,8 @@ type ApiResult = {
 };
 
 type AccountSummaryResult = {
+  account?: unknown;
+  accessProfiles?: unknown[];
   profile?: unknown;
   children?: unknown[];
   requests?: unknown[];
@@ -30,11 +32,13 @@ export function UniversalAuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const explicitNext = searchParams.get("next");
-  const next = explicitNext || "/account-setup";
   const [mode, setMode] = useState<AuthMode>("signup");
   const [signupStep, setSignupStep] = useState<SignupStep>("email");
   const [resetStep, setResetStep] = useState<ResetStep>("email");
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -44,7 +48,7 @@ export function UniversalAuthForm() {
 
   function getNewAccountDestination() {
     if (!explicitNext) {
-      return "/account-setup";
+      return "/account";
     }
 
     const target = new URL(explicitNext, window.location.origin);
@@ -97,6 +101,8 @@ export function UniversalAuthForm() {
 
       const result = (await response.json()) as AccountSummaryResult;
       const hasAccountData = Boolean(
+        result.account ||
+        result.accessProfiles?.length ||
         result.profile ||
         result.children?.length ||
         result.requests?.length ||
@@ -104,7 +110,7 @@ export function UniversalAuthForm() {
         result.unpaidBalance?.lines?.length
       );
 
-      return hasAccountData ? "/account" : "/account-setup";
+      return hasAccountData ? "/account" : "/account";
     } catch {
       return "/account";
     }
@@ -158,7 +164,7 @@ export function UniversalAuthForm() {
     const response = await fetch("/api/auth/create-account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code, password })
+      body: JSON.stringify({ email, code, password, firstName, lastName, phone })
     });
     const result = (await response.json()) as ApiResult;
 
@@ -318,6 +324,36 @@ export function UniversalAuthForm() {
               value={code}
               onChange={(event) => setCode(event.target.value)}
               inputMode="numeric"
+              className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+              required
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">First Name</span>
+              <input
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Last Name</span>
+              <input
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+                required
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Phone Number</span>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
               className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
               required
             />
