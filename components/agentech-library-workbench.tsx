@@ -290,7 +290,7 @@ function DocsOverview() {
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117] p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Quick Start</p>
-            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#e5edf5]">{`pip install git+https://github.com/agent-tech0316/Aegies-Height.git
+            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#e5edf5]">{`pip install git+https://github.com/agent-tech0316/agentech_sdk.git
 
 from agentech import Agentech
 
@@ -398,7 +398,7 @@ Live camera -> Website viewer -> Student watches the run`;
         <div className="mt-8 grid gap-4 lg:grid-cols-3">
           <div className="border border-[#2a3440] bg-[#0d1117] p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">1. Install</p>
-            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#8fdc8f]">pip install git+https://github.com/agent-tech0316/Aegies-Height.git</pre>
+            <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#8fdc8f]">pip install git+https://github.com/agent-tech0316/agentech_sdk.git</pre>
             <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">Use this GitHub install now. Later, after PyPI publishing, the target command becomes `pip install agentech`.</p>
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117] p-4">
@@ -769,7 +769,7 @@ export function AgentechLibraryWorkbench() {
               <div className="border border-[#2a3440] bg-[#0d1117] p-3">
                 <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Install</p>
                 <p className="mt-2 break-all font-mono text-xs leading-5 text-[#8fdc8f]">
-                  pip install git+https://github.com/agent-tech0316/Aegies-Height.git
+                  pip install git+https://github.com/agent-tech0316/agentech_sdk.git
                 </p>
               </div>
               <div className="border border-[#2a3440] bg-[#0d1117] p-3">
