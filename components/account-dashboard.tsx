@@ -40,6 +40,11 @@ type DashboardData = {
     unassigned: number;
     rechargeRequired: boolean;
   };
+  featureAccess?: {
+    hasProfiles: boolean;
+    accountOnly: boolean;
+    lockedFeatures: string[];
+  };
   profile?: {
     first_name: string;
     last_name: string;
@@ -434,6 +439,7 @@ export function AccountDashboard() {
   const monthlyLimitTotal = data.creditSummary?.monthlyLimitTotal ?? data.creditSummary?.assigned ?? 0;
   const monthlyUsed = data.creditSummary?.monthlyUsed ?? 0;
   const isAdminAccount = looksLikeAdminEmail(email);
+  const lockedFeatures = data.featureAccess?.lockedFeatures ?? [];
 
   return (
     <div className="space-y-8">
@@ -564,7 +570,7 @@ export function AccountDashboard() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Profiles</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-950">Account Profiles</h2>
-            <p className="mt-2 text-sm text-slate-600">Create developer, student, teacher, or talent profiles when this account needs those features.</p>
+            <p className="mt-2 text-sm text-slate-600">Create developer, student, teacher, or talent profiles when this account needs profile-based features.</p>
           </div>
           <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
             <p>{data.accessProfiles?.length ?? 0} active profiles</p>
@@ -602,8 +608,18 @@ export function AccountDashboard() {
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
                 <p className="font-semibold text-slate-950">No profiles created yet.</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  This account can stay profile-free for robot purchases and billing.
+                  This account can stay profile-free for robot purchases, invoices, and credit balance management.
                 </p>
+                {lockedFeatures.length ? (
+                  <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-semibold text-amber-900">Create a profile to unlock:</p>
+                    <ul className="mt-2 space-y-1 text-sm text-amber-900">
+                      {lockedFeatures.map((feature) => (
+                        <li key={feature}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>

@@ -31,6 +31,13 @@ export type AccessProfile = {
   updated_at: string;
 };
 
+export const profileRequiredFeatures = [
+  "Book robot viewing time slots",
+  "Use Navi and other profile-based apps",
+  "Submit profile-based robot sessions",
+  "Access developer, student, teacher, or talent tools"
+];
+
 export type AccountProfile = {
   email: string;
   first_name: string;
@@ -179,6 +186,16 @@ export function buildCreditSummary(account: AccountRecord | null, accessProfiles
     monthlyUsed,
     unassigned: balance,
     rechargeRequired: balance <= 0
+  };
+}
+
+export function buildFeatureAccess(accessProfiles: AccessProfile[]) {
+  const hasProfiles = accessProfiles.length > 0;
+
+  return {
+    hasProfiles,
+    accountOnly: !hasProfiles,
+    lockedFeatures: hasProfiles ? [] : profileRequiredFeatures
   };
 }
 
@@ -491,6 +508,7 @@ export async function getAccountSummary(email: string) {
     account,
     accessProfiles,
     creditSummary: buildCreditSummary(account, accessProfiles),
+    featureAccess: buildFeatureAccess(accessProfiles),
     profile,
     children,
     requests: normalizedRequests,
