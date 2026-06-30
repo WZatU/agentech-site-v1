@@ -40,9 +40,9 @@ export type AccessProfile = {
 
 export const profileRequiredFeatures = [
   "Book robot viewing time slots",
-  "Use Navi and other profile-based apps",
+  "Sign in to Navi and other profile-based apps",
   "Submit profile-based robot sessions",
-  "Access developer, student, teacher, or talent tools"
+  "Access feature-specific profile tools"
 ];
 
 export type AccountProfile = {

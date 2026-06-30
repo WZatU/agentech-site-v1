@@ -613,9 +613,9 @@ export function AccountDashboard() {
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Profiles</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Profile Logins</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-950">Account Profiles</h2>
-            <p className="mt-2 text-sm text-slate-600">Create developer, student, teacher, or talent profiles when this account needs profile-based features.</p>
+            <p className="mt-2 text-sm text-slate-600">Create developer, student, teacher, or talent logins for feature apps while this account keeps the billing and credit controls.</p>
           </div>
           <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
             <p>{data.accessProfiles?.length ?? 0} active profiles</p>
@@ -703,7 +703,7 @@ export function AccountDashboard() {
                   placeholder="example.username"
                   className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
                 />
-                <span className="mt-2 block text-sm text-slate-600">Used to sign in to profile-based apps and features.</span>
+                <span className="mt-2 block text-sm text-slate-600">Used to sign in to feature apps that have their own profile experience.</span>
               </label>
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Display Name</span>
