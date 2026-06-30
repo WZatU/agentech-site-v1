@@ -220,7 +220,7 @@ export function SiteHeader() {
         {accountEmail ? (
         <div className="absolute right-2 top-1/2 hidden w-[140px] -translate-y-1/2 items-center justify-end gap-1 sm:right-3 md:flex lg:right-4">
           <Link href="/account" className="rounded-full border border-white/10 px-2 py-2 text-[11px] font-semibold leading-none text-slate transition hover:bg-white/5 hover:text-white">
-            Requests
+            Account
           </Link>
           <button
             type="button"
@@ -281,7 +281,7 @@ export function SiteHeader() {
           {accountEmail ? (
             <>
               <Link href="/account" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
-                Requests
+                Account
               </Link>
               <button type="button" onClick={signOut} className="rounded-xl px-4 py-4 text-left text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
                 Sign Out
