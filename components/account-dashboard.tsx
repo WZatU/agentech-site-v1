@@ -75,6 +75,21 @@ type DashboardData = {
     status: string;
     created_at: string;
   }>;
+  robotSessions?: Array<{
+    id: number;
+    profile_username: string | null;
+    profile_type: "developer" | "student" | "teacher" | "talent" | null;
+    session_title: string;
+    robot_model: string | null;
+    scheduled_start: string | null;
+    scheduled_end: string | null;
+    session_status: string;
+    requested_run_type: string | null;
+    approved_run_type: string | null;
+    preset_demo: string | null;
+    benchmark_status: string | null;
+    created_at: string;
+  }>;
   enrollments?: Array<{
     id: number;
     site_name: string | null;
@@ -156,6 +171,21 @@ const studentGradeOptions = [
   "Grade 12"
 ];
 
+const robotModelOptions = ["Aegis Ultra", "Aegis EDU", "Aegis Pro", "Navi"];
+
+const robotPresetOptions = [
+  {
+    value: "starter_demo",
+    label: "Starter demo",
+    description: "Stand up, five forward steps, left/right, look up/down, and backflip."
+  },
+  { value: "stand_up", label: "Stand up", description: "Preset stand-up movement." },
+  { value: "five_forward", label: "Five forward", description: "Preset five-step forward movement." },
+  { value: "left_right", label: "Left/right", description: "Preset side movement." },
+  { value: "look_up_down", label: "Look up/down", description: "Preset head movement." },
+  { value: "backflip", label: "Backflip", description: "Preset backflip demo." }
+];
+
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -167,6 +197,25 @@ function formatDate(value: string) {
     year: "numeric",
     month: "short",
     day: "numeric"
+  });
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) {
+    return "Time not set";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
   });
 }
 
@@ -213,6 +262,28 @@ function looksLikeAdminEmail(email: string) {
   return email.trim().toLowerCase().endsWith("@agent-tech.ai");
 }
 
+function toDateTimeLocalValue(date: Date) {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function getDefaultRobotSlotValue() {
+  const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const minutes = date.getMinutes();
+  date.setMinutes(minutes <= 30 ? 30 : 60, 0, 0);
+
+  if (date.getHours() < 9) {
+    date.setHours(9, 0, 0, 0);
+  }
+
+  if (date.getHours() >= 17) {
+    date.setDate(date.getDate() + 1);
+    date.setHours(9, 0, 0, 0);
+  }
+
+  return toDateTimeLocalValue(date);
+}
+
 export function AccountDashboard() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -241,6 +312,13 @@ export function AccountDashboard() {
   const [adminCreditAmount, setAdminCreditAmount] = useState("");
   const [adminCreditMessage, setAdminCreditMessage] = useState("");
   const [addingCredits, setAddingCredits] = useState(false);
+  const [robotSlotProfileId, setRobotSlotProfileId] = useState("");
+  const [robotSlotStart, setRobotSlotStart] = useState(getDefaultRobotSlotValue);
+  const [robotSlotModel, setRobotSlotModel] = useState("Aegis Ultra");
+  const [robotSlotPreset, setRobotSlotPreset] = useState("starter_demo");
+  const [robotSlotNotes, setRobotSlotNotes] = useState("");
+  const [robotSlotMessage, setRobotSlotMessage] = useState("");
+  const [requestingRobotSlot, setRequestingRobotSlot] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -291,6 +369,12 @@ export function AccountDashboard() {
       setAdminCreditTargetEmail(email);
     }
   }, [adminCreditTargetEmail, email]);
+
+  useEffect(() => {
+    if (!robotSlotProfileId && data.accessProfiles?.length) {
+      setRobotSlotProfileId(String(data.accessProfiles[0].id));
+    }
+  }, [data.accessProfiles, robotSlotProfileId]);
 
   async function removeUnpaidItem(itemId: string) {
     if (!email) return;
@@ -448,6 +532,42 @@ export function AccountDashboard() {
     setAddingCredits(false);
   }
 
+  async function requestRobotSlot() {
+    if (!email) return;
+
+    setRequestingRobotSlot(true);
+    setRobotSlotMessage("");
+
+    const scheduledDate = new Date(robotSlotStart);
+    const response = await fetch("/api/robot-slot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        profileId: robotSlotProfileId,
+        scheduledStart: Number.isNaN(scheduledDate.getTime()) ? robotSlotStart : scheduledDate.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        robotModel: robotSlotModel,
+        presetDemo: robotSlotPreset,
+        requestedRunType: "preset_demo",
+        notes: robotSlotNotes
+      })
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setRobotSlotMessage(result?.error || "Unable to request that robot slot.");
+      setRequestingRobotSlot(false);
+      return;
+    }
+
+    setRobotSlotNotes("");
+    setRobotSlotStart(getDefaultRobotSlotValue());
+    setRobotSlotMessage("Robot slot requested. This will stay as a preset demo until the benchmark gate is available and passed.");
+    await refreshAccount();
+    setRequestingRobotSlot(false);
+  }
+
   if (loading) {
     return <p className="text-slate-600">Loading account...</p>;
   }
@@ -475,6 +595,7 @@ export function AccountDashboard() {
   const hasRequestItems = Boolean(data.unpaidBalance?.lines.length);
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
   const hasRobotRequests = Boolean(data.requests?.length);
+  const hasRobotSessions = Boolean(data.robotSessions?.length);
   const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
   const hasInvoices = Boolean(data.invoices?.length);
   const hasAccessProfiles = Boolean(data.accessProfiles?.length);
@@ -818,6 +939,139 @@ export function AccountDashboard() {
           </div>
         </div>
       </section>
+
+      {hasAccessProfiles ? (
+        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Slots require a profile login, at least 24 hours notice, and a start time between 9:00 AM and 5:00 PM.
+              </p>
+            </div>
+            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
+              <p>Preset demo only</p>
+              <p className="mt-1 text-xs text-slate-500">Custom code unlocks after benchmark approval.</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-lg font-semibold text-slate-950">New Slot Request</h3>
+              <div className="mt-4 space-y-4">
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Profile Login</span>
+                  <select
+                    value={robotSlotProfileId}
+                    onChange={(event) => setRobotSlotProfileId(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  >
+                    {data.accessProfiles?.map((profile) => (
+                      <option key={profile.id} value={profile.id}>
+                        @{profile.username} - {formatProfileType(profile.profile_type)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Start Time</span>
+                  <input
+                    type="datetime-local"
+                    min={toDateTimeLocalValue(new Date(Date.now() + 24 * 60 * 60 * 1000))}
+                    step="1800"
+                    value={robotSlotStart}
+                    onChange={(event) => setRobotSlotStart(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  />
+                  <span className="mt-2 block text-sm text-slate-600">The server rejects times less than 24 hours out or outside robot hours.</span>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Robot Model</span>
+                  <select
+                    value={robotSlotModel}
+                    onChange={(event) => setRobotSlotModel(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  >
+                    {robotModelOptions.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Preset Demo</span>
+                  <select
+                    value={robotSlotPreset}
+                    onChange={(event) => setRobotSlotPreset(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  >
+                    {robotPresetOptions.map((preset) => (
+                      <option key={preset.value} value={preset.value}>
+                        {preset.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="mt-2 block text-sm text-slate-600">
+                    {robotPresetOptions.find((preset) => preset.value === robotSlotPreset)?.description}
+                  </span>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Notes</span>
+                  <textarea
+                    value={robotSlotNotes}
+                    onChange={(event) => setRobotSlotNotes(event.target.value)}
+                    rows={3}
+                    className="mt-2 w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                    placeholder="Anything we should know before the demo"
+                  />
+                </label>
+                {robotSlotMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{robotSlotMessage}</p> : null}
+                <button
+                  type="button"
+                  onClick={requestRobotSlot}
+                  disabled={requestingRobotSlot}
+                  className="w-full rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {requestingRobotSlot ? "Requesting..." : "Request Robot Slot"}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-lg font-semibold text-slate-950">Requested Robot Slots</h3>
+              <div className="mt-4 space-y-3">
+                {hasRobotSessions ? (
+                  data.robotSessions?.map((session) => (
+                    <div key={session.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-slate-950">{session.session_title}</p>
+                          <p className="mt-1 text-sm text-slate-600">
+                            {session.profile_username ? `@${session.profile_username}` : "Profile"} - {session.robot_model || "Robot"}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-600">{formatDateTime(session.scheduled_start)}</p>
+                          {session.preset_demo ? <p className="mt-1 text-sm text-slate-600">{session.preset_demo}</p> : null}
+                        </div>
+                        <div className="text-sm font-semibold text-[#2f70c8] md:text-right">
+                          <p>{formatInvoiceStatus(session.session_status)}</p>
+                          <p className="mt-1 text-xs text-slate-500">Benchmark: {formatInvoiceStatus(session.benchmark_status || "not_started")}</p>
+                          <p className="mt-1 text-xs text-slate-500">Run: {formatInvoiceStatus(session.approved_run_type || "preset_demo")}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm leading-6 text-slate-600">
+                    No robot viewing slots requested yet. The first available request must be at least 24 hours from now.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {hasRequestItems || actionMessage ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">

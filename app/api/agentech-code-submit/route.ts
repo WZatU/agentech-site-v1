@@ -48,12 +48,16 @@ function cleanBranch(value: string) {
   return branch;
 }
 
+function isAllowedRunMode(value: string) {
+  return value === "Benchmark review only" || value === "Dry-run review";
+}
+
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as SubmissionPayload;
     const developerName = cleanText(payload.developerName);
     const robotModel = cleanText(payload.robotModel, "Aegis Ultra");
-    const runMode = cleanText(payload.runMode, "Dry-run review");
+    const runMode = cleanText(payload.runMode, "Benchmark review only");
     const code = cleanText(payload.code);
     const githubRepoUrl = cleanText(payload.githubRepoUrl);
     const githubBranch = cleanBranch(cleanText(payload.githubBranch, "main"));
@@ -70,6 +74,13 @@ export async function POST(request: NextRequest) {
     if (!githubBranch) {
       return NextResponse.json(
         { error: "Branch name can only include letters, numbers, '.', '_', '/', and '-'." },
+        { status: 400 }
+      );
+    }
+
+    if (!isAllowedRunMode(runMode)) {
+      return NextResponse.json(
+        { error: "Custom code can only be submitted for benchmark review until the benchmark gate is available and passed." },
         { status: 400 }
       );
     }

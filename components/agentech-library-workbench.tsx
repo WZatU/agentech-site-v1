@@ -404,7 +404,7 @@ Live camera -> Website viewer -> Student watches the run`;
           <div className="border border-[#2a3440] bg-[#0d1117] p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">2. Import</p>
             <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-[#e5edf5]">from agentech import Agentech</pre>
-            <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">Everything students need starts from this one class. The method names are intentionally plain English.</p>
+            <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">Everything students and developer profiles need starts from this one class. The method names are intentionally plain English.</p>
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117] p-4">
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">3. Run Safely</p>
@@ -547,10 +547,10 @@ export function AgentechLibraryWorkbench() {
   const [code, setCode] = useState(starterCode);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [activeName, setActiveName] = useState("stand");
-  const [requestStatus, setRequestStatus] = useState("Ready for a supervised robot session request.");
+  const [requestStatus, setRequestStatus] = useState("Ready for benchmark review. Live robot code requires benchmark approval first.");
   const [developerName, setDeveloperName] = useState("");
   const [robotModel, setRobotModel] = useState("Aegis Ultra");
-  const [runMode, setRunMode] = useState("Dry-run review");
+  const [runMode, setRunMode] = useState("Benchmark review only");
   const [githubRepoUrl, setGithubRepoUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
@@ -964,9 +964,8 @@ export function AgentechLibraryWorkbench() {
                 onChange={(event) => setRunMode(event.target.value)}
                 className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
               >
+                <option>Benchmark review only</option>
                 <option>Dry-run review</option>
-                <option>Supervised live robot</option>
-                <option>Recorded demo result</option>
               </select>
             </label>
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
@@ -998,15 +997,14 @@ export function AgentechLibraryWorkbench() {
               disabled={isSubmittingCode}
               className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmittingCode ? "Submitting..." : "Submit Code Or Repo"}
+              {isSubmittingCode ? "Submitting..." : "Submit For Benchmark Review"}
             </button>
-            <button
-              type="button"
-              onClick={() => setRequestStatus("Robot session request drafted. Connect this panel to booking/backend when ready.")}
-              className="w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
+            <Link
+              href="/account"
+              className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
             >
               Request Robot Slot
-            </button>
+            </Link>
             <p className="border border-[#2a3440] bg-[#0d1117] p-3 text-sm leading-6 text-[#aeb8c2]">{requestStatus}</p>
 
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">

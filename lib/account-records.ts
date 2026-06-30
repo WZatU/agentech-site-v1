@@ -126,6 +126,28 @@ export type AiRoboticsClubApplicationRecord = {
   created_at: string;
 };
 
+export type RobotSessionRecord = {
+  id: number;
+  email: string;
+  access_profile_id: number | null;
+  profile_username: string | null;
+  profile_type: AccessProfileType | null;
+  session_title: string;
+  robot_model: string | null;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  session_status: string;
+  requested_run_type: string | null;
+  approved_run_type: string | null;
+  preset_demo: string | null;
+  benchmark_status: string | null;
+  price: number | null;
+  invoice_number: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function getAccountRecord(email: string) {
   const rows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
     query: `email=eq.${encodeURIComponent(email)}&select=email,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at&limit=1`
@@ -497,6 +519,71 @@ export async function getAiRoboticsClubApplications(accountEmail: string) {
   }
 }
 
+export async function getRobotSessions(accountEmail: string) {
+  try {
+    return await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
+    });
+  } catch {
+    try {
+      const rows = await supabaseRequest<Array<Omit<RobotSessionRecord, "access_profile_id" | "profile_username" | "profile_type" | "requested_run_type" | "approved_run_type" | "preset_demo" | "benchmark_status">>>("agentech_robot_sessions", {
+        query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,session_title,robot_model,scheduled_start,scheduled_end,session_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
+      });
+
+      return rows.map((row) => ({
+        ...row,
+        access_profile_id: null,
+        profile_username: null,
+        profile_type: null,
+        requested_run_type: null,
+        approved_run_type: null,
+        preset_demo: null,
+        benchmark_status: null
+      }));
+    } catch {
+      return [];
+    }
+  }
+}
+
+export async function createRobotSession(input: {
+  email: string;
+  accessProfileId: number;
+  profileUsername: string;
+  profileType: AccessProfileType;
+  sessionTitle: string;
+  robotModel: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  requestedRunType: "preset_demo" | "custom_code";
+  approvedRunType: "preset_demo" | "custom_code";
+  presetDemo: string;
+  benchmarkStatus: "not_started" | "pending" | "passed" | "failed";
+  notes?: string | null;
+}) {
+  const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "POST",
+    body: {
+      email: input.email,
+      access_profile_id: input.accessProfileId,
+      profile_username: input.profileUsername,
+      profile_type: input.profileType,
+      session_title: input.sessionTitle,
+      robot_model: input.robotModel,
+      scheduled_start: input.scheduledStart,
+      scheduled_end: input.scheduledEnd,
+      session_status: "requested",
+      requested_run_type: input.requestedRunType,
+      approved_run_type: input.approvedRunType,
+      preset_demo: input.presetDemo,
+      benchmark_status: input.benchmarkStatus,
+      notes: input.notes || null
+    }
+  });
+
+  return rows[0] ?? null;
+}
+
 function requestLooksActive(status: string) {
   const normalized = status.replace(/_/g, " ").toLowerCase();
 
@@ -504,13 +591,14 @@ function requestLooksActive(status: string) {
 }
 
 export async function getAccountSummary(email: string) {
-  const [account, accessProfiles, profile, children, requests, robotInvoiceReferences, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance, invoices] = await Promise.all([
+  const [account, accessProfiles, profile, children, requests, robotInvoiceReferences, robotSessions, enrollments, internshipApplications, aiRoboticsClubApplications, unpaidBalance, invoices] = await Promise.all([
     getAccountRecord(email),
     getAccessProfiles(email),
     getProfile(email),
     getChildren(email),
     getPreorderRequests(email),
     getRobotInvoiceReferences(email),
+    getRobotSessions(email),
     getEnrollments(email),
     getInternshipApplications(email),
     getAiRoboticsClubApplications(email),
@@ -533,6 +621,7 @@ export async function getAccountSummary(email: string) {
     profile,
     children,
     requests: normalizedRequests,
+    robotSessions,
     enrollments,
     applications: {
       internships: internshipApplications,
