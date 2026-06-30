@@ -31,6 +31,13 @@ create table if not exists public.agentech_account_profiles (
   profile_type text not null check (profile_type in ('developer', 'student', 'teacher', 'talent')),
   username text not null unique,
   display_name text not null default '',
+  first_name text,
+  last_name text,
+  dob date,
+  grade text,
+  sex text,
+  school_info text,
+  preferred_location text,
   credit_limit integer not null default 0 check (credit_limit >= 0),
   credits_used integer not null default 0 check (credits_used >= 0),
   monthly_credit_limit integer not null default 0 check (monthly_credit_limit >= 0),
@@ -41,6 +48,13 @@ create table if not exists public.agentech_account_profiles (
 );
 
 alter table public.agentech_account_profiles add column if not exists username text;
+alter table public.agentech_account_profiles add column if not exists first_name text;
+alter table public.agentech_account_profiles add column if not exists last_name text;
+alter table public.agentech_account_profiles add column if not exists dob date;
+alter table public.agentech_account_profiles add column if not exists grade text;
+alter table public.agentech_account_profiles add column if not exists sex text;
+alter table public.agentech_account_profiles add column if not exists school_info text;
+alter table public.agentech_account_profiles add column if not exists preferred_location text;
 update public.agentech_account_profiles
 set username = concat(profile_type, '-', id::text)
 where username is null or username = '';

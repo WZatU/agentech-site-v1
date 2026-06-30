@@ -22,6 +22,13 @@ export type AccessProfile = {
   profile_type: AccessProfileType;
   username: string;
   display_name: string;
+  first_name: string | null;
+  last_name: string | null;
+  dob: string | null;
+  grade: string | null;
+  sex: string | null;
+  school_info: string | null;
+  preferred_location: string | null;
   credit_limit: number;
   credits_used: number;
   monthly_credit_limit: number;
@@ -129,7 +136,7 @@ export async function getAccountRecord(email: string) {
 
 export async function getAccessProfiles(email: string) {
   return supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
-    query: `account_email=eq.${encodeURIComponent(email)}&select=id,account_email,profile_type,username,display_name,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&order=created_at.desc`
+    query: `account_email=eq.${encodeURIComponent(email)}&select=id,account_email,profile_type,username,display_name,first_name,last_name,dob,grade,sex,school_info,preferred_location,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&order=created_at.desc`
   }).catch(() => []);
 }
 
@@ -140,7 +147,7 @@ export async function getAccessProfileByUsername(username: string) {
   }
 
   const rows = await supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
-    query: `username=eq.${encodeURIComponent(normalizedUsername)}&select=id,account_email,profile_type,username,display_name,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&limit=1`
+    query: `username=eq.${encodeURIComponent(normalizedUsername)}&select=id,account_email,profile_type,username,display_name,first_name,last_name,dob,grade,sex,school_info,preferred_location,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&limit=1`
   });
 
   return rows[0] ?? null;
@@ -342,6 +349,13 @@ export async function createAccessProfile(input: {
   username: string;
   displayName: string;
   monthlyCreditLimit: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  dob?: string | null;
+  grade?: string | null;
+  sex?: string | null;
+  schoolInfo?: string | null;
+  preferredLocation?: string | null;
 }) {
   const monthlyCreditLimit = Math.max(0, Math.floor(input.monthlyCreditLimit));
   const rows = await supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
@@ -351,6 +365,13 @@ export async function createAccessProfile(input: {
       profile_type: input.profileType,
       username: input.username,
       display_name: input.displayName,
+      first_name: input.firstName || null,
+      last_name: input.lastName || null,
+      dob: input.dob || null,
+      grade: input.grade || null,
+      sex: input.sex || null,
+      school_info: input.schoolInfo || null,
+      preferred_location: input.preferredLocation || null,
       credit_limit: monthlyCreditLimit,
       credits_used: 0,
       monthly_credit_limit: monthlyCreditLimit,

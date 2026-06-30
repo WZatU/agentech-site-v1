@@ -22,6 +22,13 @@ type DashboardData = {
     profile_type: "developer" | "student" | "teacher" | "talent";
     username: string;
     display_name: string;
+    first_name: string | null;
+    last_name: string | null;
+    dob: string | null;
+    grade: string | null;
+    sex: string | null;
+    school_info: string | null;
+    preferred_location: string | null;
     credit_limit: number;
     credits_used: number;
     monthly_credit_limit: number;
@@ -132,6 +139,23 @@ const profileOptions: Array<{ type: AccessProfileType; label: string; descriptio
   { type: "talent", label: "Talent", description: "Use talent, application, and portfolio features." }
 ];
 
+const studentGradeOptions = [
+  "Pre-K",
+  "Kindergarten",
+  "Grade 1",
+  "Grade 2",
+  "Grade 3",
+  "Grade 4",
+  "Grade 5",
+  "Grade 6",
+  "Grade 7",
+  "Grade 8",
+  "Grade 9",
+  "Grade 10",
+  "Grade 11",
+  "Grade 12"
+];
+
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -203,6 +227,13 @@ export function AccountDashboard() {
   const [profileUsername, setProfileUsername] = useState("");
   const [profileName, setProfileName] = useState("");
   const [profileMonthlyLimit, setProfileMonthlyLimit] = useState("0");
+  const [studentFirstName, setStudentFirstName] = useState("");
+  const [studentLastName, setStudentLastName] = useState("");
+  const [studentDob, setStudentDob] = useState("");
+  const [studentGrade, setStudentGrade] = useState("");
+  const [studentSex, setStudentSex] = useState("");
+  const [studentSchoolInfo, setStudentSchoolInfo] = useState("");
+  const [studentPreferredLocation, setStudentPreferredLocation] = useState("");
   const [profileMessage, setProfileMessage] = useState("");
   const [creatingProfile, setCreatingProfile] = useState(false);
   const [adminCreditTargetEmail, setAdminCreditTargetEmail] = useState("");
@@ -352,7 +383,14 @@ export function AccountDashboard() {
         profileType,
         username: profileUsername,
         displayName: profileName,
-        monthlyCreditLimit: profileMonthlyLimit
+        monthlyCreditLimit: profileMonthlyLimit,
+        firstName: studentFirstName,
+        lastName: studentLastName,
+        dob: studentDob,
+        grade: studentGrade,
+        sex: studentSex,
+        schoolInfo: studentSchoolInfo,
+        preferredLocation: studentPreferredLocation
       })
     });
     const result = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -366,6 +404,13 @@ export function AccountDashboard() {
     setProfileUsername("");
     setProfileName("");
     setProfileMonthlyLimit("0");
+    setStudentFirstName("");
+    setStudentLastName("");
+    setStudentDob("");
+    setStudentGrade("");
+    setStudentSex("");
+    setStudentSchoolInfo("");
+    setStudentPreferredLocation("");
     setProfileMessage("Profile created.");
     await refreshAccount();
     setCreatingProfile(false);
@@ -594,6 +639,14 @@ export function AccountDashboard() {
                     <div>
                       <p className="font-semibold text-slate-950">{profile.display_name || `${formatProfileType(profile.profile_type)} Profile`}</p>
                       <p className="mt-1 text-sm text-slate-600">@{profile.username} - {formatProfileType(profile.profile_type)}</p>
+                      {profile.profile_type === "student" ? (
+                        <p className="mt-1 text-sm text-slate-600">
+                          {[profile.grade, profile.sex, profile.school_info].filter(Boolean).join(" - ")}
+                        </p>
+                      ) : null}
+                      {profile.profile_type === "student" && profile.preferred_location ? (
+                        <p className="mt-1 text-sm text-slate-600">Preferred location: {profile.preferred_location}</p>
+                      ) : null}
                     </div>
                     <div className="text-sm md:text-right">
                       <p className="font-semibold text-[#2f70c8]">{formatCredits(monthlyRemaining)} left this month</p>
@@ -661,6 +714,85 @@ export function AccountDashboard() {
                   className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
                 />
               </label>
+              {profileType === "student" ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Student Information</p>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">First Name</span>
+                      <input
+                        value={studentFirstName}
+                        onChange={(event) => setStudentFirstName(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Last Name</span>
+                      <input
+                        value={studentLastName}
+                        onChange={(event) => setStudentLastName(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Date of Birth</span>
+                      <input
+                        type="date"
+                        value={studentDob}
+                        onChange={(event) => setStudentDob(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Grade</span>
+                      <select
+                        value={studentGrade}
+                        onChange={(event) => setStudentGrade(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      >
+                        <option value="">Select grade</option>
+                        {studentGradeOptions.map((grade) => (
+                          <option key={grade} value={grade}>
+                            {grade}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Sex</span>
+                      <select
+                        value={studentSex}
+                        onChange={(event) => setStudentSex(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      >
+                        <option value="">Select</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">School Info</span>
+                      <input
+                        value={studentSchoolInfo}
+                        onChange={(event) => setStudentSchoolInfo(event.target.value)}
+                        placeholder="School name or program"
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Preferred Location</span>
+                      <input
+                        value={studentPreferredLocation}
+                        onChange={(event) => setStudentPreferredLocation(event.target.value)}
+                        placeholder="Example: Irvine, Online"
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : null}
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Monthly Credit Limit</span>
                 <input
