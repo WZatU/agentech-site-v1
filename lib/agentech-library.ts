@@ -143,7 +143,7 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "sit",
     category: "Posture",
     signature: "Agentech.sit()",
-    summary: "Return the robot to a sitting or lie-down posture.",
+    summary: "Lower the robot from stand into the floor-sit damping posture.",
     example: "Agentech.sit()",
     params: []
   },
@@ -154,6 +154,16 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Stop the current motion command.",
     example: "Agentech.stop()",
     params: []
+  },
+  {
+    name: "emergency_stop",
+    category: "Safety",
+    signature: "Agentech.emergency_stop()",
+    summary: "Trigger emergency stop and put the robot into damping mode.",
+    example: "Agentech.emergency_stop()",
+    params: [
+      { name: "reason", type: "str", defaultValue: "\"Agentech emergency stop\"", description: "Short operator-readable reason sent with the stop request." }
+    ]
   },
   {
     name: "get_battery_status",

@@ -56,6 +56,7 @@ LAY_POSE = {
 
 LAY_BASE_Z = 0.2104
 STAND_BASE_Z = 0.37
+FLOOR_SIT_SECONDS = 3.0
 
 
 COMMANDS = {
@@ -72,6 +73,7 @@ COMMANDS = {
     "look_down": [MuJoCoCommand("look_down", {"angle": 15.0, "speed": 0.12})],
     "sit": [MuJoCoCommand("sit", {})],
     "stop": [MuJoCoCommand("stop", {})],
+    "emergency_stop": [],
     "battery_status": [MuJoCoCommand("get_battery_status", {})],
 }
 
@@ -328,6 +330,37 @@ def twist_frames(keyframes: list[dict[str, object]], start_time_s: float) -> lis
     return frames
 
 
+def floor_sit_frames(start_time_s: float) -> list[dict[str, object]]:
+    frames: list[dict[str, object]] = []
+    count = int(FLOOR_SIT_SECONDS * FPS)
+    for index in range(count):
+        progress = smoothstep((index + 1) / count)
+        root_z = mix(STAND_BASE_Z, LAY_BASE_Z, progress)
+        joints = {
+            name: mix(STAND_POSE[name], LAY_POSE[name], progress)
+            for name in STAND_POSE
+        }
+        frames.append(
+            {
+                "x": 0.0,
+                "y": 0.0,
+                "root_x": 0.0,
+                "root_y": 0.0,
+                "root_z": root_z,
+                "z": root_z,
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "gait_phase": 0.0,
+                "gait_settle": 0.0,
+                "gait_direction": 1.0,
+                "stand_progress": 1.0,
+                "time_s": start_time_s + index / FPS,
+                "joints": joints,
+            }
+        )
+    return frames
+
+
 def render_data_urls(preview: MuJoCoPreview, frames: list[dict[str, object]], *, max_frames: int) -> list[str]:
     if not any("joints" in frame for frame in frames):
         return preview.render_data_urls(frames, max_frames=max_frames, width=WIDTH, height=HEIGHT)
@@ -415,8 +448,9 @@ def decode_data_url(url: str) -> Image.Image:
 def save_gif(name: str, data_urls: list[str]) -> None:
     images = [decode_data_url(url) for url in data_urls]
     output = OUT_DIR / f"{name}.gif"
+    temp_output = OUT_DIR / f"{name}.tmp.gif"
     images[0].save(
-        output,
+        temp_output,
         save_all=True,
         append_images=images[1:],
         duration=int(1000 / FPS),
@@ -424,6 +458,7 @@ def save_gif(name: str, data_urls: list[str]) -> None:
         optimize=True,
         disposal=2,
     )
+    temp_output.replace(output)
     print(f"wrote {output.relative_to(ROOT)} ({len(images)} frames)")
 
 
@@ -442,6 +477,10 @@ def main() -> int:
             frames = base_stand + twist_frames(TWIST_LEFT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
         elif name == "twist_right":
             frames = base_stand + twist_frames(TWIST_RIGHT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
+        elif name == "sit":
+            frames = floor_sit_frames(0.0)
+        elif name == "emergency_stop":
+            frames = floor_sit_frames(0.0)
         else:
             frames = base_stand + command_frames(preview, commands)
         max_frames = min(len(frames), 78)

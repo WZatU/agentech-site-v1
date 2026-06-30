@@ -27,6 +27,7 @@ const localPreviewAssets: Record<string, string> = {
   stand: "/assets/products/aegis-previews/stand.gif",
   sit: "/assets/products/aegis-previews/sit.gif",
   stop: "/assets/products/aegis-previews/stop.gif",
+  emergency_stop: "/assets/products/aegis-previews/emergency_stop.gif",
   get_battery_status: "/assets/products/aegis-previews/battery_status.gif"
 };
 const localPreviewFallback = "/assets/products/aegis-previews/stand.gif";
@@ -119,6 +120,7 @@ function previewCommandLabel(command: string) {
     stand: "Stand",
     sit: "Sit",
     stop: "Stop",
+    emergency_stop: "Emergency Stop",
     get_battery_status: "Get Battery Status"
   };
   return labels[command] ?? command;
@@ -165,10 +167,11 @@ Agentech.stand(stand_wait=5)
 Agentech.sit()`
   },
   Safety: {
-    activeName: "stop",
+    activeName: "emergency_stop",
     code: `from agentech import Agentech
 
 Agentech.stop()
+Agentech.emergency_stop()
 Agentech.get_battery_status()`
   },
   Sensing: {
@@ -347,6 +350,7 @@ function DocsSection() {
       "stand",
       "sit",
       "stop",
+      "emergency_stop",
       "get_battery_status"
     ].includes(item.name)
   );
@@ -457,7 +461,7 @@ Live camera -> Website viewer -> Student watches the run`;
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Linear acceleration benchmark is about 2.5 m/s^2.</p>
                 <p>Motion commands are capped at 10 seconds.</p>
-                <p>`Agentech.stop()` is the beginner stop command exposed on this page.</p>
+                <p>`Agentech.stop()` stops normal motion. `Agentech.emergency_stop()` enters damping mode.</p>
               </div>
             </div>
             <div className="border border-[#2a3440] bg-[#0d1117] p-4">
