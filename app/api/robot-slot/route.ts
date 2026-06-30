@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createRobotSession, getAccessProfiles, getAccountRecord } from "@/lib/account-records";
+import { createRobotSession, findRobotSessionConflict, getAccessProfiles, getAccountRecord, getRobotSessionsInWindow } from "@/lib/account-records";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
@@ -68,6 +68,11 @@ function isWithinRobotHours(date: Date, timeZone: string) {
   const minutes = hour * 60 + minute;
 
   return minutes >= 9 * 60 && minutes < 17 * 60;
+}
+
+function isBookableSlotInterval(date: Date, timeZone: string) {
+  const { minute } = getTimeParts(date, timeZone);
+  return minute === 0 || minute === 30;
 }
 
 function addMinutes(date: Date, minutes: number) {
@@ -146,6 +151,29 @@ async function sendRobotSlotConfirmation(input: {
   });
 }
 
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const start = new Date(clean(url.searchParams.get("start")));
+  const end = new Date(clean(url.searchParams.get("end")));
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+    return NextResponse.json({ error: "Choose a valid availability window." }, { status: 400 });
+  }
+
+  const sessions = await getRobotSessionsInWindow(start.toISOString(), end.toISOString());
+  const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
+  const bookedSlots = sessions
+    .filter((session) => activeStatuses.has(session.session_status.replace(/ /g, "_").toLowerCase()))
+    .map((session) => ({
+      id: session.id,
+      scheduledStart: session.scheduled_start,
+      scheduledEnd: session.scheduled_end,
+      status: session.session_status
+    }));
+
+  return NextResponse.json({ ok: true, bookedSlots });
+}
+
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as RobotSlotPayload | null;
   const email = normalizeEmail(payload?.email);
@@ -177,6 +205,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Robot slots must start between 9:00 AM and 5:00 PM." }, { status: 400 });
   }
 
+  if (!isBookableSlotInterval(scheduledStart, timeZone)) {
+    return NextResponse.json({ error: "Robot slots must start on the hour or half hour." }, { status: 400 });
+  }
+
   if (requestedRunType !== "preset_demo") {
     return NextResponse.json(
       { error: "Custom robot code requires the benchmark gate first. Request a preset demo slot for now." },
@@ -197,6 +229,11 @@ export async function POST(request: Request) {
 
   const presetDemo = presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
   const scheduledEnd = addMinutes(scheduledStart, slotDurationMinutes);
+  const conflictingSession = await findRobotSessionConflict(scheduledStart.toISOString(), scheduledEnd.toISOString());
+  if (conflictingSession) {
+    return NextResponse.json({ error: "That robot slot is already requested. Choose another available time." }, { status: 409 });
+  }
+
   const session = await createRobotSession({
     email,
     accessProfileId: selectedProfile.id,

@@ -27,6 +27,12 @@ type DashboardAccessProfile = {
   created_at: string;
 };
 
+type RobotSlotOption = {
+  value: string;
+  label: string;
+  disabled: boolean;
+};
+
 type DashboardData = {
   account?: {
     email: string;
@@ -265,8 +271,7 @@ function looksLikeAdminEmail(email: string) {
 }
 
 function toDateTimeLocalValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+  return date.toISOString();
 }
 
 function getDefaultRobotSlotValue() {
@@ -284,6 +289,51 @@ function getDefaultRobotSlotValue() {
   }
 
   return toDateTimeLocalValue(date);
+}
+
+function formatRobotSlotLabel(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function generateRobotSlotCandidates() {
+  const slots: RobotSlotOption[] = [];
+  const minimumStart = Date.now() + 24 * 60 * 60 * 1000;
+  const today = new Date();
+
+  for (let dayOffset = 0; dayOffset < 14; dayOffset += 1) {
+    const day = new Date(today);
+    day.setDate(today.getDate() + dayOffset);
+
+    for (let hour = 9; hour < 17; hour += 1) {
+      for (const minute of [0, 30]) {
+        const slot = new Date(day);
+        slot.setHours(hour, minute, 0, 0);
+
+        if (slot.getTime() < minimumStart) {
+          continue;
+        }
+
+        slots.push({
+          value: slot.toISOString(),
+          label: formatRobotSlotLabel(slot.toISOString()),
+          disabled: false
+        });
+      }
+    }
+  }
+
+  return slots;
 }
 
 export function AccountDashboard() {
@@ -334,6 +384,8 @@ export function AccountDashboard() {
   const [robotSlotPreset, setRobotSlotPreset] = useState("starter_demo");
   const [robotSlotNotes, setRobotSlotNotes] = useState("");
   const [robotSlotMessage, setRobotSlotMessage] = useState("");
+  const [robotSlotOptions, setRobotSlotOptions] = useState<RobotSlotOption[]>([]);
+  const [loadingRobotSlots, setLoadingRobotSlots] = useState(false);
   const [requestingRobotSlot, setRequestingRobotSlot] = useState(false);
 
   useEffect(() => {
@@ -391,6 +443,71 @@ export function AccountDashboard() {
       setRobotSlotProfileId(String(data.accessProfiles[0].id));
     }
   }, [data.accessProfiles, robotSlotProfileId]);
+
+  useEffect(() => {
+    if (!email || !data.accessProfiles?.length) {
+      setRobotSlotOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const candidates = generateRobotSlotCandidates();
+    if (!candidates.length) {
+      setRobotSlotOptions([]);
+      return;
+    }
+
+    const firstStart = candidates[0].value;
+    const lastStart = candidates[candidates.length - 1].value;
+    const lastEnd = new Date(new Date(lastStart).getTime() + 30 * 60 * 1000).toISOString();
+    setLoadingRobotSlots(true);
+
+    fetch(`/api/robot-slot?start=${encodeURIComponent(firstStart)}&end=${encodeURIComponent(lastEnd)}`)
+      .then((response) => response.json())
+      .then((result: { bookedSlots?: Array<{ scheduledStart: string | null; scheduledEnd: string | null }> }) => {
+        if (cancelled) {
+          return;
+        }
+
+        const bookedSlots = result.bookedSlots ?? [];
+        const nextOptions = candidates.map((slot) => {
+          const slotStart = new Date(slot.value).getTime();
+          const slotEnd = slotStart + 30 * 60 * 1000;
+          const booked = bookedSlots.some((bookedSlot) => {
+            const bookedStart = new Date(bookedSlot.scheduledStart || "").getTime();
+            const bookedEnd = new Date(bookedSlot.scheduledEnd || bookedSlot.scheduledStart || "").getTime();
+            return Number.isFinite(bookedStart) && Number.isFinite(bookedEnd) && slotStart < bookedEnd && slotEnd > bookedStart;
+          });
+
+          return {
+            ...slot,
+            label: booked ? `${slot.label} - unavailable` : slot.label,
+            disabled: booked
+          };
+        });
+        const selectedSlot = nextOptions.find((slot) => slot.value === robotSlotStart);
+        const firstAvailable = nextOptions.find((slot) => !slot.disabled);
+
+        setRobotSlotOptions(nextOptions);
+        if ((!selectedSlot || selectedSlot.disabled) && firstAvailable) {
+          setRobotSlotStart(firstAvailable.value);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRobotSlotOptions(candidates);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingRobotSlots(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data.accessProfiles?.length, data.robotSessions?.length, email, robotSlotStart]);
 
   async function removeUnpaidItem(itemId: string) {
     if (!email) return;
@@ -687,6 +804,8 @@ export function AccountDashboard() {
   const monthlyUsed = data.creditSummary?.monthlyUsed ?? 0;
   const isAdminAccount = looksLikeAdminEmail(email);
   const lockedFeatures = data.featureAccess?.lockedFeatures ?? [];
+  const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
+  const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled;
 
   return (
     <div className="space-y-8">
@@ -1214,15 +1333,20 @@ export function AccountDashboard() {
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Start Time</span>
-                  <input
-                    type="datetime-local"
-                    min={toDateTimeLocalValue(new Date(Date.now() + 24 * 60 * 60 * 1000))}
-                    step="1800"
+                  <select
                     value={robotSlotStart}
                     onChange={(event) => setRobotSlotStart(event.target.value)}
                     className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                  />
-                  <span className="mt-2 block text-sm text-slate-600">The server rejects times less than 24 hours out or outside robot hours.</span>
+                  >
+                    {loadingRobotSlots ? <option value={robotSlotStart}>Checking available slots...</option> : null}
+                    {!loadingRobotSlots && !robotSlotOptions.length ? <option value="">No slots available</option> : null}
+                    {robotSlotOptions.map((slot) => (
+                      <option key={slot.value} value={slot.value} disabled={slot.disabled}>
+                        {slot.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="mt-2 block text-sm text-slate-600">Unavailable times are disabled. The server also rejects already requested slots.</span>
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Robot Model</span>
@@ -1269,7 +1393,7 @@ export function AccountDashboard() {
                 <button
                   type="button"
                   onClick={requestRobotSlot}
-                  disabled={requestingRobotSlot}
+                  disabled={requestingRobotSlot || robotSlotUnavailable}
                   className="w-full rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
                   {requestingRobotSlot ? "Requesting..." : "Request Robot Slot"}

@@ -611,6 +611,49 @@ export async function getRobotSessions(accountEmail: string) {
   }
 }
 
+export async function getRobotSessionsInWindow(startIso: string, endIso: string) {
+  try {
+    return await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      query: `scheduled_start=gte.${encodeURIComponent(startIso)}&scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
+    });
+  } catch {
+    return [];
+  }
+}
+
+function isActiveRobotSession(session: Pick<RobotSessionRecord, "session_status">) {
+  const status = session.session_status.replace(/_/g, " ").toLowerCase();
+  return !["cancelled", "canceled", "voided", "rejected", "deleted"].includes(status);
+}
+
+export async function findRobotSessionConflict(startIso: string, endIso: string) {
+  let sessions: RobotSessionRecord[] = [];
+  try {
+    sessions = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      query: `scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
+    });
+  } catch {
+    sessions = [];
+  }
+  const requestedStart = new Date(startIso).getTime();
+  const requestedEnd = new Date(endIso).getTime();
+
+  return sessions.find((session) => {
+    if (!isActiveRobotSession(session)) {
+      return false;
+    }
+
+    const sessionStart = new Date(session.scheduled_start || "").getTime();
+    const sessionEnd = new Date(session.scheduled_end || session.scheduled_start || "").getTime();
+
+    if (!Number.isFinite(sessionStart) || !Number.isFinite(sessionEnd)) {
+      return false;
+    }
+
+    return requestedStart < sessionEnd && requestedEnd > sessionStart;
+  }) ?? null;
+}
+
 export async function createRobotSession(input: {
   email: string;
   accessProfileId: number;
