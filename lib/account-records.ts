@@ -175,6 +175,18 @@ export async function getAccessProfileByUsername(username: string) {
   return rows[0] ?? null;
 }
 
+export async function getAccessProfileById(id: number) {
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  const rows = await supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
+    query: `id=eq.${id}&select=id,account_email,profile_type,username,display_name,first_name,last_name,dob,grade,sex,school_info,preferred_location,credit_limit,credits_used,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at,updated_at&limit=1`
+  });
+
+  return rows[0] ?? null;
+}
+
 export function isAccessProfileType(value: unknown): value is AccessProfileType {
   return value === "developer" || value === "student" || value === "teacher" || value === "talent";
 }
@@ -404,6 +416,59 @@ export async function createAccessProfile(input: {
   });
 
   return rows[0] ?? null;
+}
+
+export async function updateAccessProfile(input: {
+  id: number;
+  accountEmail: string;
+  profileType: AccessProfileType;
+  username: string;
+  displayName: string;
+  monthlyCreditLimit: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  dob?: string | null;
+  grade?: string | null;
+  sex?: string | null;
+  schoolInfo?: string | null;
+  preferredLocation?: string | null;
+}) {
+  const monthlyCreditLimit = Math.max(0, Math.floor(input.monthlyCreditLimit));
+  const rows = await supabaseRequest<AccessProfile[]>("agentech_account_profiles", {
+    method: "PATCH",
+    query: `id=eq.${input.id}&account_email=eq.${encodeURIComponent(input.accountEmail)}`,
+    body: {
+      profile_type: input.profileType,
+      username: input.username,
+      display_name: input.displayName,
+      first_name: input.firstName || null,
+      last_name: input.lastName || null,
+      dob: input.dob || null,
+      grade: input.grade || null,
+      sex: input.sex || null,
+      school_info: input.schoolInfo || null,
+      preferred_location: input.preferredLocation || null,
+      credit_limit: monthlyCreditLimit,
+      monthly_credit_limit: monthlyCreditLimit,
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  const profile = rows[0] ?? null;
+  if (profile) {
+    await supabaseRequest<null>("agentech_robot_sessions", {
+      method: "PATCH",
+      query: `access_profile_id=eq.${input.id}`,
+      prefer: "return=minimal",
+      body: {
+        profile_username: input.username,
+        profile_type: input.profileType,
+        updated_at: new Date().toISOString()
+      }
+    }).catch(() => null);
+  }
+
+  return profile;
 }
 
 export async function getProfile(email: string) {

@@ -7,6 +7,26 @@ import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/l
 import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 
+type DashboardAccessProfile = {
+  id: number;
+  profile_type: "developer" | "student" | "teacher" | "talent";
+  username: string;
+  display_name: string;
+  first_name: string | null;
+  last_name: string | null;
+  dob: string | null;
+  grade: string | null;
+  sex: string | null;
+  school_info: string | null;
+  preferred_location: string | null;
+  credit_limit: number;
+  credits_used: number;
+  monthly_credit_limit: number;
+  monthly_credits_used: number;
+  monthly_usage_period: string;
+  created_at: string;
+};
+
 type DashboardData = {
   account?: {
     email: string;
@@ -17,25 +37,7 @@ type DashboardData = {
     paid_credit_balance: number;
     bonus_credit_balance: number;
   } | null;
-  accessProfiles?: Array<{
-    id: number;
-    profile_type: "developer" | "student" | "teacher" | "talent";
-    username: string;
-    display_name: string;
-    first_name: string | null;
-    last_name: string | null;
-    dob: string | null;
-    grade: string | null;
-    sex: string | null;
-    school_info: string | null;
-    preferred_location: string | null;
-    credit_limit: number;
-    credits_used: number;
-    monthly_credit_limit: number;
-    monthly_credits_used: number;
-    monthly_usage_period: string;
-    created_at: string;
-  }>;
+  accessProfiles?: DashboardAccessProfile[];
   creditSummary?: {
     balance: number;
     paid: number;
@@ -307,6 +309,20 @@ export function AccountDashboard() {
   const [studentPreferredLocation, setStudentPreferredLocation] = useState("");
   const [profileMessage, setProfileMessage] = useState("");
   const [creatingProfile, setCreatingProfile] = useState(false);
+  const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
+  const [editProfileType, setEditProfileType] = useState<AccessProfileType>("student");
+  const [editProfileUsername, setEditProfileUsername] = useState("");
+  const [editProfileName, setEditProfileName] = useState("");
+  const [editProfileMonthlyLimit, setEditProfileMonthlyLimit] = useState("0");
+  const [editStudentFirstName, setEditStudentFirstName] = useState("");
+  const [editStudentLastName, setEditStudentLastName] = useState("");
+  const [editStudentDob, setEditStudentDob] = useState("");
+  const [editStudentGrade, setEditStudentGrade] = useState("");
+  const [editStudentSex, setEditStudentSex] = useState("");
+  const [editStudentSchoolInfo, setEditStudentSchoolInfo] = useState("");
+  const [editStudentPreferredLocation, setEditStudentPreferredLocation] = useState("");
+  const [editProfileMessage, setEditProfileMessage] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
   const [adminCreditTargetEmail, setAdminCreditTargetEmail] = useState("");
   const [adminCreditType, setAdminCreditType] = useState<"paid" | "bonus">("paid");
   const [adminCreditAmount, setAdminCreditAmount] = useState("");
@@ -498,6 +514,67 @@ export function AccountDashboard() {
     setProfileMessage("Profile created.");
     await refreshAccount();
     setCreatingProfile(false);
+  }
+
+  function startEditingProfile(profile: DashboardAccessProfile) {
+    setEditingProfileId(profile.id);
+    setEditProfileType(profile.profile_type);
+    setEditProfileUsername(profile.username);
+    setEditProfileName(profile.display_name || "");
+    setEditProfileMonthlyLimit(String(profile.monthly_credit_limit ?? profile.credit_limit ?? 0));
+    setEditStudentFirstName(profile.first_name || "");
+    setEditStudentLastName(profile.last_name || "");
+    setEditStudentDob(profile.dob || "");
+    setEditStudentGrade(profile.grade || "");
+    setEditStudentSex(profile.sex || "");
+    setEditStudentSchoolInfo(profile.school_info || "");
+    setEditStudentPreferredLocation(profile.preferred_location || "");
+    setEditProfileMessage("");
+  }
+
+  function cancelEditingProfile() {
+    setEditingProfileId(null);
+    setEditProfileMessage("");
+    setSavingProfile(false);
+  }
+
+  async function saveProfile() {
+    if (!email || !editingProfileId) return;
+
+    setSavingProfile(true);
+    setEditProfileMessage("");
+
+    const response = await fetch("/api/account-profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingProfileId,
+        email,
+        profileType: editProfileType,
+        username: editProfileUsername,
+        displayName: editProfileName,
+        monthlyCreditLimit: editProfileMonthlyLimit,
+        firstName: editStudentFirstName,
+        lastName: editStudentLastName,
+        dob: editStudentDob,
+        grade: editStudentGrade,
+        sex: editStudentSex,
+        schoolInfo: editStudentSchoolInfo,
+        preferredLocation: editStudentPreferredLocation
+      })
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setEditProfileMessage(result?.error || "Unable to update profile.");
+      setSavingProfile(false);
+      return;
+    }
+
+    await refreshAccount();
+    setEditingProfileId(null);
+    setProfileMessage("Profile updated.");
+    setSavingProfile(false);
   }
 
   async function addAdminCredits() {
@@ -759,6 +836,156 @@ export function AccountDashboard() {
                   ? Number(profile.monthly_credits_used ?? 0)
                   : 0;
                 const monthlyRemaining = Math.max(0, monthlyLimit - monthlyUsedForPeriod);
+                if (editingProfileId === profile.id) {
+                  return (
+                    <div key={profile.id} className="rounded-2xl border border-[#2f70c8]/30 bg-[#eff6ff] p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-slate-950">Edit Profile</p>
+                          <p className="mt-1 text-sm text-slate-600">@{profile.username} - {formatProfileType(profile.profile_type)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={cancelEditingProfile}
+                          className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Profile Type</span>
+                          <select
+                            value={editProfileType}
+                            onChange={(event) => setEditProfileType(event.target.value as AccessProfileType)}
+                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                          >
+                            {profileOptions.map((option) => (
+                              <option key={option.type} value={option.type}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Username</span>
+                          <input
+                            value={editProfileUsername}
+                            onChange={(event) => setEditProfileUsername(event.target.value.toLowerCase())}
+                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Display Name</span>
+                          <input
+                            value={editProfileName}
+                            onChange={(event) => setEditProfileName(event.target.value)}
+                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Monthly Credit Limit</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={editProfileMonthlyLimit}
+                            onChange={(event) => setEditProfileMonthlyLimit(event.target.value)}
+                            className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                          />
+                        </label>
+                      </div>
+                      {editProfileType === "student" ? (
+                        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Student Information</p>
+                          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">First Name</span>
+                              <input
+                                value={editStudentFirstName}
+                                onChange={(event) => setEditStudentFirstName(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Last Name</span>
+                              <input
+                                value={editStudentLastName}
+                                onChange={(event) => setEditStudentLastName(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Date of Birth</span>
+                              <input
+                                type="date"
+                                value={editStudentDob}
+                                onChange={(event) => setEditStudentDob(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Grade</span>
+                              <select
+                                value={editStudentGrade}
+                                onChange={(event) => setEditStudentGrade(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              >
+                                <option value="">Select grade</option>
+                                {studentGradeOptions.map((grade) => (
+                                  <option key={grade} value={grade}>
+                                    {grade}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Sex</span>
+                              <select
+                                value={editStudentSex}
+                                onChange={(event) => setEditStudentSex(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              >
+                                <option value="">Select</option>
+                                <option value="female">Female</option>
+                                <option value="male">Male</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                              </select>
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">School Info</span>
+                              <input
+                                value={editStudentSchoolInfo}
+                                onChange={(event) => setEditStudentSchoolInfo(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              />
+                            </label>
+                            <label className="block sm:col-span-2">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Preferred Location</span>
+                              <input
+                                value={editStudentPreferredLocation}
+                                onChange={(event) => setEditStudentPreferredLocation(event.target.value)}
+                                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        {editProfileMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{editProfileMessage}</p> : <span />}
+                        <button
+                          type="button"
+                          onClick={saveProfile}
+                          disabled={savingProfile}
+                          className="rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+                        >
+                          {savingProfile ? "Saving..." : "Save Profile"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div key={profile.id} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
                     <div>
@@ -778,6 +1005,13 @@ export function AccountDashboard() {
                       <p className="mt-1 text-slate-600">
                         Monthly limit {formatCredits(monthlyLimit)} - Used {formatCredits(monthlyUsedForPeriod)}
                       </p>
+                      <button
+                        type="button"
+                        onClick={() => startEditingProfile(profile)}
+                        className="mt-3 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                      >
+                        Edit
+                      </button>
                     </div>
                   </div>
                 );
