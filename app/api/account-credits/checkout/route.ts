@@ -21,6 +21,10 @@ function toCreditAmount(value: unknown) {
   return Math.max(0, Math.floor(amount));
 }
 
+function calculateCardChargeCents(creditValueCents: number) {
+  return Math.ceil((creditValueCents + 30) / 0.971);
+}
+
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as CreditCheckoutPayload | null;
   const email = normalizeEmail(payload?.email);
@@ -44,7 +48,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
   }
 
-  const amountCents = credits;
+  const amountCents = calculateCardChargeCents(credits);
+  const processingFeeCents = amountCents - credits;
   const accountUrl = `${siteUrl}/account`;
   const body = new URLSearchParams();
   body.set("mode", "payment");
@@ -55,10 +60,11 @@ export async function POST(request: Request) {
   body.set("metadata[purpose]", "account_credit_recharge");
   body.set("metadata[email]", email);
   body.set("metadata[credits]", String(credits));
+  body.set("metadata[processing_fee_cents]", String(processingFeeCents));
   body.set("line_items[0][quantity]", "1");
   body.set("line_items[0][price_data][currency]", "usd");
   body.set("line_items[0][price_data][unit_amount]", String(amountCents));
-  body.set("line_items[0][price_data][product_data][name]", `${credits.toLocaleString()} Agentech account credits`);
+  body.set("line_items[0][price_data][product_data][name]", `${credits.toLocaleString()} Agentech account credits plus card processing`);
 
   const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

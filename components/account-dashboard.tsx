@@ -200,6 +200,10 @@ const robotPresetOptions = [
 
 const creditRechargeOptions = [1000, 2500, 5000, 10000];
 
+function calculateCardChargeCents(creditValueCents: number) {
+  return Math.ceil((creditValueCents + 30) / 0.971);
+}
+
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -853,6 +857,9 @@ export function AccountDashboard() {
   const bonusCredits = data.creditSummary?.bonus ?? data.account?.bonus_credit_balance ?? 0;
   const monthlyLimitTotal = data.creditSummary?.monthlyLimitTotal ?? data.creditSummary?.assigned ?? 0;
   const monthlyUsed = data.creditSummary?.monthlyUsed ?? 0;
+  const selectedRechargeCredits = Math.max(0, Math.floor(Number(rechargeCredits || 0)));
+  const selectedCardChargeCents = calculateCardChargeCents(selectedRechargeCredits);
+  const selectedProcessingFeeCents = Math.max(0, selectedCardChargeCents - selectedRechargeCredits);
   const isAdminAccount = looksLikeAdminEmail(email);
   const lockedFeatures = data.featureAccess?.lockedFeatures ?? [];
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
@@ -891,11 +898,12 @@ export function AccountDashboard() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2f70c8]">Recharge Credits</p>
-                  <p className="mt-2 text-sm text-slate-600">Card payments are processed by Stripe. 1 credit = 1 US cent.</p>
+                  <p className="mt-2 text-sm text-slate-600">Account receives the full credit value. Card processing is added on top.</p>
                 </div>
-                <p className="text-sm font-semibold text-slate-950">
-                  {formatUsd(Math.max(0, Math.floor(Number(rechargeCredits || 0))) / 100)}
-                </p>
+                <div className="text-right">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Card Charge</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-950">{formatUsd(selectedCardChargeCents / 100)}</p>
+                </div>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label className="block">
@@ -907,7 +915,7 @@ export function AccountDashboard() {
                   >
                     {creditRechargeOptions.map((credits) => (
                       <option key={credits} value={credits}>
-                        {credits.toLocaleString()} credits - {formatUsd(credits / 100)}
+                        {credits.toLocaleString()} credits - card charge {formatUsd(calculateCardChargeCents(credits) / 100)}
                       </option>
                     ))}
                   </select>
@@ -920,6 +928,11 @@ export function AccountDashboard() {
                 >
                   {startingRecharge ? "Starting..." : "Pay By Card"}
                 </button>
+              </div>
+              <div className="mt-3 grid gap-1 text-sm text-slate-600 sm:grid-cols-3">
+                <p>Credits added: {formatUsd(selectedRechargeCredits / 100)}</p>
+                <p>Card processing: {formatUsd(selectedProcessingFeeCents / 100)}</p>
+                <p className="font-semibold text-slate-950">Total charge: {formatUsd(selectedCardChargeCents / 100)}</p>
               </div>
               {rechargeMessage ? <p className="mt-3 text-sm font-semibold text-red-600">{rechargeMessage}</p> : null}
             </div>
