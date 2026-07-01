@@ -804,8 +804,8 @@ export function AgentechLibraryWorkbench() {
 
       <DocsOverview />
 
-      <main id="code-workbench" className="mx-auto grid max-w-7xl scroll-mt-6 gap-0 border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
-        <aside className="border-b border-[#2a3440] bg-[#11151b] lg:border-b-0 lg:border-r">
+      <main id="code-workbench" className="mx-auto grid w-full max-w-7xl scroll-mt-6 gap-0 overflow-hidden border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
+        <aside className="hidden border-b border-[#2a3440] bg-[#11151b] lg:block lg:border-b-0 lg:border-r">
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Library</p>
           </div>
@@ -847,6 +847,41 @@ export function AgentechLibraryWorkbench() {
           <div className="border-b border-[#2a3440] bg-[#181d24] px-4 py-3">
             <p className="font-mono text-sm text-[#cdd6df]">agentech_quickstart.py</p>
           </div>
+          <div className="border-b border-[#2a3440] bg-[#11151b] p-3 lg:hidden">
+            <div className="grid gap-3">
+              <label className="block">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7f8c99]">Category</span>
+                <select
+                  value={activeCategory}
+                  onChange={(event) => loadCategory(event.target.value as Category)}
+                  className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 text-sm text-white outline-none focus:border-[#8fdc8f]"
+                >
+                  {categories.map((category) => (
+                    <option key={category}>{category}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7f8c99]">Function</span>
+                <select
+                  value={activeFunction.name}
+                  onChange={(event) => {
+                    const selected = agentechFunctions.find((item) => item.name === event.target.value);
+                    if (selected) {
+                      loadExample(selected);
+                    }
+                  }}
+                  className="mt-2 w-full border border-[#93c5fd] bg-[#101d2e] px-3 py-3 font-mono text-sm text-[#dbeafe] outline-none focus:border-[#8fdc8f]"
+                >
+                  {filteredFunctions.map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}()
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
           <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(430px,0.85fr)]">
             <div>
               <textarea
@@ -855,9 +890,9 @@ export function AgentechLibraryWorkbench() {
                   updateCode(event.target.value);
                 }}
                 spellCheck={false}
-                className="h-[520px] w-full resize-none border-0 bg-[#0d1117] p-5 font-mono text-sm leading-7 text-[#e5edf5] outline-none selection:bg-[#275c37]"
+                className="h-[340px] w-full resize-none border-0 bg-[#0d1117] p-4 font-mono text-[13px] leading-6 text-[#e5edf5] outline-none selection:bg-[#275c37] sm:h-[440px] sm:text-sm sm:leading-7 lg:h-[520px] lg:p-5"
               />
-              <div className="border-t border-[#2a3440] bg-[#0d1117] px-5 py-3 text-xs leading-5 text-[#8fdc8f]">
+              <div className="border-t border-[#2a3440] bg-[#0d1117] px-4 py-2 text-[11px] leading-5 text-[#8fdc8f] sm:px-5 sm:py-3 sm:text-xs">
                 Required for motion code: <span className="font-mono">{protectedStandLine}</span>. Students can change parameters, but motion previews and submissions keep a stand command before movement.
               </div>
             </div>
@@ -875,7 +910,7 @@ export function AgentechLibraryWorkbench() {
                   </p>
                   <p className="font-mono text-xs text-[#7f8c99]">{renderedFrames.length ? "real rendered frames" : "approved GIF asset"}</p>
                 </div>
-                <div className="relative mx-auto aspect-[13/9] w-full overflow-hidden border border-[#2a3440] bg-black">
+                <div className="relative mx-auto aspect-[4/3] max-h-[54vh] w-full overflow-hidden border border-[#2a3440] bg-black sm:aspect-[13/9]">
                   {renderedFrame ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -902,7 +937,7 @@ export function AgentechLibraryWorkbench() {
                     />
                   )}
                 </div>
-                <div className="mt-4 grid grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs">
+                <div className="mt-4 hidden grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs sm:grid">
                   <div className="border-r border-[#2a3440] p-2">model ready</div>
                   <div className="border-r border-[#2a3440] p-2">{renderedFrames.length ? "sim" : "gif"}</div>
                   <div className="p-2">{plan.motionCount} moves</div>
@@ -919,7 +954,7 @@ export function AgentechLibraryWorkbench() {
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
                   detected command: {plan.trace[0] ?? "none"} - {useRealMuJoCoPreview || renderedFrames.length ? `frame ${Math.min(simFrameIndex + 1, previewFrameCount)} / ${previewFrameCount}` : "official clip"}
                 </div>
-                <div className="mt-4 max-h-52 space-y-2 overflow-auto">
+                <div className="mt-4 max-h-32 space-y-2 overflow-auto sm:max-h-52">
                   {plan.trace.map((line, index) => (
                     <p key={`${line}-${index}`} className="border border-[#2a3440] bg-[#0d1117] px-3 py-2 font-mono text-xs text-[#cdd6df]">
                       {line}
@@ -930,7 +965,18 @@ export function AgentechLibraryWorkbench() {
             </div>
           </div>
 
-          <div className="border-t border-[#2a3440] p-4">
+          <div className="border-t border-[#2a3440] p-3 lg:hidden">
+            <details className="border border-[#2a3440] bg-[#11151b]">
+              <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">
+                Function details and parameters
+              </summary>
+              <div className="border-t border-[#2a3440] p-3">
+                <FunctionReference item={activeFunction} />
+              </div>
+            </details>
+          </div>
+
+          <div className="hidden border-t border-[#2a3440] p-4 lg:block">
             <FunctionReference item={activeFunction} />
           </div>
         </section>
@@ -939,7 +985,89 @@ export function AgentechLibraryWorkbench() {
           <div className="border-b border-[#2a3440] px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Robot Session</p>
           </div>
-          <div className="space-y-4 p-4">
+          <div className="space-y-3 p-3 lg:hidden">
+            <Link
+              href="/account"
+              className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
+            >
+              Request Robot Slot
+            </Link>
+            <details className="border border-[#2a3440] bg-[#0d1117]">
+              <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#93c5fd]">
+                Submit code or GitHub branch
+              </summary>
+              <div className="space-y-3 border-t border-[#2a3440] p-3">
+                <label className="block">
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Developer name</span>
+                  <input
+                    value={developerName}
+                    onChange={(event) => setDeveloperName(event.target.value)}
+                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 text-sm text-white outline-none focus:border-[#8fdc8f]"
+                    placeholder="Student or team"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">GitHub repo URL</span>
+                  <input
+                    value={githubRepoUrl}
+                    onChange={(event) => setGithubRepoUrl(event.target.value)}
+                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 text-sm text-white outline-none focus:border-[#8fdc8f]"
+                    placeholder="https://github.com/team/project"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Branch</span>
+                  <input
+                    value={githubBranch}
+                    onChange={(event) => setGithubBranch(event.target.value)}
+                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 font-mono text-sm text-white outline-none focus:border-[#8fdc8f]"
+                    placeholder="main"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={submitCodeForReview}
+                  disabled={isSubmittingCode}
+                  className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmittingCode ? "Submitting..." : "Submit For Review"}
+                </button>
+                <p className="border border-[#2a3440] bg-[#0b0d10] p-3 text-xs leading-5 text-[#aeb8c2]">{requestStatus}</p>
+              </div>
+            </details>
+
+            <details className="border border-[#2a3440] bg-[#0d1117]" open>
+              <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">
+                Live robot camera
+              </summary>
+              <div className="border-t border-[#2a3440] p-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs leading-5 text-[#aeb8c2]">
+                    {liveRobotCameraConfigured ? "Official supervised-session feed." : "LiveKit camera feed is not configured yet."}
+                  </p>
+                  <span className={`h-2.5 w-2.5 shrink-0 ${liveRobotCameraConfigured ? "bg-[#8fdc8f]" : "bg-[#7f8c99]"}`} aria-hidden="true" />
+                </div>
+                <div className="mx-auto aspect-[4/3] max-h-[420px] w-full overflow-hidden border border-[#2a3440] bg-black">
+                  <LiveRobotCamera roomName={liveRobotRoomName} />
+                </div>
+              </div>
+            </details>
+
+            <details className="border border-[#2a3440] bg-[#0d1117]">
+              <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#7f8c99]">
+                Safety defaults
+              </summary>
+              <ul className="space-y-2 border-t border-[#2a3440] p-3 text-sm leading-6 text-[#cdd6df]">
+                <li>Dry-run first</li>
+                <li>Forward capped at 2.37 m/s; backward capped at 2.365 m/s</li>
+                <li>Lateral walking capped at 0.78 m/s</li>
+                <li>Motion capped at 10 seconds</li>
+                <li>Emergency stop is always available</li>
+              </ul>
+            </details>
+          </div>
+
+          <div className="hidden space-y-4 p-4 lg:block">
             <label className="block">
               <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Developer name</span>
               <input
