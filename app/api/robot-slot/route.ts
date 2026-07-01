@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createRobotSession, findRobotSessionConflict, getAccessProfiles, getAccountRecord, getRobotSessionsInWindow } from "@/lib/account-records";
+import { accountSessionCookieName } from "@/lib/account-session";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
@@ -11,11 +13,14 @@ type RobotSlotPayload = {
   robotModel?: string;
   presetDemo?: string;
   requestedRunType?: string;
+  durationMinutes?: number | string;
   notes?: string;
 };
 
-const slotDurationMinutes = 30;
-const minimumLeadTimeMs = 24 * 60 * 60 * 1000;
+const defaultSlotDurationMinutes = 5;
+const allowedSlotDurations = new Set([5, 10, 15, 30]);
+const slotIntervalMinutes = 5;
+const minimumLeadTimeMs = 2 * 60 * 1000;
 const defaultTimeZone = "America/Los_Angeles";
 
 const robotModels = new Set(["Aegis Ultra", "Aegis EDU", "Aegis Pro", "Navi"]);
@@ -35,6 +40,20 @@ function clean(value: unknown) {
 function toProfileId(value: unknown) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+async function getSignedInEmail() {
+  const cookieStore = await cookies();
+  return normalizeEmail(cookieStore.get(accountSessionCookieName)?.value);
+}
+
+function isInternalEmail(email: string) {
+  return email.trim().toLowerCase().endsWith("@agent-tech.ai");
+}
+
+function getDurationMinutes(value: unknown) {
+  const parsed = Number(value);
+  return allowedSlotDurations.has(parsed) ? parsed : defaultSlotDurationMinutes;
 }
 
 function validTimeZone(value: string) {
@@ -72,11 +91,37 @@ function isWithinRobotHours(date: Date, timeZone: string) {
 
 function isBookableSlotInterval(date: Date, timeZone: string) {
   const { minute } = getTimeParts(date, timeZone);
-  return minute === 0 || minute === 30;
+  return minute % slotIntervalMinutes === 0;
 }
 
 function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60 * 1000);
+}
+
+function roundUpToSlot(date: Date) {
+  const rounded = new Date(date);
+  rounded.setSeconds(0, 0);
+  const minutes = rounded.getMinutes();
+  const remainder = minutes % slotIntervalMinutes;
+  if (remainder !== 0) {
+    rounded.setMinutes(minutes + slotIntervalMinutes - remainder, 0, 0);
+  }
+  return rounded;
+}
+
+function normalizeRobotSlotStart(requestedStart: Date, timeZone: string) {
+  const minimumStart = roundUpToSlot(new Date(Date.now() + minimumLeadTimeMs));
+  const normalized = roundUpToSlot(requestedStart.getTime() < minimumStart.getTime() ? minimumStart : requestedStart);
+
+  if (isWithinRobotHours(normalized, timeZone)) {
+    return normalized;
+  }
+
+  while (!isWithinRobotHours(normalized, timeZone)) {
+    normalized.setMinutes(normalized.getMinutes() + slotIntervalMinutes, 0, 0);
+  }
+
+  return normalized;
 }
 
 function escapeHtml(value: string) {
@@ -123,7 +168,7 @@ async function sendRobotSlotConfirmation(input: {
     `Time: ${scheduledWindow}`,
     `Demo: ${input.presetDemo}`,
     "",
-    "For now, robot slots run as preset demos. Custom code will require the benchmark gate to be available and passed first.",
+    "For now, robot slots run as supervised preset viewing sessions. Custom code review will be added after the booking workflow is stable.",
     "",
     "Agentech"
   ].join("\n");
@@ -138,7 +183,7 @@ async function sendRobotSlotConfirmation(input: {
         <tr><td style="padding: 8px 0; color: #6b7280;">Time</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(scheduledWindow)}</td></tr>
         <tr><td style="padding: 8px 0; color: #6b7280;">Demo</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(input.presetDemo)}</td></tr>
       </table>
-      <p>For now, robot slots run as preset demos. Custom code will require the benchmark gate to be available and passed first.</p>
+      <p>For now, robot slots run as supervised preset viewing sessions. Custom code review will be added after the booking workflow is stable.</p>
       <p style="margin-top: 24px;">Agentech</p>
     </div>
   `;
@@ -177,41 +222,49 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as RobotSlotPayload | null;
   const email = normalizeEmail(payload?.email);
+  const signedInEmail = await getSignedInEmail();
   const profileId = toProfileId(payload?.profileId);
   const scheduledStartRaw = clean(payload?.scheduledStart);
-  const scheduledStart = new Date(scheduledStartRaw);
+  const requestedScheduledStart = new Date(scheduledStartRaw);
   const timeZone = validTimeZone(clean(payload?.timeZone));
   const requestedRunType = clean(payload?.requestedRunType) || "preset_demo";
+  const durationMinutes = getDurationMinutes(payload?.durationMinutes);
   const robotModel = robotModels.has(clean(payload?.robotModel)) ? clean(payload?.robotModel) : "Aegis Ultra";
   const presetDemoKey = presetDemos.has(clean(payload?.presetDemo)) ? clean(payload?.presetDemo) : "starter_demo";
 
+  if (!isValidEmail(signedInEmail)) {
+    return NextResponse.json({ error: "Sign in before scheduling a robot viewing session." }, { status: 401 });
+  }
+
   if (!isValidEmail(email)) {
     return NextResponse.json({ error: "A valid account email is required." }, { status: 400 });
+  }
+
+  if (email !== signedInEmail) {
+    return NextResponse.json({ error: "Robot slots can only be scheduled from the signed-in account." }, { status: 403 });
   }
 
   if (!profileId) {
     return NextResponse.json({ error: "Choose the profile that will use this robot slot." }, { status: 400 });
   }
 
-  if (Number.isNaN(scheduledStart.getTime())) {
+  if (Number.isNaN(requestedScheduledStart.getTime())) {
     return NextResponse.json({ error: "Choose a valid robot slot time." }, { status: 400 });
   }
 
-  if (scheduledStart.getTime() < Date.now() + minimumLeadTimeMs) {
-    return NextResponse.json({ error: "Robot slots must be requested at least 24 hours in advance." }, { status: 400 });
-  }
+  const scheduledStart = normalizeRobotSlotStart(requestedScheduledStart, timeZone);
 
   if (!isWithinRobotHours(scheduledStart, timeZone)) {
     return NextResponse.json({ error: "Robot slots must start between 9:00 AM and 5:00 PM." }, { status: 400 });
   }
 
   if (!isBookableSlotInterval(scheduledStart, timeZone)) {
-    return NextResponse.json({ error: "Robot slots must start on the hour or half hour." }, { status: 400 });
+    return NextResponse.json({ error: "Robot slots must start on a 5-minute boundary." }, { status: 400 });
   }
 
   if (requestedRunType !== "preset_demo") {
     return NextResponse.json(
-      { error: "Custom robot code requires the benchmark gate first. Request a preset demo slot for now." },
+      { error: "Custom robot code booking is not enabled yet. Request a preset viewing session for now." },
       { status: 400 }
     );
   }
@@ -221,6 +274,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
   }
 
+  if (!isInternalEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
+    return NextResponse.json({ error: "Robot viewing requires account credits. @agent-tech.ai accounts are unrestricted for internal testing." }, { status: 402 });
+  }
+
   const profiles = await getAccessProfiles(email);
   const selectedProfile = profiles.find((profile) => profile.id === profileId);
   if (!selectedProfile) {
@@ -228,7 +285,7 @@ export async function POST(request: Request) {
   }
 
   const presetDemo = presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
-  const scheduledEnd = addMinutes(scheduledStart, slotDurationMinutes);
+  const scheduledEnd = addMinutes(scheduledStart, durationMinutes);
   const conflictingSession = await findRobotSessionConflict(scheduledStart.toISOString(), scheduledEnd.toISOString());
   if (conflictingSession) {
     return NextResponse.json({ error: "That robot slot is already requested. Choose another available time." }, { status: 409 });

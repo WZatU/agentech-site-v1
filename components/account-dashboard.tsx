@@ -162,6 +162,10 @@ const profileOptions: Array<{ type: AccessProfileType; label: string; descriptio
   { type: "talent", label: "Talent", description: "Use talent, application, and portfolio features." }
 ];
 
+const robotSlotDurationOptions = [5, 10, 15, 30];
+const robotSlotGridMinutes = 5;
+const robotSlotPrepMinutes = 2;
+
 const studentGradeOptions = [
   "Pre-K",
   "Kindergarten",
@@ -274,10 +278,18 @@ function toDateTimeLocalValue(date: Date) {
   return date.toISOString();
 }
 
+function roundUpToRobotSlot(date: Date) {
+  const rounded = new Date(date);
+  rounded.setSeconds(0, 0);
+  const remainder = rounded.getMinutes() % robotSlotGridMinutes;
+  if (remainder !== 0) {
+    rounded.setMinutes(rounded.getMinutes() + robotSlotGridMinutes - remainder, 0, 0);
+  }
+  return rounded;
+}
+
 function getDefaultRobotSlotValue() {
-  const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const minutes = date.getMinutes();
-  date.setMinutes(minutes <= 30 ? 30 : 60, 0, 0);
+  const date = roundUpToRobotSlot(new Date(Date.now() + robotSlotPrepMinutes * 60 * 1000));
 
   if (date.getHours() < 9) {
     date.setHours(9, 0, 0, 0);
@@ -288,7 +300,7 @@ function getDefaultRobotSlotValue() {
     date.setHours(9, 0, 0, 0);
   }
 
-  return toDateTimeLocalValue(date);
+  return toDateTimeLocalValue(roundUpToRobotSlot(date));
 }
 
 function formatRobotSlotLabel(value: string) {
@@ -306,21 +318,27 @@ function formatRobotSlotLabel(value: string) {
   });
 }
 
-function generateRobotSlotCandidates() {
+function generateRobotSlotCandidates(durationMinutes: number) {
   const slots: RobotSlotOption[] = [];
-  const minimumStart = Date.now() + 24 * 60 * 60 * 1000;
+  const minimumStart = roundUpToRobotSlot(new Date(Date.now() + robotSlotPrepMinutes * 60 * 1000)).getTime();
   const today = new Date();
+  const durationMs = durationMinutes * 60 * 1000;
 
   for (let dayOffset = 0; dayOffset < 14; dayOffset += 1) {
     const day = new Date(today);
     day.setDate(today.getDate() + dayOffset);
 
     for (let hour = 9; hour < 17; hour += 1) {
-      for (const minute of [0, 30]) {
+      for (let minute = 0; minute < 60; minute += robotSlotGridMinutes) {
         const slot = new Date(day);
         slot.setHours(hour, minute, 0, 0);
+        const slotEnd = slot.getTime() + durationMs;
 
         if (slot.getTime() < minimumStart) {
+          continue;
+        }
+
+        if (slotEnd > new Date(slot).setHours(17, 0, 0, 0)) {
           continue;
         }
 
@@ -380,6 +398,7 @@ export function AccountDashboard() {
   const [addingCredits, setAddingCredits] = useState(false);
   const [robotSlotProfileId, setRobotSlotProfileId] = useState("");
   const [robotSlotStart, setRobotSlotStart] = useState(getDefaultRobotSlotValue);
+  const [robotSlotDurationMinutes, setRobotSlotDurationMinutes] = useState("5");
   const [robotSlotModel, setRobotSlotModel] = useState("Aegis Ultra");
   const [robotSlotPreset, setRobotSlotPreset] = useState("starter_demo");
   const [robotSlotNotes, setRobotSlotNotes] = useState("");
@@ -451,7 +470,8 @@ export function AccountDashboard() {
     }
 
     let cancelled = false;
-    const candidates = generateRobotSlotCandidates();
+    const durationMinutes = Number(robotSlotDurationMinutes) || 5;
+    const candidates = generateRobotSlotCandidates(durationMinutes);
     if (!candidates.length) {
       setRobotSlotOptions([]);
       return;
@@ -459,7 +479,7 @@ export function AccountDashboard() {
 
     const firstStart = candidates[0].value;
     const lastStart = candidates[candidates.length - 1].value;
-    const lastEnd = new Date(new Date(lastStart).getTime() + 30 * 60 * 1000).toISOString();
+    const lastEnd = new Date(new Date(lastStart).getTime() + durationMinutes * 60 * 1000).toISOString();
     setLoadingRobotSlots(true);
 
     fetch(`/api/robot-slot?start=${encodeURIComponent(firstStart)}&end=${encodeURIComponent(lastEnd)}`)
@@ -472,7 +492,7 @@ export function AccountDashboard() {
         const bookedSlots = result.bookedSlots ?? [];
         const nextOptions = candidates.map((slot) => {
           const slotStart = new Date(slot.value).getTime();
-          const slotEnd = slotStart + 30 * 60 * 1000;
+          const slotEnd = slotStart + durationMinutes * 60 * 1000;
           const booked = bookedSlots.some((bookedSlot) => {
             const bookedStart = new Date(bookedSlot.scheduledStart || "").getTime();
             const bookedEnd = new Date(bookedSlot.scheduledEnd || bookedSlot.scheduledStart || "").getTime();
@@ -507,7 +527,7 @@ export function AccountDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [data.accessProfiles?.length, data.robotSessions?.length, email, robotSlotStart]);
+  }, [data.accessProfiles?.length, data.robotSessions?.length, email, robotSlotDurationMinutes, robotSlotStart]);
 
   async function removeUnpaidItem(itemId: string) {
     if (!email) return;
@@ -741,6 +761,7 @@ export function AccountDashboard() {
         profileId: robotSlotProfileId,
         scheduledStart: Number.isNaN(scheduledDate.getTime()) ? robotSlotStart : scheduledDate.toISOString(),
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        durationMinutes: robotSlotDurationMinutes,
         robotModel: robotSlotModel,
         presetDemo: robotSlotPreset,
         requestedRunType: "preset_demo",
@@ -759,8 +780,8 @@ export function AccountDashboard() {
     setRobotSlotStart(getDefaultRobotSlotValue());
     setRobotSlotMessage(
       result?.emailSent
-        ? "Robot slot requested. Confirmation email sent. This will stay as a preset demo until the benchmark gate is available and passed."
-        : "Robot slot requested. Confirmation email is not configured yet. This will stay as a preset demo until the benchmark gate is available and passed."
+        ? "Robot slot requested. Confirmation email sent. This booking is for a supervised preset viewing session."
+        : "Robot slot requested. Confirmation email is not configured yet. This booking is for a supervised preset viewing session."
     );
     await refreshAccount();
     setRequestingRobotSlot(false);
@@ -805,7 +826,8 @@ export function AccountDashboard() {
   const isAdminAccount = looksLikeAdminEmail(email);
   const lockedFeatures = data.featureAccess?.lockedFeatures ?? [];
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
-  const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled;
+  const robotSlotCreditLocked = !isAdminAccount && creditBalance <= 0;
+  const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked;
 
   return (
     <div className="space-y-8">
@@ -1304,12 +1326,12 @@ export function AccountDashboard() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Slots require a profile login, at least 24 hours notice, and a start time between 9:00 AM and 5:00 PM.
+                Slots require sign-in, a profile, account credits, and a start time on a 5-minute boundary. Internal @agent-tech.ai accounts can test without credit restrictions.
               </p>
             </div>
             <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
               <p>Preset demo only</p>
-              <p className="mt-1 text-xs text-slate-500">Custom code unlocks after benchmark approval.</p>
+              <p className="mt-1 text-xs text-slate-500">Custom code review will be added after the booking workflow is stable.</p>
             </div>
           </div>
 
@@ -1347,6 +1369,21 @@ export function AccountDashboard() {
                     ))}
                   </select>
                   <span className="mt-2 block text-sm text-slate-600">Unavailable times are disabled. The server also rejects already requested slots.</span>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Viewing Duration</span>
+                  <select
+                    value={robotSlotDurationMinutes}
+                    onChange={(event) => setRobotSlotDurationMinutes(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  >
+                    {robotSlotDurationOptions.map((minutes) => (
+                      <option key={minutes} value={minutes}>
+                        {minutes} minutes
+                      </option>
+                    ))}
+                  </select>
+                  <span className="mt-2 block text-sm text-slate-600">Use 5 minutes for quick demos, or 10+ minutes when the session needs more observation time.</span>
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Robot Model</span>
@@ -1389,6 +1426,11 @@ export function AccountDashboard() {
                     placeholder="Anything we should know before the demo"
                   />
                 </label>
+                {robotSlotCreditLocked ? (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                    Robot viewing requires credits. Internal @agent-tech.ai accounts can test without credits.
+                  </p>
+                ) : null}
                 {robotSlotMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{robotSlotMessage}</p> : null}
                 <button
                   type="button"
@@ -1418,7 +1460,6 @@ export function AccountDashboard() {
                         </div>
                         <div className="text-sm font-semibold text-[#2f70c8] md:text-right">
                           <p>{formatInvoiceStatus(session.session_status)}</p>
-                          <p className="mt-1 text-xs text-slate-500">Benchmark: {formatInvoiceStatus(session.benchmark_status || "not_started")}</p>
                           <p className="mt-1 text-xs text-slate-500">Run: {formatInvoiceStatus(session.approved_run_type || "preset_demo")}</p>
                         </div>
                       </div>
@@ -1426,7 +1467,7 @@ export function AccountDashboard() {
                   ))
                 ) : (
                   <p className="text-sm leading-6 text-slate-600">
-                    No robot viewing slots requested yet. The first available request must be at least 24 hours from now.
+                    No robot viewing slots requested yet. The first available request is the next 5-minute slot after a 2-minute prep buffer.
                   </p>
                 )}
               </div>
