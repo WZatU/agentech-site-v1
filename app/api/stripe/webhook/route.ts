@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fulfillAccountCreditPayment } from "@/lib/account-records";
 import { markBillingInvoicePaid, verifyStripeSignature } from "@/lib/billing";
 
 type StripeCheckoutSession = {
@@ -6,6 +7,9 @@ type StripeCheckoutSession = {
   client_reference_id?: string | null;
   payment_intent?: string | null;
   metadata?: {
+    purpose?: string;
+    email?: string;
+    credits?: string;
     invoice_number?: string;
   } | null;
   payment_status?: string | null;
@@ -35,6 +39,17 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data?.object;
+    const purpose = session?.metadata?.purpose || "";
+
+    if (purpose === "account_credit_recharge" && session?.id && session.payment_status === "paid") {
+      await fulfillAccountCreditPayment({
+        stripeSessionId: session.id,
+        paymentIntentId: session.payment_intent || null
+      });
+
+      return NextResponse.json({ received: true });
+    }
+
     const invoiceNumber = session?.metadata?.invoice_number || session?.client_reference_id || "";
 
     if (invoiceNumber && session?.payment_status === "paid") {

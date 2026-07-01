@@ -198,6 +198,8 @@ const robotPresetOptions = [
   { value: "backflip", label: "Backflip", description: "Preset backflip demo." }
 ];
 
+const creditRechargeOptions = [1000, 2500, 5000, 10000];
+
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -396,6 +398,9 @@ export function AccountDashboard() {
   const [adminCreditAmount, setAdminCreditAmount] = useState("");
   const [adminCreditMessage, setAdminCreditMessage] = useState("");
   const [addingCredits, setAddingCredits] = useState(false);
+  const [rechargeCredits, setRechargeCredits] = useState("1000");
+  const [rechargeMessage, setRechargeMessage] = useState("");
+  const [startingRecharge, setStartingRecharge] = useState(false);
   const [robotSlotProfileId, setRobotSlotProfileId] = useState("");
   const [robotSlotStart, setRobotSlotStart] = useState(getDefaultRobotSlotValue);
   const [robotSlotDurationMinutes, setRobotSlotDurationMinutes] = useState("5");
@@ -746,6 +751,31 @@ export function AccountDashboard() {
     setAddingCredits(false);
   }
 
+  async function startCreditRecharge() {
+    if (!email) return;
+
+    setStartingRecharge(true);
+    setRechargeMessage("");
+
+    const response = await fetch("/api/account-credits/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        credits: rechargeCredits
+      })
+    });
+    const result = (await response.json().catch(() => null)) as { checkoutUrl?: string; error?: string } | null;
+
+    if (!response.ok || !result?.checkoutUrl) {
+      setRechargeMessage(result?.error || "Unable to start card payment.");
+      setStartingRecharge(false);
+      return;
+    }
+
+    window.location.href = result.checkoutUrl;
+  }
+
   async function requestRobotSlot() {
     if (!email) return;
 
@@ -857,6 +887,42 @@ export function AccountDashboard() {
                 No credits are available. Recharge this account before profiles can spend credits.
               </p>
             ) : null}
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2f70c8]">Recharge Credits</p>
+                  <p className="mt-2 text-sm text-slate-600">Card payments are processed by Stripe. 1 credit = 1 US cent.</p>
+                </div>
+                <p className="text-sm font-semibold text-slate-950">
+                  {formatUsd(Math.max(0, Math.floor(Number(rechargeCredits || 0))) / 100)}
+                </p>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Credits To Buy</span>
+                  <select
+                    value={rechargeCredits}
+                    onChange={(event) => setRechargeCredits(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  >
+                    {creditRechargeOptions.map((credits) => (
+                      <option key={credits} value={credits}>
+                        {credits.toLocaleString()} credits - {formatUsd(credits / 100)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={startCreditRecharge}
+                  disabled={startingRecharge}
+                  className="rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {startingRecharge ? "Starting..." : "Pay By Card"}
+                </button>
+              </div>
+              {rechargeMessage ? <p className="mt-3 text-sm font-semibold text-red-600">{rechargeMessage}</p> : null}
+            </div>
             {isAdminAccount ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-[#2f70c8]/25 bg-[#eff6ff] p-4">

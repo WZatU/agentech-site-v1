@@ -148,6 +148,19 @@ export type RobotSessionRecord = {
   updated_at: string;
 };
 
+export type AccountCreditPaymentRecord = {
+  id: number;
+  email: string;
+  credits: number;
+  amount_cents: number;
+  currency: string;
+  status: "pending" | "paid" | "failed" | "refunded";
+  stripe_checkout_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function getAccountRecord(email: string) {
   const rows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
     query: `email=eq.${encodeURIComponent(email)}&select=email,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at&limit=1`
@@ -287,6 +300,61 @@ export async function addAccountCredits(email: string, creditType: "paid" | "bon
     bonus: bonusCreditBalance,
     balance: paidCreditBalance + bonusCreditBalance
   };
+}
+
+export async function createAccountCreditPayment(input: {
+  email: string;
+  credits: number;
+  amountCents: number;
+  stripeSessionId: string;
+}) {
+  const rows = await supabaseRequest<AccountCreditPaymentRecord[]>("agentech_account_credit_payments", {
+    method: "POST",
+    body: {
+      email: input.email,
+      credits: input.credits,
+      amount_cents: input.amountCents,
+      currency: "usd",
+      status: "pending",
+      stripe_checkout_session_id: input.stripeSessionId,
+      stripe_payment_intent_id: null,
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return rows[0] ?? null;
+}
+
+export async function fulfillAccountCreditPayment(input: {
+  stripeSessionId: string;
+  paymentIntentId?: string | null;
+}) {
+  const rows = await supabaseRequest<AccountCreditPaymentRecord[]>("agentech_account_credit_payments", {
+    query: `stripe_checkout_session_id=eq.${encodeURIComponent(input.stripeSessionId)}&select=*&limit=1`
+  });
+  const payment = rows[0] ?? null;
+
+  if (!payment) {
+    return null;
+  }
+
+  if (payment.status === "paid") {
+    return payment;
+  }
+
+  await addAccountCredits(payment.email, "paid", payment.credits);
+
+  const updatedRows = await supabaseRequest<AccountCreditPaymentRecord[]>("agentech_account_credit_payments", {
+    method: "PATCH",
+    query: `stripe_checkout_session_id=eq.${encodeURIComponent(input.stripeSessionId)}`,
+    body: {
+      status: "paid",
+      stripe_payment_intent_id: input.paymentIntentId || null,
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return updatedRows[0] ?? payment;
 }
 
 export async function spendAccountCredits(email: string, requestedCredits: number) {
