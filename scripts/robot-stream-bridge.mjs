@@ -13,6 +13,8 @@ const obsUrl = process.env.OBS_WEBSOCKET_URL || "ws://127.0.0.1:4455";
 const obsPassword = process.env.OBS_WEBSOCKET_PASSWORD || undefined;
 const pollMs = Number(process.env.ROBOT_STREAM_POLL_MS || 5000);
 const prepMs = Number(process.env.ROBOT_STREAM_PREP_SECONDS || 120) * 1000;
+const operatingStartHour = Number(process.env.ROBOT_STREAM_START_HOUR || 8);
+const operatingEndHour = Number(process.env.ROBOT_STREAM_END_HOUR || 22);
 const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
 
 let obs = null;
@@ -24,6 +26,15 @@ function iso(date) {
 
 function normalizeStatus(status) {
   return String(status || "").replace(/ /g, "_").toLowerCase();
+}
+
+function localHourValue(date = new Date()) {
+  return date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+}
+
+function isWithinOperatingWindow(date = new Date()) {
+  const hour = localHourValue(date);
+  return hour >= operatingStartHour && hour < operatingEndHour;
 }
 
 async function supabaseRequest(table, query, options = {}) {
@@ -103,6 +114,14 @@ async function stopStream() {
 }
 
 async function tick() {
+  if (!isWithinOperatingWindow()) {
+    if (streamingForSessionId) {
+      await stopStream();
+    }
+    console.log(`[robot-stream] outside operating window ${operatingStartHour}:00-${operatingEndHour}:00; exiting.`);
+    process.exit(0);
+  }
+
   const dueSession = await findDueSession();
   if (dueSession) {
     await startStream(dueSession);
@@ -117,6 +136,7 @@ async function tick() {
 console.log("[robot-stream] bridge running.");
 console.log(`[robot-stream] OBS: ${obsUrl}`);
 console.log(`[robot-stream] Poll: ${pollMs}ms, prep: ${prepMs / 1000}s`);
+console.log(`[robot-stream] Operating window: ${operatingStartHour}:00-${operatingEndHour}:00 local time`);
 
 await tick().catch((error) => console.error("[robot-stream] tick failed:", error.message));
 setInterval(() => {
