@@ -19,6 +19,7 @@ The repository is designed to work like a professional product codebase: public 
 - Supabase-backed accounts, profiles, children, enrollments, preorder requests, invoices, and applications.
 - Resend-backed application, invoice, and notification email flows.
 - Hidden product documentation page at `/agentech-products/documents`.
+- Hidden collaborator-only Agentech robot dog library page at `/agentech-products/agentech-library`.
 - Internal launch switches for preorder, enroll, and grade visibility.
 
 ## Documentation Map
@@ -39,8 +40,11 @@ Important documents:
 - [Dropbox News automation](docs/dropbox-news-automation.md)
 - [Documentation index](docs/documentation-index.md)
 - Hidden product documents page: `/agentech-products/documents`
+- Hidden Agentech robot dog library page: `/agentech-products/agentech-library`
 
 The product documents page is intentionally not linked from public navigation and is marked `noindex`. It still works by direct URL for internal review.
+
+The Agentech robot dog library page is also intentionally hidden from public navigation and marked `noindex`. Treat it as collaborator-only: share the direct link only with team members, instructors, students, or developers who are supposed to preview the robot command API. It is not a public marketing page.
 
 ## Quick Start
 
@@ -81,6 +85,12 @@ Hidden documents preview:
 http://localhost:3001/agentech-products/documents
 ```
 
+Hidden Agentech library preview:
+
+```text
+http://localhost:3001/agentech-products/agentech-library
+```
+
 ## Environment Variables
 
 Create local environment variables as needed:
@@ -88,9 +98,16 @@ Create local environment variables as needed:
 ```text
 NEXT_PUBLIC_SITE_URL=
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
+NEXT_PUBLIC_LIVEKIT_URL=
+NEXT_PUBLIC_LIVEKIT_ROOM_NAME=
 
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+LIVEKIT_ROOM_NAME=
 
 RESEND_API_KEY=
 APPLICATION_FROM_EMAIL=
@@ -102,6 +119,8 @@ DROPBOX_NEWS_SHARED_LINK=
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-side only.
+
+`LIVEKIT_API_SECRET` and any FF SDK / robot-control implementation details must also stay server-side or on the private robot/OBS computer. The website may show public beginner calls such as `Agentech.forward()`, but it must not expose private SDK internals, SSH credentials, robot hotspot details, or service-role keys in client code.
 
 ## Core Routes
 
@@ -125,6 +144,7 @@ DROPBOX_NEWS_SHARED_LINK=
 | `/account` | Account requests dashboard |
 | `/field-interest/agt-qr-2026` | Hidden QR-only field interest form |
 | `/agentech-products/documents` | Hidden internal product docs |
+| `/agentech-products/agentech-library` | Hidden collaborator Agentech robot dog library and preview workbench |
 
 ## Architecture Overview
 
@@ -458,6 +478,39 @@ docs/
 |-- api/
 `-- developer-onboarding.md
 ```
+
+## Hidden Agentech Robot Dog Library
+
+The robot dog library workbench lives at:
+
+```text
+/agentech-products/agentech-library
+```
+
+Collaborator rules:
+
+- This page is hidden from public navigation and marked `noindex`.
+- Share the direct URL only with collaborators who are helping build, teach, review, or test the Agentech robot dog workflow.
+- The page may show the public beginner API, for example `Agentech.forward(speed=0.3, seconds=1)`.
+- Do not expose FF SDK internals, robot hotspot details, SSH credentials, service-role keys, LiveKit API secrets, or private robot-control code in client-rendered code or public docs.
+- Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have credits, while `@agent-tech.ai` accounts can test without credit restrictions.
+- Robot session booking is handled through `/account` and `/api/robot-slot`; booked slots are disabled in the UI and rejected by the API if they overlap an active session.
+
+Local robot-camera operations:
+
+- The OBS/LiveKit stream bridge is intended to run on the Windows computer connected to the Logitech camera and OBS.
+- The bridge polls Supabase for upcoming `agentech_robot_sessions`, starts OBS streaming shortly before a scheduled session, and stops when no active session is due.
+- The bridge should run only between 8:00 AM and 10:00 PM local time. The computer power schedule scripts also wake the machine at 8:00 AM and sleep it at 10:00 PM.
+- Keep `.robot-stream-logs/`, `tmp/`, and `output/` local. Do not commit generated logs, rendered screenshots, or private runtime artifacts.
+
+Useful local scripts:
+
+| Script | Purpose |
+| --- | --- |
+| `scripts/install-robot-stream-watchdog.ps1` | Install the hidden Windows watchdog that keeps the OBS bridge running |
+| `scripts/uninstall-robot-stream-watchdog.ps1` | Remove the OBS bridge watchdog task |
+| `scripts/install-computer-power-schedule.ps1` | Wake computer at 8:00 AM and sleep at 10:00 PM every day |
+| `scripts/uninstall-computer-power-schedule.ps1` | Remove the computer wake/sleep tasks |
 
 ## Development Workflow
 
