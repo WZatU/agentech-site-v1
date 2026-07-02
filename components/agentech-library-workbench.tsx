@@ -23,6 +23,7 @@ const localPreviewAssets: Record<string, string> = {
   twist_left: "/assets/products/aegis-previews/twist_left.gif",
   twist_right: "/assets/products/aegis-previews/twist_right.gif",
   backflip: "/assets/products/aegis-previews/backflip.gif",
+  jump: "/assets/products/aegis-previews/jump.gif",
   look_up: "/assets/products/aegis-previews/look_up.gif",
   look_down: "/assets/products/aegis-previews/look_down.gif",
   stand: "/assets/products/aegis-previews/stand.gif",
@@ -43,6 +44,7 @@ const commandsRequiringStand = new Set([
   "twist_left",
   "twist_right",
   "backflip",
+  "jump",
   "look_up",
   "look_down"
 ]);
@@ -118,6 +120,7 @@ function previewCommandLabel(command: string) {
     twist_left: "Twist Left",
     twist_right: "Twist Right",
     backflip: "Backflip",
+    jump: "Jump",
     look_up: "Look Up",
     look_down: "Look Down",
     stand: "Stand",
@@ -144,6 +147,7 @@ Agentech.turn_right(angle=45)
 Agentech.twist_left(angle=28)
 Agentech.twist_right(angle=28)
 Agentech.backflip()
+Agentech.jump()
 Agentech.look_up(angle=15)
 Agentech.look_down(angle=15)
 print(Agentech.get_battery_status())
@@ -162,7 +166,8 @@ Agentech.turn_left(angle=45)
 Agentech.turn_right(angle=45)
 Agentech.twist_left(angle=28)
 Agentech.twist_right(angle=28)
-Agentech.backflip()`
+Agentech.backflip()
+Agentech.jump()`
   },
   Posture: {
     activeName: "stand",
@@ -208,7 +213,7 @@ function commandPlan(code: string) {
 
   return {
     trace: trace.length ? trace : ["No Agentech commands found yet."],
-    motionCount: trace.filter((line) => /forward|backward|lateral_left|lateral_right|turn_left|turn_right|twist_left|twist_right|backflip|look_up|look_down/.test(line)).length
+    motionCount: trace.filter((line) => /forward|backward|lateral_left|lateral_right|turn_left|turn_right|twist_left|twist_right|backflip|jump|look_up|look_down/.test(line)).length
   };
 }
 
@@ -351,6 +356,7 @@ function DocsSection() {
       "twist_left",
       "twist_right",
       "backflip",
+      "jump",
       "look_up",
       "look_down",
       "stand",
@@ -371,6 +377,7 @@ with Agentech.robot(dry_run=True) as dog:
     dog.turn_left(angle=45)
     dog.twist_right(angle=28)
     dog.backflip()
+    dog.jump()
     dog.look_up(angle=15)
     dog.look_down(angle=15)
     battery = dog.get_battery_status()
@@ -760,7 +767,7 @@ export function AgentechLibraryWorkbench() {
               Agentech Robot Dog Library
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, twist, backflip, posture, stop, and battery status in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, twist, backflip, jump, posture, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">

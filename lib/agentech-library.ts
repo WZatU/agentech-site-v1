@@ -138,6 +138,14 @@ export const agentechFunctions: AgentechFunction[] = [
     params: []
   },
   {
+    name: "jump",
+    category: "Movement",
+    signature: "Agentech.jump()",
+    summary: "Jump straight up, shake the legs in the air, and land back in the same spot.",
+    example: "Agentech.jump()",
+    params: []
+  },
+  {
     name: "stand",
     category: "Posture",
     signature: "Agentech.stand()",
@@ -191,4 +199,5 @@ Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed=0.2, seconds=1)
 Agentech.lateral_right(speed=0.2, seconds=1)
 Agentech.backflip()
+Agentech.jump()
 Agentech.stop()`;

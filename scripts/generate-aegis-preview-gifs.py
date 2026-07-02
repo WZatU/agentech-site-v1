@@ -151,6 +151,46 @@ BACKFLIP_REAR_SETTLE_PITCH = -2.0 * math.pi
 BACKFLIP_FRONT_TOUCHDOWN_BASE_Z = STAND_BASE_Z - 0.04
 BACKFLIP_REAR_TOUCHDOWN_BASE_Z = STAND_BASE_Z
 
+JUMP_SECONDS = 3.4
+JUMP_CROUCH_BASE_Z = 0.27
+JUMP_HEIGHT = 0.36
+
+JUMP_CROUCH_POSE = {
+    **STAND_POSE,
+    "FL_HIP_JOINT": 1.08,
+    "FL_KNEE_JOINT": -1.82,
+    "FR_HIP_JOINT": 1.08,
+    "FR_KNEE_JOINT": -1.82,
+    "RR_HIP_JOINT": 1.08,
+    "RR_KNEE_JOINT": -1.82,
+    "RL_HIP_JOINT": 1.08,
+    "RL_KNEE_JOINT": -1.82,
+}
+
+JUMP_SPRING_POSE = {
+    **STAND_POSE,
+    "FL_HIP_JOINT": 0.42,
+    "FL_KNEE_JOINT": -0.72,
+    "FR_HIP_JOINT": 0.42,
+    "FR_KNEE_JOINT": -0.72,
+    "RR_HIP_JOINT": 0.42,
+    "RR_KNEE_JOINT": -0.72,
+    "RL_HIP_JOINT": 0.42,
+    "RL_KNEE_JOINT": -0.72,
+}
+
+JUMP_LAND_POSE = {
+    **STAND_POSE,
+    "FL_HIP_JOINT": 0.96,
+    "FL_KNEE_JOINT": -1.62,
+    "FR_HIP_JOINT": 0.96,
+    "FR_KNEE_JOINT": -1.62,
+    "RR_HIP_JOINT": 0.96,
+    "RR_KNEE_JOINT": -1.62,
+    "RL_HIP_JOINT": 0.96,
+    "RL_KNEE_JOINT": -1.62,
+}
+
 
 COMMANDS = {
     "stand": [],
@@ -163,6 +203,7 @@ COMMANDS = {
     "twist_left": [],
     "twist_right": [],
     "backflip": [],
+    "jump": [],
     "look_up": [MuJoCoCommand("look_up", {"angle": 15.0, "speed": 0.12})],
     "look_down": [MuJoCoCommand("look_down", {"angle": 15.0, "speed": 0.12})],
     "sit": [MuJoCoCommand("sit", {})],
@@ -442,6 +483,91 @@ def backflip_frames(start_time_s: float) -> list[dict[str, object]]:
     return frames
 
 
+def jump_shake_pose(phase: float) -> dict[str, float]:
+    gait = math.sin(phase * math.tau * 5.0)
+    counter = math.sin(phase * math.tau * 5.0 + math.pi)
+    flutter = math.sin(phase * math.tau * 10.0)
+
+    return {
+        "FL_ABAD_JOINT": -0.05 * flutter,
+        "FL_HIP_JOINT": 0.72 + 0.24 * gait,
+        "FL_KNEE_JOINT": -1.28 - 0.22 * gait,
+        "FR_ABAD_JOINT": 0.05 * flutter,
+        "FR_HIP_JOINT": 0.72 + 0.24 * counter,
+        "FR_KNEE_JOINT": -1.28 - 0.22 * counter,
+        "RR_ABAD_JOINT": 0.05 * flutter,
+        "RR_HIP_JOINT": 0.72 + 0.24 * counter,
+        "RR_KNEE_JOINT": -1.28 - 0.22 * counter,
+        "RL_ABAD_JOINT": -0.05 * flutter,
+        "RL_HIP_JOINT": 0.72 + 0.24 * gait,
+        "RL_KNEE_JOINT": -1.28 - 0.22 * gait,
+    }
+
+
+def jump_pose(elapsed: float) -> tuple[float, float, float, dict[str, float]]:
+    t = elapsed / JUMP_SECONDS
+
+    if t < 0.22:
+        phase = t / 0.22
+        return 0.0, 0.0, mix(STAND_BASE_Z, JUMP_CROUCH_BASE_Z, smoothstep(phase)), mix_pose(STAND_POSE, JUMP_CROUCH_POSE, phase)
+
+    if t < 0.34:
+        phase = (t - 0.22) / 0.12
+        base_z = mix(JUMP_CROUCH_BASE_Z, STAND_BASE_Z + 0.10, smoothstep(phase))
+        pitch = -0.04 * math.sin(math.pi * phase)
+        return 0.0, pitch, base_z, mix_pose(JUMP_CROUCH_POSE, JUMP_SPRING_POSE, phase)
+
+    if t < 0.76:
+        phase = (t - 0.34) / 0.42
+        arc = math.sin(math.pi * phase)
+        base_z = STAND_BASE_Z + 0.10 + JUMP_HEIGHT * arc
+        pitch = 0.035 * math.sin(math.tau * phase)
+        return 0.0, pitch, base_z, jump_shake_pose(phase)
+
+    if t < 0.88:
+        phase = (t - 0.76) / 0.12
+        base_z = mix(STAND_BASE_Z + 0.10, JUMP_CROUCH_BASE_Z + 0.02, smoothstep(phase))
+        pitch = 0.03 * math.sin(math.pi * phase)
+        return 0.0, pitch, base_z, mix_pose(jump_shake_pose(1.0), JUMP_LAND_POSE, phase)
+
+    if t < 1.0:
+        phase = (t - 0.88) / 0.12
+        base_z = mix(JUMP_CROUCH_BASE_Z + 0.02, STAND_BASE_Z, smoothstep(phase))
+        return 0.0, 0.0, base_z, mix_pose(JUMP_LAND_POSE, STAND_POSE, phase)
+
+    return 0.0, 0.0, STAND_BASE_Z, STAND_POSE
+
+
+def jump_frames(start_time_s: float) -> list[dict[str, object]]:
+    frames: list[dict[str, object]] = []
+    count = int(JUMP_SECONDS * FPS)
+    for index in range(count):
+        elapsed = index / FPS
+        root_x, pitch, root_z, joints = jump_pose(elapsed)
+        frames.append(
+            {
+                "x": root_x,
+                "y": 0.0,
+                "root_x": root_x,
+                "root_y": 0.0,
+                "root_z": root_z,
+                "z": root_z,
+                "yaw": 0.0,
+                "pitch": -math.degrees(pitch),
+                "gait_phase": 0.0,
+                "gait_settle": 0.0,
+                "gait_direction": 1.0,
+                "stand_progress": 1.0,
+                "time_s": start_time_s + elapsed,
+                "joints": joints,
+                "clip_joints": False,
+            }
+        )
+    for index in range(FPS // 2):
+        frames.append({**frames[-1], "time_s": frames[-1]["time_s"] + (index + 1) / FPS})
+    return frames
+
+
 def command_frames(preview: MuJoCoPreview, commands: list[MuJoCoCommand]) -> list[dict[str, float]]:
     if not commands:
         return []
@@ -687,6 +813,8 @@ def main() -> int:
             frames = base_stand + twist_frames(TWIST_RIGHT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
         elif name == "backflip":
             frames = backflip_frames(0.0)
+        elif name == "jump":
+            frames = jump_frames(0.0)
         elif name == "sit":
             frames = floor_sit_frames(0.0)
         elif name == "emergency_stop":
