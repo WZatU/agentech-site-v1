@@ -115,9 +115,7 @@ async function stopStream() {
 
 async function tick() {
   if (!isWithinOperatingWindow()) {
-    if (streamingForSessionId) {
-      await stopStream();
-    }
+    await stopStream();
     console.log(`[robot-stream] outside operating window ${operatingStartHour}:00-${operatingEndHour}:00; exiting.`);
     process.exit(0);
   }
@@ -128,9 +126,7 @@ async function tick() {
     return;
   }
 
-  if (streamingForSessionId) {
-    await stopStream();
-  }
+  await stopStream();
 }
 
 console.log("[robot-stream] bridge running.");
