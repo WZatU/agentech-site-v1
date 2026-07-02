@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: GradePageProps) {
     return {
       title: "EAI Robotics Future Founder Immersion Program | Agentech Education",
       description:
-        "A 10-day journey where high school students build, pitch, and launch an AI robotics startup inside a real robotics company."
+        "Two standalone 5-day sessions where high school students build AI robotics ventures and products inside a real robotics company."
     };
   }
 
@@ -123,6 +123,7 @@ export default async function EducationGradePage({ params }: GradePageProps) {
                       <h3 className="mt-2 text-2xl font-semibold text-slate-950">{course.title}</h3>
                       <p className="mt-3 text-sm leading-6 text-slate-600">{course.previewDescription}</p>
                       {course.price > 0 ? <p className="mt-4 text-xl font-semibold text-slate-950">{formatUsd(course.price)}</p> : null}
+                      {course.priceNote ? <p className="mt-4 text-xl font-semibold text-slate-950">{course.priceNote}</p> : null}
                       <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950">View Flyer</p>
                     </Link>
                     <div className="sm:justify-self-end">

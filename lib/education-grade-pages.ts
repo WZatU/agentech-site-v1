@@ -33,9 +33,9 @@ export const educationGradePages = [
     slug: "agentech-ff-eai-robotics-future-founder-immersion-program",
     grade: "Grade 9-12",
     title: "Agentech FF EAI Robotics Future Founder Immersion Program",
-    subtitle: "High school students explore EAI robotics, embodied intelligence, and future-founder thinking through an immersive program experience.",
+    subtitle: "High school students explore EAI robotics, embodied intelligence, and future-founder thinking through two standalone 5-day immersion sessions. Students may choose Session 1, Session 2, or both.",
     image: "/assets/logo/AGENTECH_ff_immersion_program.png",
-    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr"
+    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260702-two-sessions"
   }
 ] as const;
 

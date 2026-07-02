@@ -3,13 +3,16 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
+import cv2
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "public" / "assets" / "program-flyers"
 CANVAS = (1700, 2400)
-PROGRAM_URL = "agent-tech.ai/agentech-education/agentech-ff-eai-robotics-future-founder-immersion-program#contact"
+PROGRAM_URL = "https://www.agent-tech.ai/agentech-education/agentech-ff-eai-robotics-future-founder-immersion-program"
+DISPLAY_URL_LINE_1 = "www.agent-tech.ai/agentech-education/"
+DISPLAY_URL_LINE_2 = "agentech-ff-eai-robotics-future-founder-immersion-program"
 
 ASSETS = {
     "agentech": ROOT / "public" / "assets" / "logo" / "AGENTECH-white-official.png",
@@ -327,24 +330,25 @@ def draw_book_mockup(base: Image.Image) -> None:
     base.alpha_composite(book, (130, 2010))
 
 
-def draw_qr_placeholder(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], is_zh: bool) -> None:
+def make_qr_image(target_url: str, size: int) -> Image.Image:
+    qr_array = cv2.QRCodeEncoder_create().encode(target_url)
+    qr = Image.fromarray(qr_array).convert("L")
+    qr = qr.point(lambda value: 0 if value < 128 else 255)
+    quiet_zone = 4
+    bordered = Image.new("L", (qr.width + quiet_zone * 2, qr.height + quiet_zone * 2), 255)
+    bordered.paste(qr, (quiet_zone, quiet_zone))
+    return bordered.resize((size, size), Image.Resampling.NEAREST).convert("RGBA")
+
+
+def draw_qr_code(base: Image.Image, draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], is_zh: bool) -> None:
     x1, y1, x2, y2 = box
     draw.rounded_rectangle(box, radius=16, fill=(255, 255, 255, 255), outline=(30, 35, 42, 185), width=2)
-    cell = (x2 - x1 - 46) // 11
-    ox, oy = x1 + 23, y1 + 22
-    pattern = {
-        (0, 0), (1, 0), (2, 0), (0, 1), (2, 1), (0, 2), (1, 2), (2, 2),
-        (8, 0), (9, 0), (10, 0), (8, 1), (10, 1), (8, 2), (9, 2), (10, 2),
-        (0, 8), (1, 8), (2, 8), (0, 9), (2, 9), (0, 10), (1, 10), (2, 10),
-        (4, 3), (6, 3), (5, 5), (7, 6), (4, 7), (8, 8), (6, 9), (9, 10),
-    }
-    for row in range(11):
-        for col in range(11):
-            if (col, row) in pattern:
-                draw.rectangle((ox + col * cell, oy + row * cell, ox + col * cell + cell - 3, oy + row * cell + cell - 3), fill=(18, 22, 28, 255))
-    label = "二维码占位" if is_zh else "QR PLACEHOLDER"
+    padding = 16
+    qr = make_qr_image(PROGRAM_URL, x2 - x1 - padding * 2)
+    base.alpha_composite(qr, (x1 + padding, y1 + padding))
+    label = "扫码查看项目页" if is_zh else "SCAN PROGRAM PAGE"
     bbox = draw.textbbox((0, 0), label, font=f_mono(13))
-    draw.text((x1 + (x2 - x1 - (bbox[2] - bbox[0])) // 2, y2 + 16), label, font=f_mono(13), fill=(60, 65, 74, 255))
+    draw.text((x1 + (x2 - x1 - (bbox[2] - bbox[0])) // 2, y1 - 24), label, font=f_mono(13), fill=(60, 65, 74, 255))
 
 
 def draw_cta(base: Image.Image, draw: ImageDraw.ImageDraw, is_zh: bool) -> None:
@@ -355,9 +359,9 @@ def draw_cta(base: Image.Image, draw: ImageDraw.ImageDraw, is_zh: bool) -> None:
     title = "课程详情\n+ 兴趣申请" if is_zh else "PROGRAM DETAILS\n+ INTEREST FORM"
     draw.text((520, 2010), label, font=f_zh(25) if is_zh else f_mono(22), fill=ORANGE)
     draw_wrapped(draw, (520, 2060), title, f_zh(50) if is_zh else f_en(47, True), (16, 21, 29, 255), 560, 7, zh=is_zh)
-    draw.text((520, 2176), "agent-tech.ai/agentech-education/", font=f_mono(25), fill=ORANGE)
-    draw.text((520, 2216), "agentech-ff-eai-robotics-future-founder-immersion-program#contact", font=f_mono(18), fill=(32, 38, 47, 232))
-    draw_qr_placeholder(draw, (1324, 2020, 1538, 2234), is_zh)
+    draw.text((520, 2176), DISPLAY_URL_LINE_1, font=f_mono(25), fill=ORANGE)
+    draw.text((520, 2216), DISPLAY_URL_LINE_2, font=f_mono(18), fill=(32, 38, 47, 232))
+    draw_qr_code(base, draw, (1324, 2020, 1538, 2234), is_zh)
 
 
 def create_flyer(language: str) -> Image.Image:
@@ -405,8 +409,8 @@ def create_flyer(language: str) -> Image.Image:
         lead_y = 720
         lead_font = f_zh(35)
         lead2_font = f_zh(25)
-        lead = "10 天进入真实机器人公司环境"
-        hook = "构建 AI 机器人原型 参加两天 Hackathon 完成最终 Demo 与创始人式路演"
+        lead = "两期 5 天进入真实机器人公司环境"
+        hook = "可选第一期 第二期 或两期联报 每期都有构建冲刺和 Demo 路演"
         cta = "兴趣申请开放"
     else:
         title_lines = [("EAI ROBOTICS", WHITE), ("FUTURE FOUNDER", ORANGE), ("IMMERSION", WHITE), ("PROGRAM", WHITE)]
@@ -417,8 +421,8 @@ def create_flyer(language: str) -> Image.Image:
         lead_y = 716
         lead_font = f_en(34, True)
         lead2_font = f_en(25)
-        lead = "10 days inside a real robotics company."
-        hook = "Build an AI robotics prototype. Join a 2-day hackathon. Pitch like a founder."
+        lead = "Two 5-day sessions inside a real robotics company."
+        hook = "Choose Session 1, Session 2, or both. Each session ends with a mini hackathon and pitch."
         cta = "INTEREST LIST OPEN"
 
     draw.line((84, lead_y - 28, 146, lead_y - 28), fill=ORANGE, width=6)
@@ -430,17 +434,17 @@ def create_flyer(language: str) -> Image.Image:
     feature_y = 1098
     features = (
         [
-            ("01", "robot", "真实机器人项目", "不是纸上 STEM 而是在公司环境中完成可展示原型"),
-            ("02", "code", "工程师导师制", "理解感知 控制 硬件集成 调试与真实工程工作流"),
-            ("03", "trophy", "两天 Hackathon", "在压力下组队构建 快速取舍 准备最终提交"),
-            ("04", "presentation", "Demo Day 路演", "向导师 家长与嘉宾展示产品逻辑 技术成果和未来路径"),
+            ("01", "robot", "两期 5 天选择", "可选第一期 第二期 或两期联报 每期都是完整体验"),
+            ("02", "code", "内容不重复", "第一期聚焦机器人创业构建 第二期聚焦 AI 产品与自主能力"),
+            ("03", "trophy", "每期 Hackathon", "第 4 天启动构建冲刺 第 5 天完成 Demo 与路演"),
+            ("04", "presentation", "价格明确", "每期价格清楚 两期联报更优惠"),
         ]
         if is_zh
         else [
-            ("01", "robot", "BUILD WITH\nREAL ROBOTS", "Move from AI concepts to a working prototype students can demo and explain."),
-            ("02", "code", "LEARN FROM\nENGINEERS", "Explore perception, control, hardware integration, debugging, and workflow."),
-            ("03", "trophy", "2-DAY\nHACKATHON", "Make tradeoffs, build under pressure, and prepare a final submission."),
-            ("04", "presentation", "DEMO DAY\n+ PITCH", "Present product logic, technical choices, and startup potential."),
+            ("01", "robot", "TWO 5-DAY\nOPTIONS", "Choose Session 1, Session 2, or both. Each session stands alone."),
+            ("02", "code", "NON-REPEATING\nCONTENT", "Session 1 builds a venture; Session 2 builds an AI robotics product."),
+            ("03", "trophy", "HACKATHON\nEACH SESSION", "Day 4 kicks off the sprint. Day 5 brings demo, pitch, and Q&A."),
+            ("04", "presentation", "CLEAR\nPRICING", "$1,399 per session or $2,500 for both sessions."),
         ]
     )
     for x, feature in zip([84, 485, 890, 1290], features):
@@ -449,17 +453,17 @@ def create_flyer(language: str) -> Image.Image:
     draw.text((84, 1462), "项目速览" if is_zh else "PROGRAM SNAPSHOT", font=f_zh(29) if is_zh else f_mono(23), fill=(255, 255, 255, 220))
     snapshot = (
         [
-            ("calendar", "时间", "7 月中旬"),
-            ("clock", "周期", "10 天"),
+            ("calendar", "时间", "7 月上旬\n+ 7 月下旬"),
+            ("clock", "选择", "第一期 / 第二期\n/ 两期联报"),
+            ("users", "价格", "$1,399 每期\n$2,500 两期"),
             ("pin", "地点", "FF 总部\n近 LAX"),
-            ("users", "对象", "9-12 年级\n高中生"),
         ]
         if is_zh
         else [
-            ("calendar", "Time", "Mid-July\n2026"),
-            ("clock", "Duration", "10\nDays"),
+            ("calendar", "Time", "Early + Late\nJuly 2026"),
+            ("clock", "Options", "Session 1 / 2\nor both"),
+            ("users", "Pricing", "$1,399 each\n$2,500 both"),
             ("pin", "Location", "FF Headquarters\nnear LAX"),
-            ("users", "For", "High school\ngrades 9-12"),
         ]
     )
     card_y = 1518
