@@ -8,6 +8,8 @@ type InvoiceRouteContext = {
   }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request, context: InvoiceRouteContext) {
   const { invoiceNumber } = await context.params;
   const url = new URL(request.url);

@@ -161,7 +161,22 @@ function legacyStatusToBillingStatus(status: string): BillingInvoiceStatus {
   return "sent";
 }
 
-async function hasVoidedRobotSource(lines: Array<Pick<BillingInvoiceLine, "source_type" | "source_id">>) {
+function activeLegacyRequestWasRemoved(status: string, hasCartItem: boolean) {
+  const normalized = status.replace(/_/g, " ").toLowerCase();
+
+  if (hasCartItem || normalized.includes("paid") || statusLooksVoided(normalized)) {
+    return false;
+  }
+
+  return (
+    normalized.includes("pending") ||
+    normalized.includes("sent") ||
+    normalized.includes("created") ||
+    normalized.includes("email")
+  );
+}
+
+async function hasVoidedRobotSource(lines: Array<Pick<BillingInvoiceLine, "source_item_id" | "source_type" | "source_id">>) {
   const sourceIds = Array.from(
     new Set(
       lines
@@ -183,7 +198,35 @@ async function hasVoidedRobotSource(lines: Array<Pick<BillingInvoiceLine, "sourc
     )
   );
 
-  return requests.flat().some((request) => statusLooksVoided(request.status));
+  const requestRows = requests.flat();
+  if (requestRows.some((request) => statusLooksVoided(request.status))) {
+    return true;
+  }
+
+  const sourceItemIds = Array.from(
+    new Set(
+      lines
+        .filter((line) => line.source_type === "robot" && line.source_item_id)
+        .map((line) => line.source_item_id)
+        .filter((value): value is number => typeof value === "number")
+    )
+  );
+
+  if (!sourceItemIds.length) {
+    return requestRows.some((request) => activeLegacyRequestWasRemoved(request.status, false));
+  }
+
+  const existingItems = await Promise.all(
+    sourceItemIds.map((sourceItemId) =>
+      supabaseRequest<Array<{ id: number }>>("agentech_invoice_items", {
+        query: `id=eq.${sourceItemId}&select=id&limit=1`
+      }).catch(() => [])
+    )
+  );
+  const existingItemIds = new Set(existingItems.flat().map((item) => item.id));
+  const allLinkedItemsWereRemoved = sourceItemIds.every((sourceItemId) => !existingItemIds.has(sourceItemId));
+
+  return allLinkedItemsWereRemoved && requestRows.some((request) => activeLegacyRequestWasRemoved(request.status, false));
 }
 
 async function applyVoidedSourceStatus(invoice: BillingInvoice) {
@@ -191,8 +234,8 @@ async function applyVoidedSourceStatus(invoice: BillingInvoice) {
     return invoice;
   }
 
-  const sourceLines = await supabaseRequest<Array<Pick<BillingInvoiceLine, "source_type" | "source_id">>>("agentech_billing_invoice_lines", {
-    query: `invoice_number=eq.${encodeURIComponent(invoice.invoice_number)}&select=source_type,source_id`
+  const sourceLines = await supabaseRequest<Array<Pick<BillingInvoiceLine, "source_item_id" | "source_type" | "source_id">>>("agentech_billing_invoice_lines", {
+    query: `invoice_number=eq.${encodeURIComponent(invoice.invoice_number)}&select=source_item_id,source_type,source_id`
   }).catch(() => []);
 
   if (!(await hasVoidedRobotSource(sourceLines))) {
@@ -252,7 +295,9 @@ async function getLegacyPreorderInvoice(invoiceNumber: string) {
         }
       ];
   const totals = invoiceTotals(lines);
-  const status = legacyStatusToBillingStatus(request.status);
+  const status = activeLegacyRequestWasRemoved(request.status, itemRows.length > 0)
+    ? "void"
+    : legacyStatusToBillingStatus(request.status);
 
   return {
     id: 0,
