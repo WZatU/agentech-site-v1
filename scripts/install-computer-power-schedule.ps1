@@ -10,6 +10,7 @@ $sleepTaskName = "Agentech Computer Sleep 10PM"
 
 powercfg /setacvalueindex SCHEME_CURRENT SUB_SLEEP RTCWAKE 1 | Out-Host
 powercfg /setdcvalueindex SCHEME_CURRENT SUB_SLEEP RTCWAKE 1 | Out-Host
+powercfg /change standby-timeout-ac 0 | Out-Host
 powercfg /setactive SCHEME_CURRENT | Out-Host
 
 $wakeAction = New-ScheduledTaskAction `
@@ -32,4 +33,5 @@ Register-ScheduledTask -TaskName $sleepTaskName -Action $sleepAction -Trigger $s
 Write-Host "Installed:"
 Write-Host "- ${wakeTaskName}: wake at 8:00 AM every day"
 Write-Host "- ${sleepTaskName}: sleep at 10:00 PM every day"
+Write-Host "- AC idle sleep disabled so the computer stays awake while plugged in between 8:00 AM and 10:00 PM"
 Write-Host "Wake from full shutdown is not controlled by Windows; leave the computer sleeping, hibernating, or powered with wake timers enabled."
