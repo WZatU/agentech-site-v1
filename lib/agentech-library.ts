@@ -130,6 +130,14 @@ export const agentechFunctions: AgentechFunction[] = [
     ]
   },
   {
+    name: "backflip",
+    category: "Movement",
+    signature: "Agentech.backflip()",
+    summary: "Run the approved Aegis backflip preview motion.",
+    example: "Agentech.backflip()",
+    params: []
+  },
+  {
     name: "stand",
     category: "Posture",
     signature: "Agentech.stand()",
@@ -182,4 +190,5 @@ Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed=0.2, seconds=1)
 Agentech.lateral_right(speed=0.2, seconds=1)
+Agentech.backflip()
 Agentech.stop()`;

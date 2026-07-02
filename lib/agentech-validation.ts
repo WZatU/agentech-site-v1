@@ -25,6 +25,7 @@ const allowedPublicActions = new Set([
   "turn_right",
   "twist_left",
   "twist_right",
+  "backflip",
   "look_up",
   "look_down",
   "stand",
@@ -67,7 +68,7 @@ export function validateAgentechCode(code: string): string[] {
   const errors: string[] = [];
   for (const call of parseCalls(code)) {
     if (!allowedPublicActions.has(call.action)) {
-      errors.push(`${call.action} is not in the current Agentech beginner API. Use forward, backward, lateral_left, lateral_right, turn_left, turn_right, twist_left, twist_right, look_up, look_down, stand, sit, stop, emergency_stop, or get_battery_status.`);
+      errors.push(`${call.action} is not in the current Agentech beginner API. Use forward, backward, lateral_left, lateral_right, turn_left, turn_right, twist_left, twist_right, backflip, look_up, look_down, stand, sit, stop, emergency_stop, or get_battery_status.`);
       continue;
     }
 

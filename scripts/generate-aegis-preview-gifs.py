@@ -57,6 +57,99 @@ LAY_POSE = {
 LAY_BASE_Z = 0.2104
 STAND_BASE_Z = 0.37
 FLOOR_SIT_SECONDS = 3.0
+EMERGENCY_STOP_SECONDS = 1.3
+EMERGENCY_STOP_BASE_Z = 0.035
+
+EMERGENCY_STOP_POSE = {
+    "FL_ABAD_JOINT": 0.30,
+    "FL_HIP_JOINT": 1.50,
+    "FL_KNEE_JOINT": -2.90,
+    "FR_ABAD_JOINT": -0.30,
+    "FR_HIP_JOINT": 1.50,
+    "FR_KNEE_JOINT": -2.90,
+    "RR_ABAD_JOINT": -0.30,
+    "RR_HIP_JOINT": 1.50,
+    "RR_KNEE_JOINT": -2.90,
+    "RL_ABAD_JOINT": 0.30,
+    "RL_HIP_JOINT": 1.50,
+    "RL_KNEE_JOINT": -2.90,
+}
+
+CROUCH_POSE = {
+    **STAND_POSE,
+    "FL_HIP_JOINT": 1.05,
+    "FL_KNEE_JOINT": -1.75,
+    "FR_HIP_JOINT": 1.05,
+    "FR_KNEE_JOINT": -1.75,
+    "RR_HIP_JOINT": 1.05,
+    "RR_KNEE_JOINT": -1.75,
+    "RL_HIP_JOINT": 1.05,
+    "RL_KNEE_JOINT": -1.75,
+}
+
+FRONT_EXTEND_POSE = {
+    "FL_ABAD_JOINT": 0.0,
+    "FL_HIP_JOINT": 0.99,
+    "FL_KNEE_JOINT": -1.64,
+    "FR_ABAD_JOINT": 0.0,
+    "FR_HIP_JOINT": 0.99,
+    "FR_KNEE_JOINT": -1.64,
+    "RR_ABAD_JOINT": CROUCH_POSE["RR_ABAD_JOINT"],
+    "RR_HIP_JOINT": CROUCH_POSE["RR_HIP_JOINT"],
+    "RR_KNEE_JOINT": CROUCH_POSE["RR_KNEE_JOINT"],
+    "RL_ABAD_JOINT": CROUCH_POSE["RL_ABAD_JOINT"],
+    "RL_HIP_JOINT": CROUCH_POSE["RL_HIP_JOINT"],
+    "RL_KNEE_JOINT": CROUCH_POSE["RL_KNEE_JOINT"],
+}
+
+TAKEOFF_POSE = {
+    **FRONT_EXTEND_POSE,
+    "RR_HIP_JOINT": CROUCH_POSE["RR_HIP_JOINT"],
+    "RR_KNEE_JOINT": CROUCH_POSE["RR_KNEE_JOINT"],
+    "RL_HIP_JOINT": CROUCH_POSE["RL_HIP_JOINT"],
+    "RL_KNEE_JOINT": CROUCH_POSE["RL_KNEE_JOINT"],
+}
+
+TUCK_POSE = {
+    "FL_ABAD_JOINT": -0.10,
+    "FL_HIP_JOINT": 1.34,
+    "FL_KNEE_JOINT": -2.28,
+    "FR_ABAD_JOINT": 0.10,
+    "FR_HIP_JOINT": 1.34,
+    "FR_KNEE_JOINT": -2.28,
+    "RR_ABAD_JOINT": 0.10,
+    "RR_HIP_JOINT": 1.18,
+    "RR_KNEE_JOINT": -2.12,
+    "RL_ABAD_JOINT": -0.10,
+    "RL_HIP_JOINT": 1.18,
+    "RL_KNEE_JOINT": -2.12,
+}
+
+FRONT_LAND_POSE = {
+    "FL_ABAD_JOINT": 0.0,
+    "FL_HIP_JOINT": 0.70,
+    "FL_KNEE_JOINT": -0.95,
+    "FR_ABAD_JOINT": 0.0,
+    "FR_HIP_JOINT": 0.70,
+    "FR_KNEE_JOINT": -0.95,
+    "RR_ABAD_JOINT": 0.10,
+    "RR_HIP_JOINT": 1.24,
+    "RR_KNEE_JOINT": -2.08,
+    "RL_ABAD_JOINT": -0.10,
+    "RL_HIP_JOINT": 1.24,
+    "RL_KNEE_JOINT": -2.08,
+}
+
+REAR_LAND_POSE = STAND_POSE
+
+BACKFLIP_SECONDS = 4.2
+BACKFLIP_CROUCH_BASE_Z = 0.27
+BACKFLIP_JUMP_HEIGHT = 0.56
+BACKFLIP_BACKWARD_DISTANCE = -0.44
+BACKFLIP_FRONT_LANDING_PITCH = -2.0 * math.pi + 0.42
+BACKFLIP_REAR_SETTLE_PITCH = -2.0 * math.pi
+BACKFLIP_FRONT_TOUCHDOWN_BASE_Z = STAND_BASE_Z - 0.04
+BACKFLIP_REAR_TOUCHDOWN_BASE_Z = STAND_BASE_Z
 
 
 COMMANDS = {
@@ -69,6 +162,7 @@ COMMANDS = {
     "turn_right": [MuJoCoCommand("turn_right", {"angle": 45.0, "speed": 0.45})],
     "twist_left": [],
     "twist_right": [],
+    "backflip": [],
     "look_up": [MuJoCoCommand("look_up", {"angle": 15.0, "speed": 0.12})],
     "look_down": [MuJoCoCommand("look_down", {"angle": 15.0, "speed": 0.12})],
     "sit": [MuJoCoCommand("sit", {})],
@@ -241,6 +335,11 @@ def mix(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
 
+def mix_pose(a: dict[str, float], b: dict[str, float], t: float) -> dict[str, float]:
+    t = smoothstep(t)
+    return {name: mix(a[name], b[name], t) for name in STAND_POSE}
+
+
 def stand_frames() -> list[dict[str, float]]:
     frames: list[dict[str, float]] = []
     count = int(STAND_SECONDS * FPS)
@@ -267,6 +366,79 @@ def stand_frames() -> list[dict[str, float]]:
         )
     for index in range(FPS // 2):
         frames.append({**frames[-1], "time_s": STAND_SECONDS + index / FPS})
+    return frames
+
+
+def backflip_pose(elapsed: float) -> tuple[float, float, float, dict[str, float]]:
+    t = elapsed / BACKFLIP_SECONDS
+
+    if t < 0.18:
+        phase = t / 0.18
+        x = mix(0.0, BACKFLIP_BACKWARD_DISTANCE * 0.03, smoothstep(phase))
+        return x, 0.0, mix(STAND_BASE_Z, BACKFLIP_CROUCH_BASE_Z, smoothstep(phase)), mix_pose(STAND_POSE, CROUCH_POSE, phase)
+
+    if t < 0.30:
+        phase = (t - 0.18) / 0.12
+        base_z = mix(BACKFLIP_CROUCH_BASE_Z, STAND_BASE_Z + 0.05, smoothstep(phase))
+        x = mix(BACKFLIP_BACKWARD_DISTANCE * 0.03, BACKFLIP_BACKWARD_DISTANCE * 0.10, smoothstep(phase))
+        return x, -0.14 * smoothstep(phase), base_z, mix_pose(CROUCH_POSE, FRONT_EXTEND_POSE, phase)
+
+    if t < 0.40:
+        phase = (t - 0.30) / 0.10
+        base_z = mix(STAND_BASE_Z + 0.05, STAND_BASE_Z + 0.16, smoothstep(phase))
+        x = mix(BACKFLIP_BACKWARD_DISTANCE * 0.10, BACKFLIP_BACKWARD_DISTANCE * 0.24, smoothstep(phase))
+        return x, mix(-0.14, -0.42, smoothstep(phase)), base_z, mix_pose(FRONT_EXTEND_POSE, TAKEOFF_POSE, phase)
+
+    if t < 0.80:
+        phase = (t - 0.40) / 0.40
+        eased = smoothstep(phase)
+        pitch = mix(-0.42, BACKFLIP_FRONT_LANDING_PITCH, eased)
+        arc = math.sin(math.pi * phase)
+        base_z = mix(STAND_BASE_Z + 0.16, BACKFLIP_FRONT_TOUCHDOWN_BASE_Z, eased) + BACKFLIP_JUMP_HEIGHT * arc
+        x = mix(BACKFLIP_BACKWARD_DISTANCE * 0.24, BACKFLIP_BACKWARD_DISTANCE * 0.92, eased)
+        if phase < 0.55:
+            joints = mix_pose(TAKEOFF_POSE, TUCK_POSE, phase / 0.55)
+        else:
+            joints = mix_pose(TUCK_POSE, FRONT_LAND_POSE, (phase - 0.55) / 0.45)
+        return x, pitch, base_z, joints
+
+    if t < 1.0:
+        phase = (t - 0.80) / 0.20
+        x = mix(BACKFLIP_BACKWARD_DISTANCE * 0.92, BACKFLIP_BACKWARD_DISTANCE, smoothstep(phase))
+        base_z = mix(BACKFLIP_FRONT_TOUCHDOWN_BASE_Z, BACKFLIP_REAR_TOUCHDOWN_BASE_Z, smoothstep(phase))
+        pitch = mix(BACKFLIP_FRONT_LANDING_PITCH, BACKFLIP_REAR_SETTLE_PITCH, smoothstep(phase))
+        return x, pitch, base_z, mix_pose(FRONT_LAND_POSE, REAR_LAND_POSE, phase)
+
+    return BACKFLIP_BACKWARD_DISTANCE, BACKFLIP_REAR_SETTLE_PITCH, BACKFLIP_REAR_TOUCHDOWN_BASE_Z, REAR_LAND_POSE
+
+
+def backflip_frames(start_time_s: float) -> list[dict[str, object]]:
+    frames: list[dict[str, object]] = []
+    count = int(BACKFLIP_SECONDS * FPS)
+    for index in range(count):
+        elapsed = index / FPS
+        root_x, pitch, root_z, joints = backflip_pose(elapsed)
+        frames.append(
+            {
+                "x": root_x,
+                "y": 0.0,
+                "root_x": root_x,
+                "root_y": 0.0,
+                "root_z": root_z,
+                "z": root_z,
+                "yaw": 0.0,
+                "pitch": -math.degrees(pitch),
+                "gait_phase": 0.0,
+                "gait_settle": 0.0,
+                "gait_direction": 1.0,
+                "stand_progress": 1.0,
+                "time_s": start_time_s + elapsed,
+                "joints": joints,
+                "clip_joints": False,
+            }
+        )
+    for index in range(FPS // 2):
+        frames.append({**frames[-1], "time_s": frames[-1]["time_s"] + (index + 1) / FPS})
     return frames
 
 
@@ -361,6 +533,38 @@ def floor_sit_frames(start_time_s: float) -> list[dict[str, object]]:
     return frames
 
 
+def emergency_stop_frames(start_time_s: float) -> list[dict[str, object]]:
+    frames: list[dict[str, object]] = []
+    count = int(EMERGENCY_STOP_SECONDS * FPS)
+    for index in range(count):
+        progress = smoothstep((index + 1) / count)
+        root_z = mix(STAND_BASE_Z, EMERGENCY_STOP_BASE_Z, progress)
+        joints = {
+            name: mix(STAND_POSE[name], EMERGENCY_STOP_POSE[name], progress)
+            for name in STAND_POSE
+        }
+        frames.append(
+            {
+                "x": 0.0,
+                "y": 0.0,
+                "root_x": 0.0,
+                "root_y": 0.0,
+                "root_z": root_z,
+                "z": root_z,
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "gait_phase": 0.0,
+                "gait_settle": 0.0,
+                "gait_direction": 1.0,
+                "stand_progress": 1.0,
+                "time_s": start_time_s + index / FPS,
+                "joints": joints,
+                "clip_joints": False,
+            }
+        )
+    return frames
+
+
 def render_data_urls(preview: MuJoCoPreview, frames: list[dict[str, object]], *, max_frames: int) -> list[str]:
     if not any("joints" in frame for frame in frames):
         return preview.render_data_urls(frames, max_frames=max_frames, width=WIDTH, height=HEIGHT)
@@ -409,7 +613,11 @@ def render_data_urls(preview: MuJoCoPreview, frames: list[dict[str, object]], *,
                 for joint_name, value in joints.items():
                     address = joint_addresses.get(joint_name)
                     if address is not None:
-                        data.qpos[address] = sim._clip_joint(model, mujoco, joint_name, float(value))
+                        data.qpos[address] = (
+                            sim._clip_joint(model, mujoco, joint_name, float(value))
+                            if frame.get("clip_joints", True)
+                            else float(value)
+                        )
             else:
                 sim._apply_ff_demo_gait(
                     model,
@@ -477,10 +685,12 @@ def main() -> int:
             frames = base_stand + twist_frames(TWIST_LEFT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
         elif name == "twist_right":
             frames = base_stand + twist_frames(TWIST_RIGHT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
+        elif name == "backflip":
+            frames = backflip_frames(0.0)
         elif name == "sit":
             frames = floor_sit_frames(0.0)
         elif name == "emergency_stop":
-            frames = floor_sit_frames(0.0)
+            frames = emergency_stop_frames(0.0)
         else:
             frames = base_stand + command_frames(preview, commands)
         max_frames = min(len(frames), 78)
