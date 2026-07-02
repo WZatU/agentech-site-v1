@@ -9,12 +9,13 @@ import {
   type ProgramDay
 } from "@/lib/program-journey-data";
 import { eaiImmersionCourseCode } from "@/lib/education-courses";
+import { eaiPriceSummary, eaiZhPriceSummary } from "@/lib/eai-immersion-options";
 
 type Language = "en" | "zh";
 
 const guideHrefs: Record<Language, string> = {
-  en: "/assets/program-guides/agentech-ff-eai-robotics-future-founder-program-guide-en.pdf",
-  zh: "/assets/program-guides/agentech-ff-eai-robotics-future-founder-program-guide-zh.pdf"
+  en: "/assets/program-guides/agentech-ff-eai-robotics-future-founder-program-guide-en.pdf?v=20260702-two-sessions",
+  zh: "/assets/program-guides/agentech-ff-eai-robotics-future-founder-program-guide-zh.pdf?v=20260702-two-sessions"
 };
 
 const guideDownloadNames: Record<Language, string> = {
@@ -25,8 +26,13 @@ const guideDownloadNames: Record<Language, string> = {
 const enrollmentHref = `/enroll?course=${eaiImmersionCourseCode}`;
 
 const flyerHrefs: Record<Language, string> = {
-  en: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr",
-  zh: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png?v=20260626-qr"
+  en: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260702-two-sessions",
+  zh: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png?v=20260702-two-sessions"
+};
+
+const flyerPreviewSrcs: Record<Language, string> = {
+  en: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png",
+  zh: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png"
 };
 
 const flyerDownloadNames: Record<Language, string> = {
@@ -38,94 +44,94 @@ type LocalizedDayCopy = Pick<ProgramDay, "day" | "title" | "tagline" | "morning"
 
 const zhJourneyCopy: LocalizedDayCopy[] = [
   {
-    day: "第 1 天",
-    title: "走进未来",
-    tagline: "一切从好奇心开始",
-    morning: ["开营仪式", "项目介绍", "认识导师团队"],
-    afternoon: ["FF 实验室与设施体验", "团队组建", "认识你的机器人"],
-    evening: ["创始人炉边对谈"],
-    body: "学生将在真实公司的环境中进入 AI 机器人世界。他们会认识导师、探索实验室、组建团队，并从学习者开始转向建设者。"
+    day: "第一期 / 第 1 天",
+    title: "发现机器人创业机会",
+    tagline: "从真实问题开始",
+    morning: ["第一期开营", "机器人公司环境导览", "问题发现工作坊"],
+    afternoon: ["机器人平台体验", "团队组建", "创业挑战选择"],
+    evening: ["创始人炉边对谈：机器人创业为什么难"],
+    body: "学生以未来创始人的视角进入第一期。他们会走进真实机器人公司环境，组建团队，并选择一个可以在 5 天内转化为创业概念的问题。"
   },
   {
-    day: "第 2 天",
-    title: "像 AI 工程师一样思考",
-    tagline: "理解智能机器如何思考",
-    morning: ["AI 基础", "Embodied AI 概览", "机器人系统架构"],
-    afternoon: ["编程工作坊", "仿真环境入门", "第一次工程冲刺"],
-    evening: ["每日 Demo 与复盘"],
-    body: "学生学习 AI、机器人与具身智能的基础语言。目标不只是理解概念，而是开始用工程师的方式拆解问题。"
+    day: "第一期 / 第 2 天",
+    title: "做出第一个能力原型",
+    tagline: "创业项目需要证明有东西能跑起来",
+    morning: ["具身智能基础", "机器人系统架构", "能力地图"],
+    afternoon: ["编程工作坊", "仿真冲刺", "第一次原型评审"],
+    evening: ["每日 Demo 与导师反馈"],
+    body: "团队学习具身智能的语言，并把它连接到第一个可展示能力。重点不是重复 AI 概念，而是快速建立早期技术证明。"
   },
   {
-    day: "第 3 天",
-    title: "构建第一个机器人技能",
-    tagline: "每个机器人能力 都从一个技能开始",
-    morning: ["计算机视觉基础", "传感器与感知", "Skill Graph 入门"],
-    afternoon: ["工程师带领的技能工作坊", "构建一个简单机器人技能", "在仿真环境中测试"],
+    day: "第一期 / 第 3 天",
+    title: "把技术转成产品",
+    tagline: "当用户需要它 技术才变得有价值",
+    morning: ["用户问题定义", "市场发现", "产品承诺"],
+    afternoon: ["工程师带领的技能工作坊", "原型改进", "商业模式草图"],
     evening: ["嘉宾分享：真实世界中的机器人"],
-    body: "学生开始构建可复用的机器人技能，理解感知、规划和执行如何在一个具身智能系统中连接起来。"
+    body: "学生把原型连接到客户问题、用户故事和简单商业模式。第一期会把创始人思维和技术构建紧密结合。"
   },
   {
-    day: "第 4 天",
-    title: "让 AI 连接现实",
-    tagline: "当想法开始移动 现实就发生了",
-    morning: ["硬件与机器人集成", "安全与测试流程", "真实机器人控制基础"],
-    afternoon: ["部署到机器人", "测试、调试、改进", "工程评审"],
-    evening: ["实验室开放时间"],
-    body: "学生从仿真走向物理世界。他们会理解为什么真实机器人比演示更难，也会看到工程纪律为什么重要。"
+    day: "第一期 / 第 4 天",
+    title: "Hackathon 启动：构建冲刺",
+    tagline: "第一个 Demo 在限制中成型",
+    morning: ["范围锁定", "硬件与安全评审", "Demo 成功标准"],
+    afternoon: ["小型 Hackathon 启动", "构建、测试、调试", "导师检查"],
+    evening: ["路演提纲与风险评审"],
+    body: "第一期 Hackathon 从更短、更聚焦的冲刺开始。团队锁定范围、稳定原型，并准备讲清楚技术和创业逻辑。"
   },
   {
-    day: "第 5 天",
-    title: "像创始人一样设计",
-    tagline: "优秀工程师解决问题 优秀创始人发现问题",
-    morning: ["产品思维", "用户问题", "市场发现"],
-    afternoon: ["商业模式工作坊", "创业财务基础", "融资基础入门"],
-    evening: ["VC / 创始人炉边对谈"],
-    body: "学生会看到技术只是公司建设的一部分。他们将探索客户需求、定价、商业模式，以及融资的基本逻辑。"
+    day: "第一期 / 第 5 天",
+    title: "第一期 Demo Day",
+    tagline: "路演创业想法 回答技术问题",
+    morning: ["最终构建锁定", "Demo 彩排", "技术问答准备"],
+    afternoon: ["小型 Hackathon 展示", "创始人式路演", "奖项与复盘"],
+    evening: ["后续路径说明"],
+    body: "第一期以紧凑的 Hackathon 展示和创始人式路演结束。学生会带走一个机器人创业故事、原型证据和可继续发展的反馈。"
   },
   {
-    day: "第 6 天",
-    title: "更快地一起推进",
-    tagline: "创新是一项团队运动",
-    morning: ["团队冲刺计划", "项目范围评审", "工程站会"],
-    afternoon: ["项目开发", "导师 Office Hours", "中期技术检查"],
-    evening: ["团队 Demo 练习"],
-    body: "团队在工程师导师的帮助下加速项目推进。学生会学习真实团队如何规划、分工、协作调试并汇报进展。"
+    day: "第二期 / 第 1 天",
+    title: "定位自主能力产品机会",
+    tagline: "第二期从新的视角重新开始",
+    morning: ["第二期开营", "自主能力应用场景工作坊", "AI 产品简报"],
+    afternoon: ["工作流地图", "团队组建", "产品挑战选择"],
+    evening: ["专家炉边对谈：真实世界中的自主能力"],
+    body: "第二期对新学生是独立完整体验，对两期联报学生则不会重复第一期。团队聚焦 AI 机器人产品机会、自主能力闭环和工作流价值。"
   },
   {
-    day: "第 7 天",
-    title: "解决真实问题",
-    tagline: "技术的价值 来自它解决真实问题的能力",
-    morning: ["真实机器人挑战", "产线 / 工作流视角", "应用场景选择"],
-    afternoon: ["项目深度工作", "技术评审", "用户场景测试"],
-    evening: ["CTO / 专家炉边对谈"],
-    body: "学生将项目连接到真实运营挑战中。他们会细化使用场景、测试假设，并理解机器人如何在真实环境中创造价值。"
+    day: "第二期 / 第 2 天",
+    title: "构建 AI 产品闭环",
+    tagline: "自主能力不是单点技巧 而是一套闭环",
+    morning: ["感知与规划", "数据与评估", "自主能力闭环设计"],
+    afternoon: ["系统集成冲刺", "场景测试", "技术评审"],
+    evening: ["每日 Demo 与迭代记录"],
+    body: "学生围绕感知、决策、行动和反馈构建系统。第二期更强调产品可靠性、场景测试和可衡量的改进。"
   },
   {
-    day: "第 8 天",
-    title: "打磨你的产品",
-    tagline: "细节让产品真正成立",
-    morning: ["测试与调试", "产品打磨", "Demo 故事线"],
-    afternoon: ["路演辅导", "演示设计", "Hackathon 准备"],
-    evening: ["Hackathon 启动"],
-    body: "团队为最终挑战做准备。他们会改进原型、打磨叙事，并把技术项目转化成可以被展示和理解的产品。"
+    day: "第二期 / 第 3 天",
+    title: "测试 迭代 定位",
+    tagline: "失败被看见 产品才会变好",
+    morning: ["可靠性测试", "失败模式评审", "产品指标"],
+    afternoon: ["迭代冲刺", "用户场景验证", "发布故事线"],
+    evening: ["路演辅导：产品定位"],
+    body: "团队对 AI 机器人产品想法进行压力测试，并通过反馈持续改进。两期联报学生会进入不同的内容弧线：自主能力、指标和产品定位。"
   },
   {
-    day: "第 9 天",
-    title: "在压力下完成构建",
-    tagline: "快速构建 更快学习",
-    morning: ["Hackathon 冲刺", "导师检查", "快速原型"],
-    afternoon: ["Hackathon 开发", "测试与调试", "最终提交准备"],
-    evening: ["最终构建锁定", "Demo 彩排"],
-    body: "两天 Hackathon 正式开始。团队在压力下取舍、解决意外问题，并为最终 Demo 做最后准备。"
+    day: "第二期 / 第 4 天",
+    title: "发布冲刺启动",
+    tagline: "快速构建 然后让产品被理解",
+    morning: ["发布范围锁定", "路线图与风险评审", "评审标准"],
+    afternoon: ["小型 Hackathon 启动", "产品构建冲刺", "导师检查"],
+    evening: ["Demo 彩排与最终测试"],
+    body: "第二期 Hackathon 在第 4 天进入产品发布冲刺。团队稳定构建、准备证据，并在 Demo Day 前做出清晰取舍。"
   },
   {
-    day: "第 10 天",
-    title: "发布你的未来",
-    tagline: "旅程才刚刚开始",
+    day: "第二期 / 第 5 天",
+    title: "第二期 Demo Day",
+    tagline: "发布产品愿景",
     morning: ["最终 Demo", "产品展示", "技术问答"],
     afternoon: ["投资人式路演", "奖项公布", "闭营仪式"],
     evening: ["Networking", "结业证书", "校友邀请"],
-    body: "学生向导师、工程师、嘉宾和家人展示他们的作品。项目结束不是毕业，而是他们进入 AI、机器人、研究、创业与真实世界影响力道路的开始。"
+    body: "第二期以面向产品自主能力、工作流价值和发布叙事的 Demo Day 收束。参加两期的学生会带走两条不同的项目成长线。"
   }
 ];
 
@@ -137,38 +143,38 @@ const copy = {
       logoRight: "FF",
       kicker: "EAI Robotics Future Founder Immersion Program",
       title: <>EAI Robotics.<br />Future Founder.<br /><span className="text-white/86">Immersion Program.</span></>,
-      tagline: "10 Days. Real Robots. Real Engineers. Real Startup Experience.",
-      body: "A 10-day journey where students build, pitch, and launch an AI robotics startup inside a real robotics company.",
+      tagline: "Two 5-Day Sessions. Real Robots. Real Engineers. Real Startup Experience.",
+      body: "Choose Session 1, Session 2, or both. Each 5-day session is a complete founder-level AI robotics immersion with its own mini hackathon and pitch.",
       guideCta: "Download Program Guide",
       applyCta: "Apply Interest",
-      stats: ["10-day founder journey", "Inside a robotics company", "Final demo and pitch"]
+      stats: ["Session 1: Early July 2026", "Session 2: Late July 2026", eaiPriceSummary]
     },
     overview: {
-      title: "Not a summer camp. A founder-level robotics immersion.",
+      title: "Two standalone sessions. One founder-level robotics immersion.",
       paragraphs: [
-        "This 10-day program brings high school students into a real robotics company environment, combining AI education, embodied robotics, engineering mentorship, startup thinking, financial literacy, and a two-day hackathon.",
-        "Students do not simply learn AI. They experience how an AI robotics startup is built, from idea, to prototype, to demo, to pitch."
+        "The program is now structured as two independent 5-day sessions. Students may join Session 1, Session 2, or both, and each pathway is designed to produce a meaningful project outcome.",
+        "Session 1 focuses on robotics venture building. Session 2 focuses on AI robotics product and autonomy. Students who join both experience two distinct arcs rather than repeating the same material."
       ],
       pillarLabel: "Program pillar",
       highlights: [
         {
-          title: "Learn AI & Embodied Intelligence",
-          body: "Students build a working language for AI, robotics, perception, planning, and real-world deployment."
+          title: "Session 1: Robotics Venture Lab",
+          body: "Students identify a real robotics problem, build a prototype, shape a business model, and pitch a venture concept."
         },
         {
-          title: "Build with Engineers",
-          body: "Mentored work sessions mirror how technical teams scope, test, debug, and improve robotics systems."
+          title: "Session 2: AI Robotics Product Lab",
+          body: "Students build around autonomy loops, scenario testing, product metrics, and launch-ready storytelling."
         },
         {
-          title: "Pitch Like a Founder",
-          body: "Students connect technology to user needs, business models, financial thinking, and investor-style storytelling."
+          title: "One Session or Both",
+          body: "Each session stands alone for new students, while both-session students gain non-repeating projects, mentors, and demo-day moments."
         }
       ]
     },
     signatureMoments: {
       eyebrow: "Signature Moments",
       title: "Three defining moments.",
-      body: "The 10-day journey is built around the moments that change how students see robotics, company building, and their own future.",
+      body: "Both 5-day sessions are built around moments that change how students see robotics, company building, product thinking, and their own future.",
       playLabel: "Resume signature moments autoplay",
       items: [
         {
@@ -182,8 +188,8 @@ const copy = {
         },
         {
           eyebrow: "Hackathon",
-          title: "Two days to build what comes next.",
-          subtitle: "The final sprint compresses AI robotics, product thinking, teamwork, and pitch pressure into one build cycle.",
+          title: "Two shorter hackathons, one per session.",
+          subtitle: "Each session ends with a focused build sprint, demo, technical Q&A, and founder-style pitch.",
           body: "Students make tradeoffs, debug under time pressure, and learn how strong teams turn uncertainty into a working demo and a clear story.",
           mediaUrl: "/assets/ff-robotics/day-9-ai-branded-hackathon.png",
           mediaAlt: "AI-redrawn late-night robotics hackathon room with students and mentors working under dramatic lighting",
@@ -192,8 +198,8 @@ const copy = {
         {
           eyebrow: "Outcomes",
           title: "Students leave with more than memories.",
-          subtitle: "A demo, a founder-style pitch, portfolio material, and a pathway to keep going after the program.",
-          body: "The final output is not just participation. Students leave with a project story they can continue through Agentech AI Club, internship, or research pathways.",
+          subtitle: "A project story, founder-style pitch, portfolio material, and a pathway to keep going after the program.",
+          body: "Students who attend one session leave with a complete project arc. Students who attend both leave with two distinct project stories they can continue through Agentech AI Club, internship, or research pathways.",
           mediaUrl: "/assets/ff-robotics/day-10-ai-branded-demo-day.png",
           mediaAlt: "AI-redrawn robotics demo day presentation with students, mentors, and a humanoid robot",
           dark: false
@@ -201,15 +207,15 @@ const copy = {
       ]
     },
     journey: {
-      eyebrow: "The 10-Day Journey",
-      title: "Build, pitch, and launch.",
-      body: "Each day moves students closer to a complete robotics venture, from curiosity and technical foundations to demo day.",
+      eyebrow: "Two 5-Day Journeys",
+      title: "Two standalone sessions. No repeated path.",
+      body: "Each session moves from discovery to build sprint to demo day. Session 1 and Session 2 are parallel, not prerequisite-based.",
       scheduleLabels: ["Morning", "Afternoon", "Evening"],
       timelineStages: ["Challenge", "Deep Work", "Expert Review"],
       timelineNote: "The path narrows from broad challenge discovery into one focused use case that can be built, tested, and explained.",
       hackathonBadge: "Hackathon begins",
-      countdownNumber: "48",
-      countdownLabel: "hours to final lock"
+      countdownNumber: "24",
+      countdownLabel: "hours to demo day"
     },
     mentors: {
       title: "Meet the people building the future.",
@@ -219,8 +225,8 @@ const copy = {
     },
     hackathon: {
       eyebrow: "Hackathon & Final Pitch",
-      title: "Two days to build what comes next.",
-      body: "The final hackathon challenges students to combine AI, robotics, product thinking, teamwork, and presentation skills into one final project.",
+      title: "One hackathon per session.",
+      body: "Each final sprint challenges students to combine AI, robotics, product thinking, teamwork, and presentation skills into one focused project.",
       judgingLabel: "Judging categories",
       categories: ["Technical Execution", "Creativity", "Real-World Value", "Teamwork", "Final Pitch"]
     },
@@ -228,9 +234,9 @@ const copy = {
       eyebrow: "Student Outcomes",
       title: "Students leave with more than memories.",
       items: [
-        "A completed AI robotics project",
-        "Final demo presentation",
-        "Founder-style pitch experience",
+        "One completed AI robotics project per session attended",
+        "Mini hackathon and demo-day presentation",
+        "Founder-style pitch experience for each selected session",
         "Certificate of completion",
         "Project portfolio material",
         "Exposure to real engineering workflow",
@@ -240,11 +246,11 @@ const copy = {
     guide: {
       eyebrow: "Download Program Guide",
       title: "Explore the full program structure.",
-      body: "Explore the full program structure, daily journey, outcomes, and application details.",
+      body: "Explore both 5-day session structures, session options, pricing, outcomes, and application details.",
       button: "Download PDF",
       coverKicker: "Program Guide",
       coverTitle: <>EAI Robotics<br />Future Founder<br />Immersion Program</>,
-      coverBody: "10-day journey, mentor sessions, hackathon, final pitch, and student outcomes."
+      coverBody: "Two 5-day sessions, mentor moments, mini hackathons, final pitches, and student outcomes."
     },
     finalCta: {
       kicker: "Agentech × FF",
@@ -262,38 +268,38 @@ const copy = {
       logoRight: "法拉第未来",
       kicker: "具身智能机器人未来创始人沉浸项目",
       title: <>具身智能机器人<br />未来创始人<br /><span className="text-white/86">沉浸项目</span></>,
-      tagline: "10 天 真实机器人 真实工程师 真实创业体验",
-      body: "一段 10 天的沉浸式旅程：学生在真实机器人公司环境中，完成从构想到原型、演示与路演的具身智能机器人创业项目。",
+      tagline: "两期 5 天 真实机器人 真实工程师 真实创业体验",
+      body: "学生可选择第一期、第二期，或两期联报。每一期都是独立完整的 5 天创始人级别 AI 机器人沉浸体验，并有各自的小型 Hackathon 与路演。",
       guideCta: "下载项目手册",
       applyCta: "提交兴趣",
-      stats: ["10 天创始人旅程", "走进真实机器人公司", "最终演示与路演"]
+      stats: ["第一期：2026 年 7 月上旬", "第二期：2026 年 7 月下旬", eaiZhPriceSummary]
     },
     overview: {
-      title: "这不是普通夏令营 而是创始人级别的机器人沉浸项目",
+      title: "两期独立体验 同一个创始人级别机器人沉浸项目",
       paragraphs: [
-        "这个 10 天项目把高中生带入真实机器人公司的环境中，融合 AI 教育、具身智能机器人、工程师导师制、创业思维、财务素养与两天 Hackathon。",
-        "学生不只是学习 AI。他们会体验一个 AI 机器人创业项目如何从想法走向原型、演示和路演。"
+        "项目现在调整为两期独立的 5 天体验。学生可以只参加第一期、只参加第二期，或两期联报，每一种路径都能形成完整的项目成果。",
+        "第一期聚焦机器人创业构建，第二期聚焦 AI 机器人产品与自主能力。两期联报的学生会经历两条不同项目线，而不是重复同样内容。"
       ],
       pillarLabel: "项目支柱",
       highlights: [
         {
-          title: "学习 AI 与具身智能",
-          body: "学生建立 AI、机器人、感知、规划与真实部署的基础语言。"
+          title: "第一期：机器人创业实验室",
+          body: "学生发现真实机器人问题，构建原型，形成商业模式，并完成创业概念路演。"
         },
         {
-          title: "与工程师一起构建",
-          body: "导师制工作坊模拟真实技术团队如何定义范围、测试、调试和改进机器人系统。"
+          title: "第二期：AI 机器人产品实验室",
+          body: "学生围绕自主能力闭环、场景测试、产品指标和发布叙事进行构建。"
         },
         {
-          title: "像创始人一样路演",
-          body: "学生把技术连接到用户需求、商业模式、财务思维与投资人式表达。"
+          title: "一期或两期 都有收获",
+          body: "每一期都对新学生独立完整；两期联报学生则会获得不重复的项目、导师反馈和 Demo Day 体验。"
         }
       ]
     },
     signatureMoments: {
       eyebrow: "核心亮点",
       title: "三个真正改变学生的时刻",
-      body: "这 10 天不是日程堆叠 而是围绕三个关键时刻展开 让学生重新理解机器人 公司建设 和自己的未来",
+      body: "两期 5 天体验都会围绕关键时刻展开 让学生重新理解机器人 公司建设 产品思维 和自己的未来",
       playLabel: "继续自动播放核心亮点",
       items: [
         {
@@ -307,8 +313,8 @@ const copy = {
         },
         {
           eyebrow: "Hackathon",
-          title: "用两天 做出下一个可能",
-          subtitle: "把 AI 机器人 产品思维 团队协作 和路演压力 压缩进一次真实冲刺",
+          title: "每一期都有一次更聚焦的 Hackathon",
+          subtitle: "每一期最后都包含构建冲刺 Demo 技术问答 和创始人式路演",
           body: "学生会在时间压力下做取舍 做调试 做表达 学会把不确定性变成一个可演示的项目和清晰的故事。",
           mediaUrl: "/assets/ff-robotics/day-9-ai-branded-hackathon.png",
           mediaAlt: "AI 重绘的深夜机器人 Hackathon 空间 学生与导师在戏剧化灯光下冲刺开发",
@@ -317,8 +323,8 @@ const copy = {
         {
           eyebrow: "学生收获",
           title: "学生带走的不只是回忆",
-          subtitle: "Demo 创始人式路演 作品集材料 以及项目结束后的持续路径",
-          body: "最终成果不只是参加过一个项目。学生会带走一个可以继续发展的项目故事，并连接到 Agentech AI Club 实习或研究路径。",
+          subtitle: "项目故事 创始人式路演 作品集材料 以及项目结束后的持续路径",
+          body: "只参加一期的学生会完成一条完整项目线。两期联报学生会带走两个不同项目故事，并连接到 Agentech AI Club 实习或研究路径。",
           mediaUrl: "/assets/ff-robotics/day-10-ai-branded-demo-day.png",
           mediaAlt: "AI 重绘的机器人 Demo Day 学生在导师与家庭面前展示最终项目",
           dark: false
@@ -326,15 +332,15 @@ const copy = {
       ]
     },
     journey: {
-      eyebrow: "10 天旅程",
-      title: "构建 路演 发布",
-      body: "每一天都把学生向完整机器人创业项目推进一步：从好奇心和技术基础，走向最终 Demo Day。",
+      eyebrow: "两期 5 天旅程",
+      title: "两期独立体验 内容不重复",
+      body: "每一期都会从发现问题走向构建冲刺和 Demo Day。第一期与第二期是并列体验，而不是先修关系。",
       scheduleLabels: ["上午", "下午", "晚间"],
       timelineStages: ["真实问题", "深度构建", "专家评审"],
       timelineNote: "路径会从宽泛的问题发现，逐步收敛到一个能够被构建、测试和讲清楚的应用场景。",
       hackathonBadge: "Hackathon 开始",
-      countdownNumber: "48",
-      countdownLabel: "小时到最终锁定"
+      countdownNumber: "24",
+      countdownLabel: "小时到 Demo Day"
     },
     mentors: {
       title: "与正在创造未来的人同行",
@@ -344,8 +350,8 @@ const copy = {
     },
     hackathon: {
       eyebrow: "Hackathon 与最终路演",
-      title: "用两天 做出下一个可能",
-      body: "最终 Hackathon 要求学生把 AI、机器人、产品思维、团队协作与表达能力，整合成一个完整项目。",
+      title: "每一期都有一次 Hackathon",
+      body: "每一次最终冲刺都要求学生把 AI、机器人、产品思维、团队协作与表达能力，整合成一个聚焦项目。",
       judgingLabel: "评审维度",
       categories: ["技术完成度", "创造力", "现实价值", "团队协作", "最终路演"]
     },
@@ -353,9 +359,9 @@ const copy = {
       eyebrow: "学生收获",
       title: "学生带走的不只是回忆",
       items: [
-        "一个完成的 AI 机器人项目",
-        "最终 Demo 展示",
-        "创始人式路演体验",
+        "每期完成一个 AI 机器人项目",
+        "小型 Hackathon 与 Demo Day 展示",
+        "每个所选期次都有创始人式路演体验",
         "项目结业证书",
         "可用于作品集的项目材料",
         "真实工程工作流体验",
@@ -365,11 +371,11 @@ const copy = {
     guide: {
       eyebrow: "下载项目手册",
       title: "查看完整项目结构",
-      body: "了解完整项目安排、每日旅程、学生收获与后续申请信息。",
+      body: "了解两期 5 天结构、期数选择、价格、学生收获与后续申请信息。",
       button: "下载 PDF",
       coverKicker: "项目手册",
       coverTitle: <>具身智能机器人<br />未来创始人<br />沉浸项目</>,
-      coverBody: "10 天旅程、导师课程、Hackathon、最终路演与学生收获。"
+      coverBody: "两期 5 天旅程、导师交流、小型 Hackathon、最终路演与学生收获。"
     },
     finalCta: {
       kicker: "Agentech × FF",
@@ -616,13 +622,13 @@ function HeroSection({
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent" />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-120px)] max-w-7xl flex-col justify-center px-6 py-20 lg:px-8">
-        <div className="ff-reveal max-w-4xl">
+        <div className="ff-reveal w-full max-w-[342px] sm:max-w-4xl">
           <div className={`mb-10 flex items-center gap-4 text-sm font-semibold uppercase text-white/86 ${language === "zh" ? "tracking-[0.08em]" : "tracking-[0.26em]"}`}>
             <span>{text.logoLeft}</span>
             <span className="h-8 w-px bg-white/62" aria-hidden="true" />
             <span>{text.logoRight}</span>
           </div>
-          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.18em] text-white/62 sm:text-sm sm:tracking-[0.24em]">
+          <p className="mb-6 max-w-full break-words text-[0.68rem] font-semibold uppercase leading-5 tracking-[0.08em] text-white/62 sm:text-sm sm:tracking-[0.24em]">
             {text.kicker}
           </p>
           <h1
@@ -634,10 +640,10 @@ function HeroSection({
           >
             {text.title}
           </h1>
-          <p className={`${language === "zh" ? "max-w-3xl text-xl leading-9 md:text-2xl md:leading-10" : "max-w-2xl text-xl leading-8 md:text-2xl md:leading-9"} mt-8 text-white/78`}>
+          <p className={`${language === "zh" ? "max-w-full text-xl leading-9 md:max-w-3xl md:text-2xl md:leading-10" : "max-w-full text-xl leading-8 md:max-w-2xl md:text-2xl md:leading-9"} mt-8 text-white/78`}>
             {text.tagline}
           </p>
-          <p className={`${language === "zh" ? "max-w-3xl text-base leading-8 md:text-lg md:leading-9" : "max-w-3xl text-base leading-7 md:text-lg md:leading-8"} mt-5 text-white/58`}>
+          <p className={`${language === "zh" ? "max-w-full text-base leading-8 md:max-w-3xl md:text-lg md:leading-9" : "max-w-full text-base leading-7 md:max-w-3xl md:text-lg md:leading-8"} mt-5 text-white/58`}>
             {text.body}
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -653,7 +659,7 @@ function HeroSection({
 
       <div className="relative z-10 mx-auto grid max-w-7xl gap-px bg-white/12 px-6 lg:grid-cols-3 lg:px-8">
         {text.stats.map((item) => (
-          <div key={item} className={`bg-black/52 py-5 text-sm font-semibold uppercase text-white/64 backdrop-blur ${language === "zh" ? "tracking-[0.08em]" : "tracking-[0.18em]"}`}>
+          <div key={item} className={`bg-black/52 px-1 py-5 text-[0.7rem] font-semibold uppercase leading-5 text-white/64 backdrop-blur sm:text-sm ${language === "zh" ? "tracking-[0.08em]" : "tracking-[0.08em] sm:tracking-[0.18em]"}`}>
             {item}
           </div>
         ))}
@@ -1184,6 +1190,7 @@ function ProgramGuideSection({
 
 function FinalCTA({ language, text }: { language: Language; text: typeof copy.en.finalCta }) {
   const flyerHref = flyerHrefs[language];
+  const flyerPreviewSrc = flyerPreviewSrcs[language];
   const flyerDownloadName = flyerDownloadNames[language];
   const flyerAlt = language === "zh" ? "中文版项目海报预览" : "English program flyer preview";
 
@@ -1207,7 +1214,7 @@ function FinalCTA({ language, text }: { language: Language; text: typeof copy.en
           <div className="mt-5 w-full max-w-[260px] rounded-[18px] border border-black/10 bg-white/55 p-3 shadow-[0_18px_60px_rgba(17,17,17,0.12)] backdrop-blur">
             <div className="overflow-hidden rounded-[12px] bg-[#111111] shadow-[0_10px_30px_rgba(17,17,17,0.16)]">
               <Image
-                src={flyerHref}
+                src={flyerPreviewSrc}
                 width={1024}
                 height={1536}
                 alt={flyerAlt}

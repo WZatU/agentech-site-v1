@@ -17,6 +17,7 @@ export type EducationCourse = {
   minAge: number;
   maxAge: number;
   price: number;
+  priceNote?: string;
   flyerImage: string;
   detailFlyerImages?: string[];
 };
@@ -97,24 +98,25 @@ export const educationCourses: EducationCourse[] = [
     gradeSlug: "agentech-ff-eai-robotics-future-founder-immersion-program",
     title: "Agentech FF EAI Robotics Future Founder Immersion Program",
     previewDescription:
-      "High school students explore EAI robotics, embodied intelligence, and future-founder thinking through a 10-day immersion experience.",
+      "High school students explore EAI robotics, embodied intelligence, and future-founder thinking through two standalone 5-day immersion sessions.",
     description:
-      "A 10-day journey where high school students build, pitch, and launch an AI robotics startup inside a real robotics company.",
+      "Two independent 5-day sessions where high school students build AI robotics ventures and products inside a real robotics company. Students may join Session 1, Session 2, or both.",
     city: "Los Angeles",
     state: "CA",
     locationCode: "FFHQ",
     locationName: "FF Headquarters near LAX",
     courseName: "EAI Robotics Future Founder Immersion Program",
-    classTime: "Mid-July 2026",
-    startingDate: "2026-07-15",
+    classTime: "Session 1: Early July 2026; Session 2: Late July 2026",
+    startingDate: "2026-07-01",
     ageRange: "Grades 9-12",
     minAge: 13,
     maxAge: 19,
     price: 0,
-    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr",
+    priceNote: "$1,399 per session / $2,500 for both sessions",
+    flyerImage: "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260702-two-sessions",
     detailFlyerImages: [
-      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260626-qr",
-      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png?v=20260626-qr"
+      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-en.png?v=20260702-two-sessions",
+      "/assets/program-flyers/eai-robotics-future-founder-immersion-program-flyer-zh.png?v=20260702-two-sessions"
     ]
   }
 ];
