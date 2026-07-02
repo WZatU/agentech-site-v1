@@ -102,6 +102,32 @@ export async function DELETE(request: Request) {
         status: "removed_from_cart"
       }
     }).catch(() => null);
+
+    const [invoiceLinesByItem, invoiceLinesBySource] = await Promise.all([
+      supabaseRequest<Array<{ invoice_number: string }>>("agentech_billing_invoice_lines", {
+        query: `source_item_id=eq.${match[1]}&select=invoice_number`
+      }).catch(() => []),
+      supabaseRequest<Array<{ invoice_number: string }>>("agentech_billing_invoice_lines", {
+        query: `source_type=eq.robot&source_id=eq.${encodeURIComponent(item.source_id)}&select=invoice_number`
+      }).catch(() => [])
+    ]);
+    const invoiceNumbers = Array.from(
+      new Set([...invoiceLinesByItem, ...invoiceLinesBySource].map((line) => line.invoice_number).filter(Boolean))
+    );
+
+    await Promise.all(
+      invoiceNumbers.map((invoiceNumber) =>
+        supabaseRequest<null>("agentech_billing_invoices", {
+          method: "PATCH",
+          query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}&status=neq.paid&status=neq.refunded`,
+          prefer: "return=minimal",
+          body: {
+            status: "void",
+            updated_at: new Date().toISOString()
+          }
+        }).catch(() => null)
+      )
+    );
   }
 
   const emailResult = await sendRemovalEmail(email, item);

@@ -128,7 +128,23 @@ export async function isBillingAdmin(email: string) {
 
 export function formatBillingStatus(status: string) {
   const normalized = status.replace(/_/g, " ").toLowerCase();
+
+  if (statusLooksVoided(normalized)) {
+    return "Voided";
+  }
+
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function statusLooksVoided(status: string) {
+  const normalized = status.replace(/_/g, " ").toLowerCase();
+  return (
+    normalized.includes("void") ||
+    normalized.includes("cancel") ||
+    normalized.includes("removed") ||
+    normalized.includes("deleted") ||
+    normalized.includes("rejected")
+  );
 }
 
 export function createInvoiceNumber(prefix = "INV") {
@@ -141,8 +157,52 @@ function legacyStatusToBillingStatus(status: string): BillingInvoiceStatus {
   const normalized = status.replace(/_/g, " ").toLowerCase();
 
   if (normalized.includes("paid")) return "paid";
-  if (normalized.includes("void") || normalized.includes("cancel") || normalized.includes("removed")) return "void";
+  if (statusLooksVoided(normalized)) return "void";
   return "sent";
+}
+
+async function hasVoidedRobotSource(lines: Array<Pick<BillingInvoiceLine, "source_type" | "source_id">>) {
+  const sourceIds = Array.from(
+    new Set(
+      lines
+        .filter((line) => line.source_type === "robot" && line.source_id)
+        .map((line) => line.source_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+
+  if (!sourceIds.length) {
+    return false;
+  }
+
+  const requests = await Promise.all(
+    sourceIds.map((sourceId) =>
+      supabaseRequest<Array<{ status: string }>>("agentech_preorder_invoices", {
+        query: `invoice_number=eq.${encodeURIComponent(sourceId)}&select=status&limit=1`
+      }).catch(() => [])
+    )
+  );
+
+  return requests.flat().some((request) => statusLooksVoided(request.status));
+}
+
+async function applyVoidedSourceStatus(invoice: BillingInvoice) {
+  if (invoice.status === "paid" || invoice.status === "refunded" || invoice.status === "void") {
+    return invoice;
+  }
+
+  const sourceLines = await supabaseRequest<Array<Pick<BillingInvoiceLine, "source_type" | "source_id">>>("agentech_billing_invoice_lines", {
+    query: `invoice_number=eq.${encodeURIComponent(invoice.invoice_number)}&select=source_type,source_id`
+  }).catch(() => []);
+
+  if (!(await hasVoidedRobotSource(sourceLines))) {
+    return invoice;
+  }
+
+  return {
+    ...invoice,
+    status: "void" as const
+  };
 }
 
 async function getLegacyPreorderInvoice(invoiceNumber: string) {
@@ -236,23 +296,31 @@ export async function getBillingInvoice(invoiceNumber: string) {
   const lines = await supabaseRequest<BillingInvoiceLine[]>("agentech_billing_invoice_lines", {
     query: `invoice_number=eq.${encodeURIComponent(invoiceNumber)}&select=*&order=id.asc`
   }).catch(() => []);
+  const sourceWasVoided = invoice.status !== "paid" && invoice.status !== "refunded"
+    ? await hasVoidedRobotSource(lines)
+    : false;
 
   return {
     ...invoice,
+    status: sourceWasVoided ? "void" : invoice.status,
     lines
   } satisfies BillingInvoiceWithLines;
 }
 
 export async function getBillingInvoicesForEmail(email: string) {
-  return supabaseRequest<BillingInvoice[]>("agentech_billing_invoices", {
+  const invoices = await supabaseRequest<BillingInvoice[]>("agentech_billing_invoices", {
     query: `email=eq.${encodeURIComponent(email)}&select=*&order=created_at.desc`
   }).catch(() => []);
+
+  return Promise.all(invoices.map(applyVoidedSourceStatus));
 }
 
 export async function getAllBillingInvoices() {
-  return supabaseRequest<BillingInvoice[]>("agentech_billing_invoices", {
+  const invoices = await supabaseRequest<BillingInvoice[]>("agentech_billing_invoices", {
     query: "select=*&order=created_at.desc"
   }).catch(() => []);
+
+  return Promise.all(invoices.map(applyVoidedSourceStatus));
 }
 
 export async function getConfirmableInvoiceItems(email: string) {

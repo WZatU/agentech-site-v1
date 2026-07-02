@@ -42,7 +42,19 @@ function toAmount(value: number | string | null | undefined) {
 }
 
 function formatStatus(status: string) {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const normalized = status.replace(/_/g, " ").toLowerCase();
+
+  if (
+    normalized.includes("void") ||
+    normalized.includes("cancel") ||
+    normalized.includes("removed") ||
+    normalized.includes("deleted") ||
+    normalized.includes("rejected")
+  ) {
+    return "Voided";
+  }
+
+  return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatDate(value: string) {

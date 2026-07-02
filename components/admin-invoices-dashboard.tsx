@@ -37,7 +37,19 @@ function formatDate(value: string | null) {
 }
 
 function formatStatus(value: string) {
-  return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const normalized = value.replace(/_/g, " ").toLowerCase();
+
+  if (
+    normalized.includes("void") ||
+    normalized.includes("cancel") ||
+    normalized.includes("removed") ||
+    normalized.includes("deleted") ||
+    normalized.includes("rejected")
+  ) {
+    return "Voided";
+  }
+
+  return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 export function AdminInvoicesDashboard() {
@@ -130,7 +142,7 @@ export function AdminInvoicesDashboard() {
             <option value="sent">Sent</option>
             <option value="paid">Paid</option>
             <option value="payment_failed">Payment failed</option>
-            <option value="void">Void</option>
+            <option value="void">Voided</option>
           </select>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
