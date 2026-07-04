@@ -19,7 +19,7 @@ The repository is designed to work like a professional product codebase: public 
 - Supabase-backed accounts, profiles, children, enrollments, preorder requests, invoices, and applications.
 - Resend-backed application, invoice, and notification email flows.
 - Hidden product documentation page at `/agentech-products/documents`.
-- Hidden collaborator-only Agentech robot dog library page at `/agentech-products/agentech-library`.
+- Hidden collaborator-only Agentech robot dog command library at `/agentech-products/agentech-library`.
 - Internal launch switches for preorder, enroll, and grade visibility.
 
 ## Documentation Map
@@ -144,7 +144,7 @@ DROPBOX_NEWS_SHARED_LINK=
 | `/account` | Account requests dashboard |
 | `/field-interest/agt-qr-2026` | Hidden QR-only field interest form |
 | `/agentech-products/documents` | Hidden internal product docs |
-| `/agentech-products/agentech-library` | Hidden collaborator Agentech robot dog library and preview workbench |
+| `/agentech-products/agentech-library` | Hidden collaborator Agentech robot dog command library |
 
 ## Architecture Overview
 
@@ -481,11 +481,30 @@ docs/
 
 ## Hidden Agentech Robot Dog Library
 
-The robot dog library workbench lives at:
+The robot dog command library lives at:
 
 ```text
 /agentech-products/agentech-library
 ```
+
+The page is organized into four collaborator workflows:
+
+| Workflow | Route | Purpose |
+| --- | --- | --- |
+| Start Coding | `/agentech-products/agentech-library/start-coding` | Guided SDK install, import, first script, beginner recipes, and starter safety rules |
+| View SDK | `/agentech-products/agentech-library/view-sdk` | Category-based SDK reference for Movement, Posture, Safety, and Sensing commands |
+| Submit | `/agentech-products/agentech-library/submit` | Code/GitHub review package submission, with robot slot scheduling locked until successful submission |
+| Watch Live Run | `/agentech-products/agentech-library/watch-live-run` | Focused LiveKit camera view for supervised robot sessions |
+
+Library behavior:
+
+- The landing page shows only the four workflow cards. Old eight-step URLs redirect into the new workflows.
+- `View SDK` is grouped by command category. Each category starts collapsed behind a `View functions` control.
+- Closed SDK rows stay compact, for example `Agentech.forward(parameters)`.
+- Individual function details open only on demand and include definition, parameters, example code, and the approved GIF preview.
+- Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
+- `Submit` combines code review and scheduling. Users cannot schedule from this workflow until the submit request succeeds.
+- `Watch Live Run` must stay uncluttered: only the task header and webcam/live-view module should appear.
 
 Collaborator rules:
 
