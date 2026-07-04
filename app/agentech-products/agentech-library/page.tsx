@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AgentechLibraryWorkbench } from "@/components/agentech-library-workbench";
+import { AgentechLibraryHome } from "@/components/agentech-library-home";
 
 export const metadata: Metadata = {
   title: "Agentech Robot Dog Library",
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function AgentechLibraryPage() {
-  return <AgentechLibraryWorkbench />;
+  return <AgentechLibraryHome />;
 }

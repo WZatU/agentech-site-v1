@@ -22,7 +22,7 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Stand the Aegis robot dog, wait briefly, then move forward for a bounded time.",
     example: "Agentech.forward(speed=0.3, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. report_zh Aegis v0.1 limit: 0.0 to 2.37 m/s." },
+      { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. Aegis safety range: 0.0 to 2.37 m/s." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to walk. Valid range: 0.0 to 10.0." },
       { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts. Set to 0 only if posture is already managed." }
     ]
@@ -34,7 +34,7 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Stand the robot if needed, wait briefly, then move backward.",
     example: "Agentech.backward(speed=0.2, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. report_zh Aegis v0.1 measured limit: 0.0 to 2.365 m/s." },
+      { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. Aegis safety range: 0.0 to 2.365 m/s." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward. Valid range: 0.0 to 10.0." },
       { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
     ]
@@ -46,7 +46,7 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Walk sideways to the robot's left.",
     example: "Agentech.lateral_left(speed=0.2, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.2", description: "Left lateral speed in meters per second. report_zh Aegis v0.1 lateral benchmark limit: 0.0 to 0.78 m/s." },
+      { name: "speed", type: "float", defaultValue: "0.2", description: "Left lateral speed in meters per second. Aegis safety range: 0.0 to 0.78 m/s." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move laterally. Valid range: 0.0 to 10.0." },
       { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
     ]
@@ -58,7 +58,7 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Walk sideways to the robot's right.",
     example: "Agentech.lateral_right(speed=0.2, seconds=1)",
     params: [
-      { name: "speed", type: "float", defaultValue: "0.2", description: "Right lateral speed in meters per second. report_zh Aegis v0.1 lateral benchmark limit: 0.0 to 0.78 m/s." },
+      { name: "speed", type: "float", defaultValue: "0.2", description: "Right lateral speed in meters per second. Aegis safety range: 0.0 to 0.78 m/s." },
       { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move laterally. Valid range: 0.0 to 10.0." },
       { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
     ]
@@ -93,7 +93,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.turn_left(angle=45)",
     params: [
       { name: "angle", type: "float", defaultValue: "45", description: "Left turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. report_zh max yaw rate: 2.09 rad/s; slow yaw reference: 1.05 rad/s." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Maximum yaw rate: 2.09 rad/s; slow yaw reference: 1.05 rad/s." }
     ]
   },
   {
@@ -104,7 +104,7 @@ export const agentechFunctions: AgentechFunction[] = [
     example: "Agentech.turn_right(angle=45)",
     params: [
       { name: "angle", type: "float", defaultValue: "45", description: "Right turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. report_zh max yaw rate: 2.09 rad/s; slow yaw reference: 1.05 rad/s." }
+      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Maximum yaw rate: 2.09 rad/s; slow yaw reference: 1.05 rad/s." }
     ]
   },
   {
@@ -114,7 +114,7 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Fixed-foot left body twist for small in-place heading adjustment.",
     example: "Agentech.twist_left(angle=28)",
     params: [
-      { name: "angle", type: "float", defaultValue: "28", description: "Left twist angle in degrees. report_zh roll/twist benchmark reference: 28 degrees." },
+      { name: "angle", type: "float", defaultValue: "28", description: "Left twist angle in degrees. Recommended benchmark reference: 28 degrees." },
       { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the twist. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
@@ -125,7 +125,7 @@ export const agentechFunctions: AgentechFunction[] = [
     summary: "Fixed-foot right body twist for small in-place heading adjustment.",
     example: "Agentech.twist_right(angle=28)",
     params: [
-      { name: "angle", type: "float", defaultValue: "28", description: "Right twist angle in degrees. report_zh roll/twist benchmark reference: 28 degrees." },
+      { name: "angle", type: "float", defaultValue: "28", description: "Right twist angle in degrees. Recommended benchmark reference: 28 degrees." },
       { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the twist. Valid range: 0.05 to 2.09 rad/s." }
     ]
   },
