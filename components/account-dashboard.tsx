@@ -364,6 +364,22 @@ function formatProfileType(value: string) {
   return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function getProfileOptionLabel(profileType: AccessProfileType) {
+  return profileOptions.find((option) => option.type === profileType)?.label ?? formatProfileType(profileType);
+}
+
+function getProfileMark(profileType: AccessProfileType) {
+  if (profileType === "developer") {
+    return "</>";
+  }
+
+  if (profileType === "teacher") {
+    return "E";
+  }
+
+  return profileType[0].toUpperCase();
+}
+
 function isPreviewProfileType(value: string | null): value is AccessProfileType {
   return value === "developer" || value === "student" || value === "teacher" || value === "talent";
 }
@@ -1205,8 +1221,8 @@ export function AccountDashboard() {
     })),
     ...(data.accessProfiles ?? []).slice(0, 2).map((profile) => ({
       key: `profile-${profile.id}`,
-      icon: profile.profile_type[0].toUpperCase(),
-      title: `${formatProfileType(profile.profile_type)} profile active`,
+      icon: getProfileMark(profile.profile_type),
+      title: `${getProfileOptionLabel(profile.profile_type)} profile active`,
       meta: `@${profile.username}`,
       date: profile.created_at,
       visual: profileVisuals[profile.profile_type]
@@ -1612,7 +1628,7 @@ export function AccountDashboard() {
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-slate-950">Edit Profile</p>
-                          <p className="mt-1 text-sm text-slate-600">@{profile.username} - {formatProfileType(profile.profile_type)}</p>
+                          <p className="mt-1 text-sm text-slate-600">@{profile.username} - {getProfileOptionLabel(profile.profile_type)}</p>
                         </div>
                         <button
                           type="button"
@@ -1760,11 +1776,11 @@ export function AccountDashboard() {
                   <div key={profile.id} className={`grid gap-4 rounded-2xl border p-4 md:grid-cols-[1fr_auto] md:items-center ${visual.panel}`}>
                     <div className="flex gap-3">
                       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold ${visual.iconBg} ${visual.iconText}`}>
-                        {profile.profile_type[0].toUpperCase()}
+                        {getProfileMark(profile.profile_type)}
                       </span>
                       <div>
-                      <p className="font-semibold text-slate-950">{profile.display_name || `${formatProfileType(profile.profile_type)} Profile`}</p>
-                      <p className="mt-1 text-sm text-slate-600">@{profile.username} - {formatProfileType(profile.profile_type)}</p>
+                      <p className="font-semibold text-slate-950">{profile.display_name || `${getProfileOptionLabel(profile.profile_type)} Profile`}</p>
+                      <p className="mt-1 text-sm text-slate-600">@{profile.username} - {getProfileOptionLabel(profile.profile_type)}</p>
                       <p className="mt-1 text-sm font-medium text-slate-500">{visual.tone}</p>
                       {profile.profile_type === "student" ? (
                         <p className="mt-1 text-sm text-slate-600">
@@ -1837,7 +1853,7 @@ export function AccountDashboard() {
                     aria-pressed={selected}
                   >
                     <span className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${visual.iconBg} ${visual.iconText}`}>
-                      {option.type === "developer" ? "</>" : option.type[0].toUpperCase()}
+                      {getProfileMark(option.type)}
                     </span>
                     <span className="mt-5 text-sm font-black text-slate-950">{option.label}</span>
                     <span className="mt-2 min-h-12 text-xs leading-5 text-slate-500">{option.description}</span>
@@ -1850,10 +1866,10 @@ export function AccountDashboard() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Selected profile</p>
-                  <p className="mt-1 text-sm font-bold text-slate-950">{profileOptions.find((option) => option.type === profileType)?.label}</p>
+                  <p className="mt-1 text-sm font-bold text-slate-950">{getProfileOptionLabel(profileType)}</p>
                 </div>
                 <span className={`grid h-10 w-10 place-items-center rounded-xl text-sm font-black ${profileVisuals[profileType].iconBg} ${profileVisuals[profileType].iconText}`}>
-                  {profileType === "developer" ? "</>" : profileType[0].toUpperCase()}
+                  {getProfileMark(profileType)}
                 </span>
               </div>
               <label className="block">
@@ -1871,7 +1887,7 @@ export function AccountDashboard() {
                 <input
                   value={profileName}
                   onChange={(event) => setProfileName(event.target.value)}
-                  placeholder={`${formatProfileType(profileType)} Profile`}
+                  placeholder={`${getProfileOptionLabel(profileType)} Profile`}
                   className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
                 />
               </label>
@@ -2010,7 +2026,7 @@ export function AccountDashboard() {
                   >
                     {data.accessProfiles?.map((profile) => (
                       <option key={profile.id} value={profile.id}>
-                        @{profile.username} - {formatProfileType(profile.profile_type)}
+                        @{profile.username} - {getProfileOptionLabel(profile.profile_type)}
                       </option>
                     ))}
                   </select>
