@@ -154,13 +154,93 @@ type DashboardData = {
 };
 
 type AccessProfileType = "developer" | "student" | "teacher" | "talent";
+type DashboardTab = "profile" | "courses" | "balance" | "robot" | "invoices" | "billing" | "settings";
 
 const profileOptions: Array<{ type: AccessProfileType; label: string; description: string }> = [
   { type: "developer", label: "Developer", description: "Build, test, and manage developer tools." },
   { type: "student", label: "Student", description: "Access learning programs and student work." },
-  { type: "teacher", label: "Teacher", description: "Manage education activity and classroom needs." },
+  { type: "teacher", label: "Educator", description: "Manage education activity and classroom needs." },
   { type: "talent", label: "Talent", description: "Use talent, application, and portfolio features." }
 ];
+
+const dashboardTabs: Array<{ id: DashboardTab; label: string; mark: string }> = [
+  { id: "profile", label: "Profile", mark: "P" },
+  { id: "courses", label: "Courses", mark: "C" },
+  { id: "balance", label: "Balance", mark: "$" },
+  { id: "robot", label: "Robot Requests", mark: "R" },
+  { id: "invoices", label: "Invoices", mark: "I" },
+  { id: "billing", label: "Billing", mark: "B" },
+  { id: "settings", label: "Settings", mark: "S" }
+];
+
+function getDashboardTabs(profileType: AccessProfileType) {
+  return dashboardTabs.filter((tab) => {
+    if (tab.id === "robot") {
+      return profileType === "developer";
+    }
+
+    if (tab.id === "courses") {
+      return profileType === "student" || profileType === "teacher";
+    }
+
+    return true;
+  });
+}
+
+const profileVisuals: Record<
+  AccessProfileType,
+  {
+    eyebrow: string;
+    tone: string;
+    avatar: string;
+    iconBg: string;
+    iconText: string;
+    panel: string;
+    accent: string;
+    focus: string;
+  }
+> = {
+  developer: {
+    eyebrow: "Build workspace",
+    tone: "Code, robot sessions, and developer tools.",
+    avatar: "from-indigo-100 to-violet-100 text-indigo-700",
+    iconBg: "bg-indigo-50",
+    iconText: "text-indigo-600",
+    panel: "border-indigo-100 bg-indigo-50/55",
+    accent: "text-indigo-600",
+    focus: "Developer"
+  },
+  student: {
+    eyebrow: "Learning profile",
+    tone: "Classes, projects, and supervised robot practice.",
+    avatar: "from-sky-100 to-cyan-100 text-sky-700",
+    iconBg: "bg-sky-50",
+    iconText: "text-sky-600",
+    panel: "border-sky-100 bg-sky-50/55",
+    accent: "text-sky-600",
+    focus: "Student"
+  },
+  teacher: {
+    eyebrow: "Classroom profile",
+    tone: "Groups, student progress, and education operations.",
+    avatar: "from-emerald-100 to-teal-100 text-emerald-700",
+    iconBg: "bg-emerald-50",
+    iconText: "text-emerald-600",
+    panel: "border-emerald-100 bg-emerald-50/55",
+    accent: "text-emerald-600",
+    focus: "Teacher"
+  },
+  talent: {
+    eyebrow: "Talent profile",
+    tone: "Applications, portfolio growth, and program pathways.",
+    avatar: "from-amber-100 to-orange-100 text-amber-700",
+    iconBg: "bg-amber-50",
+    iconText: "text-amber-600",
+    panel: "border-amber-100 bg-amber-50/55",
+    accent: "text-amber-600",
+    focus: "Talent"
+  }
+};
 
 const robotSlotDurationOptions = [5, 10, 15, 30];
 const robotSlotGridMinutes = 5;
@@ -284,6 +364,183 @@ function formatProfileType(value: string) {
   return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function isPreviewProfileType(value: string | null): value is AccessProfileType {
+  return value === "developer" || value === "student" || value === "teacher" || value === "talent";
+}
+
+function buildPreviewDashboardData(profileType: AccessProfileType): DashboardData {
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const threeDaysAgo = new Date(now);
+  threeDaysAgo.setDate(now.getDate() - 3);
+  const displayByType: Record<AccessProfileType, string> = {
+    developer: "Wesley Fan",
+    student: "Navi Student",
+    teacher: "Agentech Teacher",
+    talent: "Future Founder"
+  };
+  const emailByType: Record<AccessProfileType, string> = {
+    developer: "wesleyfan2015@gmail.com",
+    student: "student.preview@agentech.local",
+    teacher: "teacher.preview@agentech.local",
+    talent: "talent.preview@agentech.local"
+  };
+  const [firstName, ...lastParts] = displayByType[profileType].split(" ");
+  const lastName = lastParts.join(" ");
+  const primaryProfile: DashboardAccessProfile = {
+    id: 900,
+    profile_type: profileType,
+    username: `${profileType}.preview`,
+    display_name: displayByType[profileType],
+    first_name: profileType === "student" ? firstName : null,
+    last_name: profileType === "student" ? lastName : null,
+    dob: profileType === "student" ? "2012-05-18" : null,
+    grade: profileType === "student" ? "Grade 8" : null,
+    sex: profileType === "student" ? "prefer-not-to-say" : null,
+    school_info: profileType === "student" ? "Agentech Robotics Studio" : null,
+    preferred_location: profileType === "student" ? "Irvine" : null,
+    credit_limit: 1250,
+    credits_used: 140,
+    monthly_credit_limit: 1250,
+    monthly_credits_used: 140,
+    monthly_usage_period: getCurrentUsagePeriod(),
+    created_at: threeDaysAgo.toISOString()
+  };
+
+  return {
+    account: {
+      email: emailByType[profileType],
+      first_name: firstName,
+      last_name: lastName,
+      phone: "(949) 555-0142",
+      credit_balance: 1250,
+      paid_credit_balance: 1000,
+      bonus_credit_balance: 250
+    },
+    accessProfiles: [
+      primaryProfile,
+      {
+        ...primaryProfile,
+        id: 901,
+        profile_type: profileType === "developer" ? "student" : "developer",
+        username: profileType === "developer" ? "student.lab" : "developer.lab",
+        display_name: profileType === "developer" ? "Student Lab" : "Developer Lab",
+        monthly_credit_limit: 800,
+        monthly_credits_used: 90,
+        created_at: yesterday.toISOString()
+      }
+    ],
+    creditSummary: {
+      balance: 1250,
+      paid: 1000,
+      bonus: 250,
+      assigned: 2050,
+      monthlyLimitTotal: 2050,
+      used: 230,
+      monthlyUsed: 230,
+      unassigned: 1250,
+      rechargeRequired: false
+    },
+    featureAccess: {
+      hasProfiles: true,
+      accountOnly: false,
+      lockedFeatures: []
+    },
+    profile: {
+      first_name: firstName,
+      last_name: lastName,
+      phone: "(949) 555-0142",
+      company: profileType === "teacher" ? "Agentech Education" : "Agentech",
+      account_type: profileType === "teacher" ? "group" : "individual"
+    },
+    children: profileType === "student" || profileType === "teacher"
+      ? [
+          {
+            id: 77,
+            first_name: "Navi",
+            last_name: "Student",
+            dob: "2012-05-18",
+            grade: "Grade 8",
+            sex: "prefer-not-to-say",
+            school_info: "Agentech Robotics Studio",
+            preferred_location: "Irvine"
+          }
+        ]
+      : [],
+    requests: [
+      {
+        invoice_number: "INV-2026-001",
+        product: "Aegis Robot Dog",
+        status: "invoice_sent",
+        created_at: threeDaysAgo.toISOString()
+      }
+    ],
+    robotSessions: [
+      {
+        id: 880,
+        profile_username: primaryProfile.username,
+        profile_type: profileType,
+        session_title: profileType === "developer" ? "Robot request submitted" : `${formatProfileType(profileType)} robot viewing`,
+        robot_model: "Aegis Robot Dog",
+        scheduled_start: yesterday.toISOString(),
+        scheduled_end: now.toISOString(),
+        session_status: "requested",
+        requested_run_type: "preset_demo",
+        approved_run_type: "preset_demo",
+        preset_demo: "starter_demo",
+        benchmark_status: "not_started",
+        created_at: now.toISOString()
+      }
+    ],
+    enrollments: profileType === "student" || profileType === "teacher"
+      ? [
+          {
+            id: 501,
+            site_name: "Irvine",
+            class_id: "robotics-8",
+            price: 330,
+            paid: false,
+            created_at: yesterday.toISOString(),
+            agentech_classes: {
+              class_name: "AI Robotics Studio",
+              class_time: "Saturday 10:00 AM",
+              starting_date: "July 18, 2026",
+              age_range: "Grades 6-8"
+            }
+          }
+        ]
+      : [],
+    applications: {
+      internships: profileType === "talent" ? [{ id: 22, name: displayByType[profileType], email: emailByType[profileType], role_interests: ["AI Robotics"], resume_filename: "portfolio.pdf", created_at: yesterday.toISOString() }] : [],
+      aiRoboticsClub: []
+    },
+    unpaidBalance: {
+      total: 33,
+      lines: [
+        {
+          id: "item-preview-robot",
+          itemName: "Aegis robot viewing",
+          amount: 33,
+          sourceType: "robot",
+          invoiceEmailSentAt: null
+        }
+      ]
+    },
+    invoices: [
+      {
+        invoice_number: "INV-2026-001",
+        customer_name: displayByType[profileType],
+        status: "sent",
+        total_amount: 11,
+        amount_paid: 11,
+        created_at: threeDaysAgo.toISOString(),
+        paid_at: yesterday.toISOString()
+      }
+    ]
+  };
+}
+
 function getCurrentUsagePeriod() {
   return new Date().toISOString().slice(0, 7);
 }
@@ -382,7 +639,7 @@ export function AccountDashboard() {
   const [confirming, setConfirming] = useState(false);
   const [pendingRemovalId, setPendingRemovalId] = useState("");
   const [pendingChildRemovalId, setPendingChildRemovalId] = useState<number | null>(null);
-  const [profileType, setProfileType] = useState<AccessProfileType>("student");
+  const [profileType, setProfileType] = useState<AccessProfileType>("developer");
   const [profileUsername, setProfileUsername] = useState("");
   const [profileName, setProfileName] = useState("");
   const [profileMonthlyLimit, setProfileMonthlyLimit] = useState("0");
@@ -427,12 +684,26 @@ export function AccountDashboard() {
   const [robotSlotOptions, setRobotSlotOptions] = useState<RobotSlotOption[]>([]);
   const [loadingRobotSlots, setLoadingRobotSlots] = useState(false);
   const [requestingRobotSlot, setRequestingRobotSlot] = useState(false);
+  const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
 
   useEffect(() => {
     let cancelled = false;
 
     function loadAccount() {
       const session = getAccountSession();
+      const previewProfileType =
+        process.env.NODE_ENV !== "production"
+          ? new URLSearchParams(window.location.search).get("previewProfile")
+          : null;
+
+      if (!session?.email && isPreviewProfileType(previewProfileType)) {
+        const previewData = buildPreviewDashboardData(previewProfileType);
+        setEmail(previewData.account?.email ?? "");
+        setData(previewData);
+        setLoading(false);
+        return;
+      }
+
       if (!session?.email) {
         setEmail("");
         setData({});
@@ -864,6 +1135,8 @@ export function AccountDashboard() {
   const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
   const hasInvoices = Boolean(data.invoices?.length);
   const hasAccessProfiles = Boolean(data.accessProfiles?.length);
+  const hasChildren = Boolean(data.children?.length);
+  const hasEnrollments = Boolean(data.enrollments?.length);
   const creditBalance = data.creditSummary?.balance ?? data.account?.credit_balance ?? 0;
   const paidCredits = data.creditSummary?.paid ?? data.account?.paid_credit_balance ?? 0;
   const bonusCredits = data.creditSummary?.bonus ?? data.account?.bonus_credit_balance ?? 0;
@@ -877,49 +1150,274 @@ export function AccountDashboard() {
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const robotSlotCreditLocked = !isAdminAccount && creditBalance <= 0;
   const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked;
+  const primaryProfile = data.accessProfiles?.[0] ?? null;
+  const primaryProfileType = primaryProfile?.profile_type ?? "developer";
+  const visibleDashboardTabs = getDashboardTabs(primaryProfileType);
+  const currentTab = visibleDashboardTabs.some((tab) => tab.id === activeTab) ? activeTab : "profile";
+  const primaryVisual = profileVisuals[primaryProfileType];
+  const profileInitial = (displayName.trim()[0] || email.trim()[0] || "A").toUpperCase();
+  const openRobotCount = (data.robotSessions ?? []).filter((session) => {
+    const status = session.session_status.replace(/_/g, " ").toLowerCase();
+    return !["cancelled", "canceled", "voided", "rejected", "deleted"].includes(status);
+  }).length + (data.requests?.length ?? 0);
+  const invoiceTotal = data.invoices?.length ?? 0;
+  const applicationTotal = (data.applications?.internships.length ?? 0) + (data.applications?.aiRoboticsClub.length ?? 0);
+  const totalSpent = (data.invoices ?? []).reduce((total, invoice) => total + Number(invoice.amount_paid ?? 0), 0);
+  const roleMetric = primaryProfileType === "developer"
+    ? { icon: "R", label: "Open Requests", value: openRobotCount.toLocaleString(), helper: hasRobotSessions ? "Robot slots included" : "Ready for booking", visual: profileVisuals.developer }
+    : primaryProfileType === "student"
+      ? { icon: "E", label: "Enrollments", value: (data.enrollments?.length ?? 0).toLocaleString(), helper: hasEnrollments ? "Learning activity" : "No classes yet", visual: profileVisuals.student }
+      : primaryProfileType === "teacher"
+        ? { icon: "S", label: "Students", value: (data.children?.length ?? 0).toLocaleString(), helper: hasChildren ? "Managed learners" : "No students yet", visual: profileVisuals.teacher }
+        : { icon: "A", label: "Applications", value: applicationTotal.toLocaleString(), helper: hasApplications ? "Submitted records" : "No applications yet", visual: profileVisuals.talent };
+  const recentActivity = [
+    ...(primaryProfileType === "developer" ? (data.robotSessions ?? []).slice(0, 2).map((session) => ({
+      key: `session-${session.id}`,
+      icon: "R",
+      title: session.session_title || "Robot session requested",
+      meta: `${session.robot_model || "Robot"} - ${formatInvoiceStatus(session.session_status)}`,
+      date: session.created_at,
+      visual: profileVisuals[session.profile_type ?? primaryProfileType]
+    })) : []),
+    ...((primaryProfileType === "student" || primaryProfileType === "teacher") ? (data.enrollments ?? []).slice(0, 2).map((enrollment) => ({
+      key: `enrollment-${enrollment.id}`,
+      icon: "E",
+      title: enrollment.agentech_classes?.class_name || "Class enrollment",
+      meta: enrollment.paid ? "Paid" : "Payment pending",
+      date: enrollment.created_at,
+      visual: profileVisuals.student
+    })) : []),
+    ...(primaryProfileType === "talent" ? (data.applications?.internships ?? []).slice(0, 2).map((application) => ({
+      key: `application-${application.id}`,
+      icon: "A",
+      title: application.role_interests?.join(", ") || "Application submitted",
+      meta: application.resume_filename ? `Resume: ${application.resume_filename}` : application.name,
+      date: application.created_at,
+      visual: profileVisuals.talent
+    })) : []),
+    ...(data.invoices ?? []).slice(0, 2).map((invoice) => ({
+      key: `invoice-${invoice.invoice_number}`,
+      icon: "I",
+      title: `Invoice ${invoice.invoice_number}`,
+      meta: `${formatInvoiceStatus(invoice.status)} - ${formatUsd(Number(invoice.total_amount ?? 0))}`,
+      date: invoice.created_at,
+      visual: profileVisuals.talent
+    })),
+    ...(data.accessProfiles ?? []).slice(0, 2).map((profile) => ({
+      key: `profile-${profile.id}`,
+      icon: profile.profile_type[0].toUpperCase(),
+      title: `${formatProfileType(profile.profile_type)} profile active`,
+      meta: `@${profile.username}`,
+      date: profile.created_at,
+      visual: profileVisuals[profile.profile_type]
+    }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4);
+  const tabCounts: Partial<Record<DashboardTab, number>> = {
+    courses: primaryProfileType === "student" || primaryProfileType === "teacher" ? data.enrollments?.length ?? 0 : 0,
+    robot: primaryProfileType === "developer" ? openRobotCount : 0,
+    invoices: invoiceTotal,
+    settings: data.accessProfiles?.length ?? 0
+  };
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2f70c8]">Account</p>
-            <h1 className="mt-3 text-3xl font-semibold text-slate-950 md:text-5xl">{displayName}</h1>
-            <p className="mt-3 text-slate-600">{email}</p>
-            {phone ? <p className="mt-1 text-slate-600">{phone}</p> : null}
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Credits Left</p>
-                <p className="mt-2 text-3xl font-semibold text-slate-950">{formatCredits(creditBalance)}</p>
-                <p className="mt-1 text-sm text-slate-600">1 credit = 1 US cent</p>
+    <>
+      {primaryProfileType === "student" ? (
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(180deg,rgba(5,8,25,0.08),rgba(5,8,25,0.18)),url('/assets/backgrounds/account-dashboard-background.png')] bg-cover bg-[right_center]" />
+      ) : null}
+    <div className="relative z-[1] overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <div className="relative z-[1] flex flex-col gap-5 px-5 pb-4 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
+        <div>
+          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">Profile & Account</h1>
+          <p className="mt-2 text-sm font-medium text-slate-500">Manage your profile and account settings.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="relative grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-sm font-bold text-slate-500 shadow-sm"
+          >
+            !
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+          </button>
+          <div className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${primaryVisual.avatar}`}>
+            {profileInitial}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              clearAccountSession();
+              setEmail("");
+              setData({});
+              router.replace("/login?signedOut=1");
+              router.refresh();
+            }}
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      <div className="relative z-[1] overflow-x-auto border-b border-slate-200 px-5 sm:px-7 md:px-8">
+        <div className="flex min-w-max items-center gap-5">
+          {visibleDashboardTabs.map((tab) => {
+            const selected = currentTab === tab.id;
+            const count = tabCounts[tab.id];
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex items-center gap-2 px-1 py-4 text-sm font-bold transition ${
+                  selected ? "text-[#2f70c8]" : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <span className={`grid h-5 w-5 place-items-center rounded-full border text-[11px] ${selected ? "border-[#2f70c8] bg-[#eff6ff]" : "border-slate-300 bg-white"}`}>
+                  {tab.mark}
+                </span>
+                {tab.label}
+                {typeof count === "number" && count > 0 ? (
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">{count}</span>
+                ) : null}
+                {selected ? <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#2f70c8]" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="relative z-[1] space-y-6 p-5 sm:p-7 md:p-8">
+        {currentTab === "profile" ? (
+          <section className="grid gap-5 lg:grid-cols-[0.82fr_1.35fr]">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-slate-950">Profile Information</h2>
+                  <p className={`mt-2 text-xs font-bold uppercase ${primaryVisual.accent}`}>{primaryVisual.eyebrow}</p>
+                </div>
+                <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br text-xl font-bold ${primaryVisual.avatar}`}>
+                  {profileInitial}
+                </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Open Cart Balance</p>
-                <p className="mt-2 text-3xl font-semibold text-slate-950">
-                  {(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">Credits remaining: {formatCredits(creditBalance)}</p>
+              <dl className="mt-6 space-y-6">
+                <div>
+                  <dt className="text-xs font-bold text-slate-500">Full Name</dt>
+                  <dd className="mt-1 text-sm font-bold text-slate-900">{displayName}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-bold text-slate-500">Email</dt>
+                  <dd className="mt-1 break-all text-sm font-bold text-slate-900">{email}</dd>
+                </div>
+                {phone ? (
+                  <div>
+                    <dt className="text-xs font-bold text-slate-500">Phone</dt>
+                    <dd className="mt-1 text-sm font-bold text-slate-900">{phone}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="text-xs font-bold text-slate-500">Role</dt>
+                  <dd className="mt-1 text-sm font-bold text-slate-900">{primaryProfile ? formatProfileType(primaryProfile.profile_type) : "Account Owner"}</dd>
+                </div>
+              </dl>
+              <button
+                type="button"
+                onClick={() => setActiveTab("settings")}
+                className="mt-7 w-full rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
+              >
+                Edit Profile
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+              <h2 className="text-base font-bold text-slate-950">Account Overview</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {[
+                  { icon: "$", label: "credits", value: Math.max(0, Math.floor(creditBalance)).toLocaleString(), helper: `${formatUsd(creditBalance / 100)} USD`, visual: profileVisuals.teacher },
+                  roleMetric,
+                  { icon: "I", label: "Invoices", value: invoiceTotal.toLocaleString(), helper: hasInvoices ? "Official records" : "No invoices yet", visual: profileVisuals.talent },
+                  { icon: "B", label: "Total Spent", value: formatUsd(totalSpent), helper: (data.unpaidBalance?.total ?? 0) > 0 ? `${formatUsd(data.unpaidBalance?.total ?? 0)} in cart` : "No amount due", visual: profileVisuals.student }
+                ].map((card) => (
+                  <div key={card.label} className="flex min-h-24 items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                    <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-lg font-bold ${card.visual.iconBg} ${card.visual.iconText}`}>
+                      {card.icon}
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold leading-none text-slate-950">{card.value}</p>
+                      <p className="mt-1 text-sm font-bold text-slate-600">{card.label}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-500">{card.helper}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-sm font-bold text-slate-950">Recent Activity</h3>
+                <div className="mt-3 divide-y divide-slate-100">
+                  {recentActivity.length ? (
+                    recentActivity.map((activity) => (
+                      <div key={activity.key} className="flex items-center justify-between gap-4 py-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-bold ${activity.visual.iconBg} ${activity.visual.iconText}`}>
+                            {activity.icon}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-slate-900">{activity.title}</p>
+                            <p className="truncate text-xs font-medium text-slate-500">{activity.meta}</p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-xs font-semibold text-slate-500">{formatDate(activity.date)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="py-4 text-sm text-slate-500">No recent account activity yet.</p>
+                  )}
+                </div>
+                <button type="button" onClick={() => setActiveTab(primaryProfileType === "developer" ? "robot" : "settings")} className="mt-2 text-sm font-bold text-[#2563eb]">
+                  {primaryProfileType === "developer" ? "View Activity" : "Manage Profile"}
+                </button>
               </div>
             </div>
-            {data.creditSummary?.rechargeRequired ? (
-              <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-                No credits are available. Recharge this account before profiles can spend credits.
-              </p>
-            ) : null}
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2f70c8]">Recharge Credits</p>
-                  <p className="mt-2 text-sm text-slate-600">Account receives the full credit value. Card processing is added on top.</p>
+          </section>
+        ) : null}
+
+        {currentTab === "balance" ? (
+          <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+              <p className="text-xs font-bold uppercase text-[#2f70c8]">Balance</p>
+              <h2 className="mt-2 text-3xl font-bold text-slate-950">{formatCredits(creditBalance)}</h2>
+              <p className="mt-2 text-sm font-medium text-slate-500">1 credit equals 1 US cent and can be used by profile-based tools.</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-bold text-slate-500">Paid Credits</p>
+                  <p className="mt-2 text-xl font-bold text-slate-950">{formatCredits(paidCredits)}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Card Charge</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-950">{formatUsd(selectedCardChargeCents / 100)}</p>
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                  <p className="text-xs font-bold text-emerald-700">Bonus Credits</p>
+                  <p className="mt-2 text-xl font-bold text-slate-950">{formatCredits(bonusCredits)}</p>
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              {data.creditSummary?.rechargeRequired ? (
+                <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+                  No credits are available. Recharge this account before profiles can spend credits.
+                </p>
+              ) : null}
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase text-[#2f70c8]">Recharge Credits</p>
+                  <h2 className="mt-2 text-xl font-bold text-slate-950">Pay by card</h2>
+                  <p className="mt-2 text-sm text-slate-500">The account receives the full credit value. Card processing is added on top.</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 px-4 py-3 text-right">
+                  <p className="text-xs font-bold text-slate-500">Card Charge</p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">{formatUsd(selectedCardChargeCents / 100)}</p>
+                </div>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Credits To Buy</span>
+                  <span className="text-xs font-bold uppercase text-slate-500">Credits To Buy</span>
                   <select
                     value={rechargeCredits}
                     onChange={(event) => setRechargeCredits(event.target.value)}
@@ -936,53 +1434,91 @@ export function AccountDashboard() {
                   type="button"
                   onClick={startCreditRecharge}
                   disabled={startingRecharge}
-                  className="rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+                  className="rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
                   {startingRecharge ? "Starting..." : "Pay By Card"}
                 </button>
               </div>
-              <div className="mt-3 grid gap-1 text-sm text-slate-600 sm:grid-cols-3">
+              <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
                 <p>Credits added: {formatUsd(selectedRechargeCredits / 100)}</p>
                 <p>Card processing: {formatUsd(selectedProcessingFeeCents / 100)}</p>
-                <p className="font-semibold text-slate-950">Total charge: {formatUsd(selectedCardChargeCents / 100)}</p>
+                <p className="font-bold text-slate-950">Total charge: {formatUsd(selectedCardChargeCents / 100)}</p>
               </div>
-              {rechargeMessage ? <p className="mt-3 text-sm font-semibold text-red-600">{rechargeMessage}</p> : null}
+              {rechargeMessage ? <p className="mt-3 text-sm font-bold text-red-600">{rechargeMessage}</p> : null}
             </div>
-            {isAdminAccount ? (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#2f70c8]/25 bg-[#eff6ff] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#245da7]">Paid Credits</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-950">{formatCredits(paidCredits)}</p>
-                </div>
-                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Bonus Credits</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-950">{formatCredits(bonusCredits)}</p>
+          </section>
+        ) : null}
+
+        {currentTab === "courses" ? (
+          <section className="rounded-[24px] border border-slate-200 bg-white/95 p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-600">Courses</p>
+                <h2 className="mt-2 text-2xl font-bold text-slate-950">Learning Path</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Course enrollments, class schedule, and payment status for this student profile.
+                </p>
+              </div>
+              <Link href="/agentech-education" className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:border-sky-400 hover:text-sky-700">
+                Browse Courses
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="space-y-4">
+                {data.enrollments?.length ? (
+                  data.enrollments.map((enrollment) => (
+                    <div key={enrollment.id} className="rounded-2xl border border-sky-100 bg-sky-50/70 p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <p className="text-lg font-bold text-slate-950">
+                            {enrollment.agentech_classes?.class_name || enrollment.class_id || "Class enrollment"}
+                          </p>
+                          <p className="mt-2 text-sm text-slate-600">
+                            {[enrollment.site_name, enrollment.agentech_classes?.class_time, enrollment.agentech_classes?.starting_date]
+                              .filter(Boolean)
+                              .join(" - ")}
+                          </p>
+                          {enrollment.agentech_classes?.age_range ? (
+                            <p className="mt-1 text-sm text-slate-500">{enrollment.agentech_classes.age_range}</p>
+                          ) : null}
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${enrollment.paid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                          {enrollment.paid ? "Paid" : "Payment pending"}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
+                    <p className="font-bold text-slate-950">No courses yet.</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">When this student enrolls in Agentech Education courses, they will appear here.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Student Summary</p>
+                <div className="mt-4 space-y-4">
+                  <div className="rounded-xl bg-slate-50 p-4">
+                    <p className="text-sm font-bold text-slate-950">Active courses</p>
+                    <p className="mt-1 text-3xl font-bold text-slate-950">{data.enrollments?.length ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-4">
+                    <p className="text-sm font-bold text-slate-950">Saved students</p>
+                    <p className="mt-1 text-3xl font-bold text-slate-950">{data.children?.length ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 p-4">
+                    <p className="text-sm font-bold text-slate-950">Monthly credits used</p>
+                    <p className="mt-1 text-3xl font-bold text-slate-950">{Math.max(0, Math.floor(monthlyUsed)).toLocaleString()}</p>
+                  </div>
                 </div>
               </div>
-            ) : null}
-            {isAdminAccount ? (
-              <Link href="/admin/invoices" className="mt-5 inline-flex rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
-                Admin Invoices
-              </Link>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              clearAccountSession();
-              setEmail("");
-              setData({});
-              router.replace("/login?signedOut=1");
-              router.refresh();
-            }}
-            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
-          >
-            Sign Out
-          </button>
-        </div>
-      </section>
+            </div>
+          </section>
+        ) : null}
 
-      {isAdminAccount ? (
+      {currentTab === "settings" && isAdminAccount ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -1044,6 +1580,7 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
+      {currentTab === "settings" ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -1059,7 +1596,7 @@ export function AccountDashboard() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.15fr]">
           <div className="space-y-3">
             {hasAccessProfiles ? (
               data.accessProfiles?.map((profile) => {
@@ -1068,6 +1605,7 @@ export function AccountDashboard() {
                   ? Number(profile.monthly_credits_used ?? 0)
                   : 0;
                 const monthlyRemaining = Math.max(0, monthlyLimit - monthlyUsedForPeriod);
+                const visual = profileVisuals[profile.profile_type];
                 if (editingProfileId === profile.id) {
                   return (
                     <div key={profile.id} className="rounded-2xl border border-[#2f70c8]/30 bg-[#eff6ff] p-4">
@@ -1219,10 +1757,15 @@ export function AccountDashboard() {
                   );
                 }
                 return (
-                  <div key={profile.id} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
-                    <div>
+                  <div key={profile.id} className={`grid gap-4 rounded-2xl border p-4 md:grid-cols-[1fr_auto] md:items-center ${visual.panel}`}>
+                    <div className="flex gap-3">
+                      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold ${visual.iconBg} ${visual.iconText}`}>
+                        {profile.profile_type[0].toUpperCase()}
+                      </span>
+                      <div>
                       <p className="font-semibold text-slate-950">{profile.display_name || `${formatProfileType(profile.profile_type)} Profile`}</p>
                       <p className="mt-1 text-sm text-slate-600">@{profile.username} - {formatProfileType(profile.profile_type)}</p>
+                      <p className="mt-1 text-sm font-medium text-slate-500">{visual.tone}</p>
                       {profile.profile_type === "student" ? (
                         <p className="mt-1 text-sm text-slate-600">
                           {[profile.grade, profile.sex, profile.school_info].filter(Boolean).join(" - ")}
@@ -1231,6 +1774,7 @@ export function AccountDashboard() {
                       {profile.profile_type === "student" && profile.preferred_location ? (
                         <p className="mt-1 text-sm text-slate-600">Preferred location: {profile.preferred_location}</p>
                       ) : null}
+                      </div>
                     </div>
                     <div className="text-sm md:text-right">
                       <p className="font-semibold text-[#2f70c8]">{formatCredits(monthlyRemaining)} left this month</p>
@@ -1268,24 +1812,50 @@ export function AccountDashboard() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <h3 className="text-lg font-semibold text-slate-950">Create Profile</h3>
-            <div className="mt-4 space-y-4">
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Profile Type</span>
-                <select
-                  value={profileType}
-                  onChange={(event) => setProfileType(event.target.value as AccessProfileType)}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                >
-                  {profileOptions.map((option) => (
-                    <option key={option.type} value={option.type}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="mt-2 block text-sm text-slate-600">{profileOptions.find((option) => option.type === profileType)?.description}</span>
-              </label>
+          <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2f70c8]">Profile setup</p>
+              <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Let&apos;s get you started</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                Select how this profile will use Agentech to unlock the right tools and experience.
+              </p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {profileOptions.map((option) => {
+                const selected = profileType === option.type;
+                const visual = profileVisuals[option.type];
+                return (
+                  <button
+                    key={option.type}
+                    type="button"
+                    onClick={() => setProfileType(option.type)}
+                    className={`group flex min-h-44 flex-col items-start rounded-2xl border bg-white p-4 text-left shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition ${
+                      selected
+                        ? "border-[#2563eb] bg-[#f8fbff] ring-2 ring-[#bfdbfe] ring-offset-2"
+                        : "border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_34px_rgba(15,23,42,0.09)]"
+                    }`}
+                    aria-pressed={selected}
+                  >
+                    <span className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${visual.iconBg} ${visual.iconText}`}>
+                      {option.type === "developer" ? "</>" : option.type[0].toUpperCase()}
+                    </span>
+                    <span className="mt-5 text-sm font-black text-slate-950">{option.label}</span>
+                    <span className="mt-2 min-h-12 text-xs leading-5 text-slate-500">{option.description}</span>
+                    <span className={`mt-auto text-lg font-black ${selected ? visual.accent : "text-slate-300 group-hover:text-[#2f70c8]"}`}>+</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-5 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Selected profile</p>
+                  <p className="mt-1 text-sm font-bold text-slate-950">{profileOptions.find((option) => option.type === profileType)?.label}</p>
+                </div>
+                <span className={`grid h-10 w-10 place-items-center rounded-xl text-sm font-black ${profileVisuals[profileType].iconBg} ${profileVisuals[profileType].iconText}`}>
+                  {profileType === "developer" ? "</>" : profileType[0].toUpperCase()}
+                </span>
+              </div>
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Username</span>
                 <input
@@ -1409,8 +1979,9 @@ export function AccountDashboard() {
           </div>
         </div>
       </section>
+      ) : null}
 
-      {hasAccessProfiles ? (
+      {currentTab === "robot" && hasAccessProfiles ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -1567,7 +2138,17 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
-      {hasRequestItems || actionMessage ? (
+      {currentTab === "robot" && !hasAccessProfiles ? (
+        <section className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
+          <h2 className="text-xl font-bold text-slate-950">Create a profile to request robot time</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Robot viewing is tied to a developer, student, teacher, or talent profile so each session has its own credit limit and activity history.</p>
+          <button type="button" onClick={() => setActiveTab("settings")} className="mt-5 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white">
+            Create Profile
+          </button>
+        </section>
+      ) : null}
+
+      {currentTab === "billing" && (hasRequestItems || actionMessage) ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -1639,6 +2220,18 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
+      {currentTab === "billing" && !hasRequestItems && !actionMessage ? (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+          <h2 className="text-xl font-bold text-slate-950">Billing</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">No pending request-cart items right now. Official invoice records live in the Invoices tab.</p>
+          <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm font-bold text-slate-950">Open cart balance</p>
+            <p className="mt-1 text-2xl font-bold text-slate-950">{(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}</p>
+          </div>
+        </section>
+      ) : null}
+
+      {currentTab === "invoices" ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -1686,8 +2279,9 @@ export function AccountDashboard() {
           )}
         </div>
       </section>
+      ) : null}
 
-      {hasAccessProfiles ? (
+      {currentTab === "profile" && hasAccessProfiles && (hasApplications || primaryProfileType === "talent") ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -1750,7 +2344,7 @@ export function AccountDashboard() {
       </section>
       ) : null}
 
-      {hasRobotRequests ? (
+      {currentTab === "robot" && hasRobotRequests ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-2xl font-semibold text-slate-950">Requests</h2>
@@ -1782,7 +2376,7 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
-      {hasAccessProfiles ? (
+      {currentTab === "profile" && hasAccessProfiles && (hasChildren || primaryProfileType === "student" || primaryProfileType === "teacher") ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-semibold text-slate-950">Children</h2>
@@ -1841,7 +2435,7 @@ export function AccountDashboard() {
       </section>
       ) : null}
 
-      {hasAccessProfiles ? (
+      {currentTab === "profile" && hasAccessProfiles && (hasEnrollments || primaryProfileType === "teacher") && primaryProfileType !== "student" ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <h2 className="text-2xl font-semibold text-slate-950">Enrollments</h2>
         <div className="mt-5 space-y-3">
@@ -1865,6 +2459,8 @@ export function AccountDashboard() {
         </div>
       </section>
       ) : null}
+      </div>
     </div>
+    </>
   );
 }
