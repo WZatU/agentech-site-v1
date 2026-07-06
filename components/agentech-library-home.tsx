@@ -63,32 +63,27 @@ export function AgentechLibraryHome() {
       `}</style>
       <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
         <header className="flex items-start justify-between gap-5">
-          <Link href="/products" aria-label="Go to Agentech Products" className="block">
+          <Link href="/agentech-products/agentech-library" aria-label="Go to Agentech Products" className="block">
             <span className="block text-2xl font-extrabold leading-none tracking-normal text-[#07142e]">AGENTECH</span>
             <span className="mt-1 block text-2xl font-extrabold leading-none tracking-normal text-[#008a7a]">PRODUCTS</span>
           </Link>
           <Link
-            href="/"
+            href="/account"
             className="rounded-[8px] border border-[#9cd9df] bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#008a7a] shadow-sm transition hover:border-[#008a7a]"
           >
-            Hidden Developer Lab
+            Developer Access
           </Link>
         </header>
 
         <section className="mt-10 grid items-center gap-8 lg:grid-cols-[0.86fr_1.14fr]">
           <div>
-            <p className="font-mono text-sm font-semibold uppercase tracking-[0.12em] text-[#008a7a]">Agentech Robot Dog Library</p>
-            <h1 className="mt-5 text-[4rem] font-extrabold leading-[0.98] tracking-normal text-[#07142e] sm:text-[5.6rem] lg:text-[6.35rem]">
-              Build.
+            <h1 className="text-[4rem] font-extrabold leading-[0.98] tracking-normal text-[#07142e] sm:text-[5.6rem] lg:text-[6.35rem]">
+              EAI
               <br />
-              Preview.
-              <br />
-              Submit.
-              <br />
-              Run.
+              Cloud.
             </h1>
             <p className="mt-5 max-w-sm text-lg font-semibold leading-8 text-[#111d35]">
-              Everything you need to build, preview, and run Aegis robot code, organized into a cleaner command flow.
+              Developer-only cloud tools for Aegis robot code, previews, submissions, and supervised live runs.
             </p>
           </div>
           <div className="relative min-h-[330px] overflow-hidden rounded-[8px] bg-white lg:min-h-[390px]">

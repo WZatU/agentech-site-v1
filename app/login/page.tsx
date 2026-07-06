@@ -19,10 +19,10 @@ export default function LoginPage() {
             />
           </Link>
           <h1 className="mt-10 max-w-xl text-4xl font-semibold tracking-tight text-[#0b1220] md:text-6xl">
-            One account for education and robot preorders.
+            Your gateway to Agentech intelligence systems.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-7 text-[#334155]">
-            Create an account with any email. We send a verification code first, then you create a password.
+            Sign in to manage profiles, credits, education programs, invoices, and supervised robot live viewing from one secure workspace.
           </p>
         </div>
 

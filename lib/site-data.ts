@@ -23,8 +23,8 @@ export const navigation: NavItem[] = [
     activeImage: "/assets/logo/AGENTECH-education-solid.png"
   },
   {
-    label: "Agentech Bots",
-    href: "/agentech-bots",
+    label: "Agentech Products",
+    href: "/agentech-products/agentech-library",
     image: "/assets/logo/AGENTECH-products-grey191.png",
     activeImage: "/assets/logo/AGENTECH-products-solid.png"
   },

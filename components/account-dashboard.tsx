@@ -157,10 +157,10 @@ type AccessProfileType = "developer" | "student" | "teacher" | "talent";
 type DashboardTab = "profile" | "courses" | "balance" | "robot" | "invoices" | "billing" | "settings";
 
 const profileOptions: Array<{ type: AccessProfileType; label: string; description: string }> = [
-  { type: "developer", label: "Developer", description: "Build, test, and manage developer tools." },
-  { type: "student", label: "Student", description: "Access learning programs and student work." },
-  { type: "teacher", label: "Educator", description: "Manage education activity and classroom needs." },
-  { type: "talent", label: "Talent", description: "Use talent, application, and portfolio features." }
+  { type: "developer", label: "Developer", description: "Test robots, submit code, and manage supervised runs." },
+  { type: "student", label: "Student", description: "Play with Navi, join courses, and track learning progress." },
+  { type: "teacher", label: "Educator", description: "Manage learners, course activity, and classroom access." },
+  { type: "talent", label: "Talent", description: "Build applications, portfolios, and program pathways." }
 ];
 
 const dashboardTabs: Array<{ id: DashboardTab; label: string; mark: string }> = [
@@ -239,6 +239,31 @@ const profileVisuals: Record<
     panel: "border-amber-100 bg-amber-50/55",
     accent: "text-amber-600",
     focus: "Talent"
+  }
+};
+
+const profileUnlockDetails: Record<
+  AccessProfileType,
+  {
+    headline: string;
+    unlocks: string[];
+  }
+> = {
+  developer: {
+    headline: "Robot testing workspace",
+    unlocks: ["Book Aegis robot viewing slots", "Submit profile-based robot sessions", "Track code demos and run history", "Use developer monthly credit caps"]
+  },
+  student: {
+    headline: "Navi learning workspace",
+    unlocks: ["Play with Navi learning experiences", "View courses and enrollments", "Track student learning activity", "Use student-safe feature access"]
+  },
+  teacher: {
+    headline: "Classroom control workspace",
+    unlocks: ["Manage student and group profiles", "Review course participation", "Coordinate classroom access", "Use educator-level credit controls"]
+  },
+  talent: {
+    headline: "Portfolio and application workspace",
+    unlocks: ["Track internship applications", "Manage AI Robotics Club records", "Connect resumes and portfolio work", "Follow program pathway status"]
   }
 };
 
@@ -1162,7 +1187,6 @@ export function AccountDashboard() {
   const selectedCardChargeCents = calculateCardChargeCents(selectedRechargeCredits);
   const selectedProcessingFeeCents = Math.max(0, selectedCardChargeCents - selectedRechargeCredits);
   const isAdminAccount = looksLikeAdminEmail(email);
-  const lockedFeatures = data.featureAccess?.lockedFeatures ?? [];
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const robotSlotCreditLocked = !isAdminAccount && creditBalance <= 0;
   const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked;
@@ -1809,21 +1833,38 @@ export function AccountDashboard() {
                 );
               })
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
                 <p className="font-semibold text-slate-950">No profiles created yet.</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  This account can stay profile-free for robot purchases, invoices, and credit balance management.
+                  This account can stay profile-free for purchases, invoices, and credit balance management. Add profiles when people need their own tools, limits, and activity history.
                 </p>
-                {lockedFeatures.length ? (
-                  <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-semibold text-amber-900">Create a profile to unlock:</p>
-                    <ul className="mt-2 space-y-1 text-sm text-amber-900">
-                      {lockedFeatures.map((feature) => (
-                        <li key={feature}>{feature}</li>
-                      ))}
-                    </ul>
+                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+                  <p className="text-sm font-bold text-amber-950">Create a profile to unlock the right workspace:</p>
+                  <div className="mt-4 grid gap-3">
+                    {profileOptions.map((option) => {
+                      const visual = profileVisuals[option.type];
+                      const details = profileUnlockDetails[option.type];
+                      return (
+                        <div key={option.type} className="rounded-xl border border-amber-100 bg-white/85 p-3">
+                          <div className="flex items-start gap-3">
+                            <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-black ${visual.iconBg} ${visual.iconText}`}>
+                              {getProfileMark(option.type)}
+                            </span>
+                            <div>
+                              <p className="text-sm font-black text-slate-950">{option.label}</p>
+                              <p className="mt-1 text-xs font-semibold text-slate-600">{details.headline}</p>
+                              <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-600">
+                                {details.unlocks.slice(0, 3).map((unlock) => (
+                                  <li key={unlock}>{unlock}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : null}
+                </div>
               </div>
             )}
           </div>
@@ -1836,16 +1877,17 @@ export function AccountDashboard() {
                 Select how this profile will use Agentech to unlock the right tools and experience.
               </p>
             </div>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {profileOptions.map((option) => {
                 const selected = profileType === option.type;
                 const visual = profileVisuals[option.type];
+                const details = profileUnlockDetails[option.type];
                 return (
                   <button
                     key={option.type}
                     type="button"
                     onClick={() => setProfileType(option.type)}
-                    className={`group flex min-h-44 flex-col items-start rounded-2xl border bg-white p-4 text-left shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition ${
+                    className={`group flex min-h-56 flex-col items-start rounded-2xl border bg-white p-4 text-left shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition ${
                       selected
                         ? "border-[#2563eb] bg-[#f8fbff] ring-2 ring-[#bfdbfe] ring-offset-2"
                         : "border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_34px_rgba(15,23,42,0.09)]"
@@ -1856,7 +1898,15 @@ export function AccountDashboard() {
                       {getProfileMark(option.type)}
                     </span>
                     <span className="mt-5 text-sm font-black text-slate-950">{option.label}</span>
-                    <span className="mt-2 min-h-12 text-xs leading-5 text-slate-500">{option.description}</span>
+                    <span className={`mt-1 text-xs font-bold ${visual.accent}`}>{details.headline}</span>
+                    <span className="mt-2 text-xs leading-5 text-slate-500">{option.description}</span>
+                    <span className="mt-3 block space-y-1 text-xs leading-5 text-slate-600">
+                      {details.unlocks.slice(0, 3).map((unlock) => (
+                        <span key={unlock} className="block">
+                          {unlock}
+                        </span>
+                      ))}
+                    </span>
                     <span className={`mt-auto text-lg font-black ${selected ? visual.accent : "text-slate-300 group-hover:text-[#2f70c8]"}`}>+</span>
                   </button>
                 );
