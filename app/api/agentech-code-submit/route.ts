@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import {
   createCodeSubmissionRecord,
   getAccountRecord,
+  getCodeSubmissionRecord,
   markDeveloperReviewGateOnAccount,
   spendAccountCredits,
   updateCodeSubmissionRecord
@@ -19,9 +20,10 @@ type SubmissionPayload = {
   robotModel?: string;
   runMode?: string;
   code?: string;
-  githubRepoUrl?: string;
-  githubBranch?: string;
+  uploadedFileName?: string;
   commands?: string[];
+  reviewStage?: string;
+  submissionId?: string;
 };
 
 function cleanText(value: unknown, fallback = "") {
@@ -39,28 +41,8 @@ function extractCommands(code: string) {
   return commands;
 }
 
-function isAllowedGithubRepo(value: string) {
-  if (!value) {
-    return true;
-  }
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === "github.com" && url.pathname.split("/").filter(Boolean).length >= 2;
-  } catch {
-    return false;
-  }
-}
-
-function cleanBranch(value: string) {
-  const branch = value || "main";
-  if (!/^[A-Za-z0-9._/-]{1,120}$/.test(branch)) {
-    return null;
-  }
-  return branch;
-}
-
 function isAllowedRunMode(value: string) {
-  return value === "AI software security review" || value === "Benchmark review only" || value === "Dry-run review";
+  return value === "Software check" || value === "AI software security review" || value === "Benchmark review only" || value === "Dry-run review";
 }
 
 async function getSignedInEmail() {
@@ -85,10 +67,11 @@ export async function POST(request: NextRequest) {
     const email = await getSignedInEmail();
     const developerName = cleanText(payload.developerName);
     const robotModel = cleanText(payload.robotModel, "Aegis Ultra");
-    const runMode = cleanText(payload.runMode, "Benchmark review only");
+    const runMode = cleanText(payload.runMode, "Software check");
     const code = cleanText(payload.code);
-    const githubRepoUrl = cleanText(payload.githubRepoUrl);
-    const githubBranch = cleanBranch(cleanText(payload.githubBranch, "main"));
+    const uploadedFileName = cleanText(payload.uploadedFileName);
+    const reviewStage = cleanText(payload.reviewStage, "physical");
+    const submissionId = cleanText(payload.submissionId);
     const commands = extractCommands(code);
 
     if (!isValidEmail(email)) {
@@ -99,26 +82,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Developer name or team is required." }, { status: 400 });
     }
 
-    if (!isAllowedGithubRepo(githubRepoUrl)) {
-      return NextResponse.json({ error: "Use a valid https://github.com/owner/repo URL." }, { status: 400 });
-    }
-
-    if (!githubBranch) {
-      return NextResponse.json(
-        { error: "Branch name can only include letters, numbers, '.', '_', '/', and '-'." },
-        { status: 400 }
-      );
-    }
-
     if (!isAllowedRunMode(runMode)) {
-      return NextResponse.json(
-        { error: "Custom code can only be submitted for benchmark review until the benchmark gate is available and passed." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Choose a valid review mode." }, { status: 400 });
     }
 
-    if ((!code || !commands.length) && !githubRepoUrl) {
-      return NextResponse.json({ error: "Paste Agentech code or provide a GitHub repository link." }, { status: 400 });
+    if (!code || !commands.length) {
+      return NextResponse.json({ error: "Upload or paste an Agentech Python code file before running review." }, { status: 400 });
     }
 
     const validationErrors = validateAgentechCode(code);
@@ -131,54 +100,120 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Account not found." }, { status: 404 });
     }
 
-    const submittedAt = new Date().toISOString();
-    const id = `agentech-${submittedAt.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`;
+    if (reviewStage === "physical") {
+      const submittedAt = new Date().toISOString();
+      const id = `agentech-${submittedAt.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`;
+      const source = uploadedFileName ? "uploaded_file" : "pasted_code";
+      const record = {
+        id,
+        email,
+        submittedAt,
+        developerName,
+        robotModel,
+        runMode,
+        source,
+        uploadedFileName: uploadedFileName || null,
+        githubRepoUrl: null,
+        githubBranch: null,
+        commands,
+        code,
+        physicalSafetyStatus: "passed",
+        aiSecurityStatus: "locked",
+        creditsCharged: 0
+      };
+
+      await createCodeSubmissionRecord({
+        id,
+        email,
+        developerName,
+        robotModel,
+        runMode,
+        source,
+        uploadedFileName: uploadedFileName || null,
+        githubRepoUrl: null,
+        githubBranch: null,
+        commands,
+        code
+      });
+      await markDeveloperReviewGateOnAccount({
+        email,
+        submissionId: id,
+        physicalSafetyStatus: "passed",
+        aiSecurityStatus: "locked"
+      });
+      await writeLocalSubmission(id, record);
+
+      return NextResponse.json({
+        id,
+        submittedAt,
+        commandCount: commands.length,
+        source,
+        uploadedFileName: uploadedFileName || null,
+        physicalSafetyStatus: "passed",
+        aiSecurityStatus: "locked",
+        status: "physical_safety_passed"
+      });
+    }
+
+    if (reviewStage !== "software") {
+      return NextResponse.json({ error: "Choose physical or software review stage." }, { status: 400 });
+    }
+
+    if (!submissionId) {
+      return NextResponse.json({ error: "Run the physical safety check before starting the software check." }, { status: 400 });
+    }
+
+    const submission = await getCodeSubmissionRecord(submissionId, email);
+    if (!submission) {
+      return NextResponse.json({ error: "Physical safety submission not found for this account." }, { status: 404 });
+    }
+
+    if (
+      account.developer_latest_code_submission_id !== submissionId ||
+      account.developer_physical_safety_status !== "passed"
+    ) {
+      return NextResponse.json(
+        { error: "Supabase has not marked this account as physical-safety passed for this submission yet." },
+        { status: 403 }
+      );
+    }
+
+    if (submission.physical_safety_status !== "passed") {
+      return NextResponse.json({ error: "Software check unlocks only after the physical safety check passes." }, { status: 403 });
+    }
+
+    if (submission.code !== code) {
+      return NextResponse.json({ error: "Code changed after physical safety passed. Run the physical safety check again." }, { status: 409 });
+    }
+
     const record = {
-      id,
+      id: submission.id,
       email,
-      submittedAt,
-      developerName,
-      robotModel,
-      runMode,
-      source: githubRepoUrl ? "github" : "pasted_code",
-      githubRepoUrl: githubRepoUrl || null,
-      githubBranch: githubRepoUrl ? githubBranch : null,
+      submittedAt: submission.created_at,
+      developerName: submission.developer_name,
+      robotModel: submission.robot_model,
+      runMode: submission.run_mode,
+      source: submission.source,
+      uploadedFileName: submission.uploaded_file_name,
+      githubRepoUrl: null,
+      githubBranch: null,
       commands,
       code,
       physicalSafetyStatus: "passed",
-      aiSecurityStatus: "locked",
+      aiSecurityStatus: "pending",
       creditsCharged: 0
     };
-
-    await createCodeSubmissionRecord({
-      id,
-      email,
-      developerName,
-      robotModel,
-      runMode,
-      source: record.source as "pasted_code" | "github",
-      githubRepoUrl: record.githubRepoUrl,
-      githubBranch: record.githubBranch,
-      commands,
-      code
-    });
-    await markDeveloperReviewGateOnAccount({
-      email,
-      submissionId: id,
-      physicalSafetyStatus: "passed",
-      aiSecurityStatus: "locked"
-    });
 
     const creditCost = getAiReviewCreditCost();
     const spend = await spendAccountCredits(email, creditCost);
     if (!spend || spend.rechargeRequired) {
-      await writeLocalSubmission(id, record);
+      await writeLocalSubmission(submission.id, record);
       return NextResponse.json(
         {
           error: `Physical safety passed, but the AI security scan needs ${creditCost} account credit${creditCost === 1 ? "" : "s"}.`,
-          id,
+          id: submission.id,
           physicalSafetyStatus: "passed",
           aiSecurityStatus: "locked",
           creditsRequired: creditCost,
@@ -188,13 +223,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await updateCodeSubmissionRecord(id, {
+    await updateCodeSubmissionRecord(submission.id, {
       ai_security_status: "pending",
       credits_charged: creditCost
     });
     await markDeveloperReviewGateOnAccount({
       email,
-      submissionId: id,
+      submissionId: submission.id,
       aiSecurityStatus: "pending"
     });
 
@@ -204,14 +239,14 @@ export async function POST(request: NextRequest) {
         developerName,
         robotModel,
         runMode,
-        githubRepoUrl: record.githubRepoUrl,
-        githubBranch: record.githubBranch,
+        githubRepoUrl: null,
+        githubBranch: null,
         commands,
         code
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "OpenAI code scan failed.";
-      await updateCodeSubmissionRecord(id, {
+      await updateCodeSubmissionRecord(submission.id, {
         ai_security_status: "error",
         ai_security_summary: message,
         ai_security_findings: [message],
@@ -220,10 +255,10 @@ export async function POST(request: NextRequest) {
       });
       await markDeveloperReviewGateOnAccount({
         email,
-        submissionId: id,
+        submissionId: submission.id,
         aiSecurityStatus: "error"
       });
-      await writeLocalSubmission(id, {
+      await writeLocalSubmission(submission.id, {
         ...record,
         aiSecurityStatus: "error",
         aiSecuritySummary: message,
@@ -233,7 +268,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: `Physical safety passed, but the AI security scan could not complete: ${message}`,
-          id,
+          id: submission.id,
           physicalSafetyStatus: "passed",
           aiSecurityStatus: "error",
           creditsCharged: creditCost
@@ -243,7 +278,7 @@ export async function POST(request: NextRequest) {
     }
 
     const aiSecurityStatus = aiResult.review.passed ? "passed" : "failed";
-    await updateCodeSubmissionRecord(id, {
+    await updateCodeSubmissionRecord(submission.id, {
       ai_security_status: aiSecurityStatus,
       ai_security_model: aiResult.model,
       ai_security_summary: aiResult.review.summary,
@@ -254,11 +289,11 @@ export async function POST(request: NextRequest) {
     });
     await markDeveloperReviewGateOnAccount({
       email,
-      submissionId: id,
+      submissionId: submission.id,
       aiSecurityStatus
     });
 
-    await writeLocalSubmission(id, {
+    await writeLocalSubmission(submission.id, {
       ...record,
       aiSecurityStatus,
       aiSecurityModel: aiResult.model,
@@ -272,7 +307,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: `AI security scan failed: ${aiResult.review.summary}`,
-          id,
+          id: submission.id,
           physicalSafetyStatus: "passed",
           aiSecurityStatus,
           riskLevel: aiResult.review.riskLevel,
@@ -284,11 +319,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      id,
-      submittedAt,
+      id: submission.id,
+      submittedAt: submission.created_at,
       commandCount: commands.length,
       source: record.source,
-      githubBranch: record.githubBranch,
+      uploadedFileName: record.uploadedFileName,
       physicalSafetyStatus: "passed",
       aiSecurityStatus,
       riskLevel: aiResult.review.riskLevel,

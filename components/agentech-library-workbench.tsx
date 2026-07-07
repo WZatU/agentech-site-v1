@@ -291,7 +291,7 @@ function DocsOverview() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Library Documentation</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">Start here: install, import, call one function.</h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[#b8c2cc]">
-              This page is the documentation. Students can learn the public Agentech API, see every beginner function, preview approved motion GIFs, and submit pasted code or a GitHub branch for robot review without leaving this screen.
+              This page is the documentation. Students can learn the public Agentech API, see every beginner function, preview approved motion GIFs, and upload code for robot review without leaving this screen.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a href="#agentech-docs" className="border border-[#8fdc8f] bg-[#17351f] px-4 py-2 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]">
@@ -391,9 +391,8 @@ Agentech.stand(stand_wait=5)
 Agentech.forward()
 Agentech.lateral_left(speed=0.2, seconds=1)
 
-# Option 2: submit a GitHub repo and branch
-repo = "https://github.com/team/robot-project"
-branch = "main"`;
+# Option 2: upload a Python file on this page
+file = "submission_code.py"`; 
   const robotRunnerExample = `# student_forward.py
 from agentech import Agentech
 
@@ -413,7 +412,7 @@ Live camera -> Website viewer -> Student watches the run`;
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Agentech Docs</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">One page to install, write, preview, and submit robot dog code.</h2>
           <p className="mt-4 text-sm leading-7 text-[#b8c2cc]">
-            These docs are written for students and developers who need to move the Aegis robot quickly using the public Agentech API. The common path is simple: install the package, import Agentech, write one-line commands, preview approved action clips, then submit code or a GitHub branch for a reviewed robot session.
+            These docs are written for students and developers who need to move the Aegis robot quickly using the public Agentech API. The common path is simple: install the package, import Agentech, write one-line commands, preview approved action clips, then upload code for a reviewed robot session.
           </p>
         </div>
 
@@ -504,7 +503,7 @@ Live camera -> Website viewer -> Student watches the run`;
             </div>
             <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{submitExample}</pre>
             <div className="border-t border-[#2a3440] p-4 text-sm leading-6 text-[#aeb8c2]">
-              Students can paste code directly into the editor or submit a GitHub repository URL plus branch. The request is stored for review before any supervised live robot run.
+              Students can paste code directly into the editor or upload a Python file. The request is stored for review before any supervised live robot run.
             </div>
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117] lg:col-span-2">
@@ -568,7 +567,7 @@ Live camera -> Website viewer -> Student watches the run`;
 const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
   "view-sdk": "Browse the SDK by category, open function details only when needed, and preview the matching motion GIF.",
-  submit: "Physical safety runs first. The AI software scan unlocks after that gate passes, and live testing unlocks only when both pass.",
+  submit: "Physical safety runs first. Software Check unlocks after that gate passes, and live testing unlocks only when both pass.",
   "watch-live-run": "Use the live camera module to watch the supervised session when a room is configured."
 };
 
@@ -913,13 +912,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [code, setCode] = useState(starterCode);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [activeName, setActiveName] = useState("stand");
-  const [requestStatus, setRequestStatus] = useState("Ready for the two-gate review. Physical safety runs first, then the AI software scan uses account credits.");
+  const [requestStatus, setRequestStatus] = useState("Ready for the two-gate review. Physical safety runs first, then Software Check uses account credits.");
   const [developerName, setDeveloperName] = useState("");
   const [robotModel, setRobotModel] = useState("Aegis Ultra");
-  const [runMode, setRunMode] = useState("AI software security review");
-  const [githubRepoUrl, setGithubRepoUrl] = useState("");
-  const [githubBranch, setGithubBranch] = useState("main");
-  const [isSubmittingCode, setIsSubmittingCode] = useState(false);
+  const [runMode, setRunMode] = useState("Software check");
+  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [physicalSubmissionId, setPhysicalSubmissionId] = useState("");
+  const [physicalSafetyPassed, setPhysicalSafetyPassed] = useState(false);
+  const [isRunningPhysicalCheck, setIsRunningPhysicalCheck] = useState(false);
+  const [isRunningSoftwareCheck, setIsRunningSoftwareCheck] = useState(false);
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
   const initialPreview = previewAssetForCode(starterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
@@ -979,7 +980,21 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   function updateCode(nextCode: string, preferredCommand?: string) {
     const normalizedCode = ensureRequiredStand(nextCode);
     setCode(normalizedCode);
+    setPhysicalSubmissionId("");
+    setPhysicalSafetyPassed(false);
+    setCanScheduleRobotSlot(false);
     resetPreview(normalizedCode, preferredCommand);
+  }
+
+  async function loadUploadedCodeFile(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    const text = await file.text();
+    setUploadedFileName(file.name);
+    updateCode(text);
+    setRequestStatus(`${file.name} loaded. Run the physical safety check first.`);
   }
 
   function loadExample(item: AgentechFunction) {
@@ -1050,26 +1065,71 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     }
   }
 
-  async function submitCodeForReview() {
+  async function runPhysicalSafetyCheck() {
     const reviewCode = ensureRequiredStand(code);
     if (reviewCode !== code) {
       setCode(reviewCode);
     }
     const reviewPlan = commandPlan(reviewCode);
-    setIsSubmittingCode(true);
+    setIsRunningPhysicalCheck(true);
+    setPhysicalSubmissionId("");
+    setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
-    setRequestStatus("Running physical safety gate before AI software scan...");
+    setRequestStatus("Running physical safety check...");
     try {
       const response = await fetch("/api/agentech-code-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          reviewStage: "physical",
           developerName,
           robotModel,
           runMode,
           code: reviewCode,
-          githubRepoUrl,
-          githubBranch,
+          uploadedFileName,
+          commands: reviewPlan.trace
+        })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Physical safety check failed.");
+      }
+      setPhysicalSubmissionId(payload.id);
+      setPhysicalSafetyPassed(true);
+      setRequestStatus(`Physical safety passed for ${payload.commandCount} commands. Software Check is now unlocked. Review ID: ${payload.id}.`);
+    } catch (error) {
+      setPhysicalSubmissionId("");
+      setPhysicalSafetyPassed(false);
+      setCanScheduleRobotSlot(false);
+      setRequestStatus(error instanceof Error ? error.message : "Physical safety check failed.");
+    } finally {
+      setIsRunningPhysicalCheck(false);
+    }
+  }
+
+  async function runSoftwareCheck() {
+    if (!physicalSubmissionId || !physicalSafetyPassed) {
+      setRequestStatus("Run and pass the physical safety check before starting Software Check.");
+      return;
+    }
+
+    const reviewCode = ensureRequiredStand(code);
+    const reviewPlan = commandPlan(reviewCode);
+    setIsRunningSoftwareCheck(true);
+    setCanScheduleRobotSlot(false);
+    setRequestStatus("Running Software Check with OpenAI...");
+    try {
+      const response = await fetch("/api/agentech-code-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reviewStage: "software",
+          submissionId: physicalSubmissionId,
+          developerName,
+          robotModel,
+          runMode,
+          code: reviewCode,
+          uploadedFileName,
           commands: reviewPlan.trace
         })
       });
@@ -1078,16 +1138,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         const findings = Array.isArray(payload.findings) && payload.findings.length
           ? ` Findings: ${payload.findings.slice(0, 3).join(" ")}`
           : "";
-        throw new Error(`${payload.error ?? "Code submission failed."}${findings}`);
+        throw new Error(`${payload.error ?? "Software Check failed."}${findings}`);
       }
-      const source = payload.source === "github" ? `GitHub branch ${payload.githubBranch}` : `${payload.commandCount} commands`;
-      setRequestStatus(`Physical safety passed. AI security scan passed for ${source}. ${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used. Review ID: ${payload.id}.`);
+      setRequestStatus(`Software Check passed. ${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used. Live robot testing is now unlocked.`);
       setCanScheduleRobotSlot(payload.aiSecurityStatus === "passed");
     } catch (error) {
       setCanScheduleRobotSlot(false);
-      setRequestStatus(error instanceof Error ? error.message : "Code submission failed.");
+      setRequestStatus(error instanceof Error ? error.message : "Software Check failed.");
     } finally {
-      setIsSubmittingCode(false);
+      setIsRunningSoftwareCheck(false);
     }
   }
 
@@ -1232,44 +1291,48 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     onChange={(event) => setRunMode(event.target.value)}
                     className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
                   >
-                    <option>AI software security review</option>
+                    <option>Software check</option>
                     <option>Dry-run review</option>
                   </select>
                 </label>
                 <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">GitHub repo URL</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
                   <input
-                    value={githubRepoUrl}
-                    onChange={(event) => setGithubRepoUrl(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
-                    placeholder="https://github.com/team/project"
+                    type="file"
+                    accept=".py,.txt"
+                    onChange={(event) => {
+                      void loadUploadedCodeFile(event.target.files?.[0] ?? null);
+                    }}
+                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-[#cdd6df] outline-none file:mr-3 file:border-0 file:bg-[#101d2e] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#dbeafe] focus:border-[#8fdc8f]"
                   />
-                </label>
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Branch</span>
-                  <input
-                    value={githubBranch}
-                    onChange={(event) => setGithubBranch(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 font-mono text-sm text-white outline-none focus:border-[#8fdc8f]"
-                    placeholder="main"
-                  />
+                  <span className="mt-2 block text-xs leading-5 text-[#7f8c99]">
+                    {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
+                  </span>
                 </label>
                 <div className="border border-[#2a3440] bg-[#090d12] p-3">
                   <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 1 - physical safety</p>
                   <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
-                  <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Checks robot limits before Supabase unlocks the AI scan.</p>
+                  <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Checks robot limits before Supabase unlocks Software Check.</p>
                 </div>
                 <div className="border border-[#2a3440] bg-[#090d12] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 2 - AI software scan</p>
-                  <p className="mt-2 text-xs leading-5 text-[#cdd6df]">Runs after Gate 1 passes and charges account credits for the OpenAI review.</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 2 - Software Check</p>
+                  <p className="mt-2 text-xs leading-5 text-[#cdd6df]">Locked until Gate 1 passes. Uses GPT-5.5 and charges account credits.</p>
                 </div>
                 <button
                   type="button"
-                  onClick={submitCodeForReview}
-                  disabled={isSubmittingCode}
+                  onClick={runPhysicalSafetyCheck}
+                  disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isSubmittingCode ? "Scanning..." : "Run Safety + AI Review"}
+                  {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
+                </button>
+                <button
+                  type="button"
+                  onClick={runSoftwareCheck}
+                  disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
+                >
+                  {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
                 </button>
                 <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#8fdc8f] bg-[#102015]" : "border-[#2a3440] bg-[#090d12]"}`}>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Schedule gate</p>
@@ -1506,7 +1569,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             )}
             <details className="border border-[#2a3440] bg-[#0d1117]">
               <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#93c5fd]">
-                Submit code or GitHub branch
+                Upload code for review
               </summary>
               <div className="space-y-3 border-t border-[#2a3440] p-3">
                 <label className="block">
@@ -1519,30 +1582,34 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">GitHub repo URL</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
                   <input
-                    value={githubRepoUrl}
-                    onChange={(event) => setGithubRepoUrl(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 text-sm text-white outline-none focus:border-[#8fdc8f]"
-                    placeholder="https://github.com/team/project"
+                    type="file"
+                    accept=".py,.txt"
+                    onChange={(event) => {
+                      void loadUploadedCodeFile(event.target.files?.[0] ?? null);
+                    }}
+                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 text-sm text-[#cdd6df] outline-none file:mr-3 file:border-0 file:bg-[#101d2e] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#dbeafe] focus:border-[#8fdc8f]"
                   />
-                </label>
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Branch</span>
-                  <input
-                    value={githubBranch}
-                    onChange={(event) => setGithubBranch(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 font-mono text-sm text-white outline-none focus:border-[#8fdc8f]"
-                    placeholder="main"
-                  />
+                  <span className="mt-2 block text-xs leading-5 text-[#7f8c99]">
+                    {uploadedFileName ? `${uploadedFileName} loaded.` : "Upload a .py file or paste code directly."}
+                  </span>
                 </label>
                 <button
                   type="button"
-                  onClick={submitCodeForReview}
-                  disabled={isSubmittingCode}
+                  onClick={runPhysicalSafetyCheck}
+                  disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isSubmittingCode ? "Scanning..." : "Run Safety + AI Review"}
+                  {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
+                </button>
+                <button
+                  type="button"
+                  onClick={runSoftwareCheck}
+                  disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
+                >
+                  {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
                 </button>
                 <p className="border border-[#2a3440] bg-[#0b0d10] p-3 text-xs leading-5 text-[#aeb8c2]">{requestStatus}</p>
               </div>
@@ -1608,40 +1675,44 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 onChange={(event) => setRunMode(event.target.value)}
                 className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
               >
-                <option>AI software security review</option>
+                <option>Software check</option>
                 <option>Dry-run review</option>
               </select>
             </label>
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Two-gate review</p>
               <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
-              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Physical safety must pass before the AI software scan uses account credits.</p>
+              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Physical safety must pass before Software Check uses account credits.</p>
             </div>
             <label className="block">
-              <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">GitHub repo URL</span>
+              <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
               <input
-                value={githubRepoUrl}
-                onChange={(event) => setGithubRepoUrl(event.target.value)}
-                className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
-                placeholder="https://github.com/team/project"
+                type="file"
+                accept=".py,.txt"
+                onChange={(event) => {
+                  void loadUploadedCodeFile(event.target.files?.[0] ?? null);
+                }}
+                className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-[#cdd6df] outline-none file:mr-3 file:border-0 file:bg-[#101d2e] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#dbeafe] focus:border-[#8fdc8f]"
               />
-            </label>
-            <label className="block">
-              <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Branch</span>
-              <input
-                value={githubBranch}
-                onChange={(event) => setGithubBranch(event.target.value)}
-                className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 font-mono text-sm text-white outline-none focus:border-[#8fdc8f]"
-                placeholder="main"
-              />
+              <span className="mt-2 block text-xs leading-5 text-[#7f8c99]">
+                {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
+              </span>
             </label>
             <button
               type="button"
-              onClick={submitCodeForReview}
-              disabled={isSubmittingCode}
+              onClick={runPhysicalSafetyCheck}
+              disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
               className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmittingCode ? "Scanning..." : "Run Safety + AI Review"}
+              {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
+            </button>
+            <button
+              type="button"
+              onClick={runSoftwareCheck}
+              disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+              className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
+            >
+              {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
             </button>
             {canScheduleRobotSlot ? (
               <Link

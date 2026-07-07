@@ -172,7 +172,8 @@ export type CodeSubmissionRecord = {
   developer_name: string;
   robot_model: string;
   run_mode: string;
-  source: "pasted_code" | "github";
+  source: "pasted_code" | "uploaded_file" | "github";
+  uploaded_file_name: string | null;
   github_repo_url: string | null;
   github_branch: string | null;
   commands: string[];
@@ -220,7 +221,8 @@ export async function createCodeSubmissionRecord(input: {
   developerName: string;
   robotModel: string;
   runMode: string;
-  source: "pasted_code" | "github";
+  source: "pasted_code" | "uploaded_file" | "github";
+  uploadedFileName?: string | null;
   githubRepoUrl: string | null;
   githubBranch: string | null;
   commands: string[];
@@ -235,6 +237,7 @@ export async function createCodeSubmissionRecord(input: {
       robot_model: input.robotModel,
       run_mode: input.runMode,
       source: input.source,
+      uploaded_file_name: input.uploadedFileName || null,
       github_repo_url: input.githubRepoUrl,
       github_branch: input.githubBranch,
       commands: input.commands,
@@ -243,6 +246,14 @@ export async function createCodeSubmissionRecord(input: {
       ai_security_status: "locked",
       updated_at: new Date().toISOString()
     }
+  });
+
+  return rows[0] ?? null;
+}
+
+export async function getCodeSubmissionRecord(id: string, email: string) {
+  const rows = await supabaseRequest<CodeSubmissionRecord[]>("agentech_code_submissions", {
+    query: `id=eq.${encodeURIComponent(id)}&email=eq.${encodeURIComponent(email)}&select=*&limit=1`
   });
 
   return rows[0] ?? null;
