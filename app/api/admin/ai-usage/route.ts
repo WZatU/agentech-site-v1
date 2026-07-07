@@ -27,12 +27,18 @@ export async function GET(request: NextRequest) {
   const limit = toLimit(url.searchParams.get("limit"));
   const userFilter = isValidEmail(targetUser) ? `user_id=eq.${encodeURIComponent(targetUser)}&` : "";
 
-  const [caps, usage] = await Promise.all([
+  const [caps, usage, developerProfiles, developerAccounts] = await Promise.all([
     supabaseRequest("agentech_ai_cap", {
       query: `${userFilter}select=*&order=updated_at.desc`
     }).catch(() => []),
     supabaseRequest("agentech_ai_usage", {
       query: `${userFilter}select=*&order=created_at.desc&limit=${limit}`
+    }).catch(() => []),
+    supabaseRequest("agentech_account_profiles", {
+      query: "profile_type=eq.developer&select=id,account_email,username,display_name,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at&order=created_at.desc"
+    }).catch(() => []),
+    supabaseRequest("agentech_accounts", {
+      query: "select=email,developer_latest_code_submission_id,developer_physical_safety_status,developer_ai_security_status,developer_ai_security_passed_at"
     }).catch(() => [])
   ]);
 
@@ -41,6 +47,8 @@ export async function GET(request: NextRequest) {
     adminEmail,
     targetUser: isValidEmail(targetUser) ? targetUser : null,
     caps,
-    usage
+    usage,
+    developerProfiles,
+    developerAccounts
   });
 }
