@@ -287,7 +287,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     <div className="overflow-hidden rounded-[18px] border border-slate-200 bg-[#f8fbff] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
       <div className="relative overflow-hidden border-b border-slate-200 bg-white px-5 pb-6 pt-5 sm:px-7 md:px-8 md:pt-7">
         <div className="absolute inset-x-0 top-0 h-2 bg-red-600" />
-        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        <div className="relative space-y-5">
           <div className="min-w-0">
             <p className="inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.25)]">
               Owner Admin Privilege Active
@@ -302,17 +302,22 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{email}</span>
             </div>
           </div>
-          <div className="rounded-2xl border-2 border-slate-950 bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.10)]">
+          <div className="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.08)] md:flex md:items-center md:justify-between md:gap-5">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-950">Admin Actions</p>
-              <p className="mt-1 text-sm font-black leading-5 text-slate-800">Refresh live usage or leave the owner console.</p>
+              <p className="mt-1 text-sm font-black leading-5 text-slate-800">
+                Refresh live usage or leave the owner console.
+              </p>
+              <p className="mt-1 text-xs font-bold text-slate-600">
+                Last refresh: {lastRefreshedAt || "not loaded yet"}
+              </p>
             </div>
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 md:w-[420px]">
               <button
                 type="button"
                 onClick={() => void loadUsage({ announce: true })}
                 disabled={loading}
-                className="h-12 w-full rounded-xl border-2 border-slate-950 bg-yellow-300 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-11 w-full rounded-xl border-2 border-slate-300 bg-white px-5 text-sm font-black text-slate-950 transition hover:border-slate-950 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Refreshing..." : "Refresh Usage"}
               </button>
@@ -322,14 +327,11 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   clearAccountSession();
                   window.location.href = "/login?next=/admin/ai-gateway";
                 }}
-                className="h-12 w-full rounded-xl border-2 border-red-700 bg-white px-5 text-sm font-black text-red-700 transition hover:bg-red-50"
+                className="h-11 w-full rounded-xl border-2 border-red-700 bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-700"
               >
                 Sign Out
               </button>
             </div>
-            <p className="mt-3 text-xs font-bold text-slate-700">
-              Last refresh: {lastRefreshedAt || "not loaded yet"}
-            </p>
           </div>
         </div>
       </div>
