@@ -568,7 +568,7 @@ Live camera -> Website viewer -> Student watches the run`;
 const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
   "view-sdk": "Browse the SDK by category, open function details only when needed, and preview the matching motion GIF.",
-  submit: "Submit code for review first. Scheduling unlocks only after the code package is accepted.",
+  submit: "Physical safety runs first. The AI software scan unlocks after that gate passes, and live testing unlocks only when both pass.",
   "watch-live-run": "Use the live camera module to watch the supervised session when a room is configured."
 };
 
@@ -913,10 +913,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [code, setCode] = useState(starterCode);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [activeName, setActiveName] = useState("stand");
-  const [requestStatus, setRequestStatus] = useState("Ready for benchmark review. Live robot code requires benchmark approval first.");
+  const [requestStatus, setRequestStatus] = useState("Ready for the two-gate review. Physical safety runs first, then the AI software scan uses account credits.");
   const [developerName, setDeveloperName] = useState("");
   const [robotModel, setRobotModel] = useState("Aegis Ultra");
-  const [runMode, setRunMode] = useState("Benchmark review only");
+  const [runMode, setRunMode] = useState("AI software security review");
   const [githubRepoUrl, setGithubRepoUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
@@ -1058,7 +1058,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     const reviewPlan = commandPlan(reviewCode);
     setIsSubmittingCode(true);
     setCanScheduleRobotSlot(false);
-    setRequestStatus("Submitting code package for robot review...");
+    setRequestStatus("Running physical safety gate before AI software scan...");
     try {
       const response = await fetch("/api/agentech-code-submit", {
         method: "POST",
@@ -1075,11 +1075,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error ?? "Code submission failed.");
+        const findings = Array.isArray(payload.findings) && payload.findings.length
+          ? ` Findings: ${payload.findings.slice(0, 3).join(" ")}`
+          : "";
+        throw new Error(`${payload.error ?? "Code submission failed."}${findings}`);
       }
       const source = payload.source === "github" ? `GitHub branch ${payload.githubBranch}` : `${payload.commandCount} commands`;
-      setRequestStatus(`Submitted ${source}. Review ID: ${payload.id}.`);
-      setCanScheduleRobotSlot(true);
+      setRequestStatus(`Physical safety passed. AI security scan passed for ${source}. ${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used. Review ID: ${payload.id}.`);
+      setCanScheduleRobotSlot(payload.aiSecurityStatus === "passed");
     } catch (error) {
       setCanScheduleRobotSlot(false);
       setRequestStatus(error instanceof Error ? error.message : "Code submission failed.");
@@ -1106,7 +1109,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/products" aria-label="Go to Agentech Products" className="block border border-transparent transition hover:border-[#8fdc8f]/40">
+              <Link href="/" aria-label="Go to Agentech homepage" className="block border border-transparent transition hover:border-[#8fdc8f]/40">
                 <Image
                   src="/assets/logo/AGENTECH-products.png"
                   alt="Agentech Products"
@@ -1229,7 +1232,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     onChange={(event) => setRunMode(event.target.value)}
                     className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
                   >
-                    <option>Benchmark review only</option>
+                    <option>AI software security review</option>
                     <option>Dry-run review</option>
                   </select>
                 </label>
@@ -1252,8 +1255,13 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   />
                 </label>
                 <div className="border border-[#2a3440] bg-[#090d12] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Detected package</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 1 - physical safety</p>
                   <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
+                  <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Checks robot limits before Supabase unlocks the AI scan.</p>
+                </div>
+                <div className="border border-[#2a3440] bg-[#090d12] p-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 2 - AI software scan</p>
+                  <p className="mt-2 text-xs leading-5 text-[#cdd6df]">Runs after Gate 1 passes and charges account credits for the OpenAI review.</p>
                 </div>
                 <button
                   type="button"
@@ -1261,12 +1269,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isSubmittingCode}
                   className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isSubmittingCode ? "Submitting..." : "Submit For Benchmark Review"}
+                  {isSubmittingCode ? "Scanning..." : "Run Safety + AI Review"}
                 </button>
                 <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#8fdc8f] bg-[#102015]" : "border-[#2a3440] bg-[#090d12]"}`}>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Schedule gate</p>
                   <p className="mt-2 text-sm leading-6 text-[#cdd6df]">
-                    {canScheduleRobotSlot ? "Review submission received. You can schedule the supervised robot slot now." : "Submit your code package first. Scheduling unlocks after a successful review submission."}
+                    {canScheduleRobotSlot ? "Both checks passed. You can schedule the supervised live robot test now." : "Scheduling unlocks only after physical safety and AI software security both pass."}
                   </p>
                   {canScheduleRobotSlot ? (
                     <Link
@@ -1480,12 +1488,22 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Robot Session</p>
           </div>
           <div className="space-y-3 p-3 lg:hidden">
-            <Link
-              href="/account"
-              className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
-            >
-              Request Robot Slot
-            </Link>
+            {canScheduleRobotSlot ? (
+              <Link
+                href="/account"
+                className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
+              >
+                Schedule Live Robot Test
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed border border-[#2a3440] bg-[#151a20] px-4 py-3 text-sm font-semibold text-[#687583]"
+              >
+                Live Test Locked
+              </button>
+            )}
             <details className="border border-[#2a3440] bg-[#0d1117]">
               <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#93c5fd]">
                 Submit code or GitHub branch
@@ -1524,7 +1542,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isSubmittingCode}
                   className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isSubmittingCode ? "Submitting..." : "Submit For Review"}
+                  {isSubmittingCode ? "Scanning..." : "Run Safety + AI Review"}
                 </button>
                 <p className="border border-[#2a3440] bg-[#0b0d10] p-3 text-xs leading-5 text-[#aeb8c2]">{requestStatus}</p>
               </div>
@@ -1590,14 +1608,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 onChange={(event) => setRunMode(event.target.value)}
                 className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
               >
-                <option>Benchmark review only</option>
+                <option>AI software security review</option>
                 <option>Dry-run review</option>
               </select>
             </label>
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Code package</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Two-gate review</p>
               <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
-              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Submit the editor code, or attach a GitHub repository branch below.</p>
+              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Physical safety must pass before the AI software scan uses account credits.</p>
             </div>
             <label className="block">
               <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">GitHub repo URL</span>
@@ -1623,14 +1641,24 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               disabled={isSubmittingCode}
               className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmittingCode ? "Submitting..." : "Submit For Benchmark Review"}
+              {isSubmittingCode ? "Scanning..." : "Run Safety + AI Review"}
             </button>
-            <Link
-              href="/account"
-              className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
-            >
-              Request Robot Slot
-            </Link>
+            {canScheduleRobotSlot ? (
+              <Link
+                href="/account"
+                className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
+              >
+                Schedule Live Robot Test
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed border border-[#2a3440] bg-[#151a20] px-4 py-3 text-sm font-semibold text-[#687583]"
+              >
+                Live Test Locked
+              </button>
+            )}
             <p className="border border-[#2a3440] bg-[#0d1117] p-3 text-sm leading-6 text-[#aeb8c2]">{requestStatus}</p>
 
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">

@@ -42,6 +42,11 @@ type DashboardData = {
     credit_balance: number;
     paid_credit_balance: number;
     bonus_credit_balance: number;
+    developer_latest_code_submission_id?: string | null;
+    developer_physical_safety_status?: string | null;
+    developer_physical_safety_passed_at?: string | null;
+    developer_ai_security_status?: string | null;
+    developer_ai_security_passed_at?: string | null;
   } | null;
   accessProfiles?: DashboardAccessProfile[];
   creditSummary?: {
@@ -720,6 +725,7 @@ export function AccountDashboard() {
   const [robotSlotDurationMinutes, setRobotSlotDurationMinutes] = useState("5");
   const [robotSlotModel, setRobotSlotModel] = useState("Aegis Ultra");
   const [robotSlotPreset, setRobotSlotPreset] = useState("starter_demo");
+  const [robotSlotRunType, setRobotSlotRunType] = useState<"preset_demo" | "custom_code">("preset_demo");
   const [robotSlotNotes, setRobotSlotNotes] = useState("");
   const [robotSlotMessage, setRobotSlotMessage] = useState("");
   const [robotSlotOptions, setRobotSlotOptions] = useState<RobotSlotOption[]>([]);
@@ -1121,8 +1127,8 @@ export function AccountDashboard() {
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         durationMinutes: robotSlotDurationMinutes,
         robotModel: robotSlotModel,
-        presetDemo: robotSlotPreset,
-        requestedRunType: "preset_demo",
+        presetDemo: robotSlotRunType === "custom_code" ? "approved_custom_code" : robotSlotPreset,
+        requestedRunType: robotSlotRunType,
         notes: robotSlotNotes
       })
     });
@@ -1138,8 +1144,8 @@ export function AccountDashboard() {
     setRobotSlotStart(getDefaultRobotSlotValue());
     setRobotSlotMessage(
       result?.emailSent
-        ? "Robot slot requested. Confirmation email sent. This booking is for a supervised preset viewing session."
-        : "Robot slot requested. Confirmation email is not configured yet. This booking is for a supervised preset viewing session."
+        ? "Robot slot requested. Confirmation email sent."
+        : "Robot slot requested. Confirmation email is not configured yet."
     );
     await refreshAccount();
     setRequestingRobotSlot(false);
@@ -1188,8 +1194,10 @@ export function AccountDashboard() {
   const selectedProcessingFeeCents = Math.max(0, selectedCardChargeCents - selectedRechargeCredits);
   const isAdminAccount = looksLikeAdminEmail(email);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
+  const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
+  const customCodeLocked = robotSlotRunType === "custom_code" && !developerCodeReviewPassed;
   const robotSlotCreditLocked = !isAdminAccount && creditBalance <= 0;
-  const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked;
+  const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
   const primaryProfile = data.accessProfiles?.[0] ?? null;
   const primaryProfileType = primaryProfile?.profile_type ?? "developer";
   const visibleDashboardTabs = getDashboardTabs(primaryProfileType);
@@ -2054,12 +2062,14 @@ export function AccountDashboard() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Slots require sign-in, a profile, account credits, and a start time on a 5-minute boundary. Internal @agent-tech.ai accounts can test without credit restrictions.
+                Slots require sign-in, a profile, account credits, and a start time on a 5-minute boundary. Custom live code unlocks after physical safety and AI security review.
               </p>
             </div>
-            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
-              <p>Preset demo only</p>
-              <p className="mt-1 text-xs text-slate-500">Custom code review will be added after the booking workflow is stable.</p>
+            <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
+              <p>{developerCodeReviewPassed ? "Live code approved" : "Live code locked"}</p>
+              <p className="mt-1 text-xs opacity-80">
+                {developerCodeReviewPassed ? "Latest code package passed both gates." : "Run the developer submit scan first."}
+              </p>
             </div>
           </div>
 
@@ -2080,6 +2090,20 @@ export function AccountDashboard() {
                       </option>
                     ))}
                   </select>
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Run Type</span>
+                  <select
+                    value={robotSlotRunType}
+                    onChange={(event) => setRobotSlotRunType(event.target.value === "custom_code" ? "custom_code" : "preset_demo")}
+                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                  >
+                    <option value="preset_demo">Preset viewing demo</option>
+                    <option value="custom_code">Approved custom code live test</option>
+                  </select>
+                  <span className="mt-2 block text-sm text-slate-600">
+                    {developerCodeReviewPassed ? "Custom code can be scheduled from the latest approved submission." : "Custom code requires a passed physical safety gate and AI security scan."}
+                  </span>
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Start Time</span>
@@ -2127,6 +2151,7 @@ export function AccountDashboard() {
                     ))}
                   </select>
                 </label>
+                {robotSlotRunType === "preset_demo" ? (
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Preset Demo</span>
                   <select
@@ -2144,6 +2169,11 @@ export function AccountDashboard() {
                     {robotPresetOptions.find((preset) => preset.value === robotSlotPreset)?.description}
                   </span>
                 </label>
+                ) : (
+                  <p className={`rounded-xl border px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+                    {developerCodeReviewPassed ? "This slot will use the latest Supabase-approved custom code package." : "Custom live-code testing is locked until the AI security scan passes."}
+                  </p>
+                )}
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Notes</span>
                   <textarea
@@ -2157,6 +2187,11 @@ export function AccountDashboard() {
                 {robotSlotCreditLocked ? (
                   <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
                     Robot viewing requires credits. Internal @agent-tech.ai accounts can test without credits.
+                  </p>
+                ) : null}
+                {customCodeLocked ? (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                    Approved custom code requires a passed physical safety gate and AI security scan in Supabase.
                   </p>
                 ) : null}
                 {robotSlotMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{robotSlotMessage}</p> : null}

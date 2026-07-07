@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createRobotSession, findRobotSessionConflict, getAccessProfiles, getAccountRecord, getRobotSessionsInWindow } from "@/lib/account-records";
+import { createRobotSession, findRobotSessionConflict, getAccessProfiles, getAccountRecord, getRobotSessionsInWindow, hasPassedDeveloperCodeReview } from "@/lib/account-records";
 import { accountSessionCookieName } from "@/lib/account-session";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
@@ -30,7 +30,8 @@ const presetDemos = new Map([
   ["five_forward", "Five forward steps"],
   ["left_right", "Left/right movement"],
   ["look_up_down", "Look up/down"],
-  ["backflip", "Backflip"]
+  ["backflip", "Backflip"],
+  ["approved_custom_code", "Approved custom code live test"]
 ]);
 
 function clean(value: unknown) {
@@ -168,7 +169,9 @@ async function sendRobotSlotConfirmation(input: {
     `Time: ${scheduledWindow}`,
     `Demo: ${input.presetDemo}`,
     "",
-    "For now, robot slots run as supervised preset viewing sessions. Custom code review will be added after the booking workflow is stable.",
+    input.presetDemo === "Approved custom code live test"
+      ? "This slot is for a supervised live test of code that passed Agentech physical safety and AI software security review."
+      : "This slot is for a supervised preset viewing session.",
     "",
     "Agentech"
   ].join("\n");
@@ -183,7 +186,7 @@ async function sendRobotSlotConfirmation(input: {
         <tr><td style="padding: 8px 0; color: #6b7280;">Time</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(scheduledWindow)}</td></tr>
         <tr><td style="padding: 8px 0; color: #6b7280;">Demo</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(input.presetDemo)}</td></tr>
       </table>
-      <p>For now, robot slots run as supervised preset viewing sessions. Custom code review will be added after the booking workflow is stable.</p>
+      <p>${input.presetDemo === "Approved custom code live test" ? "This slot is for a supervised live test of code that passed Agentech physical safety and AI software security review." : "This slot is for a supervised preset viewing session."}</p>
       <p style="margin-top: 24px;">Agentech</p>
     </div>
   `;
@@ -262,9 +265,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Robot slots must start on a 5-minute boundary." }, { status: 400 });
   }
 
-  if (requestedRunType !== "preset_demo") {
+  if (requestedRunType !== "preset_demo" && requestedRunType !== "custom_code") {
     return NextResponse.json(
-      { error: "Custom robot code booking is not enabled yet. Request a preset viewing session for now." },
+      { error: "Choose preset viewing or an approved custom-code live test." },
       { status: 400 }
     );
   }
@@ -284,7 +287,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That profile does not belong to this account." }, { status: 403 });
   }
 
-  const presetDemo = presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
+  if (requestedRunType === "custom_code" && !(await hasPassedDeveloperCodeReview(email))) {
+    return NextResponse.json(
+      { error: "Custom live-code testing unlocks only after the physical safety gate and AI security scan both pass." },
+      { status: 403 }
+    );
+  }
+
+  const presetDemo = requestedRunType === "custom_code"
+    ? presetDemos.get("approved_custom_code") ?? "Approved custom code live test"
+    : presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
   const scheduledEnd = addMinutes(scheduledStart, durationMinutes);
   const conflictingSession = await findRobotSessionConflict(scheduledStart.toISOString(), scheduledEnd.toISOString());
   if (conflictingSession) {
@@ -300,10 +312,10 @@ export async function POST(request: Request) {
     robotModel,
     scheduledStart: scheduledStart.toISOString(),
     scheduledEnd: scheduledEnd.toISOString(),
-    requestedRunType: "preset_demo",
-    approvedRunType: "preset_demo",
+    requestedRunType: requestedRunType as "preset_demo" | "custom_code",
+    approvedRunType: requestedRunType === "custom_code" ? "custom_code" : "preset_demo",
     presetDemo,
-    benchmarkStatus: "not_started",
+    benchmarkStatus: requestedRunType === "custom_code" ? "passed" : "not_started",
     notes: clean(payload?.notes) || null
   });
 

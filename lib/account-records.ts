@@ -10,6 +10,11 @@ export type AccountRecord = {
   credit_balance: number;
   paid_credit_balance: number;
   bonus_credit_balance: number;
+  developer_latest_code_submission_id: string | null;
+  developer_physical_safety_status: string | null;
+  developer_physical_safety_passed_at: string | null;
+  developer_ai_security_status: string | null;
+  developer_ai_security_passed_at: string | null;
   created_at: string;
   verified_at: string;
 };
@@ -161,12 +166,139 @@ export type AccountCreditPaymentRecord = {
   updated_at: string;
 };
 
+export type CodeSubmissionRecord = {
+  id: string;
+  email: string;
+  developer_name: string;
+  robot_model: string;
+  run_mode: string;
+  source: "pasted_code" | "github";
+  github_repo_url: string | null;
+  github_branch: string | null;
+  commands: string[];
+  code: string;
+  physical_safety_status: "pending" | "passed" | "failed";
+  ai_security_status: "locked" | "pending" | "passed" | "failed" | "error";
+  ai_security_model: string | null;
+  ai_security_summary: string | null;
+  ai_security_findings: string[];
+  ai_security_risk_level: string | null;
+  ai_security_reviewed_at: string | null;
+  credits_charged: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function getAccountRecord(email: string) {
-  const rows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
-    query: `email=eq.${encodeURIComponent(email)}&select=email,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at&limit=1`
+  const baseSelect = "email,first_name,last_name,phone,credit_balance,paid_credit_balance,bonus_credit_balance,created_at,verified_at";
+  const reviewSelect = "developer_latest_code_submission_id,developer_physical_safety_status,developer_physical_safety_passed_at,developer_ai_security_status,developer_ai_security_passed_at";
+
+  let rows: AccountRecord[];
+  try {
+    rows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
+      query: `email=eq.${encodeURIComponent(email)}&select=${baseSelect},${reviewSelect}&limit=1`
+    });
+  } catch {
+    rows = await supabaseRequest<Array<Omit<AccountRecord, "developer_latest_code_submission_id" | "developer_physical_safety_status" | "developer_physical_safety_passed_at" | "developer_ai_security_status" | "developer_ai_security_passed_at">>>("agentech_accounts", {
+      query: `email=eq.${encodeURIComponent(email)}&select=${baseSelect}&limit=1`
+    }).then((fallbackRows) => fallbackRows.map((row) => ({
+      ...row,
+      developer_latest_code_submission_id: null,
+      developer_physical_safety_status: null,
+      developer_physical_safety_passed_at: null,
+      developer_ai_security_status: null,
+      developer_ai_security_passed_at: null
+    })));
+  }
+
+  return rows[0] ?? null;
+}
+
+export async function createCodeSubmissionRecord(input: {
+  id: string;
+  email: string;
+  developerName: string;
+  robotModel: string;
+  runMode: string;
+  source: "pasted_code" | "github";
+  githubRepoUrl: string | null;
+  githubBranch: string | null;
+  commands: string[];
+  code: string;
+}) {
+  const rows = await supabaseRequest<CodeSubmissionRecord[]>("agentech_code_submissions", {
+    method: "POST",
+    body: {
+      id: input.id,
+      email: input.email,
+      developer_name: input.developerName,
+      robot_model: input.robotModel,
+      run_mode: input.runMode,
+      source: input.source,
+      github_repo_url: input.githubRepoUrl,
+      github_branch: input.githubBranch,
+      commands: input.commands,
+      code: input.code,
+      physical_safety_status: "passed",
+      ai_security_status: "locked",
+      updated_at: new Date().toISOString()
+    }
   });
 
   return rows[0] ?? null;
+}
+
+export async function updateCodeSubmissionRecord(
+  id: string,
+  body: Partial<Pick<
+    CodeSubmissionRecord,
+    "physical_safety_status" | "ai_security_status" | "ai_security_model" | "ai_security_summary" | "ai_security_findings" | "ai_security_risk_level" | "ai_security_reviewed_at" | "credits_charged"
+  >>
+) {
+  const rows = await supabaseRequest<CodeSubmissionRecord[]>("agentech_code_submissions", {
+    method: "PATCH",
+    query: `id=eq.${encodeURIComponent(id)}`,
+    body: {
+      ...body,
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return rows[0] ?? null;
+}
+
+export async function markDeveloperReviewGateOnAccount(input: {
+  email: string;
+  submissionId: string;
+  physicalSafetyStatus?: "passed" | "failed";
+  aiSecurityStatus?: "locked" | "pending" | "passed" | "failed" | "error";
+}) {
+  const now = new Date().toISOString();
+  const body: Record<string, string | null> = {
+    developer_latest_code_submission_id: input.submissionId
+  };
+
+  if (input.physicalSafetyStatus) {
+    body.developer_physical_safety_status = input.physicalSafetyStatus;
+    body.developer_physical_safety_passed_at = input.physicalSafetyStatus === "passed" ? now : null;
+  }
+
+  if (input.aiSecurityStatus) {
+    body.developer_ai_security_status = input.aiSecurityStatus;
+    body.developer_ai_security_passed_at = input.aiSecurityStatus === "passed" ? now : null;
+  }
+
+  await supabaseRequest<null>("agentech_accounts", {
+    method: "PATCH",
+    query: `email=eq.${encodeURIComponent(input.email)}`,
+    prefer: "return=minimal",
+    body
+  });
+}
+
+export async function hasPassedDeveloperCodeReview(email: string) {
+  const account = await getAccountRecord(email);
+  return account?.developer_physical_safety_status === "passed" && account.developer_ai_security_status === "passed";
 }
 
 export async function getAccessProfiles(email: string) {

@@ -63,7 +63,7 @@ export function AgentechLibraryHome() {
       `}</style>
       <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
         <header className="flex items-start justify-between gap-5">
-          <Link href="/agentech-products/agentech-library" aria-label="Go to Agentech Products" className="block">
+          <Link href="/" aria-label="Go to Agentech homepage" className="block">
             <span className="block text-2xl font-extrabold leading-none tracking-normal text-[#07142e]">AGENTECH</span>
             <span className="mt-1 block text-2xl font-extrabold leading-none tracking-normal text-[#008a7a]">PRODUCTS</span>
           </Link>
