@@ -1171,7 +1171,7 @@ export function AccountDashboard() {
   const phone = data.account?.phone || data.profile?.phone || "";
   const hasRequestItems = Boolean(data.unpaidBalance?.lines.length);
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
-  const hasRobotRequests = Boolean(data.requests?.length);
+  const hasPurchaseRequests = Boolean(data.requests?.length);
   const hasRobotSessions = Boolean(data.robotSessions?.length);
   const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
   const hasInvoices = Boolean(data.invoices?.length);
@@ -1199,12 +1199,12 @@ export function AccountDashboard() {
   const openRobotCount = (data.robotSessions ?? []).filter((session) => {
     const status = session.session_status.replace(/_/g, " ").toLowerCase();
     return !["cancelled", "canceled", "voided", "rejected", "deleted"].includes(status);
-  }).length + (data.requests?.length ?? 0);
+  }).length;
   const invoiceTotal = data.invoices?.length ?? 0;
   const applicationTotal = (data.applications?.internships.length ?? 0) + (data.applications?.aiRoboticsClub.length ?? 0);
   const totalSpent = (data.invoices ?? []).reduce((total, invoice) => total + Number(invoice.amount_paid ?? 0), 0);
   const roleMetric = primaryProfileType === "developer"
-    ? { icon: "R", label: "Open Requests", value: openRobotCount.toLocaleString(), helper: hasRobotSessions ? "Robot slots included" : "Ready for booking", visual: profileVisuals.developer }
+    ? { icon: "R", label: "Live Viewing", value: openRobotCount.toLocaleString(), helper: hasRobotSessions ? "Viewing slots requested" : "Ready for booking", visual: profileVisuals.developer }
     : primaryProfileType === "student"
       ? { icon: "E", label: "Enrollments", value: (data.enrollments?.length ?? 0).toLocaleString(), helper: hasEnrollments ? "Learning activity" : "No classes yet", visual: profileVisuals.student }
       : primaryProfileType === "teacher"
@@ -2339,11 +2339,43 @@ export function AccountDashboard() {
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
               <p className="font-semibold text-slate-950">No official billing invoices yet.</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                New invoices generated from the request cart will appear here. Existing robot request numbers are listed in Requests below and can be opened as invoice records.
+                New invoices generated from the request cart will appear here. Robot purchase requests are listed below when available.
               </p>
             </div>
           )}
         </div>
+        {hasPurchaseRequests ? (
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-semibold text-slate-950">Robot Purchase Requests</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Product purchase requests and their invoice records live here, separate from live-viewing robot sessions.
+                </p>
+              </div>
+              <Link href="/agentech-robotic" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
+                Purchase Robots
+              </Link>
+            </div>
+            <div className="mt-5 space-y-3">
+              {data.requests?.map((request) => (
+                <div key={request.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div>
+                    <p className="font-semibold text-slate-950">{request.product}</p>
+                    <p className="mt-1 text-sm text-slate-600">Purchase invoice: {request.invoice_number}</p>
+                    <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatRequestStatus(request.status)}</p>
+                  </div>
+                  <Link
+                    href={`/invoice/${request.invoice_number}`}
+                    className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                  >
+                    View Invoice
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
       ) : null}
 
@@ -2408,38 +2440,6 @@ export function AccountDashboard() {
           </div>
         </div>
       </section>
-      ) : null}
-
-      {currentTab === "robot" && hasRobotRequests ? (
-        <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-semibold text-slate-950">Requests</h2>
-            <Link href="/agentech-robotic" className="text-sm font-semibold text-[#2f70c8]">
-              New Robot Request
-            </Link>
-          </div>
-          <div className="mt-5 space-y-3">
-            {data.requests?.length ? (
-              data.requests.map((request) => (
-                <div key={request.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
-                  <div>
-                    <p className="font-semibold text-slate-950">{request.product}</p>
-                    <p className="mt-1 text-sm text-slate-600">Request invoice: {request.invoice_number}</p>
-                    <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatRequestStatus(request.status)}</p>
-                  </div>
-                  <Link
-                    href={`/invoice/${request.invoice_number}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
-                  >
-                    View Invoice
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <p className="text-slate-600">No invoice requests yet.</p>
-            )}
-          </div>
-        </section>
       ) : null}
 
       {currentTab === "profile" && hasAccessProfiles && (hasChildren || primaryProfileType === "student" || primaryProfileType === "teacher") ? (
