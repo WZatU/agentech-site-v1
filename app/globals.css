@@ -14,10 +14,31 @@ html {
 body {
   min-height: 100vh;
   overflow-x: hidden;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   background:
     radial-gradient(circle at top, rgba(124, 196, 255, 0.08), transparent 24%),
     linear-gradient(180deg, #040506 0%, #06080b 40%, #030406 100%);
   color: #d8e1ef;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.font-mono:not(pre):not(code):not(kbd):not(samp):not(textarea) {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
+}
+
+pre,
+code,
+kbd,
+samp,
+textarea.font-mono,
+pre.font-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 body::before {
@@ -383,7 +404,8 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 
   body:has(.education-black) .agent-cursor:not(.is-nav),
   body:has(.account-white-page) .agent-cursor:not(.is-nav),
-  body:has(.talent-white-page) .agent-cursor:not(.is-nav) {
+  body:has(.talent-white-page) .agent-cursor:not(.is-nav),
+  body:has(.agentech-library-page) .agent-cursor:not(.is-nav) {
     width: 10px;
     height: 10px;
     border-color: rgba(37, 99, 235, 0.34);
@@ -396,14 +418,16 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 
   body:has(.education-black) .agent-cursor:not(.is-nav)::after,
   body:has(.account-white-page) .agent-cursor:not(.is-nav)::after,
-  body:has(.talent-white-page) .agent-cursor:not(.is-nav)::after {
+  body:has(.talent-white-page) .agent-cursor:not(.is-nav)::after,
+  body:has(.agentech-library-page) .agent-cursor:not(.is-nav)::after {
     inset: -4px;
     border-color: rgba(37, 99, 235, 0.12);
   }
 
   body:has(.education-black) .agent-cursor:not(.is-nav) .agent-cursor-core,
   body:has(.account-white-page) .agent-cursor:not(.is-nav) .agent-cursor-core,
-  body:has(.talent-white-page) .agent-cursor:not(.is-nav) .agent-cursor-core {
+  body:has(.talent-white-page) .agent-cursor:not(.is-nav) .agent-cursor-core,
+  body:has(.agentech-library-page) .agent-cursor:not(.is-nav) .agent-cursor-core {
     inset: 3px;
     background: rgba(29, 78, 216, 0.42);
   }
@@ -998,7 +1022,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 .navi-pill,
 .navi-hero-chip {
   border-radius: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 500;
 }
 
@@ -1034,7 +1058,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 
 .navi-section-kicker {
   color: #0c9b86;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.82rem;
   font-weight: 500;
   line-height: 1;
@@ -1125,7 +1149,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 .navi-feature-copy p {
   margin: 0;
   color: #557086;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.76rem;
   font-weight: 500;
   line-height: 1.2;
@@ -1171,7 +1195,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
   border-radius: 8px;
   padding: 0.62rem 0.78rem;
   color: #14213d;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 500;
   line-height: 1.2;
@@ -1279,7 +1303,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
   border-radius: 8px;
   background: #fff;
   color: #14213d;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 500;
   box-shadow: 0 12px 28px rgba(20, 33, 61, 0.1);
@@ -1385,7 +1409,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
   background: #ffcf56;
   padding: 0.6rem 0.75rem;
   color: #14213d;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.74rem;
   font-weight: 500;
   box-shadow: 0 12px 24px rgba(20, 33, 61, 0.12);
@@ -1437,7 +1461,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
   background: rgba(255, 255, 255, 0.92);
   padding: 0.65rem 0.8rem;
   color: #14213d;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.74rem;
   font-weight: 500;
   box-shadow: 0 14px 30px rgba(20, 33, 61, 0.16);
@@ -1511,7 +1535,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 
 .navi-growth-stats span {
   color: #0c9b86;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 1.35rem;
   font-weight: 500;
   line-height: 1;
@@ -1545,14 +1569,14 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 
 .navi-layer-row strong {
   color: #d9ff79;
-  font-family: var(--font-brand);
+  font-family: var(--font-sans);
   font-size: 1.1rem;
   font-weight: 700;
 }
 
 .navi-layer-row span {
   color: rgba(255, 255, 255, 0.82);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.92rem;
   font-weight: 500;
 }

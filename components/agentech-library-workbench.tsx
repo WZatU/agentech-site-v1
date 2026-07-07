@@ -572,7 +572,7 @@ const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
 };
 
 function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAgentechLibraryTask>> }) {
-  const isLightTask = task.slug !== "view-sdk";
+  const isLightTask = true;
 
   return (
     <section className={isLightTask ? "border-b border-[#dce7f2] bg-[#fbfdff]" : "border-b border-[#2a3440] bg-[#0f1318]"}>
@@ -806,26 +806,26 @@ function FocusedBrowseFunctionsSection() {
   ];
 
   return (
-    <section className="bg-[#0b0d10] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-          <div className="border border-[#2a3440] bg-[#0d1117] p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">SDK Tutorial</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">Find a command, open details, preview the motion.</h2>
-            <div className="mt-5 grid gap-px overflow-hidden border border-[#2a3440] bg-[#2a3440] md:grid-cols-3">
+          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">SDK Tutorial</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#07142e]">Find a command, open details, preview the motion.</h2>
+            <div className="mt-5 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] md:grid-cols-3">
               {tutorialCards.map((card) => (
-                <div key={card.title} className="bg-[#090d12] p-4">
-                  <p className="text-sm font-semibold text-white">{card.title}</p>
-                  <p className="mt-2 text-xs leading-5 text-[#aeb8c2]">{card.body}</p>
+                <div key={card.title} className="bg-[#f8fbff] p-4">
+                  <p className="text-sm font-semibold text-[#07142e]">{card.title}</p>
+                  <p className="mt-2 text-xs leading-5 text-[#526174]">{card.body}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="border border-[#ff7a3d] bg-[#180f0a] p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#ff9a66]">Safety Limits</p>
+          <div className="border border-[#ffd3bd] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#c85016]">Safety Limits</p>
             <div className="mt-4 grid gap-2">
               {safetyLimits.map((limit) => (
-                <div key={limit} className="border border-[#3c2a22] bg-[#100b08] px-3 py-2 text-sm font-semibold text-[#ffd2bd]">
+                <div key={limit} className="border border-[#ffd3bd] bg-[#fff7f2] px-3 py-2 text-sm font-semibold text-[#7b2b0d]">
                   {limit}
                 </div>
               ))}
@@ -833,12 +833,12 @@ function FocusedBrowseFunctionsSection() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-px overflow-hidden border border-[#2a3440] bg-[#2a3440] md:grid-cols-4">
+        <div className="mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] md:grid-cols-4">
           {groupedFunctions.map((group) => (
-            <a key={group.category} href={`#function-${group.category.toLowerCase()}`} className="bg-[#0d1117] p-4 transition hover:bg-[#111923]">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">{group.category}</p>
-              <p className="mt-2 text-3xl font-semibold text-white">{group.items.length}</p>
-              <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">commands</p>
+            <a key={group.category} href={`#function-${group.category.toLowerCase()}`} className="bg-white p-4 transition hover:bg-[#f3f8ff]">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{group.category}</p>
+              <p className="mt-2 text-3xl font-semibold text-[#07142e]">{group.items.length}</p>
+              <p className="mt-1 text-xs leading-5 text-[#526174]">commands</p>
             </a>
           ))}
         </div>
@@ -848,62 +848,62 @@ function FocusedBrowseFunctionsSection() {
             <details
               key={group.category}
               id={`function-${group.category.toLowerCase()}`}
-              className="group/category scroll-mt-6 border border-[#2a3440] bg-[#0d1117]"
+              className="group/category scroll-mt-6 border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition hover:bg-[#111923]">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#8fdc8f]">{group.category}</p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-white">{group.category} Commands</h2>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#008a7a]">{group.category}</p>
+                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category} Commands</h2>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <span className="font-mono text-sm text-[#93c5fd]">{group.items.length} functions</span>
-                  <span className="border border-[#2a3440] px-3 py-1 font-mono text-xs text-[#8fdc8f] group-open/category:hidden">View functions</span>
-                  <span className="hidden border border-[#8fdc8f] bg-[#17351f] px-3 py-1 font-mono text-xs text-[#dfffe0] group-open/category:inline">Hide functions</span>
+                  <span className="font-mono text-sm text-[#005bd6]">{group.items.length} functions</span>
+                  <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#006a5c] group-open/category:hidden">View functions</span>
+                  <span className="hidden border border-[#008a7a] bg-[#e8f7f3] px-3 py-1 font-mono text-xs text-[#006a5c] group-open/category:inline">Hide functions</span>
                 </div>
               </summary>
-              <div className="divide-y divide-[#2a3440]">
+              <div className="divide-y divide-[#dce7f2]">
                 {group.items.map((item) => (
-                  <details key={item.name} className="group bg-[#0d1117]">
-                    <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 transition hover:bg-[#111923] md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_auto]">
-                      <p className="font-mono text-sm text-[#8fdc8f]">Agentech.{item.name}({item.params.length ? "parameters" : ""})</p>
-                      <p className="text-sm leading-6 text-[#cdd6df]">{item.summary}</p>
-                      <span className="justify-self-start border border-[#2a3440] px-3 py-1 font-mono text-xs text-[#93c5fd] group-open:border-[#8fdc8f] group-open:text-[#8fdc8f] md:justify-self-end">
+                  <details key={item.name} className="group bg-white">
+                    <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_auto]">
+                      <p className="font-mono text-sm text-[#006a5c]">Agentech.{item.name}({item.params.length ? "parameters" : ""})</p>
+                      <p className="text-sm leading-6 text-[#23304a]">{item.summary}</p>
+                      <span className="justify-self-start border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c] md:justify-self-end">
                         details
                       </span>
                     </summary>
-                    <div className="grid gap-px border-t border-[#2a3440] bg-[#2a3440] lg:grid-cols-[minmax(0,1fr)_360px]">
-                      <div className="bg-[#090d12] p-4">
-                        <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Definition</p>
-                        <p className="mt-2 font-mono text-sm text-[#8fdc8f]">{item.signature}</p>
-                        <p className="mt-2 text-sm leading-6 text-[#cdd6df]">{item.summary}</p>
-                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Parameters</p>
+                    <div className="grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] lg:grid-cols-[minmax(0,1fr)_360px]">
+                      <div className="bg-[#fbfdff] p-4">
+                        <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Definition</p>
+                        <p className="mt-2 font-mono text-sm text-[#006a5c]">{item.signature}</p>
+                        <p className="mt-2 text-sm leading-6 text-[#23304a]">{item.summary}</p>
+                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#526174]">Parameters</p>
                         <div className="mt-2 grid gap-2">
                           {item.params.length ? (
                             item.params.map((param) => (
-                              <div key={param.name} className="border border-[#26313c] bg-[#0d1117] p-3">
+                              <div key={param.name} className="border border-[#dce7f2] bg-white p-3">
                                 <div className="flex flex-wrap gap-2">
-                                  <span className="font-mono text-xs text-[#8fdc8f]">{param.name}</span>
-                                  <span className="font-mono text-xs text-[#93c5fd]">{param.type}</span>
-                                  <span className="font-mono text-xs text-[#f5d06f]">default {param.defaultValue ?? "required"}</span>
+                                  <span className="font-mono text-xs text-[#006a5c]">{param.name}</span>
+                                  <span className="font-mono text-xs text-[#005bd6]">{param.type}</span>
+                                  <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue ?? "required"}</span>
                                 </div>
-                                <p className="mt-2 text-xs leading-5 text-[#aeb8c2]">{param.description}</p>
+                                <p className="mt-2 text-xs leading-5 text-[#526174]">{param.description}</p>
                               </div>
                             ))
                           ) : (
-                            <p className="border border-[#26313c] bg-[#0d1117] p-3 text-xs text-[#aeb8c2]">No parameters.</p>
+                            <p className="border border-[#dce7f2] bg-white p-3 text-xs text-[#526174]">No parameters.</p>
                           )}
                         </div>
-                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Example</p>
-                        <pre className="mt-2 overflow-x-auto border border-[#26313c] bg-[#0d1117] p-3 font-mono text-xs leading-6 text-[#e5edf5]">{item.example}</pre>
+                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#526174]">Example</p>
+                        <pre className="mt-2 overflow-x-auto border border-[#dce7f2] bg-white p-3 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
                       </div>
-                      <div className="bg-black p-4">
-                        <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#8fdc8f]">{item.name} preview</p>
+                      <div className="bg-white p-4">
+                        <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={localPreviewAssets[item.name] ?? localPreviewFallback}
                           alt={`Aegis preview for ${previewCommandLabel(item.name)}`}
                           loading="lazy"
-                          className="aspect-video w-full border border-[#2a3440] bg-black object-contain"
+                          className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
                         />
                       </div>
                     </div>
@@ -961,7 +961,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const showFocusedBrowseFunctions = selectedTask?.slug === "view-sdk";
   const showFocusedLiveRun = selectedTask?.slug === "watch-live-run";
   const showDocs = !selectedTask;
-  const useLightTaskPage = Boolean(selectedTask && selectedTask.slug !== "view-sdk");
+  const useLightTaskPage = Boolean(selectedTask);
 
   useEffect(() => {
     if (renderedFrames.length <= 1) {
@@ -1162,7 +1162,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   }
 
   return (
-    <div className={`min-h-screen ${useLightTaskPage ? "bg-[#fbfdff] text-[#07142e]" : "bg-[#0b0d10] text-white"}`}>
+    <div className={`agentech-library-page min-h-screen ${useLightTaskPage ? "bg-[#fbfdff] text-[#07142e]" : "bg-[#0b0d10] text-white"}`}>
       <style>{`
         nextjs-portal,
         [data-nextjs-toast],

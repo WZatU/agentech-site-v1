@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Manrope, Oxanium, Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Manrope, Oxanium } from "next/font/google";
 import Script from "next/script";
 import { AgentCursor } from "@/components/agent-cursor";
 import { SiteFooter } from "@/components/site-footer";
@@ -18,9 +18,8 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-mono"
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const manropeDisplay = Manrope({
   subsets: ["latin"],
-  weight: ["500", "700", "800"],
   variable: "--font-display"
 });
 
@@ -62,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${plexMono.variable} ${plusJakartaSans.variable} ${oxanium.variable}`}
+      className={`${manrope.variable} ${plexMono.variable} ${manropeDisplay.variable} ${oxanium.variable}`}
     >
       <body className="font-[var(--font-sans)] text-mist antialiased">
         <Script

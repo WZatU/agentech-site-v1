@@ -49,7 +49,7 @@ export default function AboutPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.34em] text-[#91dfff]">Our Team</p>
           <h1
             className="mt-5 text-4xl font-bold tracking-[0.045em] text-white md:text-5xl"
-            style={{ fontFamily: "var(--font-brand)" }}
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             Leadership and Technical Members
           </h1>
@@ -74,14 +74,14 @@ export default function AboutPage() {
                   </div>
                   <h2
                     className="mt-8 text-3xl font-bold uppercase tracking-[0.08em] text-white"
-                    style={{ fontFamily: "var(--font-brand)" }}
+                    style={{ fontFamily: "var(--font-sans)" }}
                   >
                     {member.name}
                   </h2>
                 </div>
                 <p
                   className="mt-7 max-w-[23rem] text-[13px] font-medium leading-6 tracking-[0.035em] text-[#9fe8d2]"
-                  style={{ fontFamily: "var(--font-mono)" }}
+                  style={{ fontFamily: "var(--font-sans)" }}
                 >
                   <span className="text-[#91dfff]">&gt;</span> {member.role}
                 </p>
