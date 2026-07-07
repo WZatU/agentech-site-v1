@@ -83,9 +83,53 @@ function formatGatewayCost(value: number | string | undefined | null) {
   return Number.isFinite(amount) ? `$${amount.toFixed(4)}` : "$0.0000";
 }
 
+function formatDurationMs(value: number | string | undefined | null) {
+  const amount = Number(value ?? 0);
+  if (!Number.isFinite(amount) || amount <= 0) return "0 ms";
+  if (amount < 1000) return `${Math.round(amount).toLocaleString()} ms`;
+  return `${(amount / 1000).toFixed(1)} s`;
+}
+
 function formatStatus(value: string | null | undefined) {
   const status = value || "not started";
   return status.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getUsageWindowStats(rows: AdminAiUsage[]) {
+  const now = Date.now();
+  const oneHourAgo = now - 60 * 60 * 1000;
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+  let callsLastHour = 0;
+  let callsLast24h = 0;
+  let latencyTotal = 0;
+  let latencyCount = 0;
+  let latest: AdminAiUsage | null = null;
+  let latestTime = 0;
+
+  for (const row of rows) {
+    const createdAt = new Date(row.created_at).getTime();
+    if (Number.isFinite(createdAt)) {
+      if (createdAt >= oneHourAgo) callsLastHour += 1;
+      if (createdAt >= oneDayAgo) callsLast24h += 1;
+      if (createdAt > latestTime) {
+        latestTime = createdAt;
+        latest = row;
+      }
+    }
+
+    const latency = Number(row.latency_ms ?? 0);
+    if (Number.isFinite(latency) && latency > 0) {
+      latencyTotal += latency;
+      latencyCount += 1;
+    }
+  }
+
+  return {
+    callsLastHour,
+    callsLast24h,
+    latest,
+    averageLatencyMs: latencyCount ? latencyTotal / latencyCount : 0
+  };
 }
 
 export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: string }) {
@@ -145,6 +189,16 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
 
   const capByEmail = useMemo(() => new Map(data.caps.map((cap) => [cap.user_id, cap])), [data.caps]);
   const accountByEmail = useMemo(() => new Map(data.developerAccounts.map((account) => [account.email, account])), [data.developerAccounts]);
+  const usageByEmail = useMemo(() => {
+    const map = new Map<string, AdminAiUsage[]>();
+    for (const row of data.usage) {
+      const rows = map.get(row.user_id) ?? [];
+      rows.push(row);
+      map.set(row.user_id, rows);
+    }
+    return map;
+  }, [data.usage]);
+  const gatewayHistory = useMemo(() => getUsageWindowStats(data.usage), [data.usage]);
 
   if (!email) {
     return (
@@ -174,7 +228,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2f70c8]">Admin Console</p>
           <h1 className="mt-2 text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">AI Gateway Usage</h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-            Developer profiles, AI requests, token totals, cost caps, and recent model calls.
+            Developer profiles, AI requests, token totals, cost caps, recent velocity, and model call history.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -204,11 +258,13 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">{message}</p>
         ) : null}
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           {[
             { label: "Developer Profiles", value: data.developerProfiles.length.toLocaleString(), helper: "Profiles with developer access" },
             { label: "Gateway Users", value: summary.activeGatewayUsers.toLocaleString(), helper: "Used AI this month" },
             { label: "Monthly Requests", value: summary.totalRequests.toLocaleString(), helper: "Across all users" },
+            { label: "Last Hour", value: gatewayHistory.callsLastHour.toLocaleString(), helper: "Recent AI calls" },
+            { label: "Last 24 Hours", value: gatewayHistory.callsLast24h.toLocaleString(), helper: "Recent AI calls" },
             { label: "Estimated Cost", value: formatGatewayCost(summary.totalCost), helper: "Current month" }
           ].map((card) => (
             <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
@@ -231,7 +287,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-[980px] w-full text-left text-sm">
+            <table className="min-w-[1160px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
                 <tr>
                   <th className="px-5 py-3">Developer</th>
@@ -239,6 +295,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   <th className="px-5 py-3">Requests</th>
                   <th className="px-5 py-3">Tokens</th>
                   <th className="px-5 py-3">Cost</th>
+                  <th className="px-5 py-3">History</th>
                   <th className="px-5 py-3">Software Gate</th>
                   <th className="px-5 py-3">Updated</th>
                 </tr>
@@ -253,6 +310,8 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   const cost = Number(cap?.current_cost ?? 0);
                   const costLimit = Number(cap?.monthly_cost_limit ?? 5);
                   const gateStatus = account?.developer_ai_security_status || "not started";
+                  const history = getUsageWindowStats(usageByEmail.get(profile.account_email) ?? []);
+                  const highRecentUse = history.callsLastHour >= 5;
                   return (
                     <tr key={profile.id} className="align-top">
                       <td className="px-5 py-4">
@@ -274,6 +333,20 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                         <p className="mt-1 text-xs text-slate-500">limit {formatGatewayCost(costLimit)}</p>
                       </td>
                       <td className="px-5 py-4">
+                        <p className="font-semibold text-slate-700">
+                          {history.latest ? formatDateTime(history.latest.created_at) : "Never used"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {history.callsLastHour.toLocaleString()} in 1h / {history.callsLast24h.toLocaleString()} in 24h
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">avg {formatDurationMs(history.averageLatencyMs)}</p>
+                        {highRecentUse ? (
+                          <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-700">
+                            High recent use
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-5 py-4">
                         <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
                           gateStatus === "passed"
                             ? "bg-emerald-50 text-emerald-700"
@@ -291,7 +364,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   );
                 }) : (
                   <tr>
-                    <td className="px-5 py-8 text-center text-sm font-semibold text-slate-500" colSpan={7}>
+                    <td className="px-5 py-8 text-center text-sm font-semibold text-slate-500" colSpan={8}>
                       No developer profiles found yet.
                     </td>
                   </tr>
@@ -307,14 +380,15 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             <h2 className="mt-1 text-xl font-bold text-slate-950">AI Gateway Log</h2>
           </div>
           <div className="divide-y divide-slate-100">
-            {data.usage.length ? data.usage.slice(0, 12).map((row) => (
-              <div key={row.id} className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[minmax(220px,1fr)_150px_120px_120px_150px] md:items-center">
+            {data.usage.length ? data.usage.slice(0, 20).map((row) => (
+              <div key={row.id} className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[minmax(220px,1fr)_140px_120px_120px_120px_150px] md:items-center">
                 <div>
                   <p className="break-all font-bold text-slate-950">{row.user_id}</p>
                   <p className="mt-1 text-xs text-slate-500">{row.endpoint} - {row.model}</p>
                 </div>
                 <p className="font-semibold text-slate-700">{formatTokenCount(row.total_tokens)} tokens</p>
                 <p className="font-semibold text-slate-700">{formatGatewayCost(row.estimated_cost)}</p>
+                <p className="font-semibold text-slate-700">{formatDurationMs(row.latency_ms)}</p>
                 <p className="font-semibold text-slate-700">HTTP {row.status_code ?? "n/a"}</p>
                 <p className="text-slate-500">{formatDateTime(row.created_at)}</p>
               </div>
