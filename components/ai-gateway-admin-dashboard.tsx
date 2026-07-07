@@ -95,6 +95,10 @@ function formatStatus(value: string | null | undefined) {
   return status.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function isGatewayPaused(cap: AdminAiCap | undefined) {
+  return Number(cap?.monthly_request_limit ?? 20) <= 0;
+}
+
 function getUsageWindowStats(rows: AdminAiUsage[]) {
   const now = Date.now();
   const oneHourAgo = now - 60 * 60 * 1000;
@@ -137,6 +141,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
   const [data, setData] = useState<AdminAiUsageData>({ caps: [], usage: [], developerProfiles: [], developerAccounts: [] });
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [actingEmail, setActingEmail] = useState("");
 
   async function loadUsage() {
     setLoading(true);
@@ -157,6 +162,28 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
       developerAccounts: result.developerAccounts ?? []
     });
     setLoading(false);
+  }
+
+  async function controlGatewayAccess(userId: string, action: "pause" | "resume") {
+    setActingEmail(userId);
+    setMessage("");
+
+    const response = await fetch("/api/admin/ai-usage/control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, action })
+    });
+    const result = await response.json().catch(() => null) as { error?: string } | null;
+
+    if (!response.ok) {
+      setMessage(result?.error || `Unable to ${action} AI gateway access.`);
+      setActingEmail("");
+      return;
+    }
+
+    setMessage(action === "pause" ? `${userId} is paused. AI gateway calls are blocked.` : `${userId} is resumed. AI gateway calls are allowed.`);
+    await loadUsage();
+    setActingEmail("");
   }
 
   useEffect(() => {
@@ -183,8 +210,9 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     const totalTokens = data.caps.reduce((total, cap) => total + Number(cap.current_tokens ?? 0), 0);
     const totalCost = data.caps.reduce((total, cap) => total + Number(cap.current_cost ?? 0), 0);
     const activeGatewayUsers = data.caps.filter((cap) => Number(cap.current_requests ?? 0) > 0).length;
+    const pausedGatewayUsers = data.caps.filter((cap) => isGatewayPaused(cap)).length;
 
-    return { totalRequests, totalTokens, totalCost, activeGatewayUsers };
+    return { totalRequests, totalTokens, totalCost, activeGatewayUsers, pausedGatewayUsers };
   }, [data.caps]);
 
   const capByEmail = useMemo(() => new Map(data.caps.map((cap) => [cap.user_id, cap])), [data.caps]);
@@ -223,37 +251,62 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
 
   return (
     <div className="overflow-hidden rounded-[18px] border border-slate-200 bg-[#f8fbff] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-      <div className="flex flex-col gap-5 border-b border-slate-200 bg-white px-5 pb-5 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2f70c8]">Admin Console</p>
-          <h1 className="mt-2 text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">AI Gateway Usage</h1>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-            Developer profiles, AI requests, token totals, cost caps, recent velocity, and model call history.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={loadUsage}
-            disabled={loading}
-            className="rounded-full border border-[#2f70c8] bg-white px-4 py-2 text-sm font-bold text-[#245da7] transition hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Refreshing..." : "Refresh Usage"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              clearAccountSession();
-              window.location.href = "/login?next=/admin/ai-gateway";
-            }}
-            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
-          >
-            Sign Out
-          </button>
+      <div className="relative overflow-hidden border-b border-slate-200 bg-slate-950 px-5 pb-6 pt-5 text-white sm:px-7 md:px-8 md:pt-7">
+        <div className="absolute inset-x-0 top-0 h-1 bg-red-500" />
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="inline-flex rounded-full border border-red-400/60 bg-red-500/15 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-red-100">
+              Owner Admin Privilege
+            </p>
+            <h1 className="mt-4 text-[34px] font-black leading-none text-white sm:text-5xl">AI Gateway Command Center</h1>
+            <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-300">
+              You are signed in as the gateway owner. Monitor every developer, inspect usage velocity, and stop AI access immediately if an account abuses the system.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-slate-950">Admin Mode Active</span>
+              <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-white">Pause Controls Enabled</span>
+              <span className="rounded-full border border-white/20 px-3 py-1 text-xs font-bold text-slate-200">{email}</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={loadUsage}
+              disabled={loading}
+              className="rounded-full border border-white/25 bg-white px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Refreshing..." : "Refresh Usage"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                clearAccountSession();
+                window.location.href = "/login?next=/admin/ai-gateway";
+              }}
+              className="rounded-full border border-white/20 bg-transparent px-4 py-2 text-sm font-bold text-slate-200 transition hover:border-white hover:text-white"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="space-y-6 p-5 sm:p-7 md:p-8">
+        <section className="rounded-[18px] border border-red-200 bg-white shadow-[0_16px_45px_rgba(185,28,28,0.10)]">
+          <div className="flex flex-col gap-4 border-b border-red-100 px-5 py-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-red-600">Admin Control Layer</p>
+              <h2 className="mt-1 text-2xl font-black text-slate-950">You can pause or restore AI gateway access per account.</h2>
+            </div>
+            <div className="rounded-full bg-red-50 px-4 py-2 text-sm font-black text-red-700">
+              {summary.pausedGatewayUsers.toLocaleString()} accounts paused
+            </div>
+          </div>
+          <p className="px-5 py-4 text-sm font-semibold leading-6 text-slate-600">
+            Pause sets the account AI monthly request limit to zero. The gateway rejects that user before OpenAI is called, so no model tokens are spent while paused.
+          </p>
+        </section>
+
         {message ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">{message}</p>
         ) : null}
@@ -265,9 +318,12 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             { label: "Monthly Requests", value: summary.totalRequests.toLocaleString(), helper: "Across all users" },
             { label: "Last Hour", value: gatewayHistory.callsLastHour.toLocaleString(), helper: "Recent AI calls" },
             { label: "Last 24 Hours", value: gatewayHistory.callsLast24h.toLocaleString(), helper: "Recent AI calls" },
+            { label: "Paused", value: summary.pausedGatewayUsers.toLocaleString(), helper: "Blocked accounts" },
             { label: "Estimated Cost", value: formatGatewayCost(summary.totalCost), helper: "Current month" }
           ].map((card) => (
-            <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+            <div key={card.label} className={`rounded-2xl border p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] ${
+              card.label === "Paused" ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
+            }`}>
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{card.label}</p>
               <p className="mt-3 text-3xl font-black text-slate-950">{card.value}</p>
               <p className="mt-2 text-sm text-slate-500">{card.helper}</p>
@@ -287,7 +343,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-[1160px] w-full text-left text-sm">
+            <table className="min-w-[1320px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
                 <tr>
                   <th className="px-5 py-3">Developer</th>
@@ -297,6 +353,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   <th className="px-5 py-3">Cost</th>
                   <th className="px-5 py-3">History</th>
                   <th className="px-5 py-3">Software Gate</th>
+                  <th className="px-5 py-3">Admin Power</th>
                   <th className="px-5 py-3">Updated</th>
                 </tr>
               </thead>
@@ -312,11 +369,18 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   const gateStatus = account?.developer_ai_security_status || "not started";
                   const history = getUsageWindowStats(usageByEmail.get(profile.account_email) ?? []);
                   const highRecentUse = history.callsLastHour >= 5;
+                  const paused = isGatewayPaused(cap);
+                  const isActing = actingEmail === profile.account_email;
                   return (
-                    <tr key={profile.id} className="align-top">
+                    <tr key={profile.id} className={`align-top ${paused ? "bg-red-50/60" : ""}`}>
                       <td className="px-5 py-4">
                         <p className="font-bold text-slate-950">{profile.display_name || profile.username}</p>
                         <p className="mt-1 font-mono text-xs text-slate-500">@{profile.username}</p>
+                        {paused ? (
+                          <span className="mt-2 inline-flex rounded-full bg-red-600 px-2 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-white">
+                            AI Paused
+                          </span>
+                        ) : null}
                       </td>
                       <td className="px-5 py-4">
                         <p className="break-all font-semibold text-slate-700">{profile.account_email}</p>
@@ -357,6 +421,23 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                           {formatStatus(gateStatus)}
                         </span>
                       </td>
+                      <td className="px-5 py-4">
+                        <button
+                          type="button"
+                          disabled={isActing}
+                          onClick={() => void controlGatewayAccess(profile.account_email, paused ? "resume" : "pause")}
+                          className={`w-full rounded-xl px-4 py-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            paused
+                              ? "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              : "border border-red-700 bg-red-600 text-white shadow-[0_10px_24px_rgba(220,38,38,0.25)] hover:bg-red-700"
+                          }`}
+                        >
+                          {isActing ? "Working..." : paused ? "Resume AI" : "Pause AI Now"}
+                        </button>
+                        <p className="mt-2 text-xs font-semibold text-slate-500">
+                          {paused ? "Restores monthly caps." : "Stops OpenAI calls immediately."}
+                        </p>
+                      </td>
                       <td className="px-5 py-4 text-slate-600">
                         {cap?.updated_at ? formatDateTime(cap.updated_at) : "No AI usage yet"}
                       </td>
@@ -364,7 +445,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   );
                 }) : (
                   <tr>
-                    <td className="px-5 py-8 text-center text-sm font-semibold text-slate-500" colSpan={8}>
+                    <td className="px-5 py-8 text-center text-sm font-semibold text-slate-500" colSpan={9}>
                       No developer profiles found yet.
                     </td>
                   </tr>

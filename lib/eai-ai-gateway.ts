@@ -209,6 +209,10 @@ function assertQuota(cap: GatewayCapRecord, estimatedPromptTokens: number) {
   const currentTokens = Number(cap.current_tokens ?? 0);
   const currentCost = Number(cap.current_cost ?? 0);
 
+  if (monthlyRequestLimit <= 0) {
+    throw Object.assign(new Error("AI gateway access is paused by an administrator."), { status: 403 });
+  }
+
   if (monthlyRequestLimit > 0 && currentRequests >= monthlyRequestLimit) {
     throw Object.assign(new Error("Monthly AI request quota exceeded."), { status: 429 });
   }
