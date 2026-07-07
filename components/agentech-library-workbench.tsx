@@ -572,13 +572,19 @@ const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
 };
 
 function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAgentechLibraryTask>> }) {
+  const isLightTask = task.slug !== "view-sdk";
+
   return (
-    <section className="border-b border-[#2a3440] bg-[#0f1318]">
+    <section className={isLightTask ? "border-b border-[#dce7f2] bg-[#fbfdff]" : "border-b border-[#2a3440] bg-[#0f1318]"}>
       <div className="mx-auto max-w-7xl px-6 py-7 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/agentech-products/agentech-library"
-            className="border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#cdd6df] transition hover:border-[#8fdc8f] hover:text-white"
+            className={
+              isLightTask
+                ? "border border-[#dce7f2] bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#07142e] shadow-sm transition hover:border-[#008a7a] hover:text-[#008a7a]"
+                : "border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#cdd6df] transition hover:border-[#8fdc8f] hover:text-white"
+            }
           >
             &lt;- Library Flow
           </Link>
@@ -589,8 +595,12 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
                 href={`/agentech-products/agentech-library/${item.slug}`}
                 className={`border px-2.5 py-1.5 font-mono text-xs transition ${
                   item.slug === task.slug
-                    ? "border-[#8fdc8f] bg-[#17351f] text-[#dfffe0]"
-                    : "border-[#2a3440] bg-[#0d1117] text-[#7f8c99] hover:border-[#93c5fd] hover:text-white"
+                    ? isLightTask
+                      ? "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c]"
+                      : "border-[#8fdc8f] bg-[#17351f] text-[#dfffe0]"
+                    : isLightTask
+                      ? "border-[#dce7f2] bg-white text-[#526174] hover:border-[#008a7a] hover:text-[#008a7a]"
+                      : "border-[#2a3440] bg-[#0d1117] text-[#7f8c99] hover:border-[#93c5fd] hover:text-white"
                 }`}
               >
                 {item.number}
@@ -603,9 +613,9 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
             {task.number}
           </div>
           <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Command Library Task</p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">{task.title}</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-[#b8c2cc]">{taskFeatureNotes[task.slug]}</p>
+            <p className={`font-mono text-xs font-semibold uppercase tracking-[0.16em] ${isLightTask ? "text-[#008a7a]" : "text-[#8fdc8f]"}`}>Command Library Task</p>
+            <h1 className={`mt-2 text-4xl font-semibold tracking-tight md:text-5xl ${isLightTask ? "text-[#07142e]" : "text-white"}`}>{task.title}</h1>
+            <p className={`mt-3 max-w-3xl text-sm leading-7 ${isLightTask ? "text-[#23304a]" : "text-[#b8c2cc]"}`}>{taskFeatureNotes[task.slug]}</p>
           </div>
         </div>
       </div>
@@ -615,20 +625,20 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
 
 function FocusedLiveRunSection() {
   return (
-    <section className="bg-[#0b0d10] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
-        <div className="border border-[#2a3440] bg-[#0d1117]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2a3440] px-4 py-3">
+        <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce7f2] px-4 py-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Live Robot Camera</p>
-              <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Robot Camera</p>
+              <p className="mt-1 text-xs leading-5 text-[#526174]">
                 {liveRobotCameraConfigured ? "Official supervised-session camera feed." : "LiveKit camera feed is not configured yet."}
               </p>
             </div>
-            <span className={`h-3 w-3 ${liveRobotCameraConfigured ? "bg-[#8fdc8f]" : "bg-[#7f8c99]"}`} aria-hidden="true" />
+            <span className={`h-3 w-3 ${liveRobotCameraConfigured ? "bg-[#008a7a]" : "bg-[#9aa8b8]"}`} aria-hidden="true" />
           </div>
           <div className="bg-black p-3">
-            <div className="mx-auto aspect-video w-full max-w-5xl overflow-hidden border border-[#2a3440] bg-black">
+            <div className="mx-auto aspect-video w-full max-w-5xl overflow-hidden border border-[#0b1220] bg-black">
               <LiveRobotCamera roomName={liveRobotRoomName} />
             </div>
           </div>
@@ -691,11 +701,11 @@ print(Agentech.get_battery_status())`
   ];
 
   return (
-    <section className="bg-[#0b0d10] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="border border-[#2a3440] bg-[#0d1117]">
-            <div className="relative h-72 overflow-hidden border-b border-[#2a3440] bg-white">
+          <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <div className="relative h-72 overflow-hidden border-b border-[#dce7f2] bg-white">
               <Image
                 src="/assets/products/agentech-library/dog-blueprint.png"
                 alt="Aegis robot dog blueprint"
@@ -705,14 +715,14 @@ print(Agentech.get_battery_status())`
               />
             </div>
             <div className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8fdc8f]">Beginner Path</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">Your first Aegis script in four moves.</h2>
-              <p className="mt-3 text-sm leading-7 text-[#aeb8c2]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Beginner Path</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#07142e]">Your first Aegis script in four moves.</h2>
+              <p className="mt-3 text-sm leading-7 text-[#23304a]">
                 Start with one safe motion. Keep the file small, preview the command, then move to review once the sequence is readable.
               </p>
-              <div className="mt-5 grid gap-px overflow-hidden border border-[#2a3440] bg-[#2a3440] sm:grid-cols-3">
+              <div className="mt-5 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] sm:grid-cols-3">
                 {["Install", "Write", "Preview"].map((item) => (
-                  <div key={item} className="bg-[#090d12] p-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#93c5fd]">
+                  <div key={item} className="bg-[#f8fbff] p-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#005bd6]">
                     {item}
                   </div>
                 ))}
@@ -722,14 +732,14 @@ print(Agentech.get_battery_status())`
 
           <div className="grid gap-3">
             {setupSteps.map((step) => (
-              <div key={step.label} className="grid gap-4 border border-[#2a3440] bg-[#0d1117] p-4 sm:grid-cols-[72px_minmax(0,1fr)]">
+              <div key={step.label} className="grid gap-4 border border-[#dce7f2] bg-white p-4 shadow-[0_12px_30px_rgba(12,31,58,0.06)] sm:grid-cols-[72px_minmax(0,1fr)]">
                 <div className="grid h-14 w-14 place-items-center rounded-[8px] bg-[#008a6c] font-mono text-xl font-bold text-white">
                   {step.label}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xl font-semibold text-white">{step.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-[#aeb8c2]">{step.body}</p>
-                  <pre className="mt-3 overflow-x-auto border border-[#2a3440] bg-[#090d12] p-3 font-mono text-xs leading-6 text-[#8fdc8f]">{step.code}</pre>
+                  <h3 className="text-xl font-semibold text-[#07142e]">{step.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-[#23304a]">{step.body}</p>
+                  <pre className="mt-3 overflow-x-auto border border-[#dce7f2] bg-[#f8fbff] p-3 font-mono text-xs leading-6 text-[#006a5c]">{step.code}</pre>
                 </div>
               </div>
             ))}
@@ -738,25 +748,25 @@ print(Agentech.get_battery_status())`
 
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {recipes.map((recipe) => (
-            <div key={recipe.title} className="border border-[#2a3440] bg-[#0d1117]">
-              <div className="border-b border-[#2a3440] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">{recipe.title}</p>
+            <div key={recipe.title} className="border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
+              <div className="border-b border-[#dce7f2] px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{recipe.title}</p>
               </div>
-              <pre className="min-h-56 overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{recipe.code}</pre>
+              <pre className="min-h-56 overflow-x-auto bg-[#fbfdff] p-4 font-mono text-xs leading-6 text-[#07142e]">{recipe.code}</pre>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 border border-[#2a3440] bg-[#0d1117] p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#f5d06f]">Starter Rules</p>
-          <div className="mt-4 grid gap-px overflow-hidden border border-[#2a3440] bg-[#2a3440] md:grid-cols-4">
+        <div className="mt-6 border border-[#dce7f2] bg-white p-5 shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a35d00]">Starter Rules</p>
+          <div className="mt-4 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] md:grid-cols-4">
             {[
               "Use stand before motion",
               "Keep motion under 10 seconds",
               "Preview before review",
               "Stop at the end"
             ].map((rule) => (
-              <div key={rule} className="bg-[#090d12] p-4 text-sm font-semibold leading-6 text-[#cdd6df]">
+              <div key={rule} className="bg-[#f8fbff] p-4 text-sm font-semibold leading-6 text-[#23304a]">
                 {rule}
               </div>
             ))}
@@ -951,6 +961,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const showFocusedBrowseFunctions = selectedTask?.slug === "view-sdk";
   const showFocusedLiveRun = selectedTask?.slug === "watch-live-run";
   const showDocs = !selectedTask;
+  const useLightTaskPage = Boolean(selectedTask && selectedTask.slug !== "view-sdk");
 
   useEffect(() => {
     if (renderedFrames.length <= 1) {
@@ -1151,7 +1162,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0d10] text-white">
+    <div className={`min-h-screen ${useLightTaskPage ? "bg-[#fbfdff] text-[#07142e]" : "bg-[#0b0d10] text-white"}`}>
       <style>{`
         nextjs-portal,
         [data-nextjs-toast],
@@ -1247,37 +1258,37 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       {showFocusedBrowseFunctions ? <FocusedBrowseFunctionsSection /> : null}
       {showFocusedLiveRun ? <FocusedLiveRunSection /> : null}
       {showFocusedSubmitReview ? (
-        <section className="bg-[#0b0d10] px-4 py-8 sm:px-6 lg:px-8">
+        <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="border border-[#2a3440] bg-[#0d1117]">
-              <div className="border-b border-[#2a3440] bg-[#181d24] px-4 py-3">
-                <p className="font-mono text-sm text-[#cdd6df]">submission_code.py</p>
+            <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+              <div className="border-b border-[#dce7f2] bg-[#f3f7fb] px-4 py-3">
+                <p className="font-mono text-sm text-[#526174]">submission_code.py</p>
               </div>
               <textarea
                 value={code}
                 onChange={(event) => updateCode(event.target.value)}
                 spellCheck={false}
-                className="h-[520px] w-full resize-none border-0 bg-[#0d1117] p-5 font-mono text-sm leading-7 text-[#e5edf5] outline-none selection:bg-[#275c37]"
+                className="h-[520px] w-full resize-none border-0 bg-[#fbfdff] p-5 font-mono text-sm leading-7 text-[#07142e] outline-none selection:bg-[#bfe8d8]"
               />
             </div>
-            <div className="border border-[#2a3440] bg-[#0d1117] p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">Review Package</p>
+            <div className="border border-[#dce7f2] bg-white p-4 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Review Package</p>
               <div className="mt-4 space-y-4">
                 <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Developer name</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Developer name</span>
                   <input
                     value={developerName}
                     onChange={(event) => setDeveloperName(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
+                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#07142e] outline-none focus:border-[#008a7a]"
                     placeholder="Student or team"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot model</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</span>
                   <select
                     value={robotModel}
                     onChange={(event) => setRobotModel(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
+                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#07142e] outline-none focus:border-[#008a7a]"
                   >
                     <option>Aegis Ultra</option>
                     <option>Aegis EDU</option>
@@ -1285,44 +1296,44 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   </select>
                 </label>
                 <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Run mode</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Run mode</span>
                   <select
                     value={runMode}
                     onChange={(event) => setRunMode(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
+                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#07142e] outline-none focus:border-[#008a7a]"
                   >
                     <option>Software check</option>
                     <option>Dry-run review</option>
                   </select>
                 </label>
                 <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Upload code file</span>
                   <input
                     type="file"
                     accept=".py,.txt"
                     onChange={(event) => {
                       void loadUploadedCodeFile(event.target.files?.[0] ?? null);
                     }}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#090d12] px-3 py-2 text-sm text-[#cdd6df] outline-none file:mr-3 file:border-0 file:bg-[#101d2e] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#dbeafe] focus:border-[#8fdc8f]"
+                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#23304a] outline-none file:mr-3 file:border-0 file:bg-[#e8f7f3] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#006a5c] focus:border-[#008a7a]"
                   />
-                  <span className="mt-2 block text-xs leading-5 text-[#7f8c99]">
+                  <span className="mt-2 block text-xs leading-5 text-[#526174]">
                     {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
                   </span>
                 </label>
-                <div className="border border-[#2a3440] bg-[#090d12] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 1 - physical safety</p>
-                  <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
-                  <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Checks robot limits before Supabase unlocks Software Check.</p>
+                <div className="border border-[#dce7f2] bg-[#f8fbff] p-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Gate 1 - physical safety</p>
+                  <p className="mt-2 font-mono text-xs leading-5 text-[#07142e]">{plan.motionCount} motion commands</p>
+                  <p className="mt-1 text-xs leading-5 text-[#526174]">Checks robot limits before Supabase unlocks Software Check.</p>
                 </div>
-                <div className="border border-[#2a3440] bg-[#090d12] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Gate 2 - Software Check</p>
-                  <p className="mt-2 text-xs leading-5 text-[#cdd6df]">Locked until Gate 1 passes. Uses GPT-5.5 and charges account credits.</p>
+                <div className="border border-[#dce7f2] bg-[#f8fbff] p-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Gate 2 - Software Check</p>
+                  <p className="mt-2 text-xs leading-5 text-[#23304a]">Locked until Gate 1 passes. Uses GPT-5.5 and charges account credits.</p>
                 </div>
                 <button
                   type="button"
                   onClick={runPhysicalSafetyCheck}
                   disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
-                  className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full border border-[#2f70c8] bg-[#eaf3ff] px-4 py-3 text-sm font-semibold text-[#194f92] transition hover:bg-[#2f70c8] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
                 </button>
@@ -1330,19 +1341,19 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   type="button"
                   onClick={runSoftwareCheck}
                   disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
-                  className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
+                  className="w-full border border-[#008a7a] bg-[#e8f7f3] px-4 py-3 text-sm font-semibold text-[#006a5c] transition hover:bg-[#008a7a] hover:text-white disabled:cursor-not-allowed disabled:border-[#d5e0ec] disabled:bg-[#edf2f7] disabled:text-[#7d8b9c]"
                 >
                   {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
                 </button>
-                <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#8fdc8f] bg-[#102015]" : "border-[#2a3440] bg-[#090d12]"}`}>
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Schedule gate</p>
-                  <p className="mt-2 text-sm leading-6 text-[#cdd6df]">
+                <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-[#dce7f2] bg-[#f8fbff]"}`}>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Schedule gate</p>
+                  <p className="mt-2 text-sm leading-6 text-[#23304a]">
                     {canScheduleRobotSlot ? "Both checks passed. You can schedule the supervised live robot test now." : "Scheduling unlocks only after physical safety and AI software security both pass."}
                   </p>
                   {canScheduleRobotSlot ? (
                     <Link
                       href="/account"
-                      className="mt-3 block border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
+                      className="mt-3 block border border-[#008a7a] bg-[#008a7a] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#006a5c]"
                     >
                       Schedule Robot Slot
                     </Link>
@@ -1350,13 +1361,13 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     <button
                       type="button"
                       disabled
-                      className="mt-3 w-full cursor-not-allowed border border-[#2a3440] bg-[#151a20] px-4 py-3 text-sm font-semibold text-[#687583]"
+                      className="mt-3 w-full cursor-not-allowed border border-[#d5e0ec] bg-[#edf2f7] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
                     >
                       Schedule Robot Slot Locked
                     </button>
                   )}
                 </div>
-                <p className="border border-[#2a3440] bg-[#090d12] p-3 text-sm leading-6 text-[#aeb8c2]">{requestStatus}</p>
+                <p className="border border-[#dce7f2] bg-[#f8fbff] p-3 text-sm leading-6 text-[#23304a]">{requestStatus}</p>
               </div>
             </div>
           </div>
