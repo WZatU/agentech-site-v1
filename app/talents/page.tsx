@@ -28,7 +28,7 @@ const talentPrograms = [
 
 export default function TalentsPage() {
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="talent-white-page min-h-screen bg-white text-black">
       <section className="border-b border-slate-200">
         <div className="mx-auto flex max-w-7xl justify-center px-6 py-8 lg:px-8 lg:py-10">
           <Image
