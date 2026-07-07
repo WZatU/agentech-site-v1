@@ -392,22 +392,22 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 
   body:has(.education-black) .agent-cursor:not(.is-nav),
   body:has(.account-white-page) .agent-cursor:not(.is-nav) {
-    border-color: rgba(0, 0, 0, 0.42);
-    background: rgba(0, 0, 0, 0.28);
+    border-color: rgba(88, 28, 135, 0.46);
+    background: rgba(109, 40, 217, 0.26);
     box-shadow:
-      0 0 10px rgba(0, 0, 0, 0.28),
-      0 0 28px rgba(0, 0, 0, 0.16);
+      0 0 10px rgba(88, 28, 135, 0.3),
+      0 0 28px rgba(109, 40, 217, 0.18);
     mix-blend-mode: multiply;
   }
 
   body:has(.education-black) .agent-cursor:not(.is-nav)::after,
   body:has(.account-white-page) .agent-cursor:not(.is-nav)::after {
-    border-color: rgba(0, 0, 0, 0.18);
+    border-color: rgba(88, 28, 135, 0.2);
   }
 
   body:has(.education-black) .agent-cursor:not(.is-nav) .agent-cursor-core,
   body:has(.account-white-page) .agent-cursor:not(.is-nav) .agent-cursor-core {
-    background: rgba(0, 0, 0, 0.52);
+    background: rgba(88, 28, 135, 0.52);
   }
 
   @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
