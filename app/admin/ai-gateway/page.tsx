@@ -32,5 +32,11 @@ export default async function AiGatewayAdminPage() {
     notFound();
   }
 
-  return <AiGatewayAdminDashboard adminEmail={email} />;
+  return (
+    <main className="account-white-page min-h-screen bg-[#f6f8fc] px-4 py-8 text-slate-950 sm:px-6 lg:px-8 lg:py-12">
+      <div className="mx-auto max-w-6xl">
+        <AiGatewayAdminDashboard adminEmail={email} />
+      </div>
+    </main>
+  );
 }

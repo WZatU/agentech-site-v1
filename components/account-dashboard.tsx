@@ -866,6 +866,12 @@ export function AccountDashboard() {
   }, [adminCreditTargetEmail, email]);
 
   useEffect(() => {
+    if (email && looksLikeGatewayOwnerEmail(email)) {
+      router.replace("/admin/ai-gateway");
+    }
+  }, [email, router]);
+
+  useEffect(() => {
     if (!email || !looksLikeGatewayOwnerEmail(email)) {
       setAdminAiUsage(null);
       return;
@@ -1405,6 +1411,15 @@ export function AccountDashboard() {
     invoices: invoiceTotal,
     settings: data.accessProfiles?.length ?? 0
   };
+
+  if (isGatewayOwnerAccount) {
+    return (
+      <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
+        <h1 className="text-3xl font-bold text-slate-950">Opening AI Gateway Admin</h1>
+        <p className="mt-3 text-slate-600">Redirecting info@agent-tech.ai to the protected AI Gateway console.</p>
+      </div>
+    );
+  }
 
   if (isGatewayOwnerAccount) {
     const caps = adminAiUsage?.caps ?? [];
