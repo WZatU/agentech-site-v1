@@ -251,21 +251,21 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
 
   return (
     <div className="overflow-hidden rounded-[18px] border border-slate-200 bg-[#f8fbff] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-      <div className="relative overflow-hidden border-b border-slate-200 bg-slate-950 px-5 pb-6 pt-5 text-white sm:px-7 md:px-8 md:pt-7">
-        <div className="absolute inset-x-0 top-0 h-1 bg-red-500" />
+      <div className="relative overflow-hidden border-b border-slate-200 bg-white px-5 pb-6 pt-5 sm:px-7 md:px-8 md:pt-7">
+        <div className="absolute inset-x-0 top-0 h-2 bg-red-600" />
         <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="inline-flex rounded-full border border-red-400/60 bg-red-500/15 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-red-100">
-              Owner Admin Privilege
+            <p className="inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.25)]">
+              Owner Admin Privilege Active
             </p>
-            <h1 className="mt-4 text-[34px] font-black leading-none text-white sm:text-5xl">AI Gateway Command Center</h1>
-            <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-300">
+            <h1 className="mt-4 text-[38px] font-black leading-none text-slate-950 sm:text-6xl">AI Gateway Command Center</h1>
+            <p className="mt-3 max-w-3xl text-base font-bold leading-7 text-slate-700">
               You are signed in as the gateway owner. Monitor every developer, inspect usage velocity, and stop AI access immediately if an account abuses the system.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-slate-950">Admin Mode Active</span>
+              <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-white">Admin Mode Active</span>
               <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-white">Pause Controls Enabled</span>
-              <span className="rounded-full border border-white/20 px-3 py-1 text-xs font-bold text-slate-200">{email}</span>
+              <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{email}</span>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -273,7 +273,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               type="button"
               onClick={loadUsage}
               disabled={loading}
-              className="rounded-full border border-white/25 bg-white px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-full border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Refreshing..." : "Refresh Usage"}
             </button>
@@ -283,7 +283,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                 clearAccountSession();
                 window.location.href = "/login?next=/admin/ai-gateway";
               }}
-              className="rounded-full border border-white/20 bg-transparent px-4 py-2 text-sm font-bold text-slate-200 transition hover:border-white hover:text-white"
+              className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-red-500 hover:text-red-600"
             >
               Sign Out
             </button>
@@ -311,13 +311,12 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">{message}</p>
         ) : null}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[
             { label: "Developer Profiles", value: data.developerProfiles.length.toLocaleString(), helper: "Profiles with developer access" },
             { label: "Gateway Users", value: summary.activeGatewayUsers.toLocaleString(), helper: "Used AI this month" },
             { label: "Monthly Requests", value: summary.totalRequests.toLocaleString(), helper: "Across all users" },
-            { label: "Last Hour", value: gatewayHistory.callsLastHour.toLocaleString(), helper: "Recent AI calls" },
-            { label: "Last 24 Hours", value: gatewayHistory.callsLast24h.toLocaleString(), helper: "Recent AI calls" },
+            { label: "Recent Velocity", value: `${gatewayHistory.callsLastHour.toLocaleString()} / ${gatewayHistory.callsLast24h.toLocaleString()}`, helper: "Calls in 1h / 24h" },
             { label: "Paused", value: summary.pausedGatewayUsers.toLocaleString(), helper: "Blocked accounts" },
             { label: "Estimated Cost", value: formatGatewayCost(summary.totalCost), helper: "Current month" }
           ].map((card) => (
@@ -342,75 +341,46 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-[1320px] w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-[0.12em] text-slate-500">
-                <tr>
-                  <th className="px-5 py-3">Developer</th>
-                  <th className="px-5 py-3">Account</th>
-                  <th className="px-5 py-3">Requests</th>
-                  <th className="px-5 py-3">Tokens</th>
-                  <th className="px-5 py-3">Cost</th>
-                  <th className="px-5 py-3">History</th>
-                  <th className="px-5 py-3">Software Gate</th>
-                  <th className="px-5 py-3">Admin Power</th>
-                  <th className="px-5 py-3">Updated</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {data.developerProfiles.length ? data.developerProfiles.map((profile) => {
-                  const cap = capByEmail.get(profile.account_email);
-                  const account = accountByEmail.get(profile.account_email);
-                  const requests = Number(cap?.current_requests ?? 0);
-                  const requestLimit = Number(cap?.monthly_request_limit ?? 20);
-                  const tokens = Number(cap?.current_tokens ?? 0);
-                  const cost = Number(cap?.current_cost ?? 0);
-                  const costLimit = Number(cap?.monthly_cost_limit ?? 5);
-                  const gateStatus = account?.developer_ai_security_status || "not started";
-                  const history = getUsageWindowStats(usageByEmail.get(profile.account_email) ?? []);
-                  const highRecentUse = history.callsLastHour >= 5;
-                  const paused = isGatewayPaused(cap);
-                  const isActing = actingEmail === profile.account_email;
-                  return (
-                    <tr key={profile.id} className={`align-top ${paused ? "bg-red-50/60" : ""}`}>
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-slate-950">{profile.display_name || profile.username}</p>
-                        <p className="mt-1 font-mono text-xs text-slate-500">@{profile.username}</p>
+          <div className="space-y-3 p-4 sm:p-5">
+            {data.developerProfiles.length ? data.developerProfiles.map((profile) => {
+              const cap = capByEmail.get(profile.account_email);
+              const account = accountByEmail.get(profile.account_email);
+              const requests = Number(cap?.current_requests ?? 0);
+              const requestLimit = Number(cap?.monthly_request_limit ?? 20);
+              const tokens = Number(cap?.current_tokens ?? 0);
+              const cost = Number(cap?.current_cost ?? 0);
+              const costLimit = Number(cap?.monthly_cost_limit ?? 5);
+              const gateStatus = account?.developer_ai_security_status || "not started";
+              const history = getUsageWindowStats(usageByEmail.get(profile.account_email) ?? []);
+              const highRecentUse = history.callsLastHour >= 5;
+              const paused = isGatewayPaused(cap);
+              const isActing = actingEmail === profile.account_email;
+
+              return (
+                <article
+                  key={profile.id}
+                  className={`rounded-2xl border p-4 transition ${
+                    paused ? "border-red-200 bg-red-50 shadow-[0_12px_28px_rgba(220,38,38,0.08)]" : "border-slate-200 bg-white hover:border-[#2f70c8]/35"
+                  }`}
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(210px,0.9fr)_minmax(420px,1.7fr)_minmax(190px,0.7fr)] xl:items-center">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-lg font-black text-slate-950">{profile.display_name || profile.username}</p>
                         {paused ? (
-                          <span className="mt-2 inline-flex rounded-full bg-red-600 px-2 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-white">
+                          <span className="inline-flex rounded-full bg-red-600 px-2 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-white">
                             AI Paused
                           </span>
                         ) : null}
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="break-all font-semibold text-slate-700">{profile.account_email}</p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-slate-950">{requests.toLocaleString()} / {requestLimit.toLocaleString()}</p>
-                        <p className="mt-1 text-xs text-slate-500">monthly calls</p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-slate-950">{formatTokenCount(tokens)}</p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-slate-950">{formatGatewayCost(cost)}</p>
-                        <p className="mt-1 text-xs text-slate-500">limit {formatGatewayCost(costLimit)}</p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-semibold text-slate-700">
-                          {history.latest ? formatDateTime(history.latest.created_at) : "Never used"}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {history.callsLastHour.toLocaleString()} in 1h / {history.callsLast24h.toLocaleString()} in 24h
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">avg {formatDurationMs(history.averageLatencyMs)}</p>
                         {highRecentUse ? (
-                          <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-700">
+                          <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-700">
                             High recent use
                           </span>
                         ) : null}
-                      </td>
-                      <td className="px-5 py-4">
+                      </div>
+                      <p className="mt-1 font-mono text-xs text-slate-500">@{profile.username}</p>
+                      <p className="mt-2 break-all text-sm font-semibold text-slate-700">{profile.account_email}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
                         <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
                           gateStatus === "passed"
                             ? "bg-emerald-50 text-emerald-700"
@@ -418,40 +388,58 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                               ? "bg-red-50 text-red-700"
                               : "bg-slate-100 text-slate-600"
                         }`}>
-                          {formatStatus(gateStatus)}
+                          Software: {formatStatus(gateStatus)}
                         </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <button
-                          type="button"
-                          disabled={isActing}
-                          onClick={() => void controlGatewayAccess(profile.account_email, paused ? "resume" : "pause")}
-                          className={`w-full rounded-xl px-4 py-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                            paused
-                              ? "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                              : "border border-red-700 bg-red-600 text-white shadow-[0_10px_24px_rgba(220,38,38,0.25)] hover:bg-red-700"
-                          }`}
-                        >
-                          {isActing ? "Working..." : paused ? "Resume AI" : "Pause AI Now"}
-                        </button>
-                        <p className="mt-2 text-xs font-semibold text-slate-500">
-                          {paused ? "Restores monthly caps." : "Stops OpenAI calls immediately."}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {cap?.updated_at ? formatDateTime(cap.updated_at) : "No AI usage yet"}
-                      </td>
-                    </tr>
-                  );
-                }) : (
-                  <tr>
-                    <td className="px-5 py-8 text-center text-sm font-semibold text-slate-500" colSpan={9}>
-                      No developer profiles found yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                          Updated: {cap?.updated_at ? formatDateTime(cap.updated_at) : "No AI usage yet"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {[
+                        { label: "Requests", value: `${requests.toLocaleString()} / ${requestLimit.toLocaleString()}`, helper: "monthly calls" },
+                        { label: "Tokens", value: formatTokenCount(tokens), helper: "prompt + completion" },
+                        { label: "Cost", value: formatGatewayCost(cost), helper: `limit ${formatGatewayCost(costLimit)}` },
+                        {
+                          label: "History",
+                          value: history.latest ? formatDateTime(history.latest.created_at) : "Never used",
+                          helper: `${history.callsLastHour.toLocaleString()} in 1h / ${history.callsLast24h.toLocaleString()} in 24h / avg ${formatDurationMs(history.averageLatencyMs)}`
+                        }
+                      ].map((metric) => (
+                        <div key={metric.label} className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                          <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">{metric.label}</p>
+                          <p className="mt-2 break-words text-base font-black text-slate-950">{metric.value}</p>
+                          <p className="mt-1 break-words text-xs font-semibold text-slate-500">{metric.helper}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        disabled={isActing}
+                        onClick={() => void controlGatewayAccess(profile.account_email, paused ? "resume" : "pause")}
+                        className={`w-full rounded-xl px-4 py-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          paused
+                            ? "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "border border-red-700 bg-red-600 text-white shadow-[0_10px_24px_rgba(220,38,38,0.25)] hover:bg-red-700"
+                        }`}
+                      >
+                        {isActing ? "Working..." : paused ? "Resume AI" : "Pause AI Now"}
+                      </button>
+                      <p className="text-xs font-semibold text-slate-500">
+                        {paused ? "Restores monthly caps." : "Stops OpenAI calls immediately."}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              );
+            }) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                No developer profiles found yet.
+              </div>
+            )}
           </div>
         </section>
 
