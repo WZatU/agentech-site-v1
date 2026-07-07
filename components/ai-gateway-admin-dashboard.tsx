@@ -312,12 +312,12 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                 Last refresh: {lastRefreshedAt || "not loaded yet"}
               </p>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 md:w-[420px]">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 md:w-[430px]">
               <button
                 type="button"
                 onClick={() => void loadUsage({ announce: true })}
                 disabled={loading}
-                className="h-11 w-full rounded-xl border-2 border-slate-300 bg-white px-5 text-sm font-black text-slate-950 transition hover:border-slate-950 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-xl border-2 border-slate-950 bg-white px-5 text-[15px] font-black text-slate-950 shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Refreshing..." : "Refresh Usage"}
               </button>
@@ -327,7 +327,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   clearAccountSession();
                   window.location.href = "/login?next=/admin/ai-gateway";
                 }}
-                className="h-11 w-full rounded-xl border-2 border-red-700 bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-700"
+                className="h-12 w-full rounded-xl border-2 border-red-800 bg-red-600 px-5 text-[15px] font-black text-white shadow-[0_8px_18px_rgba(220,38,38,0.22)] transition hover:bg-red-700"
               >
                 Sign Out
               </button>
