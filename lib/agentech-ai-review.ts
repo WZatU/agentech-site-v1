@@ -1,3 +1,5 @@
+import { callOpenAiResponsesThroughGateway } from "@/lib/eai-ai-gateway";
+
 export type AgentechAiCodeReview = {
   passed: boolean;
   riskLevel: "low" | "medium" | "high" | "critical";
@@ -74,18 +76,6 @@ const softwareSecurityReviewPrompt = [
   "- Findings should name the concrete reason, module, behavior, or line-level pattern when possible."
 ].join("\n");
 
-function getOpenAiConfig() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error("OpenAI code scan is not configured. Set OPENAI_API_KEY on the server.");
-  }
-
-  return {
-    apiKey,
-    model: process.env.OPENAI_CODE_REVIEW_MODEL || defaultReviewModel
-  };
-}
-
 function extractResponseText(payload: unknown) {
   if (!payload || typeof payload !== "object") {
     return "";
@@ -137,6 +127,7 @@ function normalizeReview(value: unknown): AgentechAiCodeReview {
 }
 
 export async function runAgentechAiCodeReview(input: {
+  userId: string;
   developerName: string;
   robotModel: string;
   runMode: string;
@@ -145,18 +136,16 @@ export async function runAgentechAiCodeReview(input: {
   commands: string[];
   code: string;
 }) {
-  const { apiKey, model } = getOpenAiConfig();
+  const model = process.env.OPENAI_CODE_REVIEW_MODEL || defaultReviewModel;
   const code = input.code.length > maxReviewCodeChars
     ? `${input.code.slice(0, maxReviewCodeChars)}\n\n# [truncated for AI review]`
     : input.code;
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
+  const gatewayResponse = await callOpenAiResponsesThroughGateway({
+    userId: input.userId,
+    endpoint: "robot_code_security_review",
+    model,
+    body: {
       model,
       reasoning: { effort: "low" },
       text: {
@@ -208,24 +197,28 @@ export async function runAgentechAiCodeReview(input: {
           ]
         }
       ]
-    })
+    }
   });
 
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message = payload && typeof payload === "object" && "error" in payload
-      ? JSON.stringify((payload as { error: unknown }).error)
+  if (!gatewayResponse.ok) {
+    const message = gatewayResponse.payload && typeof gatewayResponse.payload === "object" && "error" in gatewayResponse.payload
+      ? JSON.stringify((gatewayResponse.payload as { error: unknown }).error)
       : "OpenAI code scan failed.";
     throw new Error(message);
   }
 
-  const text = extractResponseText(payload);
+  const text = extractResponseText(gatewayResponse.payload);
   if (!text) {
     throw new Error("OpenAI code scan returned an empty response.");
   }
 
   return {
     model,
+    gateway: {
+      usage: gatewayResponse.usage,
+      estimatedCost: gatewayResponse.estimatedCost,
+      latencyMs: gatewayResponse.latencyMs
+    },
     review: normalizeReview(JSON.parse(text))
   };
 }

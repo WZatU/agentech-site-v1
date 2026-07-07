@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { findAccount, isValidEmail, normalizeEmail, verifyPassword } from "@/lib/prototype-auth";
+import { setSignedAccountSessionCookie } from "@/lib/server-account-session";
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as { email?: string; password?: string } | null;
@@ -15,5 +16,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email or password is incorrect." }, { status: 401 });
   }
 
-  return NextResponse.json({ ok: true, email });
+  const response = NextResponse.json({ ok: true, email });
+  setSignedAccountSessionCookie(response, email);
+  return response;
 }

@@ -9,6 +9,7 @@ import {
   normalizeEmail,
   verifyCode
 } from "@/lib/prototype-auth";
+import { setSignedAccountSessionCookie } from "@/lib/server-account-session";
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as {
@@ -70,7 +71,9 @@ export async function POST(request: Request) {
   });
   await clearVerificationCode(email);
 
-  return NextResponse.json({ ok: true, email });
+  const response = NextResponse.json({ ok: true, email });
+  setSignedAccountSessionCookie(response, email);
+  return response;
 }
 
 function clean(value: unknown) {

@@ -1,8 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import {
+  allocateCreditSpend,
   createCodeSubmissionRecord,
   getAccountRecord,
   getCodeSubmissionRecord,
@@ -10,10 +10,10 @@ import {
   spendAccountCredits,
   updateCodeSubmissionRecord
 } from "@/lib/account-records";
-import { accountSessionCookieName } from "@/lib/account-session";
 import { runAgentechAiCodeReview } from "@/lib/agentech-ai-review";
 import { validateAgentechCode } from "@/lib/agentech-validation";
-import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { isValidEmail } from "@/lib/prototype-auth";
+import { getServerAccountEmail } from "@/lib/server-account-session";
 
 type SubmissionPayload = {
   developerName?: string;
@@ -45,14 +45,16 @@ function isAllowedRunMode(value: string) {
   return value === "Software check" || value === "AI software security review" || value === "Benchmark review only" || value === "Dry-run review";
 }
 
-async function getSignedInEmail() {
-  const cookieStore = await cookies();
-  return normalizeEmail(cookieStore.get(accountSessionCookieName)?.value);
-}
-
 function getAiReviewCreditCost() {
   const parsed = Number(process.env.AGENTECH_AI_REVIEW_CREDITS ?? 50);
   return Number.isFinite(parsed) && parsed > 0 ? Math.ceil(parsed) : 1;
+}
+
+function getGatewayErrorStatus(error: unknown) {
+  const status = typeof error === "object" && error !== null && "status" in error
+    ? Number((error as { status?: unknown }).status)
+    : 502;
+  return Number.isInteger(status) && status >= 400 && status <= 599 ? status : 502;
 }
 
 async function writeLocalSubmission(id: string, record: unknown) {
@@ -64,7 +66,7 @@ async function writeLocalSubmission(id: string, record: unknown) {
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as SubmissionPayload;
-    const email = await getSignedInEmail();
+    const email = await getServerAccountEmail(request);
     const developerName = cleanText(payload.developerName);
     const robotModel = cleanText(payload.robotModel, "Aegis Ultra");
     const runMode = cleanText(payload.runMode, "Software check");
@@ -207,8 +209,8 @@ export async function POST(request: NextRequest) {
     };
 
     const creditCost = getAiReviewCreditCost();
-    const spend = await spendAccountCredits(email, creditCost);
-    if (!spend || spend.rechargeRequired) {
+    const spendPreview = allocateCreditSpend(account, creditCost);
+    if (spendPreview.rechargeRequired) {
       await writeLocalSubmission(submission.id, record);
       return NextResponse.json(
         {
@@ -217,7 +219,7 @@ export async function POST(request: NextRequest) {
           physicalSafetyStatus: "passed",
           aiSecurityStatus: "locked",
           creditsRequired: creditCost,
-          shortfall: spend?.shortfall ?? creditCost
+          shortfall: spendPreview.shortfall
         },
         { status: 402 }
       );
@@ -225,7 +227,7 @@ export async function POST(request: NextRequest) {
 
     await updateCodeSubmissionRecord(submission.id, {
       ai_security_status: "pending",
-      credits_charged: creditCost
+      credits_charged: 0
     });
     await markDeveloperReviewGateOnAccount({
       email,
@@ -236,6 +238,7 @@ export async function POST(request: NextRequest) {
     let aiResult: Awaited<ReturnType<typeof runAgentechAiCodeReview>>;
     try {
       aiResult = await runAgentechAiCodeReview({
+        userId: email,
         developerName,
         robotModel,
         runMode,
@@ -245,13 +248,14 @@ export async function POST(request: NextRequest) {
         code
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "OpenAI code scan failed.";
+      const message = error instanceof Error ? error.message : "AI gateway code scan failed.";
+      const status = getGatewayErrorStatus(error);
       await updateCodeSubmissionRecord(submission.id, {
         ai_security_status: "error",
         ai_security_summary: message,
         ai_security_findings: [message],
         ai_security_reviewed_at: new Date().toISOString(),
-        credits_charged: creditCost
+        credits_charged: 0
       });
       await markDeveloperReviewGateOnAccount({
         email,
@@ -262,7 +266,7 @@ export async function POST(request: NextRequest) {
         ...record,
         aiSecurityStatus: "error",
         aiSecuritySummary: message,
-        creditsCharged: creditCost
+        creditsCharged: 0
       });
 
       return NextResponse.json(
@@ -271,10 +275,28 @@ export async function POST(request: NextRequest) {
           id: submission.id,
           physicalSafetyStatus: "passed",
           aiSecurityStatus: "error",
-          creditsCharged: creditCost
+          creditsCharged: 0
         },
-        { status: 502 }
+        { status }
       );
+    }
+
+    const spend = await spendAccountCredits(email, creditCost);
+    if (!spend || spend.rechargeRequired) {
+      const message = "AI security scan completed, but account credits could not be charged. Recharge and run Software Check again.";
+      await updateCodeSubmissionRecord(submission.id, {
+        ai_security_status: "error",
+        ai_security_summary: message,
+        ai_security_findings: [message],
+        ai_security_reviewed_at: new Date().toISOString(),
+        credits_charged: 0
+      });
+      await markDeveloperReviewGateOnAccount({
+        email,
+        submissionId: submission.id,
+        aiSecurityStatus: "error"
+      });
+      return NextResponse.json({ error: message, id: submission.id, physicalSafetyStatus: "passed", aiSecurityStatus: "error" }, { status: 402 });
     }
 
     const aiSecurityStatus = aiResult.review.passed ? "passed" : "failed";
