@@ -227,6 +227,27 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     return map;
   }, [data.usage]);
   const gatewayHistory = useMemo(() => getUsageWindowStats(data.usage), [data.usage]);
+  const sortedDeveloperProfiles = useMemo(() => {
+    return [...data.developerProfiles].sort((left, right) => {
+      const leftCap = capByEmail.get(left.account_email);
+      const rightCap = capByEmail.get(right.account_email);
+      const leftHistory = getUsageWindowStats(usageByEmail.get(left.account_email) ?? []);
+      const rightHistory = getUsageWindowStats(usageByEmail.get(right.account_email) ?? []);
+      const leftScore =
+        Number(leftCap?.current_cost ?? 0) * 1_000_000 +
+        Number(leftCap?.current_tokens ?? 0) +
+        Number(leftCap?.current_requests ?? 0) * 10_000 +
+        leftHistory.callsLastHour * 100_000;
+      const rightScore =
+        Number(rightCap?.current_cost ?? 0) * 1_000_000 +
+        Number(rightCap?.current_tokens ?? 0) +
+        Number(rightCap?.current_requests ?? 0) * 10_000 +
+        rightHistory.callsLastHour * 100_000;
+
+      if (rightScore !== leftScore) return rightScore - leftScore;
+      return (left.display_name || left.username).localeCompare(right.display_name || right.username);
+    });
+  }, [capByEmail, data.developerProfiles, usageByEmail]);
 
   if (!email) {
     return (
@@ -253,7 +274,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     <div className="overflow-hidden rounded-[18px] border border-slate-200 bg-[#f8fbff] shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
       <div className="relative overflow-hidden border-b border-slate-200 bg-white px-5 pb-6 pt-5 sm:px-7 md:px-8 md:pt-7">
         <div className="absolute inset-x-0 top-0 h-2 bg-red-600" />
-        <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
+        <div className="relative space-y-5">
           <div className="min-w-0">
             <p className="inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(220,38,38,0.25)]">
               Owner Admin Privilege Active
@@ -268,26 +289,31 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{email}</span>
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Admin Actions</p>
-            <button
-              type="button"
-              onClick={loadUsage}
-              disabled={loading}
-              className="mt-3 w-full rounded-xl border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Refreshing..." : "Refresh Usage"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                clearAccountSession();
-                window.location.href = "/login?next=/admin/ai-gateway";
-              }}
-              className="mt-3 w-full rounded-xl border border-red-200 bg-white px-4 py-3 text-sm font-black text-red-600 transition hover:border-red-500 hover:bg-red-50"
-            >
-              Sign Out
-            </button>
+          <div className="rounded-2xl border-2 border-slate-950 bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.10)] md:flex md:items-center md:justify-between md:gap-5">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-950">Admin Actions</p>
+              <p className="mt-1 text-sm font-black text-slate-800">Refresh live usage or leave the owner console.</p>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 md:w-[420px]">
+              <button
+                type="button"
+                onClick={loadUsage}
+                disabled={loading}
+                className="h-12 rounded-xl border-2 border-slate-950 bg-white px-5 text-sm font-black text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Refreshing..." : "Refresh Usage"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  clearAccountSession();
+                  window.location.href = "/login?next=/admin/ai-gateway";
+                }}
+                className="h-12 rounded-xl border-2 border-red-700 bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -343,7 +369,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           </div>
 
           <div className="space-y-3 p-4 sm:p-5">
-            {data.developerProfiles.length ? data.developerProfiles.map((profile) => {
+            {sortedDeveloperProfiles.length ? sortedDeveloperProfiles.map((profile) => {
               const cap = capByEmail.get(profile.account_email);
               const account = accountByEmail.get(profile.account_email);
               const requests = Number(cap?.current_requests ?? 0);
