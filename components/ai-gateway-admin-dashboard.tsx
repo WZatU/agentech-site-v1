@@ -142,26 +142,39 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [actingEmail, setActingEmail] = useState("");
+  const [lastRefreshedAt, setLastRefreshedAt] = useState("");
 
-  async function loadUsage() {
+  async function loadUsage(options: { announce?: boolean } = {}) {
     setLoading(true);
     setMessage("");
-    const response = await fetch("/api/admin/ai-usage?limit=250");
-    const result = (await response.json().catch(() => null)) as (AdminAiUsageData & { error?: string }) | null;
 
-    if (!response.ok || !result) {
-      setMessage(result?.error || "Unable to load AI gateway usage. Sign out and sign back in as info@agent-tech.ai.");
+    try {
+      const response = await fetch(`/api/admin/ai-usage?limit=250&_=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" }
+      });
+      const result = (await response.json().catch(() => null)) as (AdminAiUsageData & { error?: string }) | null;
+
+      if (!response.ok || !result) {
+        setMessage(result?.error || "Unable to load AI gateway usage. Sign out and sign back in as info@agent-tech.ai.");
+        return;
+      }
+
+      setData({
+        caps: result.caps ?? [],
+        usage: result.usage ?? [],
+        developerProfiles: result.developerProfiles ?? [],
+        developerAccounts: result.developerAccounts ?? []
+      });
+      setLastRefreshedAt(new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" }));
+      if (options.announce) {
+        setMessage("AI gateway usage refreshed.");
+      }
+    } catch {
+      setMessage("Refresh failed. Check the admin session and network, then try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setData({
-      caps: result.caps ?? [],
-      usage: result.usage ?? [],
-      developerProfiles: result.developerProfiles ?? [],
-      developerAccounts: result.developerAccounts ?? []
-    });
-    setLoading(false);
   }
 
   async function controlGatewayAccess(userId: string, action: "pause" | "resume") {
@@ -297,9 +310,9 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             <div className="mt-4 grid gap-3">
               <button
                 type="button"
-                onClick={loadUsage}
+                onClick={() => void loadUsage({ announce: true })}
                 disabled={loading}
-                className="h-12 w-full rounded-xl border-2 border-slate-950 bg-slate-950 px-5 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-xl border-2 border-slate-950 bg-yellow-300 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Refreshing..." : "Refresh Usage"}
               </button>
@@ -309,11 +322,14 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   clearAccountSession();
                   window.location.href = "/login?next=/admin/ai-gateway";
                 }}
-                className="h-12 w-full rounded-xl border-2 border-red-700 bg-red-600 px-5 text-sm font-black text-white transition hover:bg-red-700"
+                className="h-12 w-full rounded-xl border-2 border-red-700 bg-white px-5 text-sm font-black text-red-700 transition hover:bg-red-50"
               >
                 Sign Out
               </button>
             </div>
+            <p className="mt-3 text-xs font-bold text-slate-700">
+              Last refresh: {lastRefreshedAt || "not loaded yet"}
+            </p>
           </div>
         </div>
       </div>
