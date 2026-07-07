@@ -816,7 +816,7 @@ function FocusedBrowseFunctionsSection() {
               {tutorialCards.map((card) => (
                 <div key={card.title} className="bg-[#f8fbff] p-4">
                   <p className="text-sm font-semibold text-[#07142e]">{card.title}</p>
-                  <p className="mt-2 text-xs leading-5 text-[#526174]">{card.body}</p>
+                  <p className="mt-2 text-xs leading-5 text-[#334155]">{card.body}</p>
                 </div>
               ))}
             </div>
@@ -836,9 +836,9 @@ function FocusedBrowseFunctionsSection() {
         <div className="mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] md:grid-cols-4">
           {groupedFunctions.map((group) => (
             <a key={group.category} href={`#function-${group.category.toLowerCase()}`} className="bg-white p-4 transition hover:bg-[#f3f8ff]">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{group.category}</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">{group.category}</p>
               <p className="mt-2 text-3xl font-semibold text-[#07142e]">{group.items.length}</p>
-              <p className="mt-1 text-xs leading-5 text-[#526174]">commands</p>
+              <p className="mt-1 text-xs leading-5 text-[#334155]">commands</p>
             </a>
           ))}
         </div>
@@ -866,17 +866,17 @@ function FocusedBrowseFunctionsSection() {
                   <details key={item.name} className="group bg-white">
                     <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_auto]">
                       <p className="font-mono text-sm text-[#006a5c]">Agentech.{item.name}({item.params.length ? "parameters" : ""})</p>
-                      <p className="text-sm leading-6 text-[#23304a]">{item.summary}</p>
+                      <p className="text-sm leading-6 text-[#111d35]">{item.summary}</p>
                       <span className="justify-self-start border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c] md:justify-self-end">
                         details
                       </span>
                     </summary>
                     <div className="grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] lg:grid-cols-[minmax(0,1fr)_360px]">
                       <div className="bg-[#fbfdff] p-4">
-                        <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Definition</p>
+                        <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 font-mono text-sm text-[#006a5c]">{item.signature}</p>
-                        <p className="mt-2 text-sm leading-6 text-[#23304a]">{item.summary}</p>
-                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#526174]">Parameters</p>
+                        <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
+                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Parameters</p>
                         <div className="mt-2 grid gap-2">
                           {item.params.length ? (
                             item.params.map((param) => (
@@ -886,14 +886,14 @@ function FocusedBrowseFunctionsSection() {
                                   <span className="font-mono text-xs text-[#005bd6]">{param.type}</span>
                                   <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue ?? "required"}</span>
                                 </div>
-                                <p className="mt-2 text-xs leading-5 text-[#526174]">{param.description}</p>
+                                <p className="mt-2 text-xs leading-5 text-[#334155]">{param.description}</p>
                               </div>
                             ))
                           ) : (
-                            <p className="border border-[#dce7f2] bg-white p-3 text-xs text-[#526174]">No parameters.</p>
+                            <p className="border border-[#dce7f2] bg-white p-3 text-xs text-[#334155]">No parameters.</p>
                           )}
                         </div>
-                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#526174]">Example</p>
+                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Example</p>
                         <pre className="mt-2 overflow-x-auto border border-[#dce7f2] bg-white p-3 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
                       </div>
                       <div className="bg-white p-4">
