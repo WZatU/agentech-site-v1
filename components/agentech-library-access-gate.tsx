@@ -138,13 +138,13 @@ export function AgentechLibraryAccessGate({ children }: { children: ReactNode })
 
   if (status === "locked") {
     return (
-      <LibraryGateShell eyebrow="Developer profile required" title="EAI Cloud is locked.">
+      <LibraryGateShell eyebrow="Developer profile required" title="EAI Cloud is only available to developers.">
         <p>
           {email} is signed in, but this account does not have a developer profile yet. Create or switch to a developer profile to access robot testing tools.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/account" className="rounded-[8px] bg-[#07142e] px-5 py-3 text-sm font-bold uppercase tracking-[0.12em] text-white">
-            Go To Account
+            Create Developer Profile
           </Link>
           <Link href={loginHref} className="rounded-[8px] border border-[#9cd9df] px-5 py-3 text-sm font-bold uppercase tracking-[0.12em] text-[#008a7a]">
             Sign In
