@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-149eca)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6)](https://www.typescriptlang.org/)
 
-Agentech Website is the main web platform for Agentech robotics, education, talent programs, product documentation, account workflows, and automated news publishing.
+Agentech Website is the main web platform for Agentech robotics, education, talent programs, product documentation, EAI Cloud developer workflows, account tools, robot live viewing, and automated news publishing.
 
 The repository is designed to work like a professional product codebase: public pages live beside operational documentation, hidden launch switches are easy to find, and repeatable content flows such as News can be maintained through GitHub.
 
@@ -19,7 +19,8 @@ The repository is designed to work like a professional product codebase: public 
 - Supabase-backed accounts, profiles, children, enrollments, preorder requests, invoices, and applications.
 - Resend-backed application, invoice, and notification email flows.
 - Hidden product documentation page at `/agentech-products/documents`.
-- Hidden collaborator-only Agentech robot dog command library at `/agentech-products/agentech-library`.
+- Products/EAI Cloud robot command library at `/agentech-products/agentech-library`.
+- Developer code review pipeline for uploaded `.py` files: physical/hardware gate, Supabase gate marking, GPT Software Check, account-credit charging, and live robot scheduling unlock.
 - Internal launch switches for preorder, enroll, and grade visibility.
 
 ## Documentation Map
@@ -40,11 +41,11 @@ Important documents:
 - [Dropbox News automation](docs/dropbox-news-automation.md)
 - [Documentation index](docs/documentation-index.md)
 - Hidden product documents page: `/agentech-products/documents`
-- Hidden Agentech robot dog library page: `/agentech-products/agentech-library`
+- Products/EAI Cloud robot dog library page: `/agentech-products/agentech-library`
 
 The product documents page is intentionally not linked from public navigation and is marked `noindex`. It still works by direct URL for internal review.
 
-The Agentech robot dog library page is also intentionally hidden from public navigation and marked `noindex`. Treat it as collaborator-only: share the direct link only with team members, instructors, students, or developers who are supposed to preview the robot command API. It is not a public marketing page.
+The Agentech Products experience is currently the EAI Cloud robot dog command library. It is marked `noindex` and treated as collaborator/developer-only: share the direct link only with team members, instructors, students, or developers who are supposed to preview the robot command API, upload `.py` files for review, or schedule supervised robot tests.
 
 ## Quick Start
 
@@ -85,7 +86,7 @@ Hidden documents preview:
 http://localhost:3001/agentech-products/documents
 ```
 
-Hidden Agentech library preview:
+Products/EAI Cloud library preview:
 
 ```text
 http://localhost:3001/agentech-products/agentech-library
@@ -116,9 +117,17 @@ RESEND_REPLY_TO=
 
 DROPBOX_ACCESS_TOKEN=
 DROPBOX_NEWS_SHARED_LINK=
+
+OPENAI_API_KEY=
+OPENAI_CODE_REVIEW_MODEL=gpt-5.5
+AGENTECH_AI_REVIEW_CREDITS=50
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-side only.
+
+`OPENAI_API_KEY` must also stay server-side only. Never add a `NEXT_PUBLIC_OPENAI_API_KEY`. The code review route calls OpenAI from the server through `lib/agentech-ai-review.ts`, and the browser should never see the key.
+
+`AGENTECH_AI_REVIEW_CREDITS` is the number of website credits charged when the GPT Software Check runs. The current production default is `50`, where the business rule is expected to be `1 credit = $0.01`.
 
 `LIVEKIT_API_SECRET` and any FF SDK / robot-control implementation details must also stay server-side or on the private robot/OBS computer. The website may show public beginner calls such as `Agentech.forward()`, but it must not expose private SDK internals, SSH credentials, robot hotspot details, or service-role keys in client code.
 
@@ -144,7 +153,11 @@ DROPBOX_NEWS_SHARED_LINK=
 | `/account` | Account requests dashboard |
 | `/field-interest/agt-qr-2026` | Hidden QR-only field interest form |
 | `/agentech-products/documents` | Hidden internal product docs |
-| `/agentech-products/agentech-library` | Hidden collaborator Agentech robot dog command library |
+| `/agentech-products/agentech-library` | Products/EAI Cloud robot dog command library and developer workflow hub |
+| `/agentech-products/agentech-library/start-coding` | SDK setup and first-script workflow |
+| `/agentech-products/agentech-library/view-sdk` | SDK reference, parameters, and motion previews |
+| `/agentech-products/agentech-library/submit` | Uploaded `.py` file review gate: physical check first, Software Check second |
+| `/agentech-products/agentech-library/watch-live-run` | Live robot camera view for supervised sessions |
 
 ## Architecture Overview
 
@@ -162,6 +175,7 @@ External services:
 | Service | Use |
 | --- | --- |
 | Supabase | Accounts, profiles, children, enrollments, invoices, applications, resume storage |
+| OpenAI | Server-side GPT Software Check for uploaded robot code after the physical/hardware gate passes |
 | Resend | Application notifications and invoice emails |
 | Dropbox | Source folder for automated News imports |
 | GitHub | Review, version control, deployment source, documentation workflow |
@@ -416,6 +430,7 @@ Main tables:
 - `agentech_counters`
 - `agentech_education_courses`
 - `agentech_enrollments`
+- `agentech_code_submissions`
 - `agentech_invoice_items`
 - `agentech_preorder_invoices`
 - `agentech_workshop_applications`
@@ -479,21 +494,23 @@ docs/
 `-- developer-onboarding.md
 ```
 
-## Hidden Agentech Robot Dog Library
+## Products And EAI Cloud Robot Library
 
-The robot dog command library lives at:
+The Products page is currently the EAI Cloud robot dog command library. It lives at:
 
 ```text
 /agentech-products/agentech-library
 ```
 
-The page is organized into four collaborator workflows:
+This area is the developer-facing workflow for learning the public Agentech robot API, uploading robot-control code, running staged review gates, scheduling supervised robot tests, and watching the live robot feed.
+
+The page is organized into four workflows:
 
 | Workflow | Route | Purpose |
 | --- | --- | --- |
 | Start Coding | `/agentech-products/agentech-library/start-coding` | Guided SDK install, import, first script, beginner recipes, and starter safety rules |
 | View SDK | `/agentech-products/agentech-library/view-sdk` | Category-based SDK reference for Movement, Posture, Safety, and Sensing commands |
-| Submit | `/agentech-products/agentech-library/submit` | Code/GitHub review package submission, with robot slot scheduling locked until successful submission |
+| Submit | `/agentech-products/agentech-library/submit` | Upload or paste a `.py` code file, run the physical/hardware gate, then run GPT Software Check |
 | Watch Live Run | `/agentech-products/agentech-library/watch-live-run` | Focused LiveKit camera view for supervised robot sessions |
 
 Library behavior:
@@ -503,19 +520,237 @@ Library behavior:
 - Closed SDK rows stay compact, for example `Agentech.forward(parameters)`.
 - Individual function details open only on demand and include definition, parameters, example code, and the approved GIF preview.
 - Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
-- `Submit` combines code review and scheduling. Users cannot schedule from this workflow until the submit request succeeds.
+- `Submit` uses one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
+- `Submit` must keep Software Check locked until Supabase says the account/submission passed the physical/hardware gate.
+- `Submit` must keep robot scheduling locked until both the physical/hardware gate and the GPT Software Check pass.
 - `Watch Live Run` must stay uncluttered: only the task header and webcam/live-view module should appear.
 
-Collaborator rules:
+### Submit Review Pipeline
 
-- This page is hidden from public navigation and marked `noindex`.
+The submit pipeline is intentionally staged. The browser UI is not the source of truth; Supabase is.
+
+Current and intended flow:
+
+```text
+Developer uploads or pastes one .py file
+  -> website creates a code submission
+  -> physical/hardware gate runs first
+  -> Supabase marks the account/submission physical_safety_status = passed
+  -> Software Check unlocks
+  -> server confirms Supabase physical pass before calling GPT
+  -> OpenAI/GPT-5.5 reviews the same submission for software security risk
+  -> Supabase marks ai_security_status = passed, failed, or error
+  -> live custom-code robot scheduling unlocks only when both gates pass
+```
+
+Important rule:
+
+```text
+Software Check must use the same .py submission that passed the physical/hardware gate.
+```
+
+The current implementation already records the uploaded file name and code in Supabase. When the real hardware check is added, it should plug into the physical gate and keep writing the same Supabase status fields. The GPT Software Check should remain behind that Supabase gate.
+
+### Physical / Hardware Gate
+
+The physical/hardware gate answers:
+
+```text
+Can this code damage the robot?
+```
+
+It is responsible for robot-body safety, for example:
+
+- joint limits
+- unsafe motion commands
+- repeated backflips or high-risk movements
+- speed, angle, duration, and acceleration limits
+- robot model compatibility
+- anything likely to damage hardware or create unsafe live behavior
+
+Current state:
+
+- The website has a software placeholder using `lib/agentech-validation.ts`.
+- That placeholder validates the public Agentech command API and motion limits.
+- The real hardware verification system is not implemented yet.
+
+Future hardware check integration:
+
+- The hardware check should run before GPT.
+- It should update the same Supabase submission/account gate fields.
+- Once it marks the submission as passed, no second code upload is needed.
+
+Required Supabase account fields:
+
+```text
+agentech_accounts.developer_latest_code_submission_id
+agentech_accounts.developer_physical_safety_status
+agentech_accounts.developer_physical_safety_passed_at
+agentech_accounts.developer_ai_security_status
+agentech_accounts.developer_ai_security_passed_at
+```
+
+Expected account state after physical/hardware pass:
+
+```text
+developer_latest_code_submission_id = agentech-...
+developer_physical_safety_status = passed
+developer_ai_security_status = locked
+```
+
+### GPT Software Check
+
+The GPT Software Check answers:
+
+```text
+Can this code damage Agentech systems, website data, accounts, private files, users, or infrastructure?
+```
+
+It is not responsible for robot motion safety. Motion/hardware safety belongs to the physical gate.
+
+The GPT Software Check runs on the server through:
+
+```text
+lib/agentech-ai-review.ts
+app/api/agentech-code-submit/route.ts
+```
+
+Environment variables:
+
+```text
+OPENAI_API_KEY
+OPENAI_CODE_REVIEW_MODEL=gpt-5.5
+AGENTECH_AI_REVIEW_CREDITS=50
+```
+
+The API key must never be exposed to client code.
+
+The Software Check should fail code that attempts:
+
+- malware-like behavior
+- credential theft
+- reading `.env`, API keys, SSH keys, tokens, or private files
+- shell/process execution such as `os.system`, `subprocess`, `eval`, or `exec`
+- network exfiltration or suspicious requests to unknown servers
+- website/backend exploitation
+- Supabase/account/review-gate bypass
+- destructive filesystem operations
+- persistence or startup hooks
+- dynamic downloads or package installs
+- obfuscated payloads, encoded scripts, or hidden base64 execution
+- infinite loops or obvious resource abuse
+- imports or actions outside the allowed robot-code purpose
+
+The model is instructed to return structured JSON:
+
+```json
+{
+  "passed": true,
+  "riskLevel": "low",
+  "summary": "Short review result.",
+  "findings": []
+}
+```
+
+If the model is uncertain, it should fail the submission. This is a defensive review gate.
+
+### Supabase Code Submission Table
+
+The code review pipeline uses:
+
+```text
+agentech_code_submissions
+```
+
+Important columns:
+
+| Column | Purpose |
+| --- | --- |
+| `id` | Submission ID used by both gates |
+| `email` | Account that owns the submission |
+| `developer_name` | Student/team/developer label |
+| `robot_model` | Target robot model |
+| `run_mode` | Review mode shown in the UI |
+| `source` | `pasted_code`, `uploaded_file`, or legacy `github` |
+| `uploaded_file_name` | Original uploaded `.py` file name |
+| `commands` | Extracted Agentech command list |
+| `code` | Code content tied to the submission |
+| `physical_safety_status` | `pending`, `passed`, or `failed` |
+| `ai_security_status` | `locked`, `pending`, `passed`, `failed`, or `error` |
+| `ai_security_model` | GPT model used, currently `gpt-5.5` |
+| `ai_security_summary` | Short result from GPT |
+| `ai_security_findings` | JSON array of findings |
+| `ai_security_risk_level` | `low`, `medium`, `high`, or `critical` |
+| `ai_security_reviewed_at` | Time GPT review completed |
+| `credits_charged` | Website credits charged for Software Check |
+
+Operator verification after physical gate:
+
+```sql
+select
+  email,
+  developer_latest_code_submission_id,
+  developer_physical_safety_status,
+  developer_physical_safety_passed_at,
+  developer_ai_security_status,
+  developer_ai_security_passed_at
+from public.agentech_accounts
+where email = 'USER_EMAIL_HERE';
+```
+
+Operator verification after Software Check:
+
+```sql
+select
+  id,
+  email,
+  source,
+  uploaded_file_name,
+  physical_safety_status,
+  ai_security_status,
+  ai_security_model,
+  ai_security_summary,
+  ai_security_findings,
+  ai_security_risk_level,
+  credits_charged,
+  created_at,
+  updated_at
+from public.agentech_code_submissions
+where email = 'USER_EMAIL_HERE'
+order by created_at desc
+limit 5;
+```
+
+### Scheduling Gate
+
+Live custom-code scheduling is intentionally locked behind both gates.
+
+Required state:
+
+```text
+developer_physical_safety_status = passed
+developer_ai_security_status = passed
+```
+
+Scheduling is handled through:
+
+```text
+/account
+app/api/robot-slot/route.ts
+```
+
+The robot slot API verifies Supabase before accepting custom-code scheduling. Preset demo viewing can still exist separately, but custom live-code testing must remain locked until both gates pass.
+
+### Collaborator Rules
+
+- This page is marked `noindex`.
 - Share the direct URL only with collaborators who are helping build, teach, review, or test the Agentech robot dog workflow.
 - The page may show the public beginner API, for example `Agentech.forward(speed=0.3, seconds=1)`.
 - Do not expose FF SDK internals, robot hotspot details, SSH credentials, service-role keys, LiveKit API secrets, or private robot-control code in client-rendered code or public docs.
 - Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have credits, while `@agent-tech.ai` accounts can test without credit restrictions.
 - Robot session booking is handled through `/account` and `/api/robot-slot`; booked slots are disabled in the UI and rejected by the API if they overlap an active session.
 
-Local robot-camera operations:
+### Local Robot-Camera Operations
 
 - The OBS/LiveKit stream bridge is intended to run on the Windows computer connected to the Logitech camera and OBS.
 - The bridge polls Supabase for upcoming `agentech_robot_sessions`, starts OBS streaming shortly before a scheduled session, and stops when no active session is due.
