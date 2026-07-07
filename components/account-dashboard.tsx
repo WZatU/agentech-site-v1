@@ -657,6 +657,10 @@ function looksLikeAdminEmail(email: string) {
   return email.trim().toLowerCase().endsWith("@agent-tech.ai");
 }
 
+function looksLikeGatewayOwnerEmail(email: string) {
+  return email.trim().toLowerCase() === "info@agent-tech.ai";
+}
+
 function toDateTimeLocalValue(date: Date) {
   return date.toISOString();
 }
@@ -862,7 +866,7 @@ export function AccountDashboard() {
   }, [adminCreditTargetEmail, email]);
 
   useEffect(() => {
-    if (!email || !looksLikeAdminEmail(email)) {
+    if (!email || !looksLikeGatewayOwnerEmail(email)) {
       setAdminAiUsage(null);
       return;
     }
@@ -1164,7 +1168,7 @@ export function AccountDashboard() {
   }
 
   async function refreshAdminAiUsage() {
-    if (!email || !looksLikeAdminEmail(email)) return;
+    if (!email || !looksLikeGatewayOwnerEmail(email)) return;
 
     setLoadingAdminAiUsage(true);
     setAdminAiUsageMessage("");
@@ -1327,6 +1331,7 @@ export function AccountDashboard() {
   const selectedCardChargeCents = calculateCardChargeCents(selectedRechargeCredits);
   const selectedProcessingFeeCents = Math.max(0, selectedCardChargeCents - selectedRechargeCredits);
   const isAdminAccount = looksLikeAdminEmail(email);
+  const isGatewayOwnerAccount = looksLikeGatewayOwnerEmail(email);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
   const customCodeLocked = robotSlotRunType === "custom_code" && !developerCodeReviewPassed;
@@ -1401,7 +1406,7 @@ export function AccountDashboard() {
     settings: data.accessProfiles?.length ?? 0
   };
 
-  if (isAdminAccount) {
+  if (isGatewayOwnerAccount) {
     const caps = adminAiUsage?.caps ?? [];
     const usage = adminAiUsage?.usage ?? [];
     const developerProfiles = adminAiUsage?.developerProfiles ?? [];
