@@ -1340,7 +1340,8 @@ export function AccountDashboard() {
   const isGatewayOwnerAccount = looksLikeGatewayOwnerEmail(email);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
-  const customCodeLocked = robotSlotRunType === "custom_code" && !developerCodeReviewPassed;
+  const internalTestingBypass = isAdminAccount;
+  const customCodeLocked = robotSlotRunType === "custom_code" && !internalTestingBypass && !developerCodeReviewPassed;
   const robotSlotCreditLocked = !isAdminAccount && creditBalance <= 0;
   const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
   const primaryProfile = data.accessProfiles?.[0] ?? null;
@@ -2393,13 +2394,17 @@ export function AccountDashboard() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Slots require sign-in, a profile, account credits, and a start time on a 5-minute boundary. Custom live code unlocks after physical safety and AI security review.
+                Slots require sign-in, a profile, and a start time on a 5-minute boundary. Regular accounts need credits and review gates; @agent-tech.ai accounts can test without those restrictions.
               </p>
             </div>
-            <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
-              <p>{developerCodeReviewPassed ? "Live code approved" : "Live code locked"}</p>
+            <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed || internalTestingBypass ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
+              <p>{developerCodeReviewPassed ? "Live code approved" : internalTestingBypass ? "Internal testing unlocked" : "Live code locked"}</p>
               <p className="mt-1 text-xs opacity-80">
-                {developerCodeReviewPassed ? "Latest code package passed both gates." : "Run the developer submit scan first."}
+                {developerCodeReviewPassed
+                  ? "Latest code package passed both gates."
+                  : internalTestingBypass
+                    ? "@agent-tech.ai can schedule test slots without credits or code gates."
+                    : "Run the developer submit scan first."}
               </p>
             </div>
           </div>
@@ -2433,7 +2438,11 @@ export function AccountDashboard() {
                     <option value="custom_code">Approved custom code live test</option>
                   </select>
                   <span className="mt-2 block text-sm text-slate-600">
-                    {developerCodeReviewPassed ? "Custom code can be scheduled from the latest approved submission." : "Custom code requires a passed physical safety gate and AI security scan."}
+                    {developerCodeReviewPassed
+                      ? "Custom code can be scheduled from the latest approved submission."
+                      : internalTestingBypass
+                        ? "Internal @agent-tech.ai testing can schedule custom code without the two review gates."
+                        : "Custom code requires a passed physical safety gate and AI security scan."}
                   </span>
                 </label>
                 <label className="block">
@@ -2501,8 +2510,12 @@ export function AccountDashboard() {
                   </span>
                 </label>
                 ) : (
-                  <p className={`rounded-xl border px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
-                    {developerCodeReviewPassed ? "This slot will use the latest Supabase-approved custom code package." : "Custom live-code testing is locked until the AI security scan passes."}
+                  <p className={`rounded-xl border px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed || internalTestingBypass ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+                    {developerCodeReviewPassed
+                      ? "This slot will use the latest Supabase-approved custom code package."
+                      : internalTestingBypass
+                        ? "Internal testing slot: code review gates are bypassed for @agent-tech.ai."
+                        : "Custom live-code testing is locked until the AI security scan passes."}
                   </p>
                 )}
                 <label className="block">

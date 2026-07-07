@@ -522,8 +522,8 @@ Library behavior:
 - Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
 - `Submit` uses one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
 - `Submit` must keep Software Check locked until Supabase says the account/submission passed the physical/hardware gate.
-- `Submit` must keep robot scheduling locked until both the physical/hardware gate and the GPT Software Check pass.
-- `Watch Live Run` must stay uncluttered: only the task header and webcam/live-view module should appear.
+- `Submit` must keep regular-user robot scheduling locked until both the physical/hardware gate and the GPT Software Check pass. Internal `@agent-tech.ai` accounts can schedule testing slots without the two code-review gates.
+- `Watch Live Run` stays focused on the webcam/live-view module, but users must still schedule a robot slot before a stream token is issued.
 
 ### Submit Review Pipeline
 
@@ -747,7 +747,7 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 - Share the direct URL only with collaborators who are helping build, teach, review, or test the Agentech robot dog workflow.
 - The page may show the public beginner API, for example `Agentech.forward(speed=0.3, seconds=1)`.
 - Do not expose FF SDK internals, robot hotspot details, SSH credentials, service-role keys, LiveKit API secrets, or private robot-control code in client-rendered code or public docs.
-- Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have credits, while `@agent-tech.ai` accounts can test without credit restrictions.
+- Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have an active scheduled robot slot. Non-internal users also need account credits; `@agent-tech.ai` accounts can test without credit restrictions and without the two custom-code review gates, but still must book a time and duration.
 - Robot session booking is handled through `/account` and `/api/robot-slot`; booked slots are disabled in the UI and rejected by the API if they overlap an active session.
 
 ### Local Robot-Camera Operations

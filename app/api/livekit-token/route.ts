@@ -4,13 +4,35 @@ import { cookies } from "next/headers";
 import { accountSessionCookieName } from "@/lib/account-session";
 import { getAccountRecord } from "@/lib/account-records";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { supabaseRequest } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
+const activeSessionStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
 
 function isInternalEmail(email: string) {
   return email.trim().toLowerCase().endsWith("@agent-tech.ai");
+}
+
+function normalizeStatus(status: string) {
+  return status.replace(/ /g, "_").toLowerCase();
+}
+
+async function hasActiveViewingSession(email: string) {
+  const nowIso = new Date().toISOString();
+  const sessions = await supabaseRequest<Array<{ id: number; session_status: string }>>("agentech_robot_sessions", {
+    query: [
+      `email=eq.${encodeURIComponent(email)}`,
+      `scheduled_start=lte.${encodeURIComponent(nowIso)}`,
+      `scheduled_end=gte.${encodeURIComponent(nowIso)}`,
+      "select=id,session_status",
+      "order=scheduled_start.asc",
+      "limit=5"
+    ].join("&")
+  }).catch(() => []);
+
+  return sessions.some((session) => activeSessionStatuses.has(normalizeStatus(session.session_status)));
 }
 
 export async function GET(request: Request) {
@@ -34,6 +56,13 @@ export async function GET(request: Request) {
 
   if (!isInternalEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
     return NextResponse.json({ error: "Live robot viewing requires account credits." }, { status: 402 });
+  }
+
+  if (!(await hasActiveViewingSession(email))) {
+    return NextResponse.json(
+      { error: "Schedule a robot viewing time before opening the live camera." },
+      { status: 403 }
+    );
   }
 
   const { searchParams } = new URL(request.url);

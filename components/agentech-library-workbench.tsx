@@ -635,7 +635,18 @@ function FocusedLiveRunSection() {
                 {liveRobotCameraConfigured ? "Official supervised-session camera feed." : "LiveKit camera feed is not configured yet."}
               </p>
             </div>
-            <span className={`h-3 w-3 ${liveRobotCameraConfigured ? "bg-[#008a7a]" : "bg-[#9aa8b8]"}`} aria-hidden="true" />
+            <div className="flex items-center gap-3">
+              <Link
+                href="/account"
+                className="border border-[#008a7a] bg-[#e5fff7] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#006b5f] transition hover:bg-[#008a7a] hover:text-white"
+              >
+                Schedule Time
+              </Link>
+              <span className={`h-3 w-3 ${liveRobotCameraConfigured ? "bg-[#008a7a]" : "bg-[#9aa8b8]"}`} aria-hidden="true" />
+            </div>
+          </div>
+          <div className="border-b border-[#dce7f2] bg-[#f5fbff] px-4 py-3 text-sm leading-6 text-[#23304a]">
+            Live view requires an active scheduled robot slot. Internal @agent-tech.ai accounts can test without credits, but still need to choose a time and duration.
           </div>
           <div className="bg-black p-3">
             <div className="mx-auto aspect-video w-full max-w-5xl overflow-hidden border border-[#0b1220] bg-black">
