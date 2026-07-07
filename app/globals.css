@@ -52,6 +52,15 @@ body:has(.account-white-page) main.flex-1 {
   color: #0f172a;
 }
 
+@media (hover: hover) {
+  :where(a, button, article, div, section)[class*="bg-white"][class*="transition"]:hover:not(:disabled),
+  :where(a, button, article, div, section)[class*="bg-slate-50"][class*="transition"]:hover:not(:disabled),
+  :where(a, button, article, div, section)[class*="bg-[#f8fafc]"][class*="transition"]:hover:not(:disabled),
+  :where(a, button, article, div, section)[class*="bg-[#f8fbff]"][class*="transition"]:hover:not(:disabled) {
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22) !important;
+  }
+}
+
 body:has(.account-illustrated-page) {
   background:
     linear-gradient(180deg, rgba(10, 12, 35, 0.04), rgba(10, 12, 35, 0.12)),
@@ -1050,7 +1059,7 @@ body.account-stars-revealed .account-white-page .account-shooting-stars-layer {
 }
 
 .navi-feature-card:hover {
-  box-shadow: 0 26px 62px rgba(25, 54, 93, 0.18);
+  box-shadow: 0 26px 62px rgba(0, 0, 0, 0.24);
   transform: translate3d(0, -6px, 0);
 }
 
