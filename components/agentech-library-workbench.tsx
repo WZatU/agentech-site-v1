@@ -807,9 +807,8 @@ print(Agentech.get_battery_status())`
 
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {recipes.map((recipe) => (
-            <div key={recipe.title} className="relative border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
-              <CopyCodeButton value={recipe.code} className="absolute right-4 top-4 z-10" />
-              <div className="border-b border-[#dce7f2] px-4 py-3 pr-16">
+            <div key={recipe.title} className="border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
+              <div className="border-b border-[#dce7f2] px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{recipe.title}</p>
               </div>
               <pre className="min-h-56 overflow-x-auto bg-[#fbfdff] p-4 font-mono text-xs leading-6 text-[#07142e]">{recipe.code}</pre>
