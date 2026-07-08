@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
-import { LiveRobotCamera } from "@/components/live-robot-camera";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 type Category = (typeof categories)[number];
@@ -14,9 +13,6 @@ type AgentechLibraryWorkbenchProps = {
   task?: AgentechLibraryTaskSlug;
 };
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
-const liveRobotRoomName = process.env.NEXT_PUBLIC_LIVEKIT_ROOM_NAME || "aegis-lab-1";
-const liveRobotCameraConfigured = Boolean(process.env.NEXT_PUBLIC_LIVEKIT_URL);
-
 const localPreviewAssets: Record<string, string> = {
   forward: "/assets/products/aegis-previews/forward.gif",
   backward: "/assets/products/aegis-previews/backward.gif",
@@ -615,7 +611,7 @@ const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
   "view-sdk": "Browse the SDK by category, open function details only when needed, and preview the matching motion GIF.",
   submit: "Physical safety runs first. Software Check unlocks after that gate passes, and live testing unlocks only when both pass.",
-  "watch-live-run": "Use the live camera module to watch the supervised session when a room is configured."
+  "watch-live-run": "Live viewing unlocks only during an approved scheduled robot slot."
 };
 
 function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAgentechLibraryTask>> }) {
@@ -679,7 +675,7 @@ function FocusedLiveRunSection() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Robot Camera</p>
               <p className="mt-1 text-xs leading-5 text-[#526174]">
-                {liveRobotCameraConfigured ? "Official supervised-session camera feed." : "LiveKit camera feed is not configured yet."}
+                Locked until an approved scheduled session is active.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -689,20 +685,48 @@ function FocusedLiveRunSection() {
               >
                 Schedule Time
               </Link>
-              <span className={`h-3 w-3 ${liveRobotCameraConfigured ? "bg-[#008a7a]" : "bg-[#9aa8b8]"}`} aria-hidden="true" />
+              <span className="h-3 w-3 bg-[#9aa8b8]" aria-hidden="true" />
             </div>
           </div>
           <div className="border-b border-[#dce7f2] bg-[#f5fbff] px-4 py-3 text-sm leading-6 text-[#23304a]">
-            Live view requires an active scheduled robot slot. Internal @agent-tech.ai accounts can test without credits, but still need to choose a time and duration.
+            Live viewing is locked until your account has an active scheduled robot slot. Custom-code sessions also require the physical safety check and software review to pass.
           </div>
-          <div className="bg-black p-3">
-            <div className="mx-auto aspect-video w-full max-w-5xl overflow-hidden border border-[#0b1220] bg-black">
-              <LiveRobotCamera roomName={liveRobotRoomName} />
-            </div>
-          </div>
+          <LockedLiveRunPanel />
         </div>
       </div>
     </section>
+  );
+}
+
+function LockedLiveRunPanel({ dark = false }: { dark?: boolean }) {
+  return (
+    <div className={dark ? "border border-[#2a3440] bg-[#0d1117] p-4" : "bg-white p-5"}>
+      <div className={`grid min-h-64 place-items-center border ${dark ? "border-[#2a3440] bg-[#080b0f]" : "border-[#dce7f2] bg-[#f8fbff]"} px-5 py-8 text-center`}>
+        <div className="max-w-xl">
+          <div className={`mx-auto grid h-16 w-16 place-items-center rounded-[8px] border ${dark ? "border-[#8fdc8f] bg-[#102015] text-[#8fdc8f]" : "border-[#008a7a] bg-[#e6fbf6] text-[#007d6f]"}`}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="11" width="14" height="10" rx="2" />
+              <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+            </svg>
+          </div>
+          <p className={`mt-5 text-xs font-semibold uppercase tracking-[0.16em] ${dark ? "text-[#8fdc8f]" : "text-[#008a7a]"}`}>Live View Locked</p>
+          <h3 className={`mt-2 text-2xl font-semibold ${dark ? "text-white" : "text-[#07142e]"}`}>Schedule an approved robot slot first.</h3>
+          <p className={`mt-3 text-sm leading-6 ${dark ? "text-[#aeb8c2]" : "text-[#334155]"}`}>
+            Live camera access only opens during an active scheduled session. For custom-code runs, pass the physical safety check and software review before scheduling.
+          </p>
+          <Link
+            href="/account"
+            className={`mt-5 inline-flex border px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+              dark
+                ? "border-[#8fdc8f] bg-[#17351f] text-[#dfffe0] hover:bg-[#8fdc8f] hover:text-[#08100a]"
+                : "border-[#008a7a] bg-[#e5fff7] text-[#006b5f] hover:bg-[#008a7a] hover:text-white"
+            }`}
+          >
+            Schedule Time
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1695,13 +1719,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               <div className="border-t border-[#2a3440] p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <p className="text-xs leading-5 text-[#aeb8c2]">
-                    {liveRobotCameraConfigured ? "Official supervised-session feed." : "LiveKit camera feed is not configured yet."}
+                    Locked until an approved scheduled session is active.
                   </p>
-                  <span className={`h-2.5 w-2.5 shrink-0 ${liveRobotCameraConfigured ? "bg-[#8fdc8f]" : "bg-[#7f8c99]"}`} aria-hidden="true" />
+                  <span className="h-2.5 w-2.5 shrink-0 bg-[#7f8c99]" aria-hidden="true" />
                 </div>
-                <div className="mx-auto aspect-[4/3] max-h-[420px] w-full overflow-hidden border border-[#2a3440] bg-black">
-                  <LiveRobotCamera roomName={liveRobotRoomName} />
-                </div>
+                <LockedLiveRunPanel dark />
               </div>
             </details>
 
@@ -1810,13 +1832,13 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <div>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Live Robot Camera</p>
                   <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">
-                    {liveRobotCameraConfigured ? "Official supervised-session camera feed." : "LiveKit camera feed is not configured yet."}
+                    Locked until an approved scheduled session is active.
                   </p>
                 </div>
-                <span className={`h-2.5 w-2.5 ${liveRobotCameraConfigured ? "bg-[#8fdc8f]" : "bg-[#7f8c99]"}`} aria-hidden="true" />
+                <span className="h-2.5 w-2.5 bg-[#7f8c99]" aria-hidden="true" />
               </div>
-              <div className="mx-auto mt-3 aspect-square w-full max-w-[640px] overflow-hidden border border-[#2a3440] bg-black">
-                <LiveRobotCamera roomName={liveRobotRoomName} />
+              <div className="mt-3">
+                <LockedLiveRunPanel dark />
               </div>
             </div>
 

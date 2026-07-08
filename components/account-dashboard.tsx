@@ -1907,7 +1907,7 @@ export function AccountDashboard() {
               <p className="mt-2 text-sm text-slate-600">Paid credits are used before bonus credits when a profile spends.</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-              <p className="font-semibold text-slate-950">Visible to @agent-tech.ai only</p>
+              <p className="font-semibold text-slate-950">Visible to internal admins only</p>
               <p className="mt-1 text-slate-600">Total shown above: {formatCredits(creditBalance)}</p>
             </div>
           </div>
@@ -2394,7 +2394,7 @@ export function AccountDashboard() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Slots require sign-in, a profile, and a start time on a 5-minute boundary. Regular accounts need credits and review gates; @agent-tech.ai accounts can test without those restrictions.
+                Slots require sign-in, a profile, available credits, and a start time on a 5-minute boundary. Custom-code sessions also require both review gates to pass.
               </p>
             </div>
             <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed || internalTestingBypass ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
@@ -2403,7 +2403,7 @@ export function AccountDashboard() {
                 {developerCodeReviewPassed
                   ? "Latest code package passed both gates."
                   : internalTestingBypass
-                    ? "@agent-tech.ai can schedule test slots without credits or code gates."
+                    ? "This testing account can schedule supervised test slots after choosing a time and duration."
                     : "Run the developer submit scan first."}
               </p>
             </div>
@@ -2440,8 +2440,8 @@ export function AccountDashboard() {
                   <span className="mt-2 block text-sm text-slate-600">
                     {developerCodeReviewPassed
                       ? "Custom code can be scheduled from the latest approved submission."
-                      : internalTestingBypass
-                        ? "Internal @agent-tech.ai testing can schedule custom code without the two review gates."
+                    : internalTestingBypass
+                        ? "This testing account can schedule custom code without the two review gates."
                         : "Custom code requires a passed physical safety gate and AI security scan."}
                   </span>
                 </label>
@@ -2514,7 +2514,7 @@ export function AccountDashboard() {
                     {developerCodeReviewPassed
                       ? "This slot will use the latest Supabase-approved custom code package."
                       : internalTestingBypass
-                        ? "Internal testing slot: code review gates are bypassed for @agent-tech.ai."
+                        ? "Testing slot: code review gates are waived for this account."
                         : "Custom live-code testing is locked until the AI security scan passes."}
                   </p>
                 )}
@@ -2530,7 +2530,7 @@ export function AccountDashboard() {
                 </label>
                 {robotSlotCreditLocked ? (
                   <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-                    Robot viewing requires credits. Internal @agent-tech.ai accounts can test without credits.
+                    Robot viewing requires credits.
                   </p>
                 ) : null}
                 {customCodeLocked ? (

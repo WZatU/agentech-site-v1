@@ -278,7 +278,7 @@ export async function POST(request: Request) {
   }
 
   if (!isInternalEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
-    return NextResponse.json({ error: "Robot viewing requires account credits. @agent-tech.ai accounts are unrestricted for internal testing." }, { status: 402 });
+    return NextResponse.json({ error: "Robot viewing requires account credits." }, { status: 402 });
   }
 
   const profiles = await getAccessProfiles(email);
