@@ -221,6 +221,53 @@ function commandPlan(code: string) {
   };
 }
 
+function CopyCodeButton({ value, className = "" }: { value: string; className?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyCode() {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copyCode}
+      className={`grid h-9 w-9 place-items-center border border-[#008a7a] bg-[#e6fbf6] text-[#007d6f] shadow-sm transition hover:bg-[#008a7a] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#008a7a] focus-visible:ring-offset-2 ${className}`}
+      aria-label="Copy code"
+      title={copied ? "Copied" : "Copy code"}
+    >
+      {copied ? (
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      ) : (
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="8" y="8" width="11" height="11" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 function FunctionReference({ item }: { item: AgentechFunction }) {
   return (
     <div className="border border-[#2a3440] bg-[#11151b]">
@@ -743,7 +790,8 @@ print(Agentech.get_battery_status())`
 
           <div className="grid gap-3">
             {setupSteps.map((step) => (
-              <div key={step.label} className="grid gap-4 border border-[#dce7f2] bg-white p-4 shadow-[0_12px_30px_rgba(12,31,58,0.06)] sm:grid-cols-[72px_minmax(0,1fr)]">
+              <div key={step.label} className="relative grid gap-4 border border-[#dce7f2] bg-white p-4 pr-16 shadow-[0_12px_30px_rgba(12,31,58,0.06)] sm:grid-cols-[72px_minmax(0,1fr)]">
+                <CopyCodeButton value={step.code} className="absolute right-4 top-4 z-10" />
                 <div className="grid h-14 w-14 place-items-center rounded-[8px] bg-[#008a6c] font-mono text-xl font-bold text-white">
                   {step.label}
                 </div>
@@ -759,8 +807,9 @@ print(Agentech.get_battery_status())`
 
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {recipes.map((recipe) => (
-            <div key={recipe.title} className="border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
-              <div className="border-b border-[#dce7f2] px-4 py-3">
+            <div key={recipe.title} className="relative border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
+              <CopyCodeButton value={recipe.code} className="absolute right-4 top-4 z-10" />
+              <div className="border-b border-[#dce7f2] px-4 py-3 pr-16">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{recipe.title}</p>
               </div>
               <pre className="min-h-56 overflow-x-auto bg-[#fbfdff] p-4 font-mono text-xs leading-6 text-[#07142e]">{recipe.code}</pre>
@@ -905,7 +954,10 @@ function FocusedBrowseFunctionsSection() {
                           )}
                         </div>
                         <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Example</p>
-                        <pre className="mt-2 overflow-x-auto border border-[#dce7f2] bg-white p-3 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
+                        <div className="relative mt-2 border border-[#dce7f2] bg-white">
+                          <CopyCodeButton value={item.example} className="absolute right-2 top-2 z-10" />
+                          <pre className="overflow-x-auto p-3 pr-24 pt-12 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
+                        </div>
                       </div>
                       <div className="bg-white p-4">
                         <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
