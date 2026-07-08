@@ -1338,11 +1338,12 @@ export function AccountDashboard() {
   const selectedProcessingFeeCents = Math.max(0, selectedCardChargeCents - selectedRechargeCredits);
   const isAdminAccount = looksLikeAdminEmail(email);
   const isGatewayOwnerAccount = looksLikeGatewayOwnerEmail(email);
+  const isInternalCompanyAccount = looksLikeAdminEmail(email);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
-  const internalTestingBypass = isAdminAccount;
+  const internalTestingBypass = isInternalCompanyAccount;
   const customCodeLocked = robotSlotRunType === "custom_code" && !internalTestingBypass && !developerCodeReviewPassed;
-  const robotSlotCreditLocked = !isAdminAccount && creditBalance <= 0;
+  const robotSlotCreditLocked = !internalTestingBypass && creditBalance <= 0;
   const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
   const primaryProfile = data.accessProfiles?.[0] ?? null;
   const primaryProfileType = primaryProfile?.profile_type ?? "developer";
