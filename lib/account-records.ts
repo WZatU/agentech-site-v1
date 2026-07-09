@@ -215,6 +215,43 @@ export async function getAccountRecord(email: string) {
   return rows[0] ?? null;
 }
 
+export async function updateAccountRecord(input: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  address?: string | null;
+}) {
+  const rows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
+    method: "PATCH",
+    query: `email=eq.${encodeURIComponent(input.email)}`,
+    body: {
+      first_name: input.firstName,
+      last_name: input.lastName,
+      phone: input.phone
+    }
+  });
+
+  const account = rows[0] ?? null;
+  if (!account) {
+    return null;
+  }
+
+  const existingProfile = await getProfile(input.email);
+  await upsertProfile({
+    email: input.email,
+    first_name: input.firstName,
+    last_name: input.lastName,
+    phone: input.phone,
+    company: existingProfile?.company ?? null,
+    address: input.address || null,
+    dob: existingProfile?.dob ?? null,
+    account_type: existingProfile?.account_type ?? null
+  });
+
+  return account;
+}
+
 export async function createCodeSubmissionRecord(input: {
   id: string;
   email: string;

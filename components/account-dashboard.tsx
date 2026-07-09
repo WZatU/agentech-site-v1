@@ -70,6 +70,7 @@ type DashboardData = {
     last_name: string;
     phone: string;
     company: string | null;
+    address: string | null;
     account_type: string | null;
   } | null;
   children?: Array<{
@@ -560,6 +561,7 @@ function buildPreviewDashboardData(profileType: AccessProfileType): DashboardDat
       last_name: lastName,
       phone: "(949) 555-0142",
       company: profileType === "teacher" ? "Agentech Education" : "Agentech",
+      address: "123 Innovation Way\nIrvine, CA 92618",
       account_type: profileType === "teacher" ? "group" : "individual"
     },
     children: profileType === "student" || profileType === "teacher"
@@ -710,6 +712,25 @@ function toDateTimeLocalValue(date: Date) {
   return date.toISOString();
 }
 
+function splitAddressLines(address: string) {
+  const lines = address
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length <= 1) {
+    return {
+      line1: lines[0] ?? "",
+      line2: ""
+    };
+  }
+
+  return {
+    line1: lines[0],
+    line2: lines.slice(1).join(", ")
+  };
+}
+
 function roundUpToRobotSlot(date: Date) {
   const rounded = new Date(date);
   rounded.setSeconds(0, 0);
@@ -794,6 +815,14 @@ export function AccountDashboard() {
   const [actionMessage, setActionMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [pendingRemovalId, setPendingRemovalId] = useState("");
+  const [editingAccount, setEditingAccount] = useState(false);
+  const [editAccountFirstName, setEditAccountFirstName] = useState("");
+  const [editAccountLastName, setEditAccountLastName] = useState("");
+  const [editAccountPhone, setEditAccountPhone] = useState("");
+  const [editAccountAddressLine1, setEditAccountAddressLine1] = useState("");
+  const [editAccountAddressLine2, setEditAccountAddressLine2] = useState("");
+  const [editAccountMessage, setEditAccountMessage] = useState("");
+  const [savingAccount, setSavingAccount] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [editProfileType, setEditProfileType] = useState<AccessProfileType>("student");
   const [editProfileUsername, setEditProfileUsername] = useState("");
@@ -1094,6 +1123,55 @@ export function AccountDashboard() {
     setConfirming(false);
   }
 
+  function startEditingAccount() {
+    const addressLines = splitAddressLines(accountAddress);
+    setEditAccountFirstName(data.account?.first_name || "");
+    setEditAccountLastName(data.account?.last_name || "");
+    setEditAccountPhone(phone || "");
+    setEditAccountAddressLine1(addressLines.line1);
+    setEditAccountAddressLine2(addressLines.line2);
+    setEditAccountMessage("");
+    setEditingAccount(true);
+  }
+
+  function cancelEditingAccount() {
+    setEditingAccount(false);
+    setEditAccountMessage("");
+    setSavingAccount(false);
+  }
+
+  async function saveAccount() {
+    if (!email) return;
+
+    setSavingAccount(true);
+    setEditAccountMessage("");
+
+    const response = await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        firstName: editAccountFirstName,
+        lastName: editAccountLastName,
+        phone: editAccountPhone,
+        addressLine1: editAccountAddressLine1,
+        addressLine2: editAccountAddressLine2
+      })
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setEditAccountMessage(result?.error || "Unable to update account.");
+      setSavingAccount(false);
+      return;
+    }
+
+    await refreshAccount();
+    setEditingAccount(false);
+    setEditAccountMessage("Account updated.");
+    setSavingAccount(false);
+  }
+
   function startEditingProfile(profile: DashboardAccessProfile) {
     setEditingProfileId(profile.id);
     setEditProfileType(profile.profile_type);
@@ -1301,6 +1379,7 @@ export function AccountDashboard() {
     : "";
   const displayName = accountName || legacyProfileName || email;
   const phone = data.account?.phone || data.profile?.phone || "";
+  const accountAddress = data.profile?.address || "";
   const hasRequestItems = Boolean(data.unpaidBalance?.lines.length);
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
   const hasRobotSessions = Boolean(data.robotSessions?.length);
@@ -1640,14 +1719,6 @@ export function AccountDashboard() {
           <p className="mt-2 text-sm font-medium text-slate-500">Manage account information, profiles, credits, invoices, and access.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-sm font-bold text-slate-500 shadow-sm"
-          >
-            !
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-          </button>
           <div className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
             {profileInitial}
           </div>
@@ -1715,29 +1786,118 @@ export function AccountDashboard() {
                   {profileInitial}
                 </div>
               </div>
-              <dl className="mt-6 space-y-6">
-                <div>
-                  <dt className="text-xs font-bold text-slate-500">Full Name</dt>
-                  <dd className="mt-1 text-sm font-bold text-slate-900">{displayName}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-bold text-slate-500">Email</dt>
-                  <dd className="mt-1 break-all text-sm font-bold text-slate-900">{email}</dd>
-                </div>
-                {phone ? (
-                  <div>
-                    <dt className="text-xs font-bold text-slate-500">Phone</dt>
-                    <dd className="mt-1 text-sm font-bold text-slate-900">{phone}</dd>
+              {editingAccount ? (
+                <div className="mt-6 space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">First Name</span>
+                      <input
+                        value={editAccountFirstName}
+                        onChange={(event) => setEditAccountFirstName(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Last Name</span>
+                      <input
+                        value={editAccountLastName}
+                        onChange={(event) => setEditAccountLastName(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                      />
+                    </label>
                   </div>
-                ) : null}
-              </dl>
-              <button
-                type="button"
-                onClick={() => setActiveTab("settings")}
-                className="mt-7 w-full rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
-              >
-                Edit Account
-              </button>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Sign-in Email</p>
+                    <p className="mt-2 break-all text-sm font-bold text-slate-950">{email}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">Email cannot be changed from account editing.</p>
+                  </div>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Phone Number</span>
+                    <input
+                      value={editAccountPhone}
+                      onChange={(event) => setEditAccountPhone(event.target.value)}
+                      required
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                    />
+                    <span className="mt-2 block text-xs font-semibold text-slate-500">Phone number is required for this account.</span>
+                  </label>
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Billing Address</p>
+                    <input
+                      value={editAccountAddressLine1}
+                      onChange={(event) => setEditAccountAddressLine1(event.target.value)}
+                      placeholder="Street address, suite, or unit"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                    />
+                    <input
+                      value={editAccountAddressLine2}
+                      onChange={(event) => setEditAccountAddressLine2(event.target.value)}
+                      placeholder="City, state, ZIP, country"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
+                    />
+                    <span className="block text-xs font-semibold text-slate-500">Optional. Used for billing and invoice contact details.</span>
+                  </div>
+                  {editAccountMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{editAccountMessage}</p> : null}
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={saveAccount}
+                      disabled={savingAccount}
+                      className="flex-1 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+                      {savingAccount ? "Saving..." : "Save Account"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEditingAccount}
+                      className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {hasAccessProfiles ? (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("settings")}
+                      className="text-sm font-bold text-[#2563eb]"
+                    >
+                      Edit profile usernames in Profiles
+                    </button>
+                  ) : null}
+                </div>
+              ) : (
+                <>
+                  <dl className="mt-6 space-y-6">
+                    <div>
+                      <dt className="text-xs font-bold text-slate-500">Full Name</dt>
+                      <dd className="mt-1 text-sm font-bold text-slate-900">{displayName}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-bold text-slate-500">Email</dt>
+                      <dd className="mt-1 break-all text-sm font-bold text-slate-900">{email}</dd>
+                      <dd className="mt-1 text-xs font-semibold text-slate-500">Sign-in email cannot be changed here.</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-bold text-slate-500">Phone</dt>
+                      <dd className="mt-1 text-sm font-bold text-slate-900">{phone || "Required"}</dd>
+                    </div>
+                    {accountAddress ? (
+                      <div>
+                        <dt className="text-xs font-bold text-slate-500">Address</dt>
+                        <dd className="mt-1 whitespace-pre-line text-sm font-bold text-slate-900">{accountAddress}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                  {editAccountMessage ? <p className="mt-4 text-sm font-semibold text-[#2f70c8]">{editAccountMessage}</p> : null}
+                  <button
+                    type="button"
+                    onClick={startEditingAccount}
+                    className="mt-7 w-full rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
+                  >
+                    Edit Account
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">

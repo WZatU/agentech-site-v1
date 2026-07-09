@@ -39,6 +39,8 @@ export function UniversalAuthForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -164,7 +166,7 @@ export function UniversalAuthForm() {
     const response = await fetch("/api/auth/create-account", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code, password, firstName, lastName, phone })
+      body: JSON.stringify({ email, code, password, firstName, lastName, phone, addressLine1, addressLine2 })
     });
     const result = (await response.json()) as ApiResult;
 
@@ -358,6 +360,22 @@ export function UniversalAuthForm() {
               required
             />
           </label>
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Billing Address</p>
+            <input
+              value={addressLine1}
+              onChange={(event) => setAddressLine1(event.target.value)}
+              placeholder="Street address, suite, or unit"
+              className="w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+            />
+            <input
+              value={addressLine2}
+              onChange={(event) => setAddressLine2(event.target.value)}
+              placeholder="City, state, ZIP, country"
+              className="w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
+            />
+            <p className="text-xs font-semibold text-[#64748b]">Optional. Used for billing and invoice contact details.</p>
+          </div>
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Create Password</span>
             <input

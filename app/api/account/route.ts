@@ -1,6 +1,26 @@
 import { NextResponse } from "next/server";
-import { getAccountSummary, getProfile } from "@/lib/account-records";
+import { getAccountSummary, getProfile, updateAccountRecord } from "@/lib/account-records";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+
+type AccountPatchPayload = {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+};
+
+function clean(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function formatName(value: unknown) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -24,4 +44,37 @@ export async function POST(request: Request) {
 
   const profile = await getProfile(email);
   return NextResponse.json({ ok: true, profile });
+}
+
+export async function PATCH(request: Request) {
+  const payload = (await request.json().catch(() => null)) as AccountPatchPayload | null;
+  const email = normalizeEmail(payload?.email);
+  const firstName = formatName(payload?.firstName);
+  const lastName = formatName(payload?.lastName);
+  const phone = clean(payload?.phone);
+  const addressLine1 = clean(payload?.addressLine1);
+  const addressLine2 = clean(payload?.addressLine2);
+  const address = [addressLine1, addressLine2].filter(Boolean).join("\n") || clean(payload?.address);
+
+  if (!isValidEmail(email)) {
+    return NextResponse.json({ error: "A valid account email is required." }, { status: 400 });
+  }
+
+  if (!firstName || !lastName || !phone) {
+    return NextResponse.json({ error: "First name, last name, and phone number are required." }, { status: 400 });
+  }
+
+  const account = await updateAccountRecord({
+    email,
+    firstName,
+    lastName,
+    phone,
+    address: address || null
+  });
+
+  if (!account) {
+    return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true, account });
 }

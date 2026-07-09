@@ -9,6 +9,7 @@ import {
   normalizeEmail,
   verifyCode
 } from "@/lib/prototype-auth";
+import { upsertProfile } from "@/lib/account-records";
 import { setSignedAccountSessionCookie } from "@/lib/server-account-session";
 
 export async function POST(request: Request) {
@@ -19,6 +20,8 @@ export async function POST(request: Request) {
     firstName?: string;
     lastName?: string;
     phone?: string;
+    addressLine1?: string;
+    addressLine2?: string;
   } | null;
   const email = normalizeEmail(payload?.email);
   const code = typeof payload?.code === "string" ? payload.code.trim() : "";
@@ -26,6 +29,9 @@ export async function POST(request: Request) {
   const firstName = cleanName(payload?.firstName);
   const lastName = cleanName(payload?.lastName);
   const phone = clean(payload?.phone);
+  const addressLine1 = clean(payload?.addressLine1);
+  const addressLine2 = clean(payload?.addressLine2);
+  const address = [addressLine1, addressLine2].filter(Boolean).join("\n");
 
   if (!isValidEmail(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
@@ -68,6 +74,16 @@ export async function POST(request: Request) {
     bonus_credit_balance: 0,
     created_at: now,
     verified_at: now
+  });
+  await upsertProfile({
+    email,
+    first_name: firstName,
+    last_name: lastName,
+    phone,
+    company: null,
+    address: address || null,
+    dob: null,
+    account_type: null
   });
   await clearVerificationCode(email);
 
