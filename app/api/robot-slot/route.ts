@@ -23,7 +23,7 @@ const slotIntervalMinutes = 5;
 const minimumLeadTimeMs = 2 * 60 * 1000;
 const defaultTimeZone = "America/Los_Angeles";
 
-const robotModels = new Set(["Aegis Ultra", "Aegis EDU", "Aegis Pro", "Navi"]);
+const robotModels = new Set(["Aegies"]);
 const presetDemos = new Map([
   ["starter_demo", "Starter demo: stand up, five forward steps, left/right, look up/down, backflip"],
   ["stand_up", "Stand up"],
@@ -232,7 +232,7 @@ export async function POST(request: Request) {
   const timeZone = validTimeZone(clean(payload?.timeZone));
   const requestedRunType = clean(payload?.requestedRunType) || "preset_demo";
   const durationMinutes = getDurationMinutes(payload?.durationMinutes);
-  const robotModel = robotModels.has(clean(payload?.robotModel)) ? clean(payload?.robotModel) : "Aegis Ultra";
+  const robotModel = robotModels.has(clean(payload?.robotModel)) ? clean(payload?.robotModel) : "Aegies";
   const presetDemoKey = presetDemos.has(clean(payload?.presetDemo)) ? clean(payload?.presetDemo) : "starter_demo";
 
   if (!isValidEmail(signedInEmail)) {

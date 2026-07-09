@@ -8,8 +8,9 @@ const legacyTaskRedirects: Record<string, AgentechLibraryTaskSlug> = {
   "try-code": "view-sdk",
   "safety-limits": "view-sdk",
   examples: "view-sdk",
-  "submit-review": "submit",
-  "request-robot-slot": "submit"
+  submit: "software-check",
+  "submit-review": "physical-hardware-check",
+  "request-robot-slot": "watch-live-run"
 };
 
 type PageProps = {

@@ -5,5 +5,9 @@ export default function AgentechLibraryLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (process.env.NODE_ENV !== "production") {
+    return children;
+  }
+
   return <AgentechLibraryAccessGate>{children}</AgentechLibraryAccessGate>;
 }

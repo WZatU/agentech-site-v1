@@ -20,7 +20,7 @@ The repository is designed to work like a professional product codebase: public 
 - Resend-backed application, invoice, and notification email flows.
 - Hidden product documentation page at `/agentech-products/documents`.
 - Products/EAI Cloud robot command library at `/agentech-products/agentech-library`.
-- Developer code review pipeline for uploaded `.py` files: physical/hardware gate, Supabase gate marking, GPT Software Check, account-credit charging, and live robot scheduling unlock.
+- Developer code review pipeline for uploaded `.py` files: Step 3 Physical Hardware Check, Supabase gate marking, Step 4 GPT Software Check, account-credit charging, and Step 5 Live Stream unlock.
 - Internal launch switches for preorder, enroll, and grade visibility.
 
 ## Documentation Map
@@ -156,8 +156,9 @@ AGENTECH_AI_REVIEW_CREDITS=50
 | `/agentech-products/agentech-library` | Products/EAI Cloud robot dog command library and developer workflow hub |
 | `/agentech-products/agentech-library/start-coding` | SDK setup and first-script workflow |
 | `/agentech-products/agentech-library/view-sdk` | SDK reference, parameters, and motion previews |
-| `/agentech-products/agentech-library/submit` | Uploaded `.py` file review gate: physical check first, Software Check second |
-| `/agentech-products/agentech-library/watch-live-run` | Live robot camera view for supervised sessions |
+| `/agentech-products/agentech-library/physical-hardware-check` | Step 3 Physical Hardware Check for uploaded/pasted `.py` robot code |
+| `/agentech-products/agentech-library/software-check` | Step 4 Software Check after the hardware gate passes |
+| `/agentech-products/agentech-library/watch-live-run` | Step 5 Live Stream view for supervised sessions |
 
 ## Architecture Overview
 
@@ -175,7 +176,7 @@ External services:
 | Service | Use |
 | --- | --- |
 | Supabase | Accounts, profiles, children, enrollments, invoices, applications, resume storage |
-| OpenAI | Server-side GPT Software Check for uploaded robot code after the physical/hardware gate passes |
+| OpenAI | Server-side GPT Software Check for uploaded robot code after Step 3 Physical Hardware Check passes |
 | Resend | Application notifications and invoice emails |
 | Dropbox | Source folder for automated News imports |
 | GitHub | Review, version control, deployment source, documentation workflow |
@@ -504,26 +505,28 @@ The Products page is currently the EAI Cloud robot dog command library. It lives
 
 This area is the developer-facing workflow for learning the public Agentech robot API, uploading robot-control code, running staged review gates, scheduling supervised robot tests, and watching the live robot feed.
 
-The page is organized into four workflows:
+The page is organized into five workflows:
 
 | Workflow | Route | Purpose |
 | --- | --- | --- |
 | Start Coding | `/agentech-products/agentech-library/start-coding` | Guided SDK install, import, first script, beginner recipes, and starter safety rules |
 | View SDK | `/agentech-products/agentech-library/view-sdk` | Category-based SDK reference for Movement, Posture, Safety, and Sensing commands |
-| Submit | `/agentech-products/agentech-library/submit` | Upload or paste a `.py` code file, run the physical/hardware gate, then run GPT Software Check |
-| Watch Live Run | `/agentech-products/agentech-library/watch-live-run` | Focused LiveKit camera view for supervised robot sessions |
+| Physical Hardware Check | `/agentech-products/agentech-library/physical-hardware-check` | Step 3 upload/paste review that checks robot-body limits before software review |
+| Software Check | `/agentech-products/agentech-library/software-check` | Step 4 GPT review that stays locked until the same file passes Step 3 |
+| Live Stream | `/agentech-products/agentech-library/watch-live-run` | Step 5 focused LiveKit camera view for supervised robot sessions |
 
 Library behavior:
 
-- The landing page shows only the four workflow cards. Old eight-step URLs redirect into the new workflows.
+- The landing page shows only the five workflow cards. Old eight-step URLs redirect into the new workflows.
 - `View SDK` is grouped by command category. Each category starts collapsed behind a `View functions` control.
 - Closed SDK rows stay compact, for example `Agentech.forward(parameters)`.
 - Individual function details open only on demand and include definition, parameters, example code, and the approved GIF preview.
 - Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
-- `Submit` uses one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
-- `Submit` must keep Software Check locked until Supabase says the account/submission passed the physical/hardware gate.
-- `Submit` must keep regular-user robot scheduling locked until both the physical/hardware gate and the GPT Software Check pass. Internal `@agent-tech.ai` accounts can schedule testing slots without the two code-review gates.
-- `Watch Live Run` stays focused on the webcam/live-view module, but users must still schedule a robot slot before a stream token is issued.
+- `Physical Hardware Check` and `Software Check` use one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
+- `Software Check` must remain locked until Supabase says the account/submission passed Step 3 Physical Hardware Check.
+- `Live Stream` scheduling must remain locked for regular users until both Step 3 Physical Hardware Check and Step 4 Software Check pass. Internal `@agent-tech.ai` accounts can schedule testing slots without the two code-review gates.
+- `Live Stream` stays focused on the webcam/live-view module, but users must still schedule a robot slot before a stream token is issued.
+- The prototype hardware/simulation validator handoff is stored locally at `engineer_handoff/agentech_t3_engineer_handoff/`, with the original zip preserved at `engineer_handoff/agentech_t3_engineer_handoff.zip`.
 
 ### Submit Review Pipeline
 
@@ -534,26 +537,26 @@ Current and intended flow:
 ```text
 Developer uploads or pastes one .py file
   -> website creates a code submission
-  -> physical/hardware gate runs first
+  -> Step 3 Physical Hardware Check runs first
   -> Supabase marks the account/submission physical_safety_status = passed
-  -> Software Check unlocks
-  -> server confirms Supabase physical pass before calling GPT
+  -> Step 4 Software Check unlocks
+  -> server confirms Supabase Step 3 pass before calling GPT
   -> OpenAI/GPT-5.5 reviews the same submission for software security risk
   -> Supabase marks ai_security_status = passed, failed, or error
-  -> live custom-code robot scheduling unlocks only when both gates pass
+  -> Step 5 Live Stream scheduling unlocks only when both gates pass
 ```
 
 Important rule:
 
 ```text
-Software Check must use the same .py submission that passed the physical/hardware gate.
+Software Check must use the same .py submission that passed Step 3 Physical Hardware Check.
 ```
 
-The current implementation already records the uploaded file name and code in Supabase. When the real hardware check is added, it should plug into the physical gate and keep writing the same Supabase status fields. The GPT Software Check should remain behind that Supabase gate.
+The current implementation already records the uploaded file name and code in Supabase. When the real hardware check from the engineer handoff is wired in, it should plug into Step 3 and keep writing the same Supabase status fields. The GPT Software Check should remain behind that Supabase gate.
 
-### Physical / Hardware Gate
+### Step 3 Physical Hardware Check
 
-The physical/hardware gate answers:
+The Physical Hardware Check answers:
 
 ```text
 Can this code damage the robot?

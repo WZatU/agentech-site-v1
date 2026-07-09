@@ -12,6 +12,29 @@ type SimFrame = { x: number; y: number; z: number; yaw: number; pitch?: number }
 type AgentechLibraryWorkbenchProps = {
   task?: AgentechLibraryTaskSlug;
 };
+type HardwareChecklistItem = {
+  name: string;
+  status: "PASS" | "FAIL";
+  detail: string;
+};
+type HardwareSimulationClip = {
+  command: string;
+  label: string;
+  gif: string;
+  sourceLine: string;
+};
+type HardwareResult = {
+  status: "PASS" | "FAIL";
+  resultId: string;
+  robotModel: string;
+  fileName: string;
+  commandCount: number;
+  checklist: HardwareChecklistItem[];
+  motionPlan: string[];
+  simulationClips: HardwareSimulationClip[];
+  simulationError: string;
+  finalHint: string;
+};
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
 const localPreviewAssets: Record<string, string> = {
   forward: "/assets/products/aegis-previews/forward.gif",
@@ -130,6 +153,74 @@ function previewCommandLabel(command: string) {
     get_battery_status: "Get Battery Status"
   };
   return labels[command] ?? command;
+}
+
+function simulationClipsForMotionPlan(motionPlan: string[]): HardwareSimulationClip[] {
+  const clips = motionPlan
+    .map((line) => {
+      const command = line.match(/^([a-zA-Z_][\w]*)\s*\(/)?.[1] ?? "";
+      const gif = localPreviewAssets[command];
+      if (!command || !gif) {
+        return null;
+      }
+
+      return {
+        command,
+        label: previewCommandLabel(command),
+        gif,
+        sourceLine: line
+      };
+    })
+    .filter((clip): clip is HardwareSimulationClip => Boolean(clip));
+
+  if (clips.length) {
+    return clips;
+  }
+
+  return [
+    {
+      command: "stand",
+      label: "Stand",
+      gif: localPreviewFallback,
+      sourceLine: "No renderable Agentech movement command found."
+    }
+  ];
+}
+
+function buildHardwareChecklist(status: "PASS" | "FAIL", failureReason = ""): HardwareChecklistItem[] {
+  const failDetail = failureReason || "Fix the checklist items before simulation can run.";
+  return [
+    {
+      name: "SDK-only usage check",
+      status,
+      detail: status === "PASS" ? "Uploaded code uses the documented Agentech SDK interface." : failDetail
+    },
+    {
+      name: "Logic safety check",
+      status,
+      detail: status === "PASS" ? "No blocked file, private Python, dynamic execution, or unsafe control structure was detected." : "Hardware validation stopped before simulation."
+    },
+    {
+      name: "Agentech command check",
+      status,
+      detail: status === "PASS" ? "Documented robot commands were found and can be inspected." : "Requires documented Agentech commands such as stand, forward, backward, backflip, or stop."
+    },
+    {
+      name: "SDK parameter requirement check",
+      status,
+      detail: status === "PASS" ? "Movement commands use required keyword parameters and safe numeric ranges." : "Movement commands must include required keyword parameters and stay inside safe numeric ranges."
+    },
+    {
+      name: "Real robot translation check",
+      status,
+      detail: status === "PASS" ? "Uploaded code can be treated as a real-robot command package without exposing translated code." : "Translation stays blocked until the uploaded code passes validation."
+    },
+    {
+      name: "MuJoCo simulation check",
+      status,
+      detail: status === "PASS" ? "Approved command sequence is ready for the simulation/result view." : "Simulation blocked because validation failed."
+    }
+  ];
 }
 
 const categoryExamples: Record<Category, { activeName: string; code: string }> = {
@@ -542,7 +633,7 @@ Live camera -> Website viewer -> Student watches the run`;
           </div>
           <div className="border border-[#2a3440] bg-[#0d1117]">
             <div className="border-b border-[#2a3440] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Submit Workflow</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Review Workflow</p>
             </div>
             <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{submitExample}</pre>
             <div className="border-t border-[#2a3440] p-4 text-sm leading-6 text-[#aeb8c2]">
@@ -556,7 +647,7 @@ Live camera -> Website viewer -> Student watches the run`;
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_340px]">
               <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-[#e5edf5]">{robotRunnerExample}</pre>
               <div className="border-t border-[#2a3440] p-4 text-sm leading-6 text-[#aeb8c2] lg:border-l lg:border-t-0">
-                The student file stays tiny. After review and scheduling, the website sends approved code to the Raspberry Pi bridge. The Pi is connected to the robot hotspot, runs the code on the robot, and the live camera stream lets the student watch the result on the website.
+                The student file stays tiny. After Step 3 Physical Hardware Check, Step 4 Software Check, and scheduling, the website sends approved code to the Raspberry Pi bridge. The Pi is connected to the robot hotspot, runs the code on the robot, and the Step 5 Live Stream lets the student watch the result on the website.
               </div>
             </div>
           </div>
@@ -610,8 +701,9 @@ Live camera -> Website viewer -> Student watches the run`;
 const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
   "view-sdk": "Browse the SDK by category, open function details only when needed, and preview the matching motion GIF.",
-  submit: "Physical safety runs first. Software Check unlocks after that gate passes, and live testing unlocks only when both pass.",
-  "watch-live-run": "Live viewing unlocks only during an approved scheduled robot slot."
+  "physical-hardware-check": "Upload or paste one Python file, then run the physical hardware check before any software review.",
+  "software-check": "Software Check unlocks after Step 3 passes, uses account credits, and must review the same submitted file.",
+  "watch-live-run": "Live Stream opens only during an approved scheduled robot slot after the required checks pass."
 };
 
 function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAgentechLibraryTask>> }) {
@@ -673,7 +765,7 @@ function FocusedLiveRunSection() {
         <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce7f2] px-4 py-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Robot Camera</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Stream Camera</p>
               <p className="mt-1 text-xs leading-5 text-[#526174]">
                 Locked until an approved scheduled session is active.
               </p>
@@ -689,7 +781,7 @@ function FocusedLiveRunSection() {
             </div>
           </div>
           <div className="border-b border-[#dce7f2] bg-[#f5fbff] px-4 py-3 text-sm leading-6 text-[#23304a]">
-            Live viewing is locked until your account has an active scheduled robot slot. Custom-code sessions also require the physical safety check and software review to pass.
+            Live viewing is locked until your account has an active scheduled robot slot. Custom-code sessions also require Step 3 Physical Hardware Check and Step 4 Software Check to pass.
           </div>
           <LockedLiveRunPanel />
         </div>
@@ -712,7 +804,7 @@ function LockedLiveRunPanel({ dark = false }: { dark?: boolean }) {
           <p className={`mt-5 text-xs font-semibold uppercase tracking-[0.16em] ${dark ? "text-[#8fdc8f]" : "text-[#008a7a]"}`}>Live View Locked</p>
           <h3 className={`mt-2 text-2xl font-semibold ${dark ? "text-white" : "text-[#07142e]"}`}>Schedule an approved robot slot first.</h3>
           <p className={`mt-3 text-sm leading-6 ${dark ? "text-[#aeb8c2]" : "text-[#334155]"}`}>
-            Live camera access only opens during an active scheduled session. For custom-code runs, pass the physical safety check and software review before scheduling.
+            Live camera access only opens during an active scheduled session. For custom-code runs, pass Step 3 Physical Hardware Check and Step 4 Software Check before scheduling.
           </p>
           <Link
             href="/account"
@@ -883,8 +975,8 @@ function FocusedBrowseFunctionsSection() {
       body: "Details reveal definitions, parameter meanings, examples, and GIF previews."
     },
     {
-      title: "Copy into Submit",
-      body: "Move working sequences to the submit page after previewing the intended behavior."
+      title: "Copy into Hardware Check",
+      body: "Move working sequences to Step 3 after previewing the intended behavior."
     }
   ];
 
@@ -1004,20 +1096,223 @@ function FocusedBrowseFunctionsSection() {
   );
 }
 
+function HardwareResultPanel({ result }: { result: HardwareResult }) {
+  const passed = result.status === "PASS";
+  const [activeClipIndex, setActiveClipIndex] = useState(0);
+  const activeClip = result.simulationClips[Math.min(activeClipIndex, Math.max(result.simulationClips.length - 1, 0))];
+
+  useEffect(() => {
+    setActiveClipIndex(0);
+  }, [result.resultId]);
+
+  useEffect(() => {
+    if (!passed || result.simulationClips.length <= 1) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setActiveClipIndex((current) => (current >= result.simulationClips.length - 1 ? 0 : current + 1));
+    }, 1800);
+
+    return () => window.clearInterval(interval);
+  }, [passed, result.resultId, result.simulationClips.length]);
+
+  return (
+    <section className="bg-[#fbfdff] px-4 pb-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-5">
+        <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Validation Result</p>
+              <h2 className="mt-2 text-2xl font-semibold text-[#07142e]">Validation Checklist</h2>
+            </div>
+            <span className={`px-3 py-1.5 text-sm font-bold ${passed ? "bg-[#e7f7ef] text-[#087a43]" : "bg-[#fdeceb] text-[#b42318]"}`}>
+              {result.status}
+            </span>
+          </div>
+
+          <div className="mt-5 overflow-hidden border border-[#dce7f2]">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[#eef5fb] text-xs uppercase tracking-[0.14em] text-[#526174]">
+                <tr>
+                  <th className="px-3 py-3">Check</th>
+                  <th className="px-3 py-3">Status</th>
+                  <th className="px-3 py-3">Meaning</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#dce7f2]">
+                {result.checklist.map((item) => (
+                  <tr key={item.name}>
+                    <td className="px-3 py-3 font-semibold text-[#07142e]">{item.name}</td>
+                    <td className="px-3 py-3">
+                      <span className={`px-2.5 py-1 text-xs font-bold ${item.status === "PASS" ? "bg-[#e7f7ef] text-[#087a43]" : "bg-[#fdeceb] text-[#b42318]"}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 leading-6 text-[#334155]">{item.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">MuJoCo Simulation Video</p>
+            <p className="mt-2 text-sm leading-6 text-[#334155]">
+              The app reads the uploaded Agentech commands and shows what the code does on the selected robot.
+            </p>
+            {passed && activeClip ? (
+              <div className="mt-4">
+                <div className="border border-[#dce7f2] bg-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    key={`${result.resultId}-${activeClipIndex}-${activeClip.command}`}
+                    src={activeClip.gif}
+                    alt={`Aegis preview for ${activeClip.label}`}
+                    className="aspect-video w-full object-contain"
+                  />
+                </div>
+                <div className="border-x border-b border-[#dce7f2] bg-[#f8fbff] px-3 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#005bd6]">
+                      Playing public preview {activeClipIndex + 1} / {result.simulationClips.length}: {activeClip.label}
+                    </p>
+                    <p className="font-mono text-xs text-[#526174]">{activeClip.sourceLine}</p>
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                    {result.simulationClips.map((clip, index) => (
+                      <button
+                        key={`${clip.sourceLine}-${index}`}
+                        type="button"
+                        onClick={() => setActiveClipIndex(index)}
+                        className={`border px-3 py-2 text-left font-mono text-xs transition ${
+                          index === activeClipIndex
+                            ? "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c]"
+                            : "border-[#dce7f2] bg-white text-[#334155] hover:border-[#008a7a]"
+                        }`}
+                      >
+                        {index + 1}. {clip.sourceLine}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 grid min-h-72 place-items-center border border-[#f1b4ad] bg-[#fff4f2] text-center text-[#b42318]">
+                <div className="p-6">
+                  <div className="text-[118px] font-extrabold leading-none">X</div>
+                  <p className="mt-2 text-base font-bold">Simulation blocked because validation failed.</p>
+                  <p className="mt-2 text-sm leading-6 text-[#7f1d1d]">{result.simulationError}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-5">
+            <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Selected Company Robot</p>
+              <div className="mt-4 divide-y divide-[#dce7f2] border border-[#dce7f2] text-sm">
+                <div className="grid grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Robot</div>
+                  <div className="px-3 py-3 text-[#07142e]">{result.robotModel}</div>
+                </div>
+                <div className="grid grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Result ID</div>
+                  <div className="break-all px-3 py-3 font-mono text-xs text-[#07142e]">{result.resultId}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Code Validation</p>
+              <div className="mt-4 divide-y divide-[#dce7f2] border border-[#dce7f2] text-sm">
+                <div className="grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Uploaded</div>
+                  <div className="min-w-0 break-words px-3 py-3 text-[#07142e] [overflow-wrap:anywhere]">{result.fileName}</div>
+                </div>
+                <div className="grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Commands</div>
+                  <div className="min-w-0 px-3 py-3 text-[#07142e]">{result.commandCount}</div>
+                </div>
+                <div className="grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">SDK Rule</div>
+                  <div className="min-w-0 break-words px-3 py-3 text-[#07142e]">Only Agentech SDK is allowed.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Agentech Movement List</p>
+            <div className="mt-4 overflow-hidden border border-[#dce7f2]">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-[#eef5fb] text-xs uppercase tracking-[0.14em] text-[#526174]">
+                  <tr>
+                    <th className="px-3 py-3">#</th>
+                    <th className="px-3 py-3">Command</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#dce7f2]">
+                  {result.motionPlan.map((line, index) => (
+                    <tr key={`${line}-${index}`}>
+                      <td className="w-16 px-3 py-3 font-mono text-xs text-[#526174]">{index + 1}</td>
+                      <td className="px-3 py-3 font-mono text-xs text-[#07142e]">{line}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Final Status</p>
+            <p className="mt-4">
+              <span className={`px-3 py-1.5 text-sm font-bold ${passed ? "bg-[#e7f7ef] text-[#087a43]" : "bg-[#fdeceb] text-[#b42318]"}`}>
+                {result.status}
+              </span>
+            </p>
+            <p className="mt-4 text-sm leading-6 text-[#334155]">{result.finalHint}</p>
+            {passed ? (
+              <button
+                type="button"
+                className="mt-4 w-full border border-[#008a7a] bg-[#008a7a] px-4 py-3 text-sm font-semibold text-white"
+              >
+                Submit for Further Review
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="mt-4 w-full cursor-not-allowed border border-[#d5e0ec] bg-[#edf2f7] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
+              >
+                Submit for Further Review
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps = {}) {
-  const [code, setCode] = useState(starterCode);
+  const [code, setCode] = useState(() => (task ? "from agentech import Agentech\n\n" : starterCode));
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [activeName, setActiveName] = useState("stand");
-  const [requestStatus, setRequestStatus] = useState("Ready for the two-gate review. Physical safety runs first, then Software Check uses account credits.");
-  const [developerName, setDeveloperName] = useState("");
-  const [robotModel, setRobotModel] = useState("Aegis Ultra");
-  const [runMode, setRunMode] = useState("Software check");
+  const [requestStatus, setRequestStatus] = useState("Ready for Step 3 Physical Hardware Check. Step 4 Software Check unlocks after hardware passes.");
+  const developerName = "Agentech developer";
+  const robotModel = "Aegies";
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [physicalSubmissionId, setPhysicalSubmissionId] = useState("");
   const [physicalSafetyPassed, setPhysicalSafetyPassed] = useState(false);
   const [isRunningPhysicalCheck, setIsRunningPhysicalCheck] = useState(false);
   const [isRunningSoftwareCheck, setIsRunningSoftwareCheck] = useState(false);
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
+  const [hardwareResult, setHardwareResult] = useState<HardwareResult | null>(null);
   const initialPreview = previewAssetForCode(starterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
   const [previewCommand, setPreviewCommand] = useState<string>(initialPreview.command);
@@ -1039,10 +1334,48 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
   const previewFrameCount = renderedFrames.length || simFrames.length;
   const selectedTask = task ? getAgentechLibraryTask(task) : undefined;
+  const runMode = selectedTask?.slug === "software-check" ? "Software check" : "Physical hardware limit and capability test";
+  const runModeDescription =
+    selectedTask?.slug === "software-check"
+      ? "Step 4 scans the same approved file for website, account, data, and infrastructure risk."
+      : "Step 3 checks physical limits, robot capability, command duration, speed, angle, and risky movements.";
   const showHero = !selectedTask;
   const showOverview = !selectedTask;
   const showWorkbench = !selectedTask;
-  const showFocusedSubmitReview = selectedTask?.slug === "submit";
+  const showFocusedReview = selectedTask?.slug === "physical-hardware-check" || selectedTask?.slug === "software-check";
+  const focusedReviewStep = selectedTask?.slug === "software-check" ? "Step 4 - Software Check" : "Step 3 - Physical Hardware Check";
+  const focusedReviewCopy =
+    selectedTask?.slug === "software-check"
+      ? "Software Check stays locked until the same file passes Step 3. It reviews website, account, data, and infrastructure risk before live scheduling."
+      : "Physical Hardware Check runs first. It protects the robot body by checking command limits, motion duration, model compatibility, and risky movements.";
+  const hardwarePassed = physicalSafetyPassed && hardwareResult?.status === "PASS";
+  const hardwareFailed = hardwareResult?.status === "FAIL";
+  const softwarePassed = canScheduleRobotSlot;
+  const step3PanelClass = hardwarePassed
+    ? "border-[#008a7a] bg-[#e8f7f3]"
+    : hardwareFailed
+      ? "border-[#c93434] bg-[#fff1f1]"
+      : "border-[#dce7f2] bg-[#f8fbff]";
+  const step4PanelClass = softwarePassed
+    ? "border-[#008a7a] bg-[#e8f7f3]"
+    : hardwarePassed
+      ? "border-[#008a7a] bg-white"
+      : "border-[#dce7f2] bg-[#f8fbff]";
+  const statusPanelClass = softwarePassed
+    ? "border-[#008a7a] bg-[#e8f7f3]"
+    : hardwareFailed
+      ? "border-[#c93434] bg-[#fff1f1]"
+      : hardwarePassed
+        ? "border-[#008a7a] bg-[#e8f7f3]"
+        : "border-[#dce7f2] bg-[#f8fbff]";
+  const statusPanelTitle = softwarePassed ? "Step 4 passed" : hardwareFailed ? "Step 3 failed" : hardwarePassed ? "Step 3 passed" : "Ready";
+  const statusPanelCopy = softwarePassed
+    ? "Step 5 Live Stream scheduling is unlocked."
+    : hardwareFailed
+      ? "Fix the code, then run the Physical Hardware Check again. Step 4 stays locked until Step 3 passes."
+      : hardwarePassed
+        ? "Next: run Step 4 Software Check."
+        : "Run the Physical Hardware Check first.";
   const showFocusedStartCoding = selectedTask?.slug === "start-coding";
   const showFocusedBrowseFunctions = selectedTask?.slug === "view-sdk";
   const showFocusedLiveRun = selectedTask?.slug === "watch-live-run";
@@ -1080,6 +1413,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
+    setHardwareResult(null);
     resetPreview(normalizedCode, preferredCommand);
   }
 
@@ -1091,7 +1425,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     const text = await file.text();
     setUploadedFileName(file.name);
     updateCode(text);
-    setRequestStatus(`${file.name} loaded. Run the physical safety check first.`);
+    setRequestStatus(`${file.name} loaded. Run Step 3 Physical Hardware Check first.`);
   }
 
   function loadExample(item: AgentechFunction) {
@@ -1172,7 +1506,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
-    setRequestStatus("Running physical safety check...");
+    setHardwareResult(null);
+    setRequestStatus("Running Step 3 Physical Hardware Check...");
     try {
       const response = await fetch("/api/agentech-code-submit", {
         method: "POST",
@@ -1193,12 +1528,37 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       }
       setPhysicalSubmissionId(payload.id);
       setPhysicalSafetyPassed(true);
-      setRequestStatus(`Physical safety passed for ${payload.commandCount} commands. Software Check is now unlocked. Review ID: ${payload.id}.`);
+      setHardwareResult({
+        status: "PASS",
+        resultId: payload.id ?? "local-hardware-result",
+        robotModel,
+        fileName: uploadedFileName || "pasted code",
+        commandCount: Number(payload.commandCount ?? reviewPlan.trace.length),
+        checklist: buildHardwareChecklist("PASS"),
+        motionPlan: reviewPlan.trace,
+        simulationClips: simulationClipsForMotionPlan(reviewPlan.trace),
+        simulationError: "",
+        finalHint: "All checks passed. This result is ready to submit for further review."
+      });
+      setRequestStatus(`Step 3 Physical Hardware Check passed for ${payload.commandCount} commands. Step 4 Software Check is now unlocked. Review ID: ${payload.id}.`);
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Physical Hardware Check failed.";
       setPhysicalSubmissionId("");
       setPhysicalSafetyPassed(false);
       setCanScheduleRobotSlot(false);
-      setRequestStatus(error instanceof Error ? error.message : "Physical safety check failed.");
+      setHardwareResult({
+        status: "FAIL",
+        resultId: `blocked-${Date.now()}`,
+        robotModel,
+        fileName: uploadedFileName || "pasted code",
+        commandCount: reviewPlan.motionCount,
+        checklist: buildHardwareChecklist("FAIL", message),
+        motionPlan: reviewPlan.trace,
+        simulationClips: [],
+        simulationError: message,
+        finalHint: "Submission is locked until every checklist item passes."
+      });
+      setRequestStatus(message);
     } finally {
       setIsRunningPhysicalCheck(false);
     }
@@ -1206,7 +1566,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
   async function runSoftwareCheck() {
     if (!physicalSubmissionId || !physicalSafetyPassed) {
-      setRequestStatus("Run and pass the physical safety check before starting Software Check.");
+      setRequestStatus("Run and pass Step 3 Physical Hardware Check before starting Step 4 Software Check.");
       return;
     }
 
@@ -1237,7 +1597,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           : "";
         throw new Error(`${payload.error ?? "Software Check failed."}${findings}`);
       }
-      setRequestStatus(`Software Check passed. ${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used. Live robot testing is now unlocked.`);
+      setRequestStatus(`Step 4 Software Check passed. ${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used. Step 5 Live Stream scheduling is now unlocked.`);
       setCanScheduleRobotSlot(payload.aiSecurityStatus === "passed");
     } catch (error) {
       setCanScheduleRobotSlot(false);
@@ -1325,7 +1685,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           <div className="relative min-h-72 overflow-hidden border border-[#2a3440] bg-[#06080b]">
             <Image
               src="/assets/products/aegis-ultra.png"
-              alt="Aegis Ultra robot dog"
+              alt="Aegis EDU robot dog"
               fill
               sizes="(min-width: 1024px) 380px, 100vw"
               className="object-contain p-6"
@@ -1343,7 +1703,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       {showFocusedStartCoding ? <FocusedStartCodingSection /> : null}
       {showFocusedBrowseFunctions ? <FocusedBrowseFunctionsSection /> : null}
       {showFocusedLiveRun ? <FocusedLiveRunSection /> : null}
-      {showFocusedSubmitReview ? (
+      {showFocusedReview ? (
         <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
@@ -1358,40 +1718,19 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               />
             </div>
             <div className="border border-[#dce7f2] bg-white p-4 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Review Package</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{focusedReviewStep}</p>
+              <p className="mt-2 text-xs leading-5 text-[#526174]">{focusedReviewCopy}</p>
               <div className="mt-4 space-y-4">
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Developer name</span>
-                  <input
-                    value={developerName}
-                    onChange={(event) => setDeveloperName(event.target.value)}
-                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#07142e] outline-none focus:border-[#008a7a]"
-                    placeholder="Student or team"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</span>
-                  <select
-                    value={robotModel}
-                    onChange={(event) => setRobotModel(event.target.value)}
-                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#07142e] outline-none focus:border-[#008a7a]"
-                  >
-                    <option>Aegis Ultra</option>
-                    <option>Aegis EDU</option>
-                    <option>Aegis Pro</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Run mode</span>
-                  <select
-                    value={runMode}
-                    onChange={(event) => setRunMode(event.target.value)}
-                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#07142e] outline-none focus:border-[#008a7a]"
-                  >
-                    <option>Software check</option>
-                    <option>Dry-run review</option>
-                  </select>
-                </label>
+                <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</p>
+                  <p className="mt-2 text-sm font-semibold text-[#07142e]">{robotModel}</p>
+                  <p className="mt-1 text-xs leading-5 text-[#526174]">Aegies is the enabled robot model for this hardware check.</p>
+                </div>
+                <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Test type</p>
+                  <p className="mt-2 text-sm font-semibold text-[#07142e]">{runMode}</p>
+                  <p className="mt-1 text-xs leading-5 text-[#526174]">{runModeDescription}</p>
+                </div>
                 <label className="block">
                   <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Upload code file</span>
                   <input
@@ -1406,14 +1745,59 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
                   </span>
                 </label>
-                <div className="border border-[#dce7f2] bg-[#f8fbff] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Gate 1 - physical safety</p>
+                <div className={`border p-3 ${step3PanelClass}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Step 3 - Physical Hardware Check</p>
+                    {hardwarePassed ? (
+                      <span className="inline-flex items-center gap-1 border border-[#008a7a] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
+                        <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 fill-none stroke-current stroke-[2.5]">
+                          <path d="M3.5 8.2 6.7 11.2 12.8 4.8" />
+                        </svg>
+                        Passed
+                      </span>
+                    ) : null}
+                    {hardwareFailed ? (
+                      <span className="border border-[#c93434] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a51f1f]">
+                        Failed
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-2 font-mono text-xs leading-5 text-[#07142e]">{plan.motionCount} motion commands</p>
-                  <p className="mt-1 text-xs leading-5 text-[#526174]">Checks robot limits before Supabase unlocks Software Check.</p>
+                  <p className="mt-1 text-xs leading-5 text-[#526174]">
+                    {hardwarePassed
+                      ? "Hardware and parameter limits passed. Step 4 Software Check is unlocked."
+                      : hardwareFailed
+                        ? "Hardware failed. Fix the blocked command or parameter before Software Check."
+                        : "Checks robot commands and parameters before Supabase unlocks Software Check."}
+                  </p>
                 </div>
-                <div className="border border-[#dce7f2] bg-[#f8fbff] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Gate 2 - Software Check</p>
-                  <p className="mt-2 text-xs leading-5 text-[#23304a]">Locked until Gate 1 passes. Uses GPT-5.5 and charges account credits.</p>
+                <div className={`border p-3 ${step4PanelClass}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Step 4 - Software Check</p>
+                    {softwarePassed ? (
+                      <span className="inline-flex items-center gap-1 border border-[#008a7a] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
+                        <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 fill-none stroke-current stroke-[2.5]">
+                          <path d="M3.5 8.2 6.7 11.2 12.8 4.8" />
+                        </svg>
+                        Passed
+                      </span>
+                    ) : hardwarePassed ? (
+                      <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
+                        Next
+                      </span>
+                    ) : (
+                      <span className="border border-[#d5e0ec] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7d8b9c]">
+                        Locked
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-[#23304a]">
+                    {softwarePassed
+                      ? "Software Check passed. Step 5 Live Stream scheduling is unlocked."
+                      : hardwarePassed
+                        ? "Unlocked. Run Software Check now to continue to Live Stream scheduling."
+                        : "Locked until Step 3 passes. Uses GPT-5.5 and charges account credits."}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -1421,20 +1805,24 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#2f70c8] bg-[#eaf3ff] px-4 py-3 text-sm font-semibold text-[#194f92] transition hover:bg-[#2f70c8] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
+                  {isRunningPhysicalCheck ? "Checking..." : hardwarePassed || hardwareFailed ? "Re-run Physical Hardware Check" : "Run Physical Hardware Check"}
                 </button>
                 <button
                   type="button"
                   onClick={runSoftwareCheck}
                   disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
-                  className="w-full border border-[#008a7a] bg-[#e8f7f3] px-4 py-3 text-sm font-semibold text-[#006a5c] transition hover:bg-[#008a7a] hover:text-white disabled:cursor-not-allowed disabled:border-[#d5e0ec] disabled:bg-[#edf2f7] disabled:text-[#7d8b9c]"
+                  className={`w-full border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-[#d5e0ec] disabled:bg-[#edf2f7] disabled:text-[#7d8b9c] ${
+                    hardwarePassed && !softwarePassed
+                      ? "border-[#008a7a] bg-[#008a7a] text-white hover:bg-[#006a5c]"
+                      : "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c] hover:bg-[#008a7a] hover:text-white"
+                  }`}
                 >
                   {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
                 </button>
                 <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-[#dce7f2] bg-[#f8fbff]"}`}>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Schedule gate</p>
                   <p className="mt-2 text-sm leading-6 text-[#23304a]">
-                    {canScheduleRobotSlot ? "Both checks passed. You can schedule the supervised live robot test now." : "Scheduling unlocks only after physical safety and AI software security both pass."}
+                    {canScheduleRobotSlot ? "Step 3 and Step 4 passed. You can schedule the supervised live robot stream now." : "Scheduling unlocks only after Physical Hardware Check and Software Check both pass."}
                   </p>
                   {canScheduleRobotSlot ? (
                     <Link
@@ -1453,12 +1841,20 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     </button>
                   )}
                 </div>
-                <p className="border border-[#dce7f2] bg-[#f8fbff] p-3 text-sm leading-6 text-[#23304a]">{requestStatus}</p>
+                <div className={`border p-3 text-sm leading-6 text-[#23304a] ${statusPanelClass}`}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#526174]">{statusPanelTitle}</p>
+                  <p className="mt-1">{statusPanelCopy}</p>
+                  {hardwarePassed || softwarePassed ? (
+                    <p className="mt-1 text-xs text-[#526174]">Hardware review ID: {physicalSubmissionId}</p>
+                  ) : null}
+                  {hardwareFailed ? <p className="mt-1 text-xs text-[#a51f1f]">{requestStatus}</p> : null}
+                </div>
               </div>
             </div>
           </div>
         </section>
       ) : null}
+      {showFocusedReview && hardwareResult ? <HardwareResultPanel result={hardwareResult} /> : null}
 
       {showWorkbench ? (
       <main id="code-workbench" className="mx-auto grid w-full max-w-7xl scroll-mt-6 gap-0 overflow-hidden border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
@@ -1653,7 +2049,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 href="/account"
                 className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
               >
-                Schedule Live Robot Test
+                Schedule Live Stream
               </Link>
             ) : (
               <button
@@ -1661,7 +2057,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 disabled
                 className="w-full cursor-not-allowed border border-[#2a3440] bg-[#151a20] px-4 py-3 text-sm font-semibold text-[#687583]"
               >
-                Live Test Locked
+                Live Stream Locked
               </button>
             )}
             <details className="border border-[#2a3440] bg-[#0d1117]">
@@ -1669,15 +2065,6 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 Upload code for review
               </summary>
               <div className="space-y-3 border-t border-[#2a3440] p-3">
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Developer name</span>
-                  <input
-                    value={developerName}
-                    onChange={(event) => setDeveloperName(event.target.value)}
-                    className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-3 text-sm text-white outline-none focus:border-[#8fdc8f]"
-                    placeholder="Student or team"
-                  />
-                </label>
                 <label className="block">
                   <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
                   <input
@@ -1698,7 +2085,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
+                  {isRunningPhysicalCheck ? "Checking..." : "Run Physical Hardware Check"}
                 </button>
                 <button
                   type="button"
@@ -1714,7 +2101,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
             <details className="border border-[#2a3440] bg-[#0d1117]" open>
               <summary className="cursor-pointer px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">
-                Live robot camera
+                Live Stream Camera
               </summary>
               <div className="border-t border-[#2a3440] p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">
@@ -1742,42 +2129,20 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           </div>
 
           <div className="hidden space-y-4 p-4 lg:block">
-            <label className="block">
-              <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Developer name</span>
-              <input
-                value={developerName}
-                onChange={(event) => setDeveloperName(event.target.value)}
-                className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
-                placeholder="Student or team"
-              />
-            </label>
-            <label className="block">
-              <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot model</span>
-              <select
-                value={robotModel}
-                onChange={(event) => setRobotModel(event.target.value)}
-                className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
-              >
-                <option>Aegis Ultra</option>
-                <option>Aegis EDU</option>
-                <option>Aegis Pro</option>
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Run mode</span>
-              <select
-                value={runMode}
-                onChange={(event) => setRunMode(event.target.value)}
-                className="mt-2 w-full border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-sm text-white outline-none focus:border-[#8fdc8f]"
-              >
-                <option>Software check</option>
-                <option>Dry-run review</option>
-              </select>
-            </label>
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Two-gate review</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot model</p>
+              <p className="mt-2 text-sm font-semibold text-white">{robotModel}</p>
+              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Aegies is the enabled robot model for this hardware check.</p>
+            </div>
+            <div className="border border-[#2a3440] bg-[#0d1117] p-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Test type</p>
+              <p className="mt-2 text-sm font-semibold text-white">{runMode}</p>
+              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">{runModeDescription}</p>
+            </div>
+            <div className="border border-[#2a3440] bg-[#0d1117] p-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Step 3 / Step 4 Review</p>
               <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
-              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Physical safety must pass before Software Check uses account credits.</p>
+              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Physical Hardware Check must pass before Software Check uses account credits.</p>
             </div>
             <label className="block">
               <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
@@ -1799,7 +2164,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
               className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isRunningPhysicalCheck ? "Checking..." : "Run Physical Safety Check"}
+              {isRunningPhysicalCheck ? "Checking..." : "Run Physical Hardware Check"}
             </button>
             <button
               type="button"
@@ -1814,7 +2179,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 href="/account"
                 className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
               >
-                Schedule Live Robot Test
+                Schedule Live Stream
               </Link>
             ) : (
               <button
@@ -1822,7 +2187,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 disabled
                 className="w-full cursor-not-allowed border border-[#2a3440] bg-[#151a20] px-4 py-3 text-sm font-semibold text-[#687583]"
               >
-                Live Test Locked
+                Live Stream Locked
               </button>
             )}
             <p className="border border-[#2a3440] bg-[#0d1117] p-3 text-sm leading-6 text-[#aeb8c2]">{requestStatus}</p>
@@ -1830,7 +2195,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Live Robot Camera</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Live Stream Camera</p>
                   <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">
                     Locked until an approved scheduled session is active.
                   </p>

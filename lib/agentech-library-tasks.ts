@@ -16,18 +16,26 @@ export const agentechLibraryTasks = [
     tint: "#ecf3ff"
   },
   {
-    slug: "submit",
+    slug: "physical-hardware-check",
     number: "03",
-    title: "Submit",
-    summary: "Submit code for review first, then schedule a supervised robot slot.",
+    title: "Physical Hardware Check",
+    summary: "Upload or paste Python code so command parameters and robot-body limits are checked before software review.",
     accent: "#6c2bd9",
     tint: "#f3efff"
   },
   {
-    slug: "watch-live-run",
+    slug: "software-check",
     number: "04",
-    title: "Watch Live Run",
-    summary: "Live camera viewer and real-time session status.",
+    title: "Software Check",
+    summary: "Run the GPT software security review after the physical hardware check passes.",
+    accent: "#c85016",
+    tint: "#fff4ec"
+  },
+  {
+    slug: "watch-live-run",
+    number: "05",
+    title: "Live Stream",
+    summary: "Watch the supervised robot run after scheduling an approved session.",
     accent: "#149448",
     tint: "#edfff3"
   }

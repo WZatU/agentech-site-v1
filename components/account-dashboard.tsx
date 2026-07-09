@@ -345,7 +345,7 @@ const studentGradeOptions = [
   "Grade 12"
 ];
 
-const robotModelOptions = ["Aegis Ultra", "Aegis EDU", "Aegis Pro", "Navi"];
+const robotModelOptions = ["Aegies"];
 
 const robotPresetOptions = [
   {
@@ -792,7 +792,7 @@ export function AccountDashboard() {
   const [robotSlotProfileId, setRobotSlotProfileId] = useState("");
   const [robotSlotStart, setRobotSlotStart] = useState(getDefaultRobotSlotValue);
   const [robotSlotDurationMinutes, setRobotSlotDurationMinutes] = useState("5");
-  const [robotSlotModel, setRobotSlotModel] = useState("Aegis Ultra");
+  const [robotSlotModel, setRobotSlotModel] = useState("Aegies");
   const [robotSlotPreset, setRobotSlotPreset] = useState("starter_demo");
   const [robotSlotRunType, setRobotSlotRunType] = useState<"preset_demo" | "custom_code">("preset_demo");
   const [robotSlotNotes, setRobotSlotNotes] = useState("");
@@ -2405,7 +2405,7 @@ export function AccountDashboard() {
                   ? "Latest code package passed both gates."
                   : internalTestingBypass
                     ? "This testing account can schedule supervised test slots after choosing a time and duration."
-                    : "Run the developer submit scan first."}
+                    : "Run Step 3 Physical Hardware Check and Step 4 Software Check first."}
               </p>
             </div>
           </div>

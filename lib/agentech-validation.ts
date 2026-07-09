@@ -16,29 +16,59 @@ export const agentechLimits = {
   minPitchRate: 0.03
 } as const;
 
-const allowedPublicActions = new Set([
-  "forward",
-  "backward",
-  "lateral_left",
-  "lateral_right",
-  "turn_left",
-  "turn_right",
-  "twist_left",
-  "twist_right",
-  "backflip",
-  "jump",
-  "look_up",
-  "look_down",
-  "stand",
-  "sit",
-  "stop",
-  "emergency_stop",
-  "get_battery_status"
-]);
+type MotionParameterRule = {
+  required: Set<string>;
+  allowed: Set<string>;
+  ranges: Record<string, { low: number; high: number; allowZero: boolean }>;
+  example: string;
+};
+
+const allowedPhysicalActions = new Set(["stand", "forward", "backward", "backflip", "stop"]);
+const motionParameterRules: Record<string, MotionParameterRule> = {
+  stand: {
+    required: new Set(["stand_wait"]),
+    allowed: new Set(["stand_wait"]),
+    ranges: { stand_wait: { low: 0, high: 10, allowZero: true } },
+    example: "Agentech.stand(stand_wait=1)"
+  },
+  forward: {
+    required: new Set(["speed", "seconds"]),
+    allowed: new Set(["speed", "seconds", "stand_wait"]),
+    ranges: {
+      speed: { low: 0, high: agentechLimits.maxLinearVelocity, allowZero: false },
+      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
+      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
+    },
+    example: "Agentech.forward(speed=0.3, seconds=3)"
+  },
+  backward: {
+    required: new Set(["speed", "seconds"]),
+    allowed: new Set(["speed", "seconds", "stand_wait"]),
+    ranges: {
+      speed: { low: 0, high: agentechLimits.maxBackwardVelocity, allowZero: false },
+      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
+      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
+    },
+    example: "Agentech.backward(speed=0.3, seconds=3)"
+  },
+  backflip: {
+    required: new Set(),
+    allowed: new Set(),
+    ranges: {},
+    example: "Agentech.backflip()"
+  },
+  stop: {
+    required: new Set(),
+    allowed: new Set(),
+    ranges: {},
+    example: "Agentech.stop()"
+  }
+};
 
 type ParsedCall = {
   action: string;
   args: string;
+  line: number;
 };
 
 function parseCalls(code: string): ParsedCall[] {
@@ -46,80 +76,254 @@ function parseCalls(code: string): ParsedCall[] {
   const pattern = /(?:Agentech|dog)\.(\w+)\(([^)]*)\)/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(code)) !== null) {
-    calls.push({ action: match[1], args: match[2] });
+    calls.push({
+      action: match[1],
+      args: match[2],
+      line: code.slice(0, match.index).split(/\r\n|\r|\n/).length
+    });
   }
   return calls;
 }
 
-function numberArg(args: string, name: string): number | null {
-  const match = args.match(new RegExp(`${name}\\s*=\\s*(-?\\d+(?:\\.\\d+)?)`));
-  return match ? Number(match[1]) : null;
+function splitArguments(args: string) {
+  const parts: string[] = [];
+  let current = "";
+  let quote: string | null = null;
+  let escaped = false;
+  let depth = 0;
+
+  for (const char of args) {
+    if (quote) {
+      current += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (char === "\"" || char === "'") {
+      quote = char;
+      current += char;
+      continue;
+    }
+
+    if (char === "(" || char === "[" || char === "{") {
+      depth += 1;
+      current += char;
+      continue;
+    }
+
+    if (char === ")" || char === "]" || char === "}") {
+      depth = Math.max(0, depth - 1);
+      current += char;
+      continue;
+    }
+
+    if (char === "," && depth === 0) {
+      if (current.trim()) {
+        parts.push(current.trim());
+      }
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (current.trim()) {
+    parts.push(current.trim());
+  }
+
+  return parts;
 }
 
-function requireRange(errors: string[], action: string, name: string, value: number | null, min: number, max: number) {
-  if (value === null) {
+function findTopLevelEquals(value: string) {
+  let quote: string | null = null;
+  let escaped = false;
+  let depth = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (char === "\"" || char === "'") {
+      quote = char;
+      continue;
+    }
+
+    if (char === "(" || char === "[" || char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === ")" || char === "]" || char === "}") {
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+
+    if (char === "=" && depth === 0) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+function literalNumber(value: string) {
+  const trimmed = value.trim();
+  if (!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(trimmed)) {
+    return null;
+  }
+  const numeric = Number(trimmed);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function validateImportsAndUnsafeCode(code: string, errors: string[]) {
+  const lines = code.split(/\r\n|\r|\n/);
+
+  lines.forEach((line, index) => {
+    const lineNumber = index + 1;
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      return;
+    }
+
+    const importMatch = trimmed.match(/^import\s+(.+)$/);
+    if (importMatch) {
+      for (const item of importMatch[1].split(",")) {
+        const moduleName = item.trim().split(/\s+as\s+/)[0];
+        if (moduleName !== "agentech") {
+          errors.push(`Line ${lineNumber}: blocked import '${moduleName}'. Customer code can only use the Agentech SDK.`);
+        }
+      }
+    }
+
+    const importFromMatch = trimmed.match(/^from\s+([.\w]+)\s+import\s+/);
+    if (importFromMatch && importFromMatch[1] !== "agentech") {
+      errors.push(`Line ${lineNumber}: blocked import from '${importFromMatch[1]}'. Customer code can only import from the Agentech SDK.`);
+    }
+
+    if (/^(for|while|with|try|class)\b/.test(trimmed) || /\blambda\b/.test(trimmed)) {
+      errors.push(`Line ${lineNumber}: blocked Python structure. This hardware check only accepts direct Agentech motion commands.`);
+    }
+  });
+
+  const blockedCallPattern = /\b(eval|exec|open|compile|__import__|input|globals|locals|vars)\s*\(/g;
+  let blockedCallMatch: RegExpExecArray | null;
+  while ((blockedCallMatch = blockedCallPattern.exec(code)) !== null) {
+    const line = code.slice(0, blockedCallMatch.index).split(/\r\n|\r|\n/).length;
+    errors.push(`Line ${line}: blocked function call '${blockedCallMatch[1]}()'. Use the Agentech SDK only.`);
+  }
+}
+
+function validateMotionCallParameters(errors: string[], call: ParsedCall) {
+  const rule = motionParameterRules[call.action];
+  if (!rule) {
+    errors.push(
+      `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Use stand, forward, backward, backflip, or stop.`
+    );
     return;
   }
-  if (!Number.isFinite(value) || value < min || value > max) {
-    errors.push(`${action} ${name} must be between ${min} and ${max}.`);
+
+  const kwargs = new Map<string, string>();
+  const args = splitArguments(call.args);
+  let reportedPositionalParameter = false;
+
+  for (const arg of args) {
+    if (arg.startsWith("**")) {
+      errors.push(`Line ${call.line}: Agentech.${call.action}() cannot use expanded keyword arguments. Example: ${rule.example}`);
+      continue;
+    }
+
+    const equalsIndex = findTopLevelEquals(arg);
+    if (equalsIndex < 0) {
+      if (!reportedPositionalParameter) {
+        errors.push(`Line ${call.line}: Agentech.${call.action}() must use named keyword parameters. Example: ${rule.example}`);
+        reportedPositionalParameter = true;
+      }
+      continue;
+    }
+
+    const name = arg.slice(0, equalsIndex).trim();
+    const value = arg.slice(equalsIndex + 1).trim();
+
+    if (!/^[A-Za-z_]\w*$/.test(name)) {
+      errors.push(`Line ${call.line}: Agentech.${call.action}() has an invalid parameter name. Example: ${rule.example}`);
+      continue;
+    }
+
+    if (!rule.allowed.has(name)) {
+      const allowed = rule.allowed.size ? [...rule.allowed].sort().join(", ") : "no parameters";
+      errors.push(`Line ${call.line}: Agentech.${call.action}() does not support parameter '${name}'. Allowed parameters: ${allowed}. Example: ${rule.example}`);
+      continue;
+    }
+
+    if (!value) {
+      errors.push(`Line ${call.line}: Agentech.${call.action}() parameter '${name}' must be a literal value. Example: ${rule.example}`);
+      continue;
+    }
+
+    if (kwargs.has(name)) {
+      errors.push(`Line ${call.line}: Agentech.${call.action}() repeats parameter '${name}'. Example: ${rule.example}`);
+      continue;
+    }
+
+    kwargs.set(name, value);
+  }
+
+  const missing = [...rule.required].filter((name) => !kwargs.has(name)).sort();
+  if (missing.length) {
+    errors.push(`Line ${call.line}: Agentech.${call.action}() is missing required parameter(s): ${missing.join(", ")}. Example: ${rule.example}`);
+  }
+
+  for (const [name, rawValue] of kwargs) {
+    const range = rule.ranges[name];
+    if (!range) {
+      continue;
+    }
+
+    const numeric = literalNumber(rawValue);
+    if (numeric === null) {
+      errors.push(`Line ${call.line}: Agentech.${call.action}() parameter '${name}' must be a finite number. Example: ${rule.example}`);
+      continue;
+    }
+
+    const lowerOk = range.allowZero ? numeric >= range.low : numeric > range.low;
+    if (!lowerOk || numeric > range.high) {
+      const lowerText = range.allowZero ? `>= ${range.low}` : `> ${range.low}`;
+      errors.push(
+        `Line ${call.line}: Agentech.${call.action}() parameter '${name}' is out of range: ${numeric}. Required range: ${lowerText} and <= ${range.high}. Example: ${rule.example}`
+      );
+    }
   }
 }
 
 export function validateAgentechCode(code: string): string[] {
   const errors: string[] = [];
+  validateImportsAndUnsafeCode(code, errors);
+
   for (const call of parseCalls(code)) {
-    if (!allowedPublicActions.has(call.action)) {
-      errors.push(`${call.action} is not in the current Agentech beginner API. Use forward, backward, lateral_left, lateral_right, turn_left, turn_right, twist_left, twist_right, backflip, jump, look_up, look_down, stand, sit, stop, emergency_stop, or get_battery_status.`);
+    if (!allowedPhysicalActions.has(call.action)) {
+      errors.push(
+        `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Use stand, forward, backward, backflip, or stop.`
+      );
       continue;
     }
-
-    const speed = numberArg(call.args, "speed");
-    const seconds = numberArg(call.args, "seconds");
-    const angle = numberArg(call.args, "angle");
-
-    if (call.action === "forward" || call.action === "backward") {
-      requireRange(errors, call.action, "speed", speed, 0, call.action === "backward" ? agentechLimits.maxBackwardVelocity : agentechLimits.maxLinearVelocity);
-      requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
-    }
-
-    if (call.action === "lateral_left" || call.action === "lateral_right") {
-      requireRange(errors, call.action, "speed", speed, 0, agentechLimits.maxLateralVelocity);
-      requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
-    }
-
-    if (call.action === "yaw") {
-      requireRange(errors, call.action, "speed", speed, -agentechLimits.maxYawRate, agentechLimits.maxYawRate);
-      requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
-    }
-
-    if (["rotate", "left", "right", "turn_left", "turn_right", "twist_left", "twist_right"].includes(call.action)) {
-      requireRange(errors, call.action, "angle", angle, -agentechLimits.maxRotateAngle, agentechLimits.maxRotateAngle);
-      requireRange(errors, call.action, "speed", speed, agentechLimits.minTurnRate, agentechLimits.maxYawRate);
-    }
-
-    if (call.action === "stand") {
-      requireRange(errors, call.action, "stand_wait", numberArg(call.args, "stand_wait"), 0, agentechLimits.maxSeconds);
-    }
-
-    if (call.action === "look_up") {
-      requireRange(errors, call.action, "angle", angle, 0, agentechLimits.maxLookUpAngle);
-      requireRange(errors, call.action, "speed", speed, agentechLimits.minPitchRate, agentechLimits.maxPitchRate);
-    }
-
-    if (call.action === "look_down") {
-      requireRange(errors, call.action, "angle", angle, 0, agentechLimits.maxLookDownAngle);
-      requireRange(errors, call.action, "speed", speed, agentechLimits.minPitchRate, agentechLimits.maxPitchRate);
-    }
-
-    if (call.action === "camera_pitch") {
-      requireRange(errors, call.action, "angle", angle, -agentechLimits.maxLookDownAngle, agentechLimits.maxLookUpAngle);
-      requireRange(errors, call.action, "speed", speed, agentechLimits.minPitchRate, agentechLimits.maxPitchRate);
-    }
-
-    if (call.action === "pitch") {
-      requireRange(errors, call.action, "speed", speed, -agentechLimits.maxPitchRate, agentechLimits.maxPitchRate);
-      requireRange(errors, call.action, "seconds", seconds, 0, agentechLimits.maxSeconds);
-    }
+    validateMotionCallParameters(errors, call);
   }
+
   return errors;
 }

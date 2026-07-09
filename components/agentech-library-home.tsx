@@ -27,6 +27,10 @@ function StepIcon({ index }: { index: number }) {
       <path d="M14 38v12h36V38" />
       <path d="M10 50h44" />
     </svg>,
+    <svg key="shield" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M32 6l21 8v15c0 14-8.5 23-21 29-12.5-6-21-15-21-29V14l21-8z" />
+      <path d="M22 33l7 7 14-16" />
+    </svg>,
     <svg key="live" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="9" y="16" width="38" height="32" rx="5" />
       <path d="M47 27l8-5v20l-8-5" />
@@ -104,6 +108,7 @@ export function AgentechLibraryHome() {
             <div className="absolute right-6 top-8 h-28 w-20 rounded-r-[36px] border-y-4 border-r-4 border-[#008a6c]" />
             <div className="absolute left-6 top-[13.5rem] h-28 w-20 rounded-l-[36px] border-y-4 border-l-4 border-[#145cff]" />
             <div className="absolute right-6 top-[26.5rem] h-28 w-20 rounded-r-[36px] border-y-4 border-r-4 border-[#6c2bd9]" />
+            <div className="absolute left-6 top-[39.5rem] h-28 w-20 rounded-l-[36px] border-y-4 border-l-4 border-[#c85016]" />
           </div>
 
           <div className="relative mx-auto grid max-w-[860px] gap-0">

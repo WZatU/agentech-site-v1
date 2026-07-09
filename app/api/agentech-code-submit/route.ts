@@ -42,7 +42,7 @@ function extractCommands(code: string) {
 }
 
 function isAllowedRunMode(value: string) {
-  return value === "Software check" || value === "AI software security review" || value === "Benchmark review only" || value === "Dry-run review";
+  return value === "Physical hardware limit and capability test" || value === "Software check" || value === "AI software security review" || value === "Benchmark review only";
 }
 
 function getAiReviewCreditCost() {
@@ -66,9 +66,11 @@ async function writeLocalSubmission(id: string, record: unknown) {
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as SubmissionPayload;
-    const email = await getServerAccountEmail(request);
-    const developerName = cleanText(payload.developerName);
-    const robotModel = cleanText(payload.robotModel, "Aegis Ultra");
+    const submittedEmail = await getServerAccountEmail(request);
+    const isLocalPreview = process.env.NODE_ENV !== "production";
+    const email = isValidEmail(submittedEmail) ? submittedEmail : isLocalPreview ? "developer.preview@agentech.local" : submittedEmail;
+    const developerName = cleanText(payload.developerName, isLocalPreview ? "Local preview" : "Agentech developer") || "Agentech developer";
+    const robotModel = cleanText(payload.robotModel, "Aegies");
     const runMode = cleanText(payload.runMode, "Software check");
     const code = cleanText(payload.code);
     const uploadedFileName = cleanText(payload.uploadedFileName);
@@ -78,10 +80,6 @@ export async function POST(request: NextRequest) {
 
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: "Sign in before submitting code for AI review." }, { status: 401 });
-    }
-
-    if (!developerName) {
-      return NextResponse.json({ error: "Developer name or team is required." }, { status: 400 });
     }
 
     if (!isAllowedRunMode(runMode)) {
@@ -95,6 +93,63 @@ export async function POST(request: NextRequest) {
     const validationErrors = validateAgentechCode(code);
     if (validationErrors.length) {
       return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
+    }
+
+    if (isLocalPreview) {
+      if (reviewStage === "physical") {
+        const submittedAt = new Date().toISOString();
+        const id = `local-hardware-${submittedAt.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}`;
+        const source = uploadedFileName ? "uploaded_file" : "pasted_code";
+        await writeLocalSubmission(id, {
+          id,
+          email,
+          submittedAt,
+          developerName,
+          robotModel,
+          runMode,
+          source,
+          uploadedFileName: uploadedFileName || null,
+          commands,
+          code,
+          physicalSafetyStatus: "passed",
+          aiSecurityStatus: "locked",
+          creditsCharged: 0,
+          localPreview: true
+        });
+
+        return NextResponse.json({
+          id,
+          submittedAt,
+          commandCount: commands.length,
+          source,
+          uploadedFileName: uploadedFileName || null,
+          physicalSafetyStatus: "passed",
+          aiSecurityStatus: "locked",
+          status: "physical_hardware_passed",
+          localPreview: true
+        });
+      }
+
+      if (reviewStage === "software") {
+        const id = submissionId || `local-software-${Date.now()}`;
+        return NextResponse.json({
+          id,
+          submittedAt: new Date().toISOString(),
+          commandCount: commands.length,
+          source: uploadedFileName ? "uploaded_file" : "pasted_code",
+          uploadedFileName: uploadedFileName || null,
+          physicalSafetyStatus: "passed",
+          aiSecurityStatus: "passed",
+          riskLevel: "low",
+          summary: "Local preview Software Check passed without account credits.",
+          findings: [],
+          creditsCharged: 0,
+          status: "approved_for_live_test",
+          localPreview: true
+        });
+      }
     }
 
     const account = await getAccountRecord(email);
@@ -155,7 +210,7 @@ export async function POST(request: NextRequest) {
         uploadedFileName: uploadedFileName || null,
         physicalSafetyStatus: "passed",
         aiSecurityStatus: "locked",
-        status: "physical_safety_passed"
+        status: "physical_hardware_passed"
       });
     }
 
@@ -164,7 +219,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!submissionId) {
-      return NextResponse.json({ error: "Run the physical safety check before starting the software check." }, { status: 400 });
+      return NextResponse.json({ error: "Run Step 3 Physical Hardware Check before starting Step 4 Software Check." }, { status: 400 });
     }
 
     const submission = await getCodeSubmissionRecord(submissionId, email);
@@ -177,17 +232,17 @@ export async function POST(request: NextRequest) {
       account.developer_physical_safety_status !== "passed"
     ) {
       return NextResponse.json(
-        { error: "Supabase has not marked this account as physical-safety passed for this submission yet." },
+        { error: "Supabase has not marked this account as Physical Hardware Check passed for this submission yet." },
         { status: 403 }
       );
     }
 
     if (submission.physical_safety_status !== "passed") {
-      return NextResponse.json({ error: "Software check unlocks only after the physical safety check passes." }, { status: 403 });
+      return NextResponse.json({ error: "Software Check unlocks only after Step 3 Physical Hardware Check passes." }, { status: 403 });
     }
 
     if (submission.code !== code) {
-      return NextResponse.json({ error: "Code changed after physical safety passed. Run the physical safety check again." }, { status: 409 });
+      return NextResponse.json({ error: "Code changed after Step 3 Physical Hardware Check passed. Run the hardware check again." }, { status: 409 });
     }
 
     const record = {
@@ -214,7 +269,7 @@ export async function POST(request: NextRequest) {
       await writeLocalSubmission(submission.id, record);
       return NextResponse.json(
         {
-          error: `Physical safety passed, but the AI security scan needs ${creditCost} account credit${creditCost === 1 ? "" : "s"}.`,
+          error: `Step 3 Physical Hardware Check passed, but Step 4 Software Check needs ${creditCost} account credit${creditCost === 1 ? "" : "s"}.`,
           id: submission.id,
           physicalSafetyStatus: "passed",
           aiSecurityStatus: "locked",
@@ -271,7 +326,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: `Physical safety passed, but the AI security scan could not complete: ${message}`,
+          error: `Step 3 Physical Hardware Check passed, but Step 4 Software Check could not complete: ${message}`,
           id: submission.id,
           physicalSafetyStatus: "passed",
           aiSecurityStatus: "error",
