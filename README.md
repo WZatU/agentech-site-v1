@@ -561,7 +561,7 @@ The current implementation already records the uploaded file name and code in Su
 
 The Physical Hardware Check answers:
 
-- Does the uploaded script use one of the 13 command-library robot commands: `forward`, `backward`, `lateral_left`, `lateral_right`, `turn_left`, `turn_right`, `twist_left`, `twist_right`, `backflip`, `jump`, `stand`, `sit`, or `stop`?
+- Does the uploaded script use one of the 17 command-library functions: `forward`, `backward`, `lateral_left`, `lateral_right`, `turn_left`, `turn_right`, `twist_left`, `twist_right`, `backflip`, `jump`, `stand`, `sit`, `stop`, `look_up`, `look_down`, `emergency_stop`, or `get_battery_status`?
 
 ```text
 Can this code damage the robot?

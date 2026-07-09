@@ -217,7 +217,7 @@ function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReas
     {
       name: "Agentech command check",
       status: blocked ? "FAIL" : "PASS",
-      detail: !blocked ? "Documented robot commands were found and can be inspected." : "Requires one of the 13 documented Agentech physical commands from the command library."
+      detail: !blocked ? "Documented robot commands were found and can be inspected." : "Requires one of the 17 documented Agentech commands from the command library."
     },
     {
       name: "SDK parameter requirement check",

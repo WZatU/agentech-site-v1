@@ -23,7 +23,7 @@ type MotionParameterRule = {
   example: string;
 };
 
-const physicalActionNames = [
+const commandLibraryActionNames = [
   "forward",
   "backward",
   "lateral_left",
@@ -36,10 +36,14 @@ const physicalActionNames = [
   "jump",
   "stand",
   "sit",
-  "stop"
+  "stop",
+  "look_up",
+  "look_down",
+  "emergency_stop",
+  "get_battery_status"
 ] as const;
-const allowedPhysicalActions = new Set<string>(physicalActionNames);
-const physicalActionHelp = physicalActionNames.join(", ");
+const allowedPhysicalActions = new Set<string>(commandLibraryActionNames);
+const commandLibraryActionHelp = commandLibraryActionNames.join(", ");
 const motionParameterRules: Record<string, MotionParameterRule> = {
   stand: {
     required: new Set(),
@@ -140,6 +144,36 @@ const motionParameterRules: Record<string, MotionParameterRule> = {
     allowed: new Set(),
     ranges: {},
     example: "Agentech.sit()"
+  },
+  look_up: {
+    required: new Set(["angle"]),
+    allowed: new Set(["angle", "speed"]),
+    ranges: {
+      angle: { low: 0, high: agentechLimits.maxLookUpAngle, allowZero: false },
+      speed: { low: agentechLimits.minPitchRate, high: agentechLimits.maxPitchRate, allowZero: true }
+    },
+    example: "Agentech.look_up(angle=15, speed=0.12)"
+  },
+  look_down: {
+    required: new Set(["angle"]),
+    allowed: new Set(["angle", "speed"]),
+    ranges: {
+      angle: { low: 0, high: agentechLimits.maxLookDownAngle, allowZero: false },
+      speed: { low: agentechLimits.minPitchRate, high: agentechLimits.maxPitchRate, allowZero: true }
+    },
+    example: "Agentech.look_down(angle=15, speed=0.12)"
+  },
+  emergency_stop: {
+    required: new Set(),
+    allowed: new Set(["reason"]),
+    ranges: {},
+    example: "Agentech.emergency_stop()"
+  },
+  get_battery_status: {
+    required: new Set(),
+    allowed: new Set(),
+    ranges: {},
+    example: "Agentech.get_battery_status()"
   },
   stop: {
     required: new Set(),
@@ -317,7 +351,7 @@ function validateMotionCallParameters(errors: string[], call: ParsedCall) {
   const rule = motionParameterRules[call.action];
   if (!rule) {
     errors.push(
-      `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${physicalActionHelp}.`
+      `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${commandLibraryActionHelp}.`
     );
     return;
   }
@@ -402,7 +436,7 @@ export function validateAgentechCode(code: string): string[] {
   for (const call of parseCalls(code)) {
     if (!allowedPhysicalActions.has(call.action)) {
       errors.push(
-        `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${physicalActionHelp}.`
+        `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${commandLibraryActionHelp}.`
       );
       continue;
     }
