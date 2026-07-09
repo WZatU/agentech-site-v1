@@ -221,7 +221,7 @@ const profileOptions: Array<{ type: AccessProfileType; label: string; descriptio
 ];
 
 const dashboardTabs: Array<{ id: DashboardTab; label: string; mark: string }> = [
-  { id: "profile", label: "Profile", mark: "P" },
+  { id: "profile", label: "Account", mark: "A" },
   { id: "courses", label: "Courses", mark: "C" },
   { id: "balance", label: "Balance", mark: "$" },
   { id: "robot", label: "Robot Requests", mark: "R" },
@@ -289,7 +289,7 @@ const profileVisuals: Record<
   },
   talent: {
     eyebrow: "Talent profile",
-    tone: "Applications, portfolio growth, and program pathways.",
+    tone: "Portfolio growth, program pathways, and talent records.",
     avatar: "from-amber-100 to-orange-100 text-amber-700",
     iconBg: "bg-amber-50",
     iconText: "text-amber-600",
@@ -649,6 +649,51 @@ function buildPreviewDashboardData(profileType: AccessProfileType): DashboardDat
   };
 }
 
+function buildEmptyPreviewDashboardData(): DashboardData {
+  return {
+    account: {
+      email: "account.preview@agentech.local",
+      first_name: "Account",
+      last_name: "Owner",
+      phone: "(949) 555-0199",
+      credit_balance: 0,
+      paid_credit_balance: 0,
+      bonus_credit_balance: 0
+    },
+    accessProfiles: [],
+    creditSummary: {
+      balance: 0,
+      paid: 0,
+      bonus: 0,
+      assigned: 0,
+      monthlyLimitTotal: 0,
+      used: 0,
+      monthlyUsed: 0,
+      unassigned: 0,
+      rechargeRequired: true
+    },
+    featureAccess: {
+      hasProfiles: false,
+      accountOnly: true,
+      lockedFeatures: []
+    },
+    profile: null,
+    children: [],
+    requests: [],
+    robotSessions: [],
+    enrollments: [],
+    applications: {
+      internships: [],
+      aiRoboticsClub: []
+    },
+    unpaidBalance: {
+      total: 0,
+      lines: []
+    },
+    invoices: []
+  };
+}
+
 function getCurrentUsagePeriod() {
   return new Date().toISOString().slice(0, 7);
 }
@@ -747,10 +792,8 @@ export function AccountDashboard() {
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState("");
-  const [childActionMessage, setChildActionMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [pendingRemovalId, setPendingRemovalId] = useState("");
-  const [pendingChildRemovalId, setPendingChildRemovalId] = useState<number | null>(null);
   const [profileType, setProfileType] = useState<AccessProfileType>("developer");
   const [profileUsername, setProfileUsername] = useState("");
   const [profileName, setProfileName] = useState("");
@@ -801,6 +844,7 @@ export function AccountDashboard() {
   const [loadingRobotSlots, setLoadingRobotSlots] = useState(false);
   const [requestingRobotSlot, setRequestingRobotSlot] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
+  const [selectedDashboardProfileId, setSelectedDashboardProfileId] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -811,6 +855,14 @@ export function AccountDashboard() {
         process.env.NODE_ENV !== "production"
           ? new URLSearchParams(window.location.search).get("previewProfile")
           : null;
+
+      if (!session?.email && previewProfileType === "empty") {
+        const previewData = buildEmptyPreviewDashboardData();
+        setEmail(previewData.account?.email ?? "");
+        setData(previewData);
+        setLoading(false);
+        return;
+      }
 
       if (!session?.email && isPreviewProfileType(previewProfileType)) {
         const previewData = buildPreviewDashboardData(previewProfileType);
@@ -864,6 +916,17 @@ export function AccountDashboard() {
       setAdminCreditTargetEmail(email);
     }
   }, [adminCreditTargetEmail, email]);
+
+  useEffect(() => {
+    if (selectedDashboardProfileId === null || !data.accessProfiles) {
+      return;
+    }
+
+    if (!data.accessProfiles.some((profile) => profile.id === selectedDashboardProfileId)) {
+      setSelectedDashboardProfileId(null);
+      setActiveTab("profile");
+    }
+  }, [data.accessProfiles, selectedDashboardProfileId]);
 
   useEffect(() => {
     if (email && looksLikeGatewayOwnerEmail(email)) {
@@ -1017,27 +1080,6 @@ export function AccountDashboard() {
     const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
     const result = (await accountResponse.json()) as DashboardData;
     setData(result);
-  }
-
-  async function removeChild(childId: number) {
-    if (!email) return;
-
-    setChildActionMessage("");
-    setPendingChildRemovalId(null);
-    const response = await fetch("/api/account-child", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, childId })
-    });
-    const result = (await response.json().catch(() => null)) as { message?: string; error?: string } | null;
-
-    if (!response.ok) {
-      setChildActionMessage(result?.error || "Unable to delete that child.");
-      return;
-    }
-
-    setChildActionMessage(result?.message || "Child deleted.");
-    await refreshAccount();
   }
 
   async function confirmRequest() {
@@ -1323,7 +1365,6 @@ export function AccountDashboard() {
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
   const hasPurchaseRequests = Boolean(data.requests?.length);
   const hasRobotSessions = Boolean(data.robotSessions?.length);
-  const hasApplications = Boolean(data.applications?.internships.length || data.applications?.aiRoboticsClub.length);
   const hasInvoices = Boolean(data.invoices?.length);
   const hasAccessProfiles = Boolean(data.accessProfiles?.length);
   const hasChildren = Boolean(data.children?.length);
@@ -1345,50 +1386,46 @@ export function AccountDashboard() {
   const customCodeLocked = robotSlotRunType === "custom_code" && !internalTestingBypass && !developerCodeReviewPassed;
   const robotSlotCreditLocked = !internalTestingBypass && creditBalance <= 0;
   const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
-  const primaryProfile = data.accessProfiles?.[0] ?? null;
-  const primaryProfileType = primaryProfile?.profile_type ?? "developer";
-  const visibleDashboardTabs = getDashboardTabs(primaryProfileType);
+  const selectedDashboardProfile = data.accessProfiles?.find((profile) => profile.id === selectedDashboardProfileId) ?? null;
+  const selectedDashboardProfileType = selectedDashboardProfile?.profile_type ?? null;
+  const visibleDashboardTabs = selectedDashboardProfileType
+    ? getDashboardTabs(selectedDashboardProfileType)
+    : dashboardTabs.filter((tab) => tab.id !== "courses" && tab.id !== "robot");
   const currentTab = visibleDashboardTabs.some((tab) => tab.id === activeTab) ? activeTab : "profile";
-  const primaryVisual = profileVisuals[primaryProfileType];
+  const selectedVisual = selectedDashboardProfileType ? profileVisuals[selectedDashboardProfileType] : null;
+  const accountAvatar = "from-slate-100 to-slate-200 text-slate-700";
   const profileInitial = (displayName.trim()[0] || email.trim()[0] || "A").toUpperCase();
   const openRobotCount = (data.robotSessions ?? []).filter((session) => {
     const status = session.session_status.replace(/_/g, " ").toLowerCase();
     return !["cancelled", "canceled", "voided", "rejected", "deleted"].includes(status);
   }).length;
   const invoiceTotal = data.invoices?.length ?? 0;
-  const applicationTotal = (data.applications?.internships.length ?? 0) + (data.applications?.aiRoboticsClub.length ?? 0);
   const totalSpent = (data.invoices ?? []).reduce((total, invoice) => total + Number(invoice.amount_paid ?? 0), 0);
-  const roleMetric = primaryProfileType === "developer"
+  const roleMetric = selectedDashboardProfileType === "developer"
     ? { icon: "R", label: "Live Viewing", value: openRobotCount.toLocaleString(), helper: hasRobotSessions ? "Viewing slots requested" : "Ready for booking", visual: profileVisuals.developer }
-    : primaryProfileType === "student"
+    : selectedDashboardProfileType === "student"
       ? { icon: "E", label: "Enrollments", value: (data.enrollments?.length ?? 0).toLocaleString(), helper: hasEnrollments ? "Learning activity" : "No classes yet", visual: profileVisuals.student }
-      : primaryProfileType === "teacher"
+      : selectedDashboardProfileType === "teacher"
         ? { icon: "S", label: "Students", value: (data.children?.length ?? 0).toLocaleString(), helper: hasChildren ? "Managed learners" : "No students yet", visual: profileVisuals.teacher }
-        : { icon: "A", label: "Applications", value: applicationTotal.toLocaleString(), helper: hasApplications ? "Submitted records" : "No applications yet", visual: profileVisuals.talent };
+        : selectedDashboardProfileType === "talent"
+          ? { icon: "T", label: "Talent Profile", value: "1", helper: selectedDashboardProfile ? `@${selectedDashboardProfile.username}` : "Portfolio tools", visual: profileVisuals.talent }
+          : { icon: "P", label: "Profiles", value: (data.accessProfiles?.length ?? 0).toLocaleString(), helper: hasAccessProfiles ? "Choose a profile below" : "No profiles yet", visual: profileVisuals.developer };
   const recentActivity = [
-    ...(primaryProfileType === "developer" ? (data.robotSessions ?? []).slice(0, 2).map((session) => ({
+    ...(selectedDashboardProfileType === "developer" ? (data.robotSessions ?? []).slice(0, 2).map((session) => ({
       key: `session-${session.id}`,
       icon: "R",
       title: session.session_title || "Robot session requested",
       meta: `${session.robot_model || "Robot"} - ${formatInvoiceStatus(session.session_status)}`,
       date: session.created_at,
-      visual: profileVisuals[session.profile_type ?? primaryProfileType]
+      visual: profileVisuals[session.profile_type ?? selectedDashboardProfileType]
     })) : []),
-    ...((primaryProfileType === "student" || primaryProfileType === "teacher") ? (data.enrollments ?? []).slice(0, 2).map((enrollment) => ({
+    ...((selectedDashboardProfileType === "student" || selectedDashboardProfileType === "teacher") ? (data.enrollments ?? []).slice(0, 2).map((enrollment) => ({
       key: `enrollment-${enrollment.id}`,
       icon: "E",
       title: enrollment.agentech_classes?.class_name || "Class enrollment",
       meta: enrollment.paid ? "Paid" : "Payment pending",
       date: enrollment.created_at,
       visual: profileVisuals.student
-    })) : []),
-    ...(primaryProfileType === "talent" ? (data.applications?.internships ?? []).slice(0, 2).map((application) => ({
-      key: `application-${application.id}`,
-      icon: "A",
-      title: application.role_interests?.join(", ") || "Application submitted",
-      meta: application.resume_filename ? `Resume: ${application.resume_filename}` : application.name,
-      date: application.created_at,
-      visual: profileVisuals.talent
     })) : []),
     ...(data.invoices ?? []).slice(0, 2).map((invoice) => ({
       key: `invoice-${invoice.invoice_number}`,
@@ -1408,8 +1445,8 @@ export function AccountDashboard() {
     }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4);
   const tabCounts: Partial<Record<DashboardTab, number>> = {
-    courses: primaryProfileType === "student" || primaryProfileType === "teacher" ? data.enrollments?.length ?? 0 : 0,
-    robot: primaryProfileType === "developer" ? openRobotCount : 0,
+    courses: selectedDashboardProfileType === "student" || selectedDashboardProfileType === "teacher" ? data.enrollments?.length ?? 0 : 0,
+    robot: selectedDashboardProfileType === "developer" ? openRobotCount : 0,
     invoices: invoiceTotal,
     settings: data.accessProfiles?.length ?? 0
   };
@@ -1602,14 +1639,14 @@ export function AccountDashboard() {
 
   return (
     <>
-      {primaryProfileType === "student" ? (
+      {selectedDashboardProfileType === "student" ? (
         <div className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(180deg,rgba(5,8,25,0.08),rgba(5,8,25,0.18)),url('/assets/backgrounds/account-dashboard-background.png')] bg-cover bg-[right_center]" />
       ) : null}
     <div className="relative z-[1] overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
       <div className="relative z-[1] flex flex-col gap-5 px-5 pb-4 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">Profile & Account</h1>
-          <p className="mt-2 text-sm font-medium text-slate-500">Manage your profile and account settings.</p>
+          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">Account Dashboard</h1>
+          <p className="mt-2 text-sm font-medium text-slate-500">Manage account settings, credits, invoices, and profile access.</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -1620,7 +1657,7 @@ export function AccountDashboard() {
             !
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
           </button>
-          <div className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${primaryVisual.avatar}`}>
+          <div className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
             {profileInitial}
           </div>
           <button
@@ -1648,7 +1685,12 @@ export function AccountDashboard() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === "profile") {
+                    setSelectedDashboardProfileId(null);
+                  }
+                  setActiveTab(tab.id);
+                }}
                 className={`relative flex items-center gap-2 px-1 py-4 text-sm font-bold transition ${
                   selected ? "text-[#2f70c8]" : "text-slate-500 hover:text-slate-900"
                 }`}
@@ -1673,10 +1715,12 @@ export function AccountDashboard() {
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">Profile Information</h2>
-                  <p className={`mt-2 text-xs font-bold uppercase ${primaryVisual.accent}`}>{primaryVisual.eyebrow}</p>
+                  <h2 className="text-base font-bold text-slate-950">Account Information</h2>
+                  <p className={`mt-2 text-xs font-bold uppercase ${selectedVisual?.accent ?? "text-slate-500"}`}>
+                    {selectedDashboardProfile ? `${getProfileOptionLabel(selectedDashboardProfile.profile_type)} selected` : "Account owner"}
+                  </p>
                 </div>
-                <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br text-xl font-bold ${primaryVisual.avatar}`}>
+                <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br text-xl font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
                   {profileInitial}
                 </div>
               </div>
@@ -1695,17 +1739,13 @@ export function AccountDashboard() {
                     <dd className="mt-1 text-sm font-bold text-slate-900">{phone}</dd>
                   </div>
                 ) : null}
-                <div>
-                  <dt className="text-xs font-bold text-slate-500">Role</dt>
-                  <dd className="mt-1 text-sm font-bold text-slate-900">{primaryProfile ? formatProfileType(primaryProfile.profile_type) : "Account Owner"}</dd>
-                </div>
               </dl>
               <button
                 type="button"
                 onClick={() => setActiveTab("settings")}
                 className="mt-7 w-full rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
               >
-                Edit Profile
+                Edit Account
               </button>
             </div>
 
@@ -1753,8 +1793,8 @@ export function AccountDashboard() {
                     <p className="py-4 text-sm text-slate-500">No recent account activity yet.</p>
                   )}
                 </div>
-                <button type="button" onClick={() => setActiveTab(primaryProfileType === "developer" ? "robot" : "settings")} className="mt-2 text-sm font-bold text-[#2563eb]">
-                  {primaryProfileType === "developer" ? "View Activity" : "Manage Profile"}
+                <button type="button" onClick={() => setActiveTab(selectedDashboardProfileType === "developer" ? "robot" : "settings")} className="mt-2 text-sm font-bold text-[#2563eb]">
+                  {selectedDashboardProfileType === "developer" ? "View Activity" : "Manage Profiles"}
                 </button>
               </div>
             </div>
@@ -2759,149 +2799,73 @@ export function AccountDashboard() {
       </section>
       ) : null}
 
-      {currentTab === "profile" && hasAccessProfiles && (hasApplications || primaryProfileType === "talent") ? (
+      {currentTab === "profile" ? (
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">Applications</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              {hasApplications ? "Your submitted internship and club applications are listed here." : "Start or continue an internship or club application."}
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2f70c8]">Profile Switcher</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">{hasAccessProfiles ? "Choose a profile" : "Create a profile"}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Account controls stay above. Use profiles for developer tools, student learning, educator access, or talent pathways.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/ai-robotics-club" className="text-sm font-semibold text-[#2f70c8]">
-              AI Robotics Club
-            </Link>
-            <Link href="/career-intern" className="text-sm font-semibold text-[#2f70c8]">
-              Internship
-            </Link>
-          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("settings")}
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+          >
+            Manage Profiles
+          </button>
         </div>
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <h3 className="text-lg font-semibold text-slate-950">Internship</h3>
-            <div className="mt-4 space-y-3">
-              {data.applications?.internships.length ? (
-                data.applications.internships.map((application) => (
-                  <div key={application.id} className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="font-semibold text-slate-950">{application.role_interests?.join(", ") || "Internship application"}</p>
-                    <p className="mt-1 text-sm text-slate-600">{application.name} - Submitted {formatDate(application.created_at)}</p>
-                    {application.resume_filename ? <p className="mt-1 text-sm text-slate-600">Resume: {application.resume_filename}</p> : null}
-                  </div>
-                ))
-              ) : (
-                <Link href="/career-intern" className="inline-flex rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
-                  View internship roles
-                </Link>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <h3 className="text-lg font-semibold text-slate-950">AI Robotics Club</h3>
-            <div className="mt-4 space-y-3">
-              {data.applications?.aiRoboticsClub.length ? (
-                data.applications.aiRoboticsClub.map((application) => (
-                  <div key={application.id} className="rounded-xl border border-slate-200 bg-white p-4">
-                    <p className="font-semibold text-slate-950">{application.name}</p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {[application.grade, application.interests?.join(", ")].filter(Boolean).join(" - ")}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">Submitted {formatDate(application.created_at)}</p>
-                    {application.resume_filename ? <p className="mt-1 text-sm text-slate-600">Resume: {application.resume_filename}</p> : null}
-                  </div>
-                ))
-              ) : (
-                <Link href="/ai-robotics-club" className="inline-flex rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
-                  View club page
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-      ) : null}
-
-      {currentTab === "profile" && hasAccessProfiles && (hasChildren || primaryProfileType === "student" || primaryProfileType === "teacher") ? (
-      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-semibold text-slate-950">Children</h2>
-          <Link href="/account-setup" className="text-sm font-semibold text-[#2f70c8]">
-            Edit Education Profile
-          </Link>
-        </div>
-        {childActionMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{childActionMessage}</p> : null}
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {data.children?.length ? (
-            data.children.map((child) => (
-              <div key={child.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {data.accessProfiles?.map((profile) => {
+            const visual = profileVisuals[profile.profile_type];
+            const selected = selectedDashboardProfileId === profile.id;
+            const remainingCredits = Math.max(0, Number(profile.monthly_credit_limit ?? profile.credit_limit ?? 0) - Number(profile.monthly_credits_used ?? profile.credits_used ?? 0));
+            return (
+              <button
+                key={profile.id}
+                type="button"
+                onClick={() => {
+                  setSelectedDashboardProfileId(profile.id);
+                  setActiveTab("profile");
+                }}
+                className={`group min-h-52 rounded-2xl border p-5 text-left transition ${
+                  selected
+                    ? "border-[#2563eb] bg-[#f8fbff] ring-2 ring-[#bfdbfe]"
+                    : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_34px_rgba(15,23,42,0.08)]"
+                }`}
+              >
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-slate-950">{formatFullName(child.first_name, child.last_name)}</p>
-                    <p className="mt-1 text-sm text-slate-600">Grade: {child.grade.replace(/^Grade\s+/i, "")} - {child.sex}</p>
-                    {child.school_info ? <p className="mt-1 text-sm text-slate-600">School: {child.school_info}</p> : null}
-                    {child.preferred_location ? <p className="mt-1 text-sm text-slate-600">Preferred location: {child.preferred_location}</p> : null}
+                  <div className={`grid h-14 w-14 place-items-center rounded-2xl text-sm font-black ${visual.iconBg} ${visual.iconText}`}>
+                    {getProfileMark(profile.profile_type)}
                   </div>
-                  {pendingChildRemovalId === child.id ? (
-                    <div className="flex shrink-0 flex-wrap justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => removeChild(child.id)}
-                        className="rounded-full border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-                      >
-                        Confirm Delete
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPendingChildRemovalId(null)}
-                        className="rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-slate-100"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setChildActionMessage("");
-                        setPendingChildRemovalId(child.id);
-                      }}
-                      className="shrink-0 rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-slate-100"
-                    >
-                      Delete
-                    </button>
-                  )}
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${visual.iconBg} ${visual.iconText}`}>
+                    {getProfileOptionLabel(profile.profile_type)}
+                  </span>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-slate-600">No children saved yet.</p>
-          )}
-        </div>
-      </section>
-      ) : null}
-
-      {currentTab === "profile" && hasAccessProfiles && (hasEnrollments || primaryProfileType === "teacher") && primaryProfileType !== "student" ? (
-      <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-        <h2 className="text-2xl font-semibold text-slate-950">Enrollments</h2>
-        <div className="mt-5 space-y-3">
-          {data.enrollments?.length ? (
-            data.enrollments.map((enrollment) => (
-              <div key={enrollment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="font-semibold text-slate-950">
-                  {enrollment.agentech_classes?.class_name || enrollment.class_id || "Class enrollment"}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {[enrollment.site_name, enrollment.agentech_classes?.class_time, enrollment.agentech_classes?.starting_date]
-                    .filter(Boolean)
-                    .join(" - ")}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">{enrollment.paid ? "Paid" : "Payment pending"}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-slate-600">No class enrollments yet.</p>
-          )}
+                <h3 className="mt-5 text-xl font-black text-slate-950">{profile.display_name}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">@{profile.username}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{visual.tone}</p>
+                <div className="mt-4 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                  <span>{formatCredits(remainingCredits)} left</span>
+                  <span className={selected ? "text-[#2563eb]" : "text-slate-400"}>{selected ? "Selected" : "Open"}</span>
+                </div>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setActiveTab("settings")}
+            className="group flex min-h-52 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center transition hover:-translate-y-0.5 hover:border-[#2f70c8] hover:bg-[#f8fbff]"
+          >
+            <span className="grid h-16 w-16 place-items-center rounded-2xl border border-slate-200 bg-white text-3xl font-black text-[#2563eb] shadow-sm transition group-hover:border-[#bfdbfe] group-hover:shadow-[0_14px_30px_rgba(37,99,235,0.14)]">
+              +
+            </span>
+            <h3 className="mt-5 text-xl font-black text-slate-950">Add Profile</h3>
+            <p className="mt-2 max-w-xs text-sm leading-6 text-slate-600">Create another developer, student, educator, or talent profile under this account.</p>
+            <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-[#2563eb]">Create Profile</p>
+          </button>
         </div>
       </section>
       ) : null}
