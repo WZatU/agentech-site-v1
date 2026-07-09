@@ -67,7 +67,7 @@ async function writeLocalSubmission(id: string, record: unknown) {
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as SubmissionPayload;
-    const submittedEmail = await getServerAccountEmail(request);
+    const submittedEmail = await getServerAccountEmail(request, { allowLegacyCookie: true });
     const isLocalPreview = process.env.NODE_ENV !== "production";
     const email = isValidEmail(submittedEmail) ? submittedEmail : isLocalPreview ? "developer.preview@agentech.local" : submittedEmail;
     const developerName = cleanText(payload.developerName, isLocalPreview ? "Local preview" : "Agentech developer") || "Agentech developer";
@@ -79,21 +79,33 @@ export async function POST(request: NextRequest) {
     const submissionId = cleanText(payload.submissionId);
     const commands = extractCommands(code);
 
-    if (!isValidEmail(email)) {
-      return NextResponse.json({ error: "Sign in before submitting code for AI review." }, { status: 401 });
-    }
-
     if (!isAllowedRunMode(runMode)) {
-      return NextResponse.json({ error: "Choose a valid review mode." }, { status: 400 });
+      return NextResponse.json({ error: "Choose a valid review mode.", errorCode: "INVALID_RUN_MODE" }, { status: 400 });
     }
 
     if (!code || !commands.length) {
-      return NextResponse.json({ error: "Upload or paste an Agentech Python code file before running review." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Upload a .py file or paste code containing at least one Agentech command before running the check.",
+          errorCode: "CODE_REQUIRED"
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: "Your account session could not be verified. Sign in again, then retry the check.", errorCode: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
     }
 
     const validationErrors = validateAgentechCode(code);
     if (validationErrors.length) {
-      return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
+      return NextResponse.json(
+        { error: validationErrors.join(" "), errorCode: "CODE_VALIDATION_FAILED" },
+        { status: 400 }
+      );
     }
     const movementSafety = evaluateAgentechMovementSafety(code);
 
@@ -169,7 +181,10 @@ export async function POST(request: NextRequest) {
 
     const account = await getAccountRecord(email);
     if (!account) {
-      return NextResponse.json({ error: "Account not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "The signed-in account could not be found. Refresh your account page, then retry.", errorCode: "ACCOUNT_NOT_FOUND" },
+        { status: 404 }
+      );
     }
 
     if (reviewStage === "physical") {

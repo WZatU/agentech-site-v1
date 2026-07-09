@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
@@ -1336,6 +1336,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [activeName, setActiveName] = useState("stand");
   const [requestStatus, setRequestStatus] = useState("Ready for Step 3 Physical Hardware Check. Step 4 Software Check unlocks after hardware passes.");
+  const [reviewInputError, setReviewInputError] = useState("");
+  const [isDraggingCodeFile, setIsDraggingCodeFile] = useState(false);
   const developerName = "Agentech developer";
   const robotModel = "Aegies";
   const [uploadedFileName, setUploadedFileName] = useState("");
@@ -1449,6 +1451,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   function updateCode(nextCode: string, preferredCommand?: string) {
     const normalizedCode = ensureRequiredStand(nextCode);
     setCode(normalizedCode);
+    if (commandPlan(normalizedCode).trace.length) {
+      setReviewInputError("");
+    }
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
@@ -1461,10 +1466,31 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       return;
     }
 
+    if (!/\.(?:py|txt)$/i.test(file.name)) {
+      const message = "Choose a Python (.py) or text (.txt) code file.";
+      setReviewInputError(message);
+      setRequestStatus(message);
+      return;
+    }
+
     const text = await file.text();
     setUploadedFileName(file.name);
     updateCode(text);
+    if (!text.trim()) {
+      const message = `${file.name} is empty. Add at least one Agentech command before running the check.`;
+      setReviewInputError(message);
+      setRequestStatus(message);
+      return;
+    }
+
+    setReviewInputError("");
     setRequestStatus(`${file.name} loaded. Run Step 3 Physical Hardware Check first.`);
+  }
+
+  function handleCodeFileDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDraggingCodeFile(false);
+    void loadUploadedCodeFile(event.dataTransfer.files?.[0] ?? null);
   }
 
   function loadExample(item: AgentechFunction) {
@@ -1541,7 +1567,19 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       setCode(reviewCode);
     }
     const reviewPlan = commandPlan(reviewCode);
+    if (!reviewCode.trim() || !reviewPlan.trace.length) {
+      const message = "Upload a .py file or paste code containing at least one Agentech command before running the check.";
+      setPhysicalSubmissionId("");
+      setPhysicalSafetyPassed(false);
+      setCanScheduleRobotSlot(false);
+      setHardwareResult(null);
+      setReviewInputError(message);
+      setRequestStatus(message);
+      return;
+    }
+
     const movementSafety = evaluateAgentechMovementSafety(reviewCode);
+    setReviewInputError("");
     setIsRunningPhysicalCheck(true);
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
@@ -1580,28 +1618,41 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           commands: reviewPlan.trace
         })
       });
-      const payload = await response.json();
+      const payload = await response.json().catch(() => ({
+        error: "The review service returned an unreadable response. Please retry.",
+        errorCode: "REVIEW_SERVICE_ERROR"
+      }));
       if (!response.ok) {
+        const message = payload.error ?? "Physical Hardware Check failed.";
+        const requestErrorCodes = new Set(["AUTH_REQUIRED", "CODE_REQUIRED", "ACCOUNT_NOT_FOUND", "REVIEW_SERVICE_ERROR"]);
+        if (requestErrorCodes.has(payload.errorCode) || response.status >= 500) {
+          setHardwareResult(null);
+          setReviewInputError(message);
+          setRequestStatus(message);
+          return;
+        }
+
         const responseMovementSafety = payload.movementSafety as AgentechMovementSafety | undefined;
-        const blockedSafety = responseMovementSafety ?? defaultMovementSafety("FAIL", payload.error ?? "Physical safety check failed.");
+        const blockedSafety = responseMovementSafety ?? defaultMovementSafety("FAIL", "Movement safety was not evaluated because code validation failed.");
         setHardwareResult({
           status: blockedSafety.level,
           resultId: `blocked-${Date.now()}`,
           robotModel,
           fileName: uploadedFileName || "pasted code",
           commandCount: reviewPlan.motionCount,
-          checklist: buildHardwareChecklist(blockedSafety.level, payload.error ?? blockedSafety.detail, blockedSafety),
+          checklist: buildHardwareChecklist(blockedSafety.level, message, blockedSafety),
           motionPlan: reviewPlan.trace,
           simulationClips: [],
-          simulationError: payload.error ?? blockedSafety.detail,
+          simulationError: message,
           finalHint: blockedSafety.level === "WARNING" ? "Warning-level movement is not submit-ready. Keep max movement within 0.8m before Step 4 unlocks." : "Submission is locked until every checklist item passes.",
           movementSafety: blockedSafety
         });
-        setRequestStatus(payload.error ?? blockedSafety.detail);
+        setRequestStatus(message);
         return;
       }
       setPhysicalSubmissionId(payload.id);
       setPhysicalSafetyPassed(true);
+      setReviewInputError("");
       setHardwareResult({
         status: "PASS",
         resultId: payload.id ?? "local-hardware-result",
@@ -1621,19 +1672,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       setPhysicalSubmissionId("");
       setPhysicalSafetyPassed(false);
       setCanScheduleRobotSlot(false);
-      setHardwareResult({
-        status: "FAIL",
-        resultId: `blocked-${Date.now()}`,
-        robotModel,
-        fileName: uploadedFileName || "pasted code",
-        commandCount: reviewPlan.motionCount,
-        checklist: buildHardwareChecklist("FAIL", message),
-        movementSafety: defaultMovementSafety("FAIL", message),
-        motionPlan: reviewPlan.trace,
-        simulationClips: [],
-        simulationError: message,
-        finalHint: "Submission is locked until every checklist item passes."
-      });
+      setHardwareResult(null);
+      setReviewInputError(message);
       setRequestStatus(message);
     } finally {
       setIsRunningPhysicalCheck(false);
@@ -1807,20 +1847,51 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   <p className="mt-2 text-sm font-semibold text-[#07142e]">{runMode}</p>
                   <p className="mt-1 text-xs leading-5 text-[#526174]">{runModeDescription}</p>
                 </div>
-                <label className="block">
+                <label
+                  onDragEnter={(event) => {
+                    event.preventDefault();
+                    setIsDraggingCodeFile(true);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "copy";
+                    setIsDraggingCodeFile(true);
+                  }}
+                  onDragLeave={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setIsDraggingCodeFile(false);
+                    }
+                  }}
+                  onDrop={handleCodeFileDrop}
+                  className={`block border border-dashed p-3 transition ${
+                    isDraggingCodeFile
+                      ? "border-[#008a7a] bg-[#e8f7f3]"
+                      : reviewInputError
+                        ? "border-[#c93434] bg-[#fff8f8]"
+                        : "border-[#c9d8e8] bg-[#f8fbff] hover:border-[#008a7a]"
+                  }`}
+                >
                   <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Upload code file</span>
+                  <span className="mt-2 block text-sm font-semibold text-[#07142e]">
+                    {isDraggingCodeFile ? "Drop the file here" : "Drag a .py or .txt file here, or choose a file"}
+                  </span>
                   <input
                     type="file"
                     accept=".py,.txt"
                     onChange={(event) => {
                       void loadUploadedCodeFile(event.target.files?.[0] ?? null);
                     }}
-                    className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#23304a] outline-none file:mr-3 file:border-0 file:bg-[#e8f7f3] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#006a5c] focus:border-[#008a7a]"
+                    className="mt-3 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#23304a] outline-none file:mr-3 file:border-0 file:bg-[#e8f7f3] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#006a5c] focus:border-[#008a7a]"
                   />
                   <span className="mt-2 block text-xs leading-5 text-[#526174]">
                     {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
                   </span>
                 </label>
+                {reviewInputError ? (
+                  <div role="alert" className="border border-[#c93434] bg-[#fff1f1] px-3 py-2 text-xs leading-5 text-[#a51f1f]">
+                    {reviewInputError}
+                  </div>
+                ) : null}
                 <div className={`border p-3 ${step3PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Step 3 - Physical Hardware Check</p>

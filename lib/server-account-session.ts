@@ -112,10 +112,18 @@ async function getSignedCookieEmail() {
 
 async function getLegacyCookieEmail() {
   const cookieStore = await cookies();
-  return normalizeEmail(cookieStore.get(accountSessionCookieName)?.value);
+  const value = cookieStore.get(accountSessionCookieName)?.value ?? "";
+  try {
+    return normalizeEmail(decodeURIComponent(value));
+  } catch {
+    return normalizeEmail(value);
+  }
 }
 
-export async function getServerAccountEmail(request?: NextRequest) {
+export async function getServerAccountEmail(
+  request?: NextRequest,
+  options: { allowLegacyCookie?: boolean } = {}
+) {
   const signedEmail = await getSignedCookieEmail();
   if (signedEmail) {
     return signedEmail;
@@ -127,7 +135,7 @@ export async function getServerAccountEmail(request?: NextRequest) {
     return verifySignedAccountSession(token) || await getSupabaseJwtEmail(token);
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  if (options.allowLegacyCookie || process.env.NODE_ENV !== "production") {
     return getLegacyCookieEmail();
   }
 
