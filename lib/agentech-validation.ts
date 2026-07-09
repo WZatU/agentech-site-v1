@@ -23,10 +23,26 @@ type MotionParameterRule = {
   example: string;
 };
 
-const allowedPhysicalActions = new Set(["stand", "forward", "backward", "backflip", "stop"]);
+const physicalActionNames = [
+  "forward",
+  "backward",
+  "lateral_left",
+  "lateral_right",
+  "turn_left",
+  "turn_right",
+  "twist_left",
+  "twist_right",
+  "backflip",
+  "jump",
+  "stand",
+  "sit",
+  "stop"
+] as const;
+const allowedPhysicalActions = new Set<string>(physicalActionNames);
+const physicalActionHelp = physicalActionNames.join(", ");
 const motionParameterRules: Record<string, MotionParameterRule> = {
   stand: {
-    required: new Set(["stand_wait"]),
+    required: new Set(),
     allowed: new Set(["stand_wait"]),
     ranges: { stand_wait: { low: 0, high: 10, allowZero: true } },
     example: "Agentech.stand(stand_wait=1)"
@@ -51,11 +67,79 @@ const motionParameterRules: Record<string, MotionParameterRule> = {
     },
     example: "Agentech.backward(speed=0.3, seconds=3)"
   },
+  lateral_left: {
+    required: new Set(["speed", "seconds"]),
+    allowed: new Set(["speed", "seconds", "stand_wait"]),
+    ranges: {
+      speed: { low: 0, high: agentechLimits.maxLateralVelocity, allowZero: false },
+      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
+      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
+    },
+    example: "Agentech.lateral_left(speed=0.2, seconds=1)"
+  },
+  lateral_right: {
+    required: new Set(["speed", "seconds"]),
+    allowed: new Set(["speed", "seconds", "stand_wait"]),
+    ranges: {
+      speed: { low: 0, high: agentechLimits.maxLateralVelocity, allowZero: false },
+      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
+      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
+    },
+    example: "Agentech.lateral_right(speed=0.2, seconds=1)"
+  },
+  turn_left: {
+    required: new Set(["angle"]),
+    allowed: new Set(["angle", "speed"]),
+    ranges: {
+      angle: { low: 0, high: agentechLimits.maxRotateAngle, allowZero: false },
+      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
+    },
+    example: "Agentech.turn_left(angle=45, speed=0.35)"
+  },
+  turn_right: {
+    required: new Set(["angle"]),
+    allowed: new Set(["angle", "speed"]),
+    ranges: {
+      angle: { low: 0, high: agentechLimits.maxRotateAngle, allowZero: false },
+      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
+    },
+    example: "Agentech.turn_right(angle=45, speed=0.35)"
+  },
+  twist_left: {
+    required: new Set(["angle"]),
+    allowed: new Set(["angle", "speed"]),
+    ranges: {
+      angle: { low: 0, high: agentechLimits.maxRollAngle, allowZero: false },
+      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
+    },
+    example: "Agentech.twist_left(angle=28, speed=0.35)"
+  },
+  twist_right: {
+    required: new Set(["angle"]),
+    allowed: new Set(["angle", "speed"]),
+    ranges: {
+      angle: { low: 0, high: agentechLimits.maxRollAngle, allowZero: false },
+      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
+    },
+    example: "Agentech.twist_right(angle=28, speed=0.35)"
+  },
   backflip: {
     required: new Set(),
     allowed: new Set(),
     ranges: {},
     example: "Agentech.backflip()"
+  },
+  jump: {
+    required: new Set(),
+    allowed: new Set(),
+    ranges: {},
+    example: "Agentech.jump()"
+  },
+  sit: {
+    required: new Set(),
+    allowed: new Set(),
+    ranges: {},
+    example: "Agentech.sit()"
   },
   stop: {
     required: new Set(),
@@ -233,7 +317,7 @@ function validateMotionCallParameters(errors: string[], call: ParsedCall) {
   const rule = motionParameterRules[call.action];
   if (!rule) {
     errors.push(
-      `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Use stand, forward, backward, backflip, or stop.`
+      `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${physicalActionHelp}.`
     );
     return;
   }
@@ -318,7 +402,7 @@ export function validateAgentechCode(code: string): string[] {
   for (const call of parseCalls(code)) {
     if (!allowedPhysicalActions.has(call.action)) {
       errors.push(
-        `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Use stand, forward, backward, backflip, or stop.`
+        `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${physicalActionHelp}.`
       );
       continue;
     }

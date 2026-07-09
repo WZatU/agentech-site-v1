@@ -121,6 +121,7 @@ DROPBOX_NEWS_SHARED_LINK=
 OPENAI_API_KEY=
 OPENAI_CODE_REVIEW_MODEL=gpt-5.5
 AGENTECH_AI_REVIEW_CREDITS=50
+AGENTECH_SUBMISSION_DIR=
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-side only.
@@ -128,6 +129,8 @@ AGENTECH_AI_REVIEW_CREDITS=50
 `OPENAI_API_KEY` must also stay server-side only. Never add a `NEXT_PUBLIC_OPENAI_API_KEY`. The code review route calls OpenAI from the server through `lib/agentech-ai-review.ts`, and the browser should never see the key.
 
 `AGENTECH_AI_REVIEW_CREDITS` is the number of website credits charged when the GPT Software Check runs. The current production default is `50`, where the business rule is expected to be `1 credit = $0.01`.
+
+`AGENTECH_SUBMISSION_DIR` optionally overrides the server-side JSON submission mirror. Serverless deployments default to the writable system temp directory; normal hosting defaults to `process.cwd()/review_submissions`.
 
 `LIVEKIT_API_SECRET` and any FF SDK / robot-control implementation details must also stay server-side or on the private robot/OBS computer. The website may show public beginner calls such as `Agentech.forward()`, but it must not expose private SDK internals, SSH credentials, robot hotspot details, or service-role keys in client code.
 
@@ -558,6 +561,8 @@ The current implementation already records the uploaded file name and code in Su
 
 The Physical Hardware Check answers:
 
+- Does the uploaded script use one of the 13 command-library robot commands: `forward`, `backward`, `lateral_left`, `lateral_right`, `turn_left`, `turn_right`, `twist_left`, `twist_right`, `backflip`, `jump`, `stand`, `sit`, or `stop`?
+
 ```text
 Can this code damage the robot?
 ```
@@ -624,6 +629,7 @@ Environment variables:
 OPENAI_API_KEY
 OPENAI_CODE_REVIEW_MODEL=gpt-5.5
 AGENTECH_AI_REVIEW_CREDITS=50
+AGENTECH_SUBMISSION_DIR
 ```
 
 The API key must never be exposed to client code.

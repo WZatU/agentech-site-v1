@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+import { tmpdir } from "os";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -59,7 +60,13 @@ function getGatewayErrorStatus(error: unknown) {
 }
 
 async function writeLocalSubmission(id: string, record: unknown) {
-  const outputDir = path.join(process.cwd(), "agentech_submissions");
+  const configuredDir = process.env.AGENTECH_SUBMISSION_DIR?.trim();
+  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const outputDir = configuredDir
+    ? path.resolve(configuredDir)
+    : isServerless
+      ? path.join(tmpdir(), "agentech_submissions")
+      : path.join(process.cwd(), "review_submissions");
   await fs.mkdir(outputDir, { recursive: true });
   await fs.writeFile(path.join(outputDir, `${id}.json`), JSON.stringify(record, null, 2), "utf8");
 }
