@@ -222,12 +222,12 @@ const profileOptions: Array<{ type: AccessProfileType; label: string; descriptio
 
 const dashboardTabs: Array<{ id: DashboardTab; label: string; mark: string }> = [
   { id: "profile", label: "Account", mark: "A" },
+  { id: "settings", label: "Profiles", mark: "P" },
+  { id: "balance", label: "Billing", mark: "B" },
+  { id: "billing", label: "Purchase History", mark: "H" },
   { id: "courses", label: "Courses", mark: "C" },
-  { id: "balance", label: "Balance", mark: "$" },
   { id: "robot", label: "Robot Requests", mark: "R" },
-  { id: "invoices", label: "Invoices", mark: "I" },
-  { id: "billing", label: "Billing", mark: "B" },
-  { id: "settings", label: "Settings", mark: "S" }
+  { id: "invoices", label: "Invoices", mark: "I" }
 ];
 
 function getDashboardTabs(profileType: AccessProfileType) {
@@ -794,19 +794,6 @@ export function AccountDashboard() {
   const [actionMessage, setActionMessage] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [pendingRemovalId, setPendingRemovalId] = useState("");
-  const [profileType, setProfileType] = useState<AccessProfileType>("developer");
-  const [profileUsername, setProfileUsername] = useState("");
-  const [profileName, setProfileName] = useState("");
-  const [profileMonthlyLimit, setProfileMonthlyLimit] = useState("0");
-  const [studentFirstName, setStudentFirstName] = useState("");
-  const [studentLastName, setStudentLastName] = useState("");
-  const [studentDob, setStudentDob] = useState("");
-  const [studentGrade, setStudentGrade] = useState("");
-  const [studentSex, setStudentSex] = useState("");
-  const [studentSchoolInfo, setStudentSchoolInfo] = useState("");
-  const [studentPreferredLocation, setStudentPreferredLocation] = useState("");
-  const [profileMessage, setProfileMessage] = useState("");
-  const [creatingProfile, setCreatingProfile] = useState(false);
   const [editingProfileId, setEditingProfileId] = useState<number | null>(null);
   const [editProfileType, setEditProfileType] = useState<AccessProfileType>("student");
   const [editProfileUsername, setEditProfileUsername] = useState("");
@@ -1107,53 +1094,6 @@ export function AccountDashboard() {
     setConfirming(false);
   }
 
-  async function createProfile() {
-    if (!email) return;
-
-    setCreatingProfile(true);
-    setProfileMessage("");
-
-    const response = await fetch("/api/account-profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        profileType,
-        username: profileUsername,
-        displayName: profileName,
-        monthlyCreditLimit: profileMonthlyLimit,
-        firstName: studentFirstName,
-        lastName: studentLastName,
-        dob: studentDob,
-        grade: studentGrade,
-        sex: studentSex,
-        schoolInfo: studentSchoolInfo,
-        preferredLocation: studentPreferredLocation
-      })
-    });
-    const result = (await response.json().catch(() => null)) as { error?: string } | null;
-
-    if (!response.ok) {
-      setProfileMessage(result?.error || "Unable to create profile.");
-      setCreatingProfile(false);
-      return;
-    }
-
-    setProfileUsername("");
-    setProfileName("");
-    setProfileMonthlyLimit("0");
-    setStudentFirstName("");
-    setStudentLastName("");
-    setStudentDob("");
-    setStudentGrade("");
-    setStudentSex("");
-    setStudentSchoolInfo("");
-    setStudentPreferredLocation("");
-    setProfileMessage("Profile created.");
-    await refreshAccount();
-    setCreatingProfile(false);
-  }
-
   function startEditingProfile(profile: DashboardAccessProfile) {
     setEditingProfileId(profile.id);
     setEditProfileType(profile.profile_type);
@@ -1211,7 +1151,7 @@ export function AccountDashboard() {
 
     await refreshAccount();
     setEditingProfileId(null);
-    setProfileMessage("Profile updated.");
+    setEditProfileMessage("Profile updated.");
     setSavingProfile(false);
   }
 
@@ -1363,7 +1303,6 @@ export function AccountDashboard() {
   const phone = data.account?.phone || data.profile?.phone || "";
   const hasRequestItems = Boolean(data.unpaidBalance?.lines.length);
   const hasConfirmableRequest = Boolean(data.unpaidBalance?.lines.some((line) => !line.invoiceEmailSentAt));
-  const hasPurchaseRequests = Boolean(data.requests?.length);
   const hasRobotSessions = Boolean(data.robotSessions?.length);
   const hasInvoices = Boolean(data.invoices?.length);
   const hasAccessProfiles = Boolean(data.accessProfiles?.length);
@@ -1401,6 +1340,58 @@ export function AccountDashboard() {
   }).length;
   const invoiceTotal = data.invoices?.length ?? 0;
   const totalSpent = (data.invoices ?? []).reduce((total, invoice) => total + Number(invoice.amount_paid ?? 0), 0);
+  const purchaseHistoryItems = [
+    ...(data.invoices ?? []).map((invoice) => ({
+      key: `invoice-${invoice.invoice_number}`,
+      category: "Invoice",
+      title: `Invoice ${invoice.invoice_number}`,
+      meta: "Formal invoice record",
+      amount: Number(invoice.total_amount ?? 0),
+      status: formatInvoiceStatus(invoice.status),
+      date: invoice.created_at,
+      href: `/invoice/${invoice.invoice_number}`
+    })),
+    ...(data.requests ?? []).map((request) => ({
+      key: `purchase-${request.invoice_number}`,
+      category: "Robot Purchase",
+      title: request.product,
+      meta: `Purchase request ${request.invoice_number}`,
+      amount: null as number | null,
+      status: formatRequestStatus(request.status),
+      date: request.created_at,
+      href: `/invoice/${request.invoice_number}`
+    })),
+    ...(data.enrollments ?? []).map((enrollment) => ({
+      key: `course-${enrollment.id}`,
+      category: "Course",
+      title: enrollment.agentech_classes?.class_name || "Course enrollment",
+      meta: enrollment.site_name || enrollment.agentech_classes?.class_time || "Education program",
+      amount: Number(enrollment.price ?? 0),
+      status: enrollment.paid ? "Paid" : "Payment pending",
+      date: enrollment.created_at,
+      href: "/agentech-education"
+    })),
+    ...(data.robotSessions ?? []).map((session) => ({
+      key: `live-viewing-${session.id}`,
+      category: "Live Viewing",
+      title: session.session_title || "Robot live viewing",
+      meta: session.robot_model || "Robot session",
+      amount: null as number | null,
+      status: formatInvoiceStatus(session.session_status),
+      date: session.created_at,
+      href: null as string | null
+    })),
+    ...(data.unpaidBalance?.lines ?? []).map((line) => ({
+      key: `cart-${line.id}`,
+      category: "Cart",
+      title: formatInvoiceItemName(line.itemName),
+      meta: line.sourceType ? `${line.sourceType.replace(/_/g, " ")} item` : "Pending cart item",
+      amount: Number(line.amount ?? 0),
+      status: line.invoiceEmailSentAt ? "Invoice generated" : "In cart",
+      date: new Date().toISOString(),
+      href: null as string | null
+    }))
+  ].sort((first, second) => new Date(second.date).getTime() - new Date(first.date).getTime());
   const roleMetric = selectedDashboardProfileType === "developer"
     ? { icon: "R", label: "Live Viewing", value: openRobotCount.toLocaleString(), helper: hasRobotSessions ? "Viewing slots requested" : "Ready for booking", visual: profileVisuals.developer }
     : selectedDashboardProfileType === "student"
@@ -1645,8 +1636,8 @@ export function AccountDashboard() {
     <div className="relative z-[1] overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
       <div className="relative z-[1] flex flex-col gap-5 px-5 pb-4 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">Account Dashboard</h1>
-          <p className="mt-2 text-sm font-medium text-slate-500">Manage account settings, credits, invoices, and profile access.</p>
+          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">Account</h1>
+          <p className="mt-2 text-sm font-medium text-slate-500">Manage account information, profiles, credits, invoices, and access.</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -1802,11 +1793,12 @@ export function AccountDashboard() {
         ) : null}
 
         {currentTab === "balance" ? (
-          <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <section className="space-y-5">
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-              <p className="text-xs font-bold uppercase text-[#2f70c8]">Balance</p>
+              <p className="text-xs font-bold uppercase text-[#2f70c8]">Billing</p>
               <h2 className="mt-2 text-3xl font-bold text-slate-950">{formatCredits(creditBalance)}</h2>
-              <p className="mt-2 text-sm font-medium text-slate-500">1 credit equals 1 US cent and can be used by profile-based tools.</p>
+              <p className="mt-2 text-sm font-medium text-slate-500">Credit balance, recharge controls, cart items, and account billing status live here.</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-bold text-slate-500">Paid Credits</p>
@@ -1867,6 +1859,97 @@ export function AccountDashboard() {
               </div>
               {rechargeMessage ? <p className="mt-3 text-sm font-bold text-red-600">{rechargeMessage}</p> : null}
             </div>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase text-[#2f70c8]">Cart</p>
+                  <h2 className="mt-2 text-xl font-bold text-slate-950">Open Billing Cart</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Courses, live viewing, robot purchases, credits, and other pending charges can collect here before an official invoice is generated.
+                  </p>
+                </div>
+                <div className="rounded-xl bg-slate-50 px-4 py-3 text-right">
+                  <p className="text-xs font-bold text-slate-500">Open Cart Balance</p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">{(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}</p>
+                </div>
+              </div>
+              {actionMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{actionMessage}</p> : null}
+              <div className="mt-5 space-y-3">
+                {data.unpaidBalance?.lines.length ? (
+                  data.unpaidBalance.lines.map((line) => (
+                    <div key={line.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div>
+                        <p className="font-semibold text-slate-950">{formatInvoiceItemName(line.itemName)}</p>
+                        <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{line.sourceType.replace(/_/g, " ")}</p>
+                        {line.amount > 0 ? <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatUsd(line.amount)}</p> : null}
+                      </div>
+                      {line.id.startsWith("item-") ? (
+                        pendingRemovalId === line.id ? (
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => removeUnpaidItem(line.id)}
+                              className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                            >
+                              Confirm Delete
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPendingRemovalId("")}
+                              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActionMessage("");
+                              setPendingRemovalId(line.id);
+                            }}
+                            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                          >
+                            Remove
+                          </button>
+                        )
+                      ) : null}
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+                    <p className="font-semibold text-slate-950">No open cart items.</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">When an account has pending purchases or monthly charges, they will appear here.</p>
+                  </div>
+                )}
+              </div>
+              {hasConfirmableRequest ? (
+                <button
+                  type="button"
+                  onClick={confirmRequest}
+                  disabled={confirming}
+                  className="mt-5 rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {confirming ? "Generating..." : "Generate Invoice"}
+                </button>
+              ) : null}
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+              <p className="text-xs font-bold uppercase text-[#2f70c8]">Subscriptions</p>
+              <h2 className="mt-2 text-xl font-bold text-slate-950">Monthly Billing</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Monthly subscriptions, recurring services, and plan charges will appear here when enabled for this account.
+              </p>
+              <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+                <p className="font-semibold text-slate-950">No active subscription.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">This account is currently pay-as-you-go for credits and purchases.</p>
+              </div>
+            </div>
+          </div>
           </section>
         ) : null}
 
@@ -2005,9 +2088,9 @@ export function AccountDashboard() {
       <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Profile Logins</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Account Profiles</h2>
-            <p className="mt-2 text-sm text-slate-600">Create developer, student, teacher, or talent logins for feature apps while this account keeps the billing and credit controls.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Profile Management</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Edit Profiles</h2>
+            <p className="mt-2 text-sm text-slate-600">Update existing profile access, student details, usernames, and monthly credit limits.</p>
           </div>
           <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
             <p>{data.accessProfiles?.length ?? 0} active profiles</p>
@@ -2017,7 +2100,7 @@ export function AccountDashboard() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.15fr]">
+        <div className="mt-6">
           <div className="space-y-3">
             {hasAccessProfiles ? (
               data.accessProfiles?.map((profile) => {
@@ -2214,216 +2297,24 @@ export function AccountDashboard() {
                 );
               })
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
-                <p className="font-semibold text-slate-950">No profiles created yet.</p>
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
+                <p className="font-semibold text-slate-950">No profiles to edit yet.</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  This account can stay profile-free for purchases, invoices, and credit balance management. Add profiles when people need their own tools, limits, and activity history.
+                  Create profiles from the Account tab first. They will appear here for editing after they are created.
                 </p>
-                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
-                  <p className="text-sm font-bold text-amber-950">Create a profile to unlock the right workspace:</p>
-                  <div className="mt-4 grid gap-3">
-                    {profileOptions.map((option) => {
-                      const visual = profileVisuals[option.type];
-                      const details = profileUnlockDetails[option.type];
-                      return (
-                        <div key={option.type} className="rounded-xl border border-amber-100 bg-white/85 p-3">
-                          <div className="flex items-start gap-3">
-                            <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-black ${visual.iconBg} ${visual.iconText}`}>
-                              {getProfileMark(option.type)}
-                            </span>
-                            <div>
-                              <p className="text-sm font-black text-slate-950">{option.label}</p>
-                              <p className="mt-1 text-xs font-semibold text-slate-600">{details.headline}</p>
-                              <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-600">
-                                {details.unlocks.slice(0, 3).map((unlock) => (
-                                  <li key={unlock}>{unlock}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("profile");
+                  }}
+                  className="mt-5 rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7]"
+                >
+                  Go to Account Profiles
+                </button>
               </div>
             )}
           </div>
 
-          <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-            <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#2f70c8]">Profile setup</p>
-              <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Let&apos;s get you started</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Select how this profile will use Agentech to unlock the right tools and experience.
-              </p>
-            </div>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {profileOptions.map((option) => {
-                const selected = profileType === option.type;
-                const visual = profileVisuals[option.type];
-                const details = profileUnlockDetails[option.type];
-                return (
-                  <button
-                    key={option.type}
-                    type="button"
-                    onClick={() => setProfileType(option.type)}
-                    className={`group flex min-h-56 flex-col items-start rounded-2xl border bg-white p-4 text-left shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition ${
-                      selected
-                        ? "border-[#2563eb] bg-[#f8fbff] ring-2 ring-[#bfdbfe] ring-offset-2"
-                        : "border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_34px_rgba(15,23,42,0.09)]"
-                    }`}
-                    aria-pressed={selected}
-                  >
-                    <span className={`grid h-11 w-11 place-items-center rounded-2xl text-sm font-black ${visual.iconBg} ${visual.iconText}`}>
-                      {getProfileMark(option.type)}
-                    </span>
-                    <span className="mt-5 text-sm font-black text-slate-950">{option.label}</span>
-                    <span className={`mt-1 text-xs font-bold ${visual.accent}`}>{details.headline}</span>
-                    <span className="mt-2 text-xs leading-5 text-slate-500">{option.description}</span>
-                    <span className="mt-3 block space-y-1 text-xs leading-5 text-slate-600">
-                      {details.unlocks.slice(0, 3).map((unlock) => (
-                        <span key={unlock} className="block">
-                          {unlock}
-                        </span>
-                      ))}
-                    </span>
-                    <span className={`mt-auto text-lg font-black ${selected ? visual.accent : "text-slate-300 group-hover:text-[#2f70c8]"}`}>+</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-5 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Selected profile</p>
-                  <p className="mt-1 text-sm font-bold text-slate-950">{getProfileOptionLabel(profileType)}</p>
-                </div>
-                <span className={`grid h-10 w-10 place-items-center rounded-xl text-sm font-black ${profileVisuals[profileType].iconBg} ${profileVisuals[profileType].iconText}`}>
-                  {getProfileMark(profileType)}
-                </span>
-              </div>
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Username</span>
-                <input
-                  value={profileUsername}
-                  onChange={(event) => setProfileUsername(event.target.value.toLowerCase())}
-                  placeholder="example.username"
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                />
-                <span className="mt-2 block text-sm text-slate-600">Used to sign in to feature apps that have their own profile experience.</span>
-              </label>
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Display Name</span>
-                <input
-                  value={profileName}
-                  onChange={(event) => setProfileName(event.target.value)}
-                  placeholder={`${getProfileOptionLabel(profileType)} Profile`}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                />
-              </label>
-              {profileType === "student" ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Student Information</p>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">First Name</span>
-                      <input
-                        value={studentFirstName}
-                        onChange={(event) => setStudentFirstName(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Last Name</span>
-                      <input
-                        value={studentLastName}
-                        onChange={(event) => setStudentLastName(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Date of Birth</span>
-                      <input
-                        type="date"
-                        value={studentDob}
-                        onChange={(event) => setStudentDob(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Grade</span>
-                      <select
-                        value={studentGrade}
-                        onChange={(event) => setStudentGrade(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      >
-                        <option value="">Select grade</option>
-                        {studentGradeOptions.map((grade) => (
-                          <option key={grade} value={grade}>
-                            {grade}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Sex</span>
-                      <select
-                        value={studentSex}
-                        onChange={(event) => setStudentSex(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      >
-                        <option value="">Select</option>
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                        <option value="other">Other</option>
-                        <option value="prefer-not-to-say">Prefer not to say</option>
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">School Info</span>
-                      <input
-                        value={studentSchoolInfo}
-                        onChange={(event) => setStudentSchoolInfo(event.target.value)}
-                        placeholder="School name or program"
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      />
-                    </label>
-                    <label className="block sm:col-span-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Preferred Location</span>
-                      <input
-                        value={studentPreferredLocation}
-                        onChange={(event) => setStudentPreferredLocation(event.target.value)}
-                        placeholder="Example: Irvine, Online"
-                        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                      />
-                    </label>
-                  </div>
-                </div>
-              ) : null}
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Monthly Credit Limit</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={profileMonthlyLimit}
-                  onChange={(event) => setProfileMonthlyLimit(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                />
-                <span className="mt-2 block text-sm text-slate-600">This caps monthly profile spending. It does not reserve account credits.</span>
-              </label>
-              {profileMessage ? <p className="text-sm font-semibold text-[#2f70c8]">{profileMessage}</p> : null}
-              <button
-                type="button"
-                onClick={createProfile}
-                disabled={creatingProfile}
-                className="w-full rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                {creatingProfile ? "Creating..." : "Create Profile"}
-              </button>
-            </div>
-          </div>
         </div>
       </section>
       ) : null}
@@ -2634,85 +2525,59 @@ export function AccountDashboard() {
         </section>
       ) : null}
 
-      {currentTab === "billing" && (hasRequestItems || actionMessage) ? (
+      {currentTab === "billing" ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-950">Request Cart</h2>
-              <p className="mt-2 text-sm text-slate-600">Review these items before generating an official invoice.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Ledger</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Purchase History</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Everything purchased or requested by this account appears here: robots, courses, live viewing, credits, carts, and invoice-linked records.
+              </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/agentech-education" className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
-                Add Course
-              </Link>
-              {hasConfirmableRequest ? (
-                <button
-                  type="button"
-                  onClick={confirmRequest}
-                  disabled={confirming}
-                  className="rounded-full bg-[#2f70c8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:bg-slate-300"
-                >
-                  {confirming ? "Generating..." : "Generate Invoice"}
-                </button>
-              ) : null}
+            <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
+              <p>{purchaseHistoryItems.length} records</p>
+              <p className="mt-1 text-xs text-slate-500">Paid total: {formatUsd(totalSpent)}</p>
             </div>
           </div>
-          {actionMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{actionMessage}</p> : null}
-          <div className="mt-5 space-y-3">
-            {data.unpaidBalance?.lines.length ? (
-              data.unpaidBalance.lines.map((line) => (
-                <div key={line.id} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div>
-                    <p className="font-semibold text-slate-950">{formatInvoiceItemName(line.itemName)}</p>
-                    {line.amount > 0 ? <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatUsd(line.amount)}</p> : null}
-                  </div>
-                  {line.id.startsWith("item-") ? (
-                    pendingRemovalId === line.id ? (
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => removeUnpaidItem(line.id)}
-                          className="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-                        >
-                          Confirm Delete
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPendingRemovalId("")}
-                          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActionMessage("");
-                          setPendingRemovalId(line.id);
-                        }}
-                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
-                      >
-                        Remove
-                      </button>
-                    )
-                  ) : null}
-                </div>
-              ))
-            ) : (
-              <p className="text-slate-600">No request items yet.</p>
-            )}
-          </div>
-        </section>
-      ) : null}
 
-      {currentTab === "billing" && !hasRequestItems && !actionMessage ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-          <h2 className="text-xl font-bold text-slate-950">Billing</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">No pending request-cart items right now. Official invoice records live in the Invoices tab.</p>
-          <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-bold text-slate-950">Open cart balance</p>
-            <p className="mt-1 text-2xl font-bold text-slate-950">{(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}</p>
+          <div className="mt-6 space-y-3">
+            {purchaseHistoryItems.length ? (
+              purchaseHistoryItems.map((item) => {
+                const amount = item.amount;
+                const content = (
+                  <div className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 md:grid-cols-[1fr_auto] md:items-center">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#2f70c8]">{item.category}</span>
+                        <span className="text-xs font-semibold text-slate-500">{formatDate(item.date)}</span>
+                      </div>
+                      <p className="mt-3 font-semibold text-slate-950">{item.title}</p>
+                      <p className="mt-1 text-sm text-slate-600">{item.meta}</p>
+                    </div>
+                    <div className="text-left md:text-right">
+                      <p className="text-sm font-bold text-slate-950">{amount !== null && Number.isFinite(amount) && amount > 0 ? formatUsd(amount) : "No charge shown"}</p>
+                      <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{item.status}</p>
+                    </div>
+                  </div>
+                );
+
+                return item.href ? (
+                  <Link key={item.key} href={item.href} className="block">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={item.key}>{content}</div>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+                <p className="font-semibold text-slate-950">No purchase history yet.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Purchases, cart activity, credit recharges, live viewing requests, and course records will appear here after account activity begins.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       ) : null}
@@ -2759,43 +2624,11 @@ export function AccountDashboard() {
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
               <p className="font-semibold text-slate-950">No official billing invoices yet.</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                New invoices generated from the request cart will appear here. Robot purchase requests are listed below when available.
+                New formal invoices generated from billing activity will appear here.
               </p>
             </div>
           )}
         </div>
-        {hasPurchaseRequests ? (
-          <div className="mt-8 border-t border-slate-200 pt-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-semibold text-slate-950">Robot Purchase Requests</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Product purchase requests and their invoice records live here, separate from live-viewing robot sessions.
-                </p>
-              </div>
-              <Link href="/agentech-robotic" className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]">
-                Purchase Robots
-              </Link>
-            </div>
-            <div className="mt-5 space-y-3">
-              {data.requests?.map((request) => (
-                <div key={request.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
-                  <div>
-                    <p className="font-semibold text-slate-950">{request.product}</p>
-                    <p className="mt-1 text-sm text-slate-600">Purchase invoice: {request.invoice_number}</p>
-                    <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatRequestStatus(request.status)}</p>
-                  </div>
-                  <Link
-                    href={`/invoice/${request.invoice_number}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
-                  >
-                    View Invoice
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
       </section>
       ) : null}
 
@@ -2854,9 +2687,8 @@ export function AccountDashboard() {
               </button>
             );
           })}
-          <button
-            type="button"
-            onClick={() => setActiveTab("settings")}
+          <Link
+            href="/account/create-profile"
             className="group flex min-h-52 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center transition hover:-translate-y-0.5 hover:border-[#2f70c8] hover:bg-[#f8fbff]"
           >
             <span className="grid h-16 w-16 place-items-center rounded-2xl border border-slate-200 bg-white text-3xl font-black text-[#2563eb] shadow-sm transition group-hover:border-[#bfdbfe] group-hover:shadow-[0_14px_30px_rgba(37,99,235,0.14)]">
@@ -2865,7 +2697,7 @@ export function AccountDashboard() {
             <h3 className="mt-5 text-xl font-black text-slate-950">Add Profile</h3>
             <p className="mt-2 max-w-xs text-sm leading-6 text-slate-600">Create another developer, student, educator, or talent profile under this account.</p>
             <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-[#2563eb]">Create Profile</p>
-          </button>
+          </Link>
         </div>
       </section>
       ) : null}
