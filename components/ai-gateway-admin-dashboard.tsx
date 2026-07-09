@@ -49,11 +49,39 @@ type AdminDeveloperAccount = {
   developer_ai_security_passed_at: string | null;
 };
 
+type AdminCodeSubmissionSummary = {
+  id: string;
+  email: string;
+  developer_name: string;
+  robot_model: string;
+  run_mode: string;
+  source: "pasted_code" | "uploaded_file" | "github";
+  uploaded_file_name: string | null;
+  commands: string[] | null;
+  physical_safety_status: string | null;
+  ai_security_status: string | null;
+  ai_security_model: string | null;
+  ai_security_summary: string | null;
+  ai_security_findings: string[] | null;
+  ai_security_risk_level: string | null;
+  ai_security_reviewed_at: string | null;
+  credits_charged: number | string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type AdminCodeSubmissionDetail = AdminCodeSubmissionSummary & {
+  code: string;
+  github_repo_url: string | null;
+  github_branch: string | null;
+};
+
 type AdminAiUsageData = {
   caps: AdminAiCap[];
   usage: AdminAiUsage[];
   developerProfiles: AdminDeveloperProfile[];
   developerAccounts: AdminDeveloperAccount[];
+  codeSubmissions: AdminCodeSubmissionSummary[];
 };
 
 function looksLikeGatewayAdmin(email: string) {
@@ -138,11 +166,14 @@ function getUsageWindowStats(rows: AdminAiUsage[]) {
 
 export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: string }) {
   const [email, setEmail] = useState(adminEmail);
-  const [data, setData] = useState<AdminAiUsageData>({ caps: [], usage: [], developerProfiles: [], developerAccounts: [] });
+  const [data, setData] = useState<AdminAiUsageData>({ caps: [], usage: [], developerProfiles: [], developerAccounts: [], codeSubmissions: [] });
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [actingEmail, setActingEmail] = useState("");
   const [lastRefreshedAt, setLastRefreshedAt] = useState("");
+  const [selectedSubmission, setSelectedSubmission] = useState<AdminCodeSubmissionDetail | null>(null);
+  const [loadingSubmissionId, setLoadingSubmissionId] = useState("");
+  const [submissionMessage, setSubmissionMessage] = useState("");
 
   async function loadUsage(options: { announce?: boolean } = {}) {
     setLoading(true);
@@ -164,7 +195,8 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
         caps: result.caps ?? [],
         usage: result.usage ?? [],
         developerProfiles: result.developerProfiles ?? [],
-        developerAccounts: result.developerAccounts ?? []
+        developerAccounts: result.developerAccounts ?? [],
+        codeSubmissions: result.codeSubmissions ?? []
       });
       setLastRefreshedAt(new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" }));
       if (options.announce) {
@@ -197,6 +229,30 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     setMessage(action === "pause" ? `${userId} is paused. AI gateway calls are blocked.` : `${userId} is resumed. AI gateway calls are allowed.`);
     await loadUsage();
     setActingEmail("");
+  }
+
+  async function loadSubmissionCode(submissionId: string) {
+    setLoadingSubmissionId(submissionId);
+    setSubmissionMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/code-submissions?id=${encodeURIComponent(submissionId)}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" }
+      });
+      const result = await response.json().catch(() => null) as { submission?: AdminCodeSubmissionDetail; error?: string } | null;
+
+      if (!response.ok || !result?.submission) {
+        setSubmissionMessage(result?.error || "Unable to load the selected code submission.");
+        return;
+      }
+
+      setSelectedSubmission(result.submission);
+    } catch {
+      setSubmissionMessage("Unable to load the selected code submission.");
+    } finally {
+      setLoadingSubmissionId("");
+    }
   }
 
   useEffect(() => {
@@ -486,6 +542,135 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               </div>
             )}
           </div>
+        </section>
+
+        <section className="rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#2f70c8]">Code Submissions</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-950">Uploaded Files And Review Gates</h2>
+              <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-slate-500">
+                Supabase stores the uploaded filename, command list, review status, and code. This page lists recent submissions first; full code loads only when you open one row.
+              </p>
+            </div>
+            <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+              {data.codeSubmissions.length.toLocaleString()} recent submissions
+            </p>
+          </div>
+
+          {submissionMessage ? (
+            <p className="mx-5 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">{submissionMessage}</p>
+          ) : null}
+
+          <div className="space-y-3 p-4 sm:p-5">
+            {data.codeSubmissions.length ? data.codeSubmissions.slice(0, 40).map((submission) => {
+              const commands = Array.isArray(submission.commands) ? submission.commands : [];
+              const fileLabel = submission.uploaded_file_name || (submission.source === "pasted_code" ? "Pasted code" : "No filename");
+              const isSelected = selectedSubmission?.id === submission.id;
+              const loadingCode = loadingSubmissionId === submission.id;
+
+              return (
+                <article
+                  key={submission.id}
+                  className={`rounded-2xl border p-4 transition ${
+                    isSelected ? "border-[#2f70c8] bg-[#f8fbff]" : "border-slate-200 bg-white hover:border-[#2f70c8]/35"
+                  }`}
+                >
+                  <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(360px,1.2fr)_170px] xl:items-center">
+                    <div className="min-w-0">
+                      <p className="break-all text-sm font-black text-slate-950">{submission.email}</p>
+                      <p className="mt-2 min-w-0 break-words font-mono text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">{fileLabel}</p>
+                      <p className="mt-2 text-xs font-semibold text-slate-500">{formatDateTime(submission.created_at)}</p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Physical</p>
+                        <p className="mt-2 text-sm font-black text-slate-950">{formatStatus(submission.physical_safety_status)}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Software</p>
+                        <p className="mt-2 text-sm font-black text-slate-950">{formatStatus(submission.ai_security_status)}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Commands</p>
+                        <p className="mt-2 text-sm font-black text-slate-950">{commands.length.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => void loadSubmissionCode(submission.id)}
+                      disabled={loadingCode}
+                      className="w-full rounded-xl border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {loadingCode ? "Loading..." : isSelected ? "Refresh Code" : "View Code"}
+                    </button>
+                  </div>
+
+                  {commands.length ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {commands.slice(0, 6).map((command, index) => (
+                        <span key={`${submission.id}-${command}-${index}`} className="max-w-full break-words rounded-full bg-slate-100 px-3 py-1 font-mono text-[11px] font-semibold text-slate-600 [overflow-wrap:anywhere]">
+                          {command}
+                        </span>
+                      ))}
+                      {commands.length > 6 ? (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-500">
+                          +{commands.length - 6} more
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            }) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                No code submissions found yet.
+              </div>
+            )}
+          </div>
+
+          {selectedSubmission ? (
+            <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-[#2f70c8]">Selected Submission</p>
+                    <h3 className="mt-1 break-all text-lg font-black text-slate-950">{selectedSubmission.email}</h3>
+                    <p className="mt-1 min-w-0 break-words font-mono text-xs font-semibold text-slate-500 [overflow-wrap:anywhere]">
+                      {selectedSubmission.uploaded_file_name || (selectedSubmission.source === "pasted_code" ? "Pasted code" : selectedSubmission.id)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubmission(null)}
+                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    { label: "Physical", value: formatStatus(selectedSubmission.physical_safety_status) },
+                    { label: "Software", value: formatStatus(selectedSubmission.ai_security_status) },
+                    { label: "Robot", value: selectedSubmission.robot_model || "Not set" },
+                    { label: "Submitted", value: formatDateTime(selectedSubmission.created_at) }
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">{item.label}</p>
+                      <p className="mt-2 break-words text-sm font-black text-slate-950">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <pre className="mt-4 max-h-[520px] overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-4 font-mono text-xs leading-6 text-slate-50">
+                  {selectedSubmission.code || "# No code stored for this submission."}
+                </pre>
+              </div>
+            </div>
+          ) : null}
         </section>
 
         <section className="rounded-[18px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">

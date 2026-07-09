@@ -26,8 +26,9 @@ export async function GET(request: NextRequest) {
   const targetUser = normalizeEmail(url.searchParams.get("user"));
   const limit = toLimit(url.searchParams.get("limit"));
   const userFilter = isValidEmail(targetUser) ? `user_id=eq.${encodeURIComponent(targetUser)}&` : "";
+  const submissionFilter = isValidEmail(targetUser) ? `email=eq.${encodeURIComponent(targetUser)}&` : "";
 
-  const [caps, usage, developerProfiles, developerAccounts] = await Promise.all([
+  const [caps, usage, developerProfiles, developerAccounts, codeSubmissions] = await Promise.all([
     supabaseRequest("agentech_ai_cap", {
       query: `${userFilter}select=*&order=updated_at.desc`
     }).catch(() => []),
@@ -39,6 +40,9 @@ export async function GET(request: NextRequest) {
     }).catch(() => []),
     supabaseRequest("agentech_accounts", {
       query: "select=email,developer_latest_code_submission_id,developer_physical_safety_status,developer_ai_security_status,developer_ai_security_passed_at"
+    }).catch(() => []),
+    supabaseRequest("agentech_code_submissions", {
+      query: `${submissionFilter}select=id,email,developer_name,robot_model,run_mode,source,uploaded_file_name,commands,physical_safety_status,ai_security_status,ai_security_model,ai_security_summary,ai_security_findings,ai_security_risk_level,ai_security_reviewed_at,credits_charged,created_at,updated_at&order=created_at.desc&limit=${limit}`
     }).catch(() => [])
   ]);
 
@@ -49,6 +53,7 @@ export async function GET(request: NextRequest) {
     caps,
     usage,
     developerProfiles,
-    developerAccounts
+    developerAccounts,
+    codeSubmissions
   });
 }
