@@ -117,6 +117,9 @@ CROUCH_POSE = {**STAND_POSE, "FL_HIP_JOINT": 1.05, "FL_KNEE_JOINT": -1.75, "FR_H
 TUCK_POSE = {"FL_ABAD_JOINT": -0.10, "FL_HIP_JOINT": 1.34, "FL_KNEE_JOINT": -2.28, "FR_ABAD_JOINT": 0.10, "FR_HIP_JOINT": 1.34, "FR_KNEE_JOINT": -2.28, "RR_ABAD_JOINT": 0.10, "RR_HIP_JOINT": 1.18, "RR_KNEE_JOINT": -2.12, "RL_ABAD_JOINT": -0.10, "RL_HIP_JOINT": 1.18, "RL_KNEE_JOINT": -2.12}
 STAND_BASE_Z = 0.37
 BACKFLIP_SECONDS = 4.2
+MOVEMENT_WARNING_DISTANCE_M = 0.8
+MOVEMENT_FAIL_DISTANCE_M = 1.0
+MOVEMENT_FAIL_AXIS_M = 1.0
 
 
 def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
@@ -423,6 +426,7 @@ def page(title: str, body: str) -> bytes:
       font-size: 13px;
     }}
     .status.pass {{ background: #e7f7ef; color: var(--green); }}
+    .status.warning {{ background: #fff7d6; color: #9a6700; }}
     .status.fail {{ background: #fdeceb; color: var(--red); }}
     .simulation-fail {{
       display: grid;
@@ -929,6 +933,73 @@ def run_motion_plan(runtime: MuJoCoRuntime, motion_plan: list[dict]) -> list[dic
     return []
 
 
+def movement_position_from_sample(sample: dict) -> tuple[float, float] | None:
+    qpos = sample.get("joint_state", {}).get("qpos", [])
+    if isinstance(qpos, list) and len(qpos) >= 2:
+        try:
+            return float(qpos[0]), float(qpos[1])
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def evaluate_movement_safety(data: dict) -> dict:
+    samples = data.get("samples", [])
+    positions: list[tuple[float, float]] = []
+    if isinstance(samples, list):
+        for sample in samples:
+            if isinstance(sample, dict):
+                position = movement_position_from_sample(sample)
+                if position is not None:
+                    positions.append(position)
+
+    final_position = movement_position_from_sample({"joint_state": data.get("final_state", {})})
+    if final_position is not None:
+        positions.append(final_position)
+
+    if not positions:
+        return {
+            "level": "FAIL",
+            "submit_ready": False,
+            "max_distance_m": 0.0,
+            "max_dx_m": 0.0,
+            "max_dy_m": 0.0,
+            "detail": "Movement safety FAIL: no sampled robot base position was available.",
+        }
+
+    start_x, start_y = positions[0]
+    max_distance = 0.0
+    max_dx = 0.0
+    max_dy = 0.0
+    for x, y in positions:
+        dx = x - start_x
+        dy = y - start_y
+        max_distance = max(max_distance, math.hypot(dx, dy))
+        max_dx = max(max_dx, abs(dx))
+        max_dy = max(max_dy, abs(dy))
+
+    if max_distance > MOVEMENT_FAIL_DISTANCE_M or max_dx > MOVEMENT_FAIL_AXIS_M or max_dy > MOVEMENT_FAIL_AXIS_M:
+        level = "FAIL"
+    elif max_distance > MOVEMENT_WARNING_DISTANCE_M:
+        level = "WARNING"
+    else:
+        level = "PASS"
+
+    detail = (
+        f"Movement safety {level.lower()}: max distance {max_distance:.3f}m, "
+        f"dx {max_dx:.3f}m, dy {max_dy:.3f}m. "
+        "Limits: pass <= 0.800m, warning > 0.800m, fail > 1.000m or dx/dy > 1.000m."
+    )
+    return {
+        "level": level,
+        "submit_ready": level == "PASS",
+        "max_distance_m": round(max_distance, 3),
+        "max_dx_m": round(max_dx, 3),
+        "max_dy_m": round(max_dy, 3),
+        "detail": detail,
+    }
+
+
 def build_real_robot_script(motion_plan: list[dict]) -> str:
     lines = [
         "import agentech as agt",
@@ -1096,6 +1167,28 @@ def run_validation(
     if simulation_errors:
         data.setdefault("warnings", [])
         data["warnings"].extend(simulation_errors)
+    movement_safety = evaluate_movement_safety(data)
+    data["movement_safety"] = movement_safety
+    if movement_safety.get("level") == "FAIL":
+        data["status"] = "FAIL"
+        data.setdefault("errors", [])
+        data["errors"].append(
+            error_record(
+                "MOVEMENT_SAFETY_BOX_FAIL",
+                movement_safety.get("detail", "Movement exceeded the physical test box."),
+                "Reduce speed, duration, or movement count before submitting for further review.",
+            )
+        )
+    elif movement_safety.get("level") == "WARNING" and data.get("status") == "PASS":
+        data["status"] = "WARNING"
+        data.setdefault("warnings", [])
+        data["warnings"].append(
+            error_record(
+                "MOVEMENT_SAFETY_BOX_WARNING",
+                movement_safety.get("detail", "Movement entered the warning zone."),
+                "Warning-level movement is not submit-ready. Keep max movement within 0.8m.",
+            )
+        )
     data["controller_validation"] = controller_info
     data["translation_check"] = translation_check
     data["robot_selection"] = robot_info or {}
@@ -1117,6 +1210,7 @@ def build_validation_checklist(data: dict) -> list[dict]:
     error_codes = {error.get("code") for error in errors}
     controller_info = data.get("controller_validation", {})
     translation_info = data.get("translation_check", {})
+    movement_safety = data.get("movement_safety", {})
     has_controller = controller_info.get("uploaded") is True
     sdk_error_codes = {"CONTROLLER_IMPORT_BLOCKED", "CONTROLLER_UNAPPROVED_SDK_CALL"}
     logic_error_codes = {"CONTROLLER_UNSAFE_STRUCTURE", "CONTROLLER_UNSAFE_CALL", "CONTROLLER_PRIVATE_ACCESS_BLOCKED"}
@@ -1169,6 +1263,14 @@ def build_validation_checklist(data: dict) -> list[dict]:
             "name": "Motion conversion check",
             "status": "FAIL" if runtime_error_codes & error_codes or parameter_error_codes & error_codes or command_error_codes & error_codes else "PASS",
             "detail": "Approved Agentech commands are converted into Aegis MuJoCo movement poses.",
+        },
+        {
+            "name": "Movement safety box check",
+            "status": movement_safety.get("level", "FAIL"),
+            "detail": movement_safety.get(
+                "detail",
+                "Checks max displacement during the whole simulation against the physical robot box limits.",
+            ),
         },
         {
             "name": "Real robot translation check",
@@ -1357,10 +1459,14 @@ def result_html(data: dict) -> bytes:
         if all_checks_passed
         else "Submission is locked until every checklist item passes."
     )
+    def status_class(value: str) -> str:
+        normalized = value.lower()
+        return "pass" if normalized == "pass" else "warning" if normalized == "warning" else "fail"
+
     checklist_rows = "".join(
         "<tr>"
         f"<td>{html.escape(item.get('name', 'Check'))}</td>"
-        f"<td><span class=\"status {'pass' if item.get('status') == 'PASS' else 'fail'}\">{html.escape(item.get('status', 'FAIL'))}</span></td>"
+        f"<td><span class=\"status {status_class(item.get('status', 'FAIL'))}\">{html.escape(item.get('status', 'FAIL'))}</span></td>"
         f"<td>{html.escape(item.get('detail', ''))}</td>"
         "</tr>"
         for item in checklist
@@ -1412,7 +1518,7 @@ def result_html(data: dict) -> bytes:
 {motion_block}
 <section>
   <h2>Final Status</h2>
-  <p><span class="status {'pass' if status == 'PASS' else 'fail'}">{html.escape(status)}</span></p>
+  <p><span class="status {status_class(status)}">{html.escape(status)}</span></p>
   <p class="hint">{html.escape(final_hint)}</p>
   <div class="actions">
     <a class="button secondary" href="/">Run Another Test</a>

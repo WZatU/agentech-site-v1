@@ -11,6 +11,7 @@ import {
   updateCodeSubmissionRecord
 } from "@/lib/account-records";
 import { runAgentechAiCodeReview } from "@/lib/agentech-ai-review";
+import { evaluateAgentechMovementSafety } from "@/lib/agentech-motion-safety";
 import { validateAgentechCode } from "@/lib/agentech-validation";
 import { isValidEmail } from "@/lib/prototype-auth";
 import { getServerAccountEmail } from "@/lib/server-account-session";
@@ -94,9 +95,21 @@ export async function POST(request: NextRequest) {
     if (validationErrors.length) {
       return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
     }
+    const movementSafety = evaluateAgentechMovementSafety(code);
 
     if (isLocalPreview) {
       if (reviewStage === "physical") {
+        if (!movementSafety.submitReady) {
+          return NextResponse.json(
+            {
+              error: movementSafety.detail,
+              movementSafety,
+              physicalSafetyStatus: movementSafety.level === "WARNING" ? "warning" : "failed",
+              status: "physical_hardware_blocked"
+            },
+            { status: 400 }
+          );
+        }
         const submittedAt = new Date().toISOString();
         const id = `local-hardware-${submittedAt.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random()
           .toString(36)
@@ -114,6 +127,7 @@ export async function POST(request: NextRequest) {
           commands,
           code,
           physicalSafetyStatus: "passed",
+          movementSafety,
           aiSecurityStatus: "locked",
           creditsCharged: 0,
           localPreview: true
@@ -126,6 +140,7 @@ export async function POST(request: NextRequest) {
           source,
           uploadedFileName: uploadedFileName || null,
           physicalSafetyStatus: "passed",
+          movementSafety,
           aiSecurityStatus: "locked",
           status: "physical_hardware_passed",
           localPreview: true
@@ -158,6 +173,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (reviewStage === "physical") {
+      if (!movementSafety.submitReady) {
+        return NextResponse.json(
+          {
+            error: movementSafety.detail,
+            movementSafety,
+            physicalSafetyStatus: movementSafety.level === "WARNING" ? "warning" : "failed",
+            status: "physical_hardware_blocked"
+          },
+          { status: 400 }
+        );
+      }
       const submittedAt = new Date().toISOString();
       const id = `agentech-${submittedAt.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random()
         .toString(36)
@@ -177,6 +203,7 @@ export async function POST(request: NextRequest) {
         commands,
         code,
         physicalSafetyStatus: "passed",
+        movementSafety,
         aiSecurityStatus: "locked",
         creditsCharged: 0
       };
@@ -209,6 +236,7 @@ export async function POST(request: NextRequest) {
         source,
         uploadedFileName: uploadedFileName || null,
         physicalSafetyStatus: "passed",
+        movementSafety,
         aiSecurityStatus: "locked",
         status: "physical_hardware_passed"
       });

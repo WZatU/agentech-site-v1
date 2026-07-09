@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
+import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 type Category = (typeof categories)[number];
@@ -14,7 +15,7 @@ type AgentechLibraryWorkbenchProps = {
 };
 type HardwareChecklistItem = {
   name: string;
-  status: "PASS" | "FAIL";
+  status: "PASS" | "WARNING" | "FAIL";
   detail: string;
 };
 type HardwareSimulationClip = {
@@ -24,7 +25,7 @@ type HardwareSimulationClip = {
   sourceLine: string;
 };
 type HardwareResult = {
-  status: "PASS" | "FAIL";
+  status: "PASS" | "WARNING" | "FAIL";
   resultId: string;
   robotModel: string;
   fileName: string;
@@ -34,6 +35,7 @@ type HardwareResult = {
   simulationClips: HardwareSimulationClip[];
   simulationError: string;
   finalHint: string;
+  movementSafety: AgentechMovementSafety;
 };
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
 const localPreviewAssets: Record<string, string> = {
@@ -187,38 +189,55 @@ function simulationClipsForMotionPlan(motionPlan: string[]): HardwareSimulationC
   ];
 }
 
-function buildHardwareChecklist(status: "PASS" | "FAIL", failureReason = ""): HardwareChecklistItem[] {
+function defaultMovementSafety(status: "PASS" | "WARNING" | "FAIL", detail?: string): AgentechMovementSafety {
+  return {
+    level: status,
+    submitReady: status === "PASS",
+    maxDistanceMeters: 0,
+    maxDxMeters: 0,
+    maxDyMeters: 0,
+    detail: detail || "Movement safety was not measured."
+  };
+}
+
+function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReason = "", movementSafety = defaultMovementSafety(status, failureReason)): HardwareChecklistItem[] {
   const failDetail = failureReason || "Fix the checklist items before simulation can run.";
+  const blocked = status !== "PASS";
   return [
     {
       name: "SDK-only usage check",
-      status,
-      detail: status === "PASS" ? "Uploaded code uses the documented Agentech SDK interface." : failDetail
+      status: blocked ? "FAIL" : "PASS",
+      detail: !blocked ? "Uploaded code uses the documented Agentech SDK interface." : failDetail
     },
     {
       name: "Logic safety check",
-      status,
-      detail: status === "PASS" ? "No blocked file, private Python, dynamic execution, or unsafe control structure was detected." : "Hardware validation stopped before simulation."
+      status: blocked ? "FAIL" : "PASS",
+      detail: !blocked ? "No blocked file, private Python, dynamic execution, or unsafe control structure was detected." : "Hardware validation stopped before simulation."
     },
     {
       name: "Agentech command check",
-      status,
-      detail: status === "PASS" ? "Documented robot commands were found and can be inspected." : "Requires documented Agentech commands such as stand, forward, backward, backflip, or stop."
+      status: blocked ? "FAIL" : "PASS",
+      detail: !blocked ? "Documented robot commands were found and can be inspected." : "Requires documented Agentech commands such as stand, forward, backward, backflip, or stop."
     },
     {
       name: "SDK parameter requirement check",
-      status,
-      detail: status === "PASS" ? "Movement commands use required keyword parameters and safe numeric ranges." : "Movement commands must include required keyword parameters and stay inside safe numeric ranges."
+      status: blocked ? "FAIL" : "PASS",
+      detail: !blocked ? "Movement commands use required keyword parameters and safe numeric ranges." : "Movement commands must include required keyword parameters and stay inside safe numeric ranges."
+    },
+    {
+      name: "Movement safety box check",
+      status: movementSafety.level,
+      detail: movementSafety.detail
     },
     {
       name: "Real robot translation check",
-      status,
-      detail: status === "PASS" ? "Uploaded code can be treated as a real-robot command package without exposing translated code." : "Translation stays blocked until the uploaded code passes validation."
+      status: blocked ? "FAIL" : "PASS",
+      detail: !blocked ? "Uploaded code can be treated as a real-robot command package without exposing translated code." : "Translation stays blocked until the uploaded code passes validation."
     },
     {
       name: "MuJoCo simulation check",
-      status,
-      detail: status === "PASS" ? "Approved command sequence is ready for the simulation/result view." : "Simulation blocked because validation failed."
+      status: blocked ? "FAIL" : "PASS",
+      detail: !blocked ? "Approved command sequence is ready for the simulation/result view." : "Simulation blocked because validation failed or produced warning-level movement."
     }
   ];
 }
@@ -1098,6 +1117,7 @@ function FocusedBrowseFunctionsSection() {
 
 function HardwareResultPanel({ result }: { result: HardwareResult }) {
   const passed = result.status === "PASS";
+  const warning = result.status === "WARNING";
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const activeClip = result.simulationClips[Math.min(activeClipIndex, Math.max(result.simulationClips.length - 1, 0))];
 
@@ -1126,7 +1146,9 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Validation Result</p>
               <h2 className="mt-2 text-2xl font-semibold text-[#07142e]">Validation Checklist</h2>
             </div>
-            <span className={`px-3 py-1.5 text-sm font-bold ${passed ? "bg-[#e7f7ef] text-[#087a43]" : "bg-[#fdeceb] text-[#b42318]"}`}>
+            <span className={`px-3 py-1.5 text-sm font-bold ${
+              passed ? "bg-[#e7f7ef] text-[#087a43]" : warning ? "bg-[#fff7d6] text-[#9a6700]" : "bg-[#fdeceb] text-[#b42318]"
+            }`}>
               {result.status}
             </span>
           </div>
@@ -1145,7 +1167,9 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
                   <tr key={item.name}>
                     <td className="px-3 py-3 font-semibold text-[#07142e]">{item.name}</td>
                     <td className="px-3 py-3">
-                      <span className={`px-2.5 py-1 text-xs font-bold ${item.status === "PASS" ? "bg-[#e7f7ef] text-[#087a43]" : "bg-[#fdeceb] text-[#b42318]"}`}>
+                      <span className={`px-2.5 py-1 text-xs font-bold ${
+                        item.status === "PASS" ? "bg-[#e7f7ef] text-[#087a43]" : item.status === "WARNING" ? "bg-[#fff7d6] text-[#9a6700]" : "bg-[#fdeceb] text-[#b42318]"
+                      }`}>
                         {item.status}
                       </span>
                     </td>
@@ -1240,6 +1264,12 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
                   <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">SDK Rule</div>
                   <div className="min-w-0 break-words px-3 py-3 text-[#07142e]">Only Agentech SDK is allowed.</div>
                 </div>
+                <div className="grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Move Box</div>
+                  <div className="min-w-0 break-words px-3 py-3 text-[#07142e] [overflow-wrap:anywhere]">
+                    {result.movementSafety.level}: max {result.movementSafety.maxDistanceMeters.toFixed(3)}m, dx {result.movementSafety.maxDxMeters.toFixed(3)}m, dy {result.movementSafety.maxDyMeters.toFixed(3)}m
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1271,7 +1301,9 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
           <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Final Status</p>
             <p className="mt-4">
-              <span className={`px-3 py-1.5 text-sm font-bold ${passed ? "bg-[#e7f7ef] text-[#087a43]" : "bg-[#fdeceb] text-[#b42318]"}`}>
+              <span className={`px-3 py-1.5 text-sm font-bold ${
+                passed ? "bg-[#e7f7ef] text-[#087a43]" : warning ? "bg-[#fff7d6] text-[#9a6700]" : "bg-[#fdeceb] text-[#b42318]"
+              }`}>
                 {result.status}
               </span>
             </p>
@@ -1349,10 +1381,13 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       ? "Software Check stays locked until the same file passes Step 3. It reviews website, account, data, and infrastructure risk before live scheduling."
       : "Physical Hardware Check runs first. It protects the robot body by checking command limits, motion duration, model compatibility, and risky movements.";
   const hardwarePassed = physicalSafetyPassed && hardwareResult?.status === "PASS";
+  const hardwareWarning = hardwareResult?.status === "WARNING";
   const hardwareFailed = hardwareResult?.status === "FAIL";
   const softwarePassed = canScheduleRobotSlot;
   const step3PanelClass = hardwarePassed
     ? "border-[#008a7a] bg-[#e8f7f3]"
+    : hardwareWarning
+      ? "border-[#d99a00] bg-[#fff8df]"
     : hardwareFailed
       ? "border-[#c93434] bg-[#fff1f1]"
       : "border-[#dce7f2] bg-[#f8fbff]";
@@ -1363,14 +1398,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       : "border-[#dce7f2] bg-[#f8fbff]";
   const statusPanelClass = softwarePassed
     ? "border-[#008a7a] bg-[#e8f7f3]"
+    : hardwareWarning
+      ? "border-[#d99a00] bg-[#fff8df]"
     : hardwareFailed
       ? "border-[#c93434] bg-[#fff1f1]"
       : hardwarePassed
         ? "border-[#008a7a] bg-[#e8f7f3]"
         : "border-[#dce7f2] bg-[#f8fbff]";
-  const statusPanelTitle = softwarePassed ? "Step 4 passed" : hardwareFailed ? "Step 3 failed" : hardwarePassed ? "Step 3 passed" : "Ready";
+  const statusPanelTitle = softwarePassed ? "Step 4 passed" : hardwareWarning ? "Step 3 warning" : hardwareFailed ? "Step 3 failed" : hardwarePassed ? "Step 3 passed" : "Ready";
   const statusPanelCopy = softwarePassed
     ? "Step 5 Live Stream scheduling is unlocked."
+    : hardwareWarning
+      ? "Movement entered the warning zone for the physical test box. Step 4 stays locked until movement is within the pass limit."
     : hardwareFailed
       ? "Fix the code, then run the Physical Hardware Check again. Step 4 stays locked until Step 3 passes."
       : hardwarePassed
@@ -1502,6 +1541,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       setCode(reviewCode);
     }
     const reviewPlan = commandPlan(reviewCode);
+    const movementSafety = evaluateAgentechMovementSafety(reviewCode);
     setIsRunningPhysicalCheck(true);
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
@@ -1509,6 +1549,24 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setHardwareResult(null);
     setRequestStatus("Running Step 3 Physical Hardware Check...");
     try {
+      if (!movementSafety.submitReady) {
+        setHardwareResult({
+          status: movementSafety.level,
+          resultId: `blocked-${Date.now()}`,
+          robotModel,
+          fileName: uploadedFileName || "pasted code",
+          commandCount: reviewPlan.motionCount,
+          checklist: buildHardwareChecklist(movementSafety.level, movementSafety.detail, movementSafety),
+          motionPlan: reviewPlan.trace,
+          simulationClips: [],
+          simulationError: movementSafety.detail,
+          finalHint: movementSafety.level === "WARNING" ? "Warning-level movement is not submit-ready. Keep max movement within 0.8m before Step 4 unlocks." : "Submission is locked until movement stays inside the physical test box limits.",
+          movementSafety
+        });
+        setRequestStatus(movementSafety.detail);
+        return;
+      }
+
       const response = await fetch("/api/agentech-code-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1524,7 +1582,23 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload.error ?? "Physical safety check failed.");
+        const responseMovementSafety = payload.movementSafety as AgentechMovementSafety | undefined;
+        const blockedSafety = responseMovementSafety ?? defaultMovementSafety("FAIL", payload.error ?? "Physical safety check failed.");
+        setHardwareResult({
+          status: blockedSafety.level,
+          resultId: `blocked-${Date.now()}`,
+          robotModel,
+          fileName: uploadedFileName || "pasted code",
+          commandCount: reviewPlan.motionCount,
+          checklist: buildHardwareChecklist(blockedSafety.level, payload.error ?? blockedSafety.detail, blockedSafety),
+          motionPlan: reviewPlan.trace,
+          simulationClips: [],
+          simulationError: payload.error ?? blockedSafety.detail,
+          finalHint: blockedSafety.level === "WARNING" ? "Warning-level movement is not submit-ready. Keep max movement within 0.8m before Step 4 unlocks." : "Submission is locked until every checklist item passes.",
+          movementSafety: blockedSafety
+        });
+        setRequestStatus(payload.error ?? blockedSafety.detail);
+        return;
       }
       setPhysicalSubmissionId(payload.id);
       setPhysicalSafetyPassed(true);
@@ -1534,7 +1608,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         robotModel,
         fileName: uploadedFileName || "pasted code",
         commandCount: Number(payload.commandCount ?? reviewPlan.trace.length),
-        checklist: buildHardwareChecklist("PASS"),
+        checklist: buildHardwareChecklist("PASS", "", movementSafety),
+        movementSafety,
         motionPlan: reviewPlan.trace,
         simulationClips: simulationClipsForMotionPlan(reviewPlan.trace),
         simulationError: "",
@@ -1553,6 +1628,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         fileName: uploadedFileName || "pasted code",
         commandCount: reviewPlan.motionCount,
         checklist: buildHardwareChecklist("FAIL", message),
+        movementSafety: defaultMovementSafety("FAIL", message),
         motionPlan: reviewPlan.trace,
         simulationClips: [],
         simulationError: message,
@@ -1761,11 +1837,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         Failed
                       </span>
                     ) : null}
+                    {hardwareWarning ? (
+                      <span className="border border-[#d99a00] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a6700]">
+                        Warning
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-2 font-mono text-xs leading-5 text-[#07142e]">{plan.motionCount} motion commands</p>
                   <p className="mt-1 text-xs leading-5 text-[#526174]">
                     {hardwarePassed
                       ? "Hardware and parameter limits passed. Step 4 Software Check is unlocked."
+                      : hardwareWarning
+                        ? "Movement is warning-level for the physical test box. Step 4 stays locked."
                       : hardwareFailed
                         ? "Hardware failed. Fix the blocked command or parameter before Software Check."
                         : "Checks robot commands and parameters before Supabase unlocks Software Check."}
@@ -1805,7 +1888,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#2f70c8] bg-[#eaf3ff] px-4 py-3 text-sm font-semibold text-[#194f92] transition hover:bg-[#2f70c8] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isRunningPhysicalCheck ? "Checking..." : hardwarePassed || hardwareFailed ? "Re-run Physical Hardware Check" : "Run Physical Hardware Check"}
+                  {isRunningPhysicalCheck ? "Checking..." : hardwarePassed || hardwareFailed || hardwareWarning ? "Re-run Physical Hardware Check" : "Run Physical Hardware Check"}
                 </button>
                 <button
                   type="button"
@@ -1847,7 +1930,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   {hardwarePassed || softwarePassed ? (
                     <p className="mt-1 text-xs text-[#526174]">Hardware review ID: {physicalSubmissionId}</p>
                   ) : null}
-                  {hardwareFailed ? <p className="mt-1 text-xs text-[#a51f1f]">{requestStatus}</p> : null}
+                  {hardwareFailed || hardwareWarning ? (
+                    <p className={`mt-1 text-xs ${hardwareWarning ? "text-[#9a6700]" : "text-[#a51f1f]"}`}>{requestStatus}</p>
+                  ) : null}
                 </div>
               </div>
             </div>
