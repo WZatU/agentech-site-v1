@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
+import { eaicHubPath } from "@/lib/eaic-hub";
 
 type AccessStatus = "checking" | "allowed" | "signed-out" | "locked" | "error";
 
@@ -57,7 +58,7 @@ export function AgentechLibraryAccessGate({ children }: { children: ReactNode })
   const [status, setStatus] = useState<AccessStatus>("checking");
   const [email, setEmail] = useState("");
 
-  const loginHref = useMemo(() => `/login?next=${encodeURIComponent(pathname || "/agentech-products/agentech-library")}`, [pathname]);
+  const loginHref = useMemo(() => `/login?next=${encodeURIComponent(pathname || eaicHubPath)}`, [pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,7 +134,7 @@ export function AgentechLibraryAccessGate({ children }: { children: ReactNode })
 
   if (status === "signed-out") {
     return (
-      <LibraryGateShell eyebrow="Developer access required" title="Sign in to open EAI Cloud.">
+      <LibraryGateShell eyebrow="Developer access required" title="Sign in to open EAIC HUB.">
         <p>You need an Agentech account with a developer profile before this workspace opens.</p>
         <Link href={loginHref} className="mt-6 inline-flex rounded-[8px] bg-[#07142e] px-5 py-3 text-sm font-bold uppercase tracking-[0.12em] text-white">
           Sign In
@@ -144,7 +145,7 @@ export function AgentechLibraryAccessGate({ children }: { children: ReactNode })
 
   if (status === "locked") {
     return (
-      <LibraryGateShell eyebrow="Developer profile required" title="EAI Cloud is only available to developers.">
+      <LibraryGateShell eyebrow="Developer profile required" title="EAIC HUB is only available to developers.">
         <p>
           {email} is signed in, but this account does not have a developer profile yet. Create or switch to a developer profile to access robot testing tools.
         </p>
@@ -172,7 +173,7 @@ export function AgentechLibraryAccessGate({ children }: { children: ReactNode })
   }
 
   return (
-    <LibraryGateShell eyebrow="Checking access" title="Opening EAI Cloud.">
+    <LibraryGateShell eyebrow="Checking access" title="Opening EAIC HUB.">
       <p>Verifying that this account has a developer profile.</p>
     </LibraryGateShell>
   );

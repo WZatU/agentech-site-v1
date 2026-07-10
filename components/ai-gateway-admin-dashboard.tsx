@@ -108,7 +108,12 @@ function formatTokenCount(value: number | string | undefined | null) {
 
 function formatGatewayCost(value: number | string | undefined | null) {
   const amount = Number(value ?? 0);
-  return Number.isFinite(amount) ? `$${amount.toFixed(4)}` : "$0.0000";
+  return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : "$0.00";
+}
+
+function formatCreditsWithUsd(value: number | string | undefined | null) {
+  const credits = Math.max(0, Math.floor(Number(value ?? 0)));
+  return `${credits.toLocaleString()} (${formatGatewayCost(credits / 100)})`;
 }
 
 function formatDurationMs(value: number | string | undefined | null) {
@@ -352,7 +357,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             </p>
             <h1 className="mt-4 text-[38px] font-black leading-none text-slate-950 sm:text-6xl">AI Gateway Command Center</h1>
             <p className="mt-3 max-w-3xl text-base font-bold leading-7 text-slate-700">
-              You are signed in as the gateway owner. Monitor every developer, inspect usage velocity, and stop AI access immediately if an account abuses the system.
+              You are signed in as the gateway owner. Monitor every developer, inspect OpenAI-reported token usage, and stop AI access immediately if an account abuses the system.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-white">Admin Mode Active</span>
@@ -437,7 +442,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             { label: "Monthly Requests", value: summary.totalRequests.toLocaleString(), helper: "Across all users" },
             { label: "Recent Velocity", value: `${gatewayHistory.callsLastHour.toLocaleString()} / ${gatewayHistory.callsLast24h.toLocaleString()}`, helper: "Calls in 1h / 24h" },
             { label: "Paused", value: summary.pausedGatewayUsers.toLocaleString(), helper: "Blocked accounts" },
-            { label: "Estimated Cost", value: formatGatewayCost(summary.totalCost), helper: "Current month" }
+            { label: "Run Cost", value: formatGatewayCost(summary.totalCost), helper: "1 credit = $0.01" }
           ].map((card) => (
             <div key={card.label} className={`rounded-2xl border p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] ${
               card.label === "Paused" ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"
@@ -529,8 +534,8 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                       {[
                         { label: "Requests", value: `${requests.toLocaleString()} / ${requestLimit.toLocaleString()}`, helper: "monthly calls" },
-                        { label: "Tokens", value: formatTokenCount(tokens), helper: "prompt + completion" },
-                        { label: "Cost", value: formatGatewayCost(cost), helper: `limit ${formatGatewayCost(costLimit)}` },
+                        { label: "Tokens", value: formatTokenCount(tokens), helper: "OpenAI-reported input + output" },
+                        { label: "Cost", value: formatGatewayCost(cost), helper: `limit ${formatGatewayCost(costLimit)}; Software Check $0.50/run` },
                         {
                           label: "Software Credits",
                           value: Math.max(0, Math.floor(creditBalance)).toLocaleString(),
@@ -640,7 +645,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                         <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Credits Charged</p>
-                        <p className="mt-2 text-sm font-black text-slate-950">{formatTokenCount(submission.credits_charged)}</p>
+                        <p className="mt-2 text-sm font-black text-slate-950">{formatCreditsWithUsd(submission.credits_charged)}</p>
                       </div>
                     </div>
 
@@ -702,7 +707,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                     { label: "Account", value: isAgentechCompanyEmail(selectedSubmission.email) ? "Company / Internal" : "External" },
                     { label: "Physical", value: formatStatus(selectedSubmission.physical_safety_status) },
                     { label: "Software", value: formatStatus(selectedSubmission.ai_security_status) },
-                    { label: "Credits Charged", value: formatTokenCount(selectedSubmission.credits_charged) },
+                    { label: "Credits Charged", value: formatCreditsWithUsd(selectedSubmission.credits_charged) },
                     { label: "Robot", value: selectedSubmission.robot_model || "Not set" },
                     { label: "Submitted", value: formatDateTime(selectedSubmission.created_at) }
                   ].map((item) => (
@@ -733,8 +738,16 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   <p className="break-all font-bold text-slate-950">{row.user_id}</p>
                   <p className="mt-1 text-xs text-slate-500">{row.endpoint} - {row.model}</p>
                 </div>
-                <p className="font-semibold text-slate-700">{formatTokenCount(row.total_tokens)} tokens</p>
-                <p className="font-semibold text-slate-700">{formatGatewayCost(row.estimated_cost)}</p>
+                <div>
+                  <p className="font-semibold text-slate-700">{formatTokenCount(row.total_tokens)} tokens</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">
+                    {formatTokenCount(row.prompt_tokens)} input + {formatTokenCount(row.completion_tokens)} output
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-700">{formatGatewayCost(row.estimated_cost)}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">Standard run cost</p>
+                </div>
                 <p className="font-semibold text-slate-700">{formatDurationMs(row.latency_ms)}</p>
                 <p className="font-semibold text-slate-700">HTTP {row.status_code ?? "n/a"}</p>
                 <p className="text-slate-500">{formatDateTime(row.created_at)}</p>

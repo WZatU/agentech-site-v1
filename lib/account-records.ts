@@ -304,6 +304,15 @@ export async function getCodeSubmissionRecords(email: string, requestedLimit = 2
   });
 }
 
+export async function deleteCodeSubmissionRecord(id: string, email: string) {
+  const rows = await supabaseRequest<CodeSubmissionRecord[]>("agentech_code_submissions", {
+    method: "DELETE",
+    query: `id=eq.${encodeURIComponent(id)}&email=eq.${encodeURIComponent(email)}`
+  });
+
+  return rows[0] ?? null;
+}
+
 export async function updateCodeSubmissionRecord(
   id: string,
   body: Partial<Pick<
@@ -316,6 +325,20 @@ export async function updateCodeSubmissionRecord(
     query: `id=eq.${encodeURIComponent(id)}`,
     body: {
       ...body,
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return rows[0] ?? null;
+}
+
+export async function claimCodeSubmissionSoftwareReview(id: string, email: string) {
+  const rows = await supabaseRequest<CodeSubmissionRecord[]>("agentech_code_submissions", {
+    method: "PATCH",
+    query: `id=eq.${encodeURIComponent(id)}&email=eq.${encodeURIComponent(email)}&ai_security_status=eq.locked&ai_security_reviewed_at=is.null`,
+    body: {
+      ai_security_status: "pending",
+      credits_charged: 0,
       updated_at: new Date().toISOString()
     }
   });
@@ -349,6 +372,24 @@ export async function markDeveloperReviewGateOnAccount(input: {
     query: `email=eq.${encodeURIComponent(input.email)}`,
     prefer: "return=minimal",
     body
+  });
+}
+
+export async function syncDeveloperReviewGateOnAccount(email: string, submission: CodeSubmissionRecord | null) {
+  const physicalPassed = submission?.physical_safety_status === "passed";
+  const softwarePassed = submission?.ai_security_status === "passed";
+
+  await supabaseRequest<null>("agentech_accounts", {
+    method: "PATCH",
+    query: `email=eq.${encodeURIComponent(email)}`,
+    prefer: "return=minimal",
+    body: {
+      developer_latest_code_submission_id: submission?.id ?? null,
+      developer_physical_safety_status: submission?.physical_safety_status ?? null,
+      developer_physical_safety_passed_at: physicalPassed ? submission?.updated_at ?? submission?.created_at ?? null : null,
+      developer_ai_security_status: submission?.ai_security_status ?? null,
+      developer_ai_security_passed_at: softwarePassed ? submission?.ai_security_reviewed_at ?? submission?.updated_at ?? null : null
+    }
   });
 }
 
@@ -928,6 +969,7 @@ export async function createRobotSession(input: {
   approvedRunType: "preset_demo" | "custom_code";
   presetDemo: string;
   benchmarkStatus: "not_started" | "pending" | "passed" | "failed";
+  price?: number | null;
   notes?: string | null;
 }) {
   const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
@@ -946,6 +988,7 @@ export async function createRobotSession(input: {
       approved_run_type: input.approvedRunType,
       preset_demo: input.presetDemo,
       benchmark_status: input.benchmarkStatus,
+      price: input.price ?? null,
       notes: input.notes || null
     }
   });

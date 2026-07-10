@@ -7,7 +7,7 @@ import { supabaseRequest } from "@/lib/supabase-server";
 
 export const metadata = {
   title: "AI Gateway Admin | Agentech",
-  description: "Owner-only EAI Cloud AI Gateway usage monitor."
+  description: "Owner-only EAIC HUB AI Gateway usage monitor."
 };
 
 async function isAiGatewayAdmin(email: string) {

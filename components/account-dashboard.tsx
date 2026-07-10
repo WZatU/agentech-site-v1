@@ -5,8 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { isAgentechCompanyEmail, isAgentechGatewayOwnerEmail } from "@/lib/company-accounts";
+import { getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
+import {
+  externalRobotViewingMaximumMinutes,
+  externalRobotViewingMinimumMinutes,
+  getRobotViewingCreditCost,
+  isValidRobotViewingDuration,
+  robotViewingCreditsPerMinute
+} from "@/lib/robot-slot-pricing";
 
 type DashboardAccessProfile = {
   id: number;
@@ -235,6 +243,9 @@ type AdminAiUsageData = {
 
 type AccessProfileType = "developer" | "student" | "teacher" | "talent";
 type DashboardTab = "profile" | "courses" | "balance" | "code" | "robot" | "invoices" | "billing" | "settings";
+type AccountDashboardProps = {
+  mode?: "account" | "robot-scheduling";
+};
 
 const profileOptions: Array<{ type: AccessProfileType; label: string; description: string }> = [
   { type: "developer", label: "Developer", description: "Test robots, submit code, and manage supervised runs." },
@@ -352,7 +363,6 @@ const profileUnlockDetails: Record<
   }
 };
 
-const robotSlotDurationOptions = [5, 10, 15, 30];
 const robotSlotGridMinutes = 5;
 const robotSlotPrepMinutes = 2;
 
@@ -954,8 +964,9 @@ function generateRobotSlotCandidates(durationMinutes: number) {
   return slots;
 }
 
-export function AccountDashboard() {
+export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
   const router = useRouter();
+  const focusedRobotScheduling = mode === "robot-scheduling";
   const [email, setEmail] = useState("");
   const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
@@ -1007,9 +1018,13 @@ export function AccountDashboard() {
   const [robotSlotOptions, setRobotSlotOptions] = useState<RobotSlotOption[]>([]);
   const [loadingRobotSlots, setLoadingRobotSlots] = useState(false);
   const [requestingRobotSlot, setRequestingRobotSlot] = useState(false);
-  const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
+  const [activeTab, setActiveTab] = useState<DashboardTab>(focusedRobotScheduling ? "robot" : "profile");
   const [selectedDashboardProfileId, setSelectedDashboardProfileId] = useState<number | null>(null);
-  const [expandedCodeSubmissionId, setExpandedCodeSubmissionId] = useState("");
+  const [runningSoftwareSubmissionId, setRunningSoftwareSubmissionId] = useState("");
+  const [deletingSubmissionId, setDeletingSubmissionId] = useState("");
+  const [confirmDeleteSubmissionId, setConfirmDeleteSubmissionId] = useState("");
+  const [codeReviewActionMessage, setCodeReviewActionMessage] = useState("");
+  const [codeReviewActionTone, setCodeReviewActionTone] = useState<"success" | "error" | "info">("info");
 
   useEffect(() => {
     let cancelled = false;
@@ -1093,10 +1108,21 @@ export function AccountDashboard() {
   }, [data.accessProfiles, selectedDashboardProfileId]);
 
   useEffect(() => {
-    if (email && isAgentechGatewayOwnerEmail(email)) {
+    if (!focusedRobotScheduling || !data.accessProfiles?.length) {
+      return;
+    }
+
+    const schedulingProfile = data.accessProfiles.find((profile) => profile.profile_type === "developer") ?? data.accessProfiles[0];
+    setSelectedDashboardProfileId(schedulingProfile.id);
+    setRobotSlotProfileId(String(schedulingProfile.id));
+    setActiveTab("robot");
+  }, [data.accessProfiles, focusedRobotScheduling]);
+
+  useEffect(() => {
+    if (!focusedRobotScheduling && email && isAgentechGatewayOwnerEmail(email)) {
       router.replace("/admin/ai-gateway");
     }
-  }, [email, router]);
+  }, [email, focusedRobotScheduling, router]);
 
   useEffect(() => {
     if (!email || !isAgentechGatewayOwnerEmail(email)) {
@@ -1242,6 +1268,86 @@ export function AccountDashboard() {
 
     const result = await fetchDashboardData(email);
     setData(result);
+  }
+
+  async function runDashboardSoftwareCheck(submission: DashboardCodeSubmission) {
+    if (runningSoftwareSubmissionId || deletingSubmissionId) return;
+
+    setRunningSoftwareSubmissionId(submission.id);
+    setCodeReviewActionTone("info");
+    setCodeReviewActionMessage(`Running Software Check for ${getCodeSubmissionDownloadName(submission)}...`);
+
+    try {
+      const response = await fetch("/api/agentech-code-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reviewStage: "software",
+          submissionId: submission.id,
+          developerName: submission.developer_name,
+          robotModel: submission.robot_model,
+          runMode: "Software check",
+          code: submission.code,
+          uploadedFileName: submission.uploaded_file_name || "",
+          commands: submission.commands
+        })
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        summary?: string;
+        findings?: string[];
+        aiSecurityStatus?: string;
+        creditsCharged?: number;
+      } | null;
+
+      await refreshAccount();
+      if (!response.ok) {
+        const findings = payload?.findings?.length ? ` ${payload.findings.join(" ")}` : "";
+        setCodeReviewActionTone("error");
+        setCodeReviewActionMessage(`${payload?.error || "Software Check failed."}${findings}`);
+        return;
+      }
+
+      setCodeReviewActionTone("success");
+      setCodeReviewActionMessage(
+        `Software Check passed. ${payload?.creditsCharged ?? 0} credits used. You can schedule live robot viewing now.`
+      );
+    } catch {
+      setCodeReviewActionTone("error");
+      setCodeReviewActionMessage("Software Check could not be started. Refresh the account and try again.");
+    } finally {
+      setRunningSoftwareSubmissionId("");
+    }
+  }
+
+  async function deleteDashboardSubmission(submission: DashboardCodeSubmission) {
+    if (deletingSubmissionId || runningSoftwareSubmissionId) return;
+
+    setDeletingSubmissionId(submission.id);
+    setCodeReviewActionTone("info");
+    setCodeReviewActionMessage(`Deleting ${getCodeSubmissionDownloadName(submission)}...`);
+
+    try {
+      const response = await fetch(`/api/account/code-submissions?id=${encodeURIComponent(submission.id)}`, {
+        method: "DELETE"
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        setCodeReviewActionTone("error");
+        setCodeReviewActionMessage(payload?.error || "The reviewed code file could not be deleted.");
+        return;
+      }
+
+      setConfirmDeleteSubmissionId("");
+      await refreshAccount();
+      setCodeReviewActionTone("success");
+      setCodeReviewActionMessage("Submission deleted. Previously used Software Check credits were not refunded.");
+    } catch {
+      setCodeReviewActionTone("error");
+      setCodeReviewActionMessage("The reviewed code file could not be deleted. Refresh the account and try again.");
+    } finally {
+      setDeletingSubmissionId("");
+    }
   }
 
   async function confirmRequest() {
@@ -1504,7 +1610,7 @@ export function AccountDashboard() {
         notes: robotSlotNotes
       })
     });
-    const result = (await response.json().catch(() => null)) as { error?: string; emailSent?: boolean } | null;
+    const result = (await response.json().catch(() => null)) as { error?: string; emailSent?: boolean; creditsCharged?: number } | null;
 
     if (!response.ok) {
       setRobotSlotMessage(result?.error || "Unable to request that robot slot.");
@@ -1514,10 +1620,13 @@ export function AccountDashboard() {
 
     setRobotSlotNotes("");
     setRobotSlotStart(getDefaultRobotSlotValue());
+    const creditMessage = isAgentechCompanyEmail(email)
+      ? "No credits charged for this @agent-tech.ai account."
+      : `${(result?.creditsCharged ?? 0).toLocaleString()} credits charged.`;
     setRobotSlotMessage(
       result?.emailSent
-        ? "Robot slot requested. Confirmation email sent."
-        : "Robot slot requested. Confirmation email is not configured yet."
+        ? `Robot slot requested. ${creditMessage} Confirmation email sent.`
+        : `Robot slot requested. ${creditMessage} Confirmation email is not configured yet.`
     );
     await refreshAccount();
     setRequestingRobotSlot(false);
@@ -1528,11 +1637,19 @@ export function AccountDashboard() {
   }
 
   if (!email) {
+    const signInReturnPath = focusedRobotScheduling
+      ? getEaicHubTaskPath("schedule-time")
+      : "/account";
+
     return (
       <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
         <h1 className="text-3xl font-semibold text-slate-950">Sign in required</h1>
-        <p className="mt-3 text-slate-600">Sign in to view your profile, requests, applications, and enrollments.</p>
-        <Link href="/login?next=/account" className="mt-6 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white">
+        <p className="mt-3 text-slate-600">
+          {focusedRobotScheduling
+            ? "Sign in to choose a robot viewing time and duration."
+            : "Sign in to view your profile, requests, applications, and enrollments."}
+        </p>
+        <Link href={`/login?next=${encodeURIComponent(signInReturnPath)}`} className="mt-6 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white">
           Sign In
         </Link>
       </div>
@@ -1566,18 +1683,27 @@ export function AccountDashboard() {
   const isAdminAccount = isAgentechCompanyEmail(email);
   const isGatewayOwnerAccount = isAgentechGatewayOwnerEmail(email);
   const isInternalCompanyAccount = isAgentechCompanyEmail(email);
+  const selectedRobotSlotDuration = Number(robotSlotDurationMinutes);
+  const robotSlotDurationValid = isValidRobotViewingDuration(selectedRobotSlotDuration, isInternalCompanyAccount);
+  const robotSlotCreditCost = isInternalCompanyAccount || !robotSlotDurationValid ? 0 : getRobotViewingCreditCost(selectedRobotSlotDuration);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
   const internalTestingBypass = isInternalCompanyAccount;
   const customCodeLocked = robotSlotRunType === "custom_code" && !internalTestingBypass && !developerCodeReviewPassed;
-  const robotSlotCreditLocked = !internalTestingBypass && creditBalance <= 0;
-  const robotSlotUnavailable = loadingRobotSlots || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
+  const robotSlotCreditLocked = !internalTestingBypass && creditBalance < robotSlotCreditCost;
+  const robotSlotUnavailable = loadingRobotSlots || !robotSlotDurationValid || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
   const selectedDashboardProfile = data.accessProfiles?.find((profile) => profile.id === selectedDashboardProfileId) ?? null;
   const selectedDashboardProfileType = selectedDashboardProfile?.profile_type ?? null;
-  const visibleDashboardTabs = selectedDashboardProfileType
-    ? getDashboardTabs(selectedDashboardProfileType)
-    : dashboardTabs.filter((tab) => tab.id !== "courses" && tab.id !== "robot");
-  const currentTab = visibleDashboardTabs.some((tab) => tab.id === activeTab) ? activeTab : "profile";
+  const visibleDashboardTabs = focusedRobotScheduling
+    ? dashboardTabs.filter((tab) => tab.id === "robot")
+    : selectedDashboardProfileType
+      ? getDashboardTabs(selectedDashboardProfileType)
+      : dashboardTabs.filter((tab) => tab.id !== "courses" && tab.id !== "robot");
+  const currentTab = focusedRobotScheduling
+    ? "robot"
+    : visibleDashboardTabs.some((tab) => tab.id === activeTab)
+      ? activeTab
+      : "profile";
   const selectedVisual = selectedDashboardProfileType ? profileVisuals[selectedDashboardProfileType] : null;
   const accountAvatar = "from-slate-100 to-slate-200 text-slate-700";
   const profileInitial = (displayName.trim()[0] || email.trim()[0] || "A").toUpperCase();
@@ -1682,8 +1808,8 @@ export function AccountDashboard() {
       visual: profileVisuals[profile.profile_type]
     }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4);
-  const codeSubmissions = data.codeSubmissions ?? [];
-  const hardwarePassedCodeCount = codeSubmissions.filter((submission) => submission.physical_safety_status === "passed").length;
+  const codeSubmissions = (data.codeSubmissions ?? []).filter((submission) => submission.physical_safety_status === "passed");
+  const hardwarePassedCodeCount = codeSubmissions.length;
   const softwarePassedCodeCount = codeSubmissions.filter((submission) => submission.ai_security_status === "passed").length;
   const tabCounts: Partial<Record<DashboardTab, number>> = {
     courses: selectedDashboardProfileType === "student" || selectedDashboardProfileType === "teacher" ? data.enrollments?.length ?? 0 : 0,
@@ -1887,8 +2013,14 @@ export function AccountDashboard() {
     <div className="relative z-[1] overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
       <div className="relative z-[1] flex flex-col gap-5 px-5 pb-4 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">Account</h1>
-          <p className="mt-2 text-sm font-medium text-slate-500">Manage account information, profiles, credits, invoices, and access.</p>
+          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">
+            {focusedRobotScheduling ? "Schedule Robot Time" : "Account"}
+          </h1>
+          <p className="mt-2 text-sm font-medium text-slate-500">
+            {focusedRobotScheduling
+              ? "Choose the run type, available start time, and viewing duration for the supervised session."
+              : "Manage account information, profiles, credits, invoices, and access."}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <div className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
@@ -1910,6 +2042,7 @@ export function AccountDashboard() {
         </div>
       </div>
 
+      {!focusedRobotScheduling ? (
       <div className="relative z-[1] overflow-x-auto border-b border-slate-200 px-5 sm:px-7 md:px-8">
         <div className="flex min-w-max items-center gap-5">
           {visibleDashboardTabs.map((tab) => {
@@ -1942,6 +2075,16 @@ export function AccountDashboard() {
           })}
         </div>
       </div>
+      ) : (
+        <div className="relative z-[1] border-b border-slate-200 px-5 py-4 sm:px-7 md:px-8">
+          <Link
+            href={getEaicHubTaskPath("watch-live-run")}
+            className="inline-flex border border-slate-300 bg-white px-4 py-2 text-xs font-bold uppercase text-slate-700 transition hover:border-[#008a7a] hover:text-[#006a5c]"
+          >
+            &lt;- Live Stream
+          </Link>
+        </div>
+      )}
 
       <div className="relative z-[1] space-y-6 p-5 sm:p-7 md:p-8">
         {currentTab === "profile" ? (
@@ -2373,7 +2516,7 @@ export function AccountDashboard() {
                 </p>
               </div>
               <Link
-                href="/agentech-products/agentech-library/physical-hardware-check"
+                href={getEaicHubTaskPath("physical-hardware-check")}
                 className="rounded-full border border-[#008a7a] bg-white px-4 py-2 text-sm font-bold text-[#006a5c] transition hover:bg-[#e8f7f3]"
               >
                 Check New Code
@@ -2401,11 +2544,24 @@ export function AccountDashboard() {
               </p>
             ) : null}
 
+            {codeReviewActionMessage ? (
+              <p
+                role={codeReviewActionTone === "error" ? "alert" : "status"}
+                className={`mt-5 border px-4 py-3 text-sm font-semibold ${
+                  codeReviewActionTone === "error"
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : codeReviewActionTone === "success"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-blue-200 bg-blue-50 text-blue-800"
+                }`}
+              >
+                {codeReviewActionMessage}
+              </p>
+            ) : null}
+
             <div className="mt-6 space-y-3">
               {codeSubmissions.length ? codeSubmissions.map((submission) => {
-                const isExpanded = expandedCodeSubmissionId === submission.id;
                 const isLatest = data.account?.developer_latest_code_submission_id === submission.id;
-                const detailsId = `code-review-${submission.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
                 return (
                   <article key={submission.id} className={`border bg-white ${isLatest ? "border-[#008a7a]" : "border-slate-200"}`}>
                     <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
@@ -2436,6 +2592,31 @@ export function AccountDashboard() {
                         <span className={`border px-3 py-2 text-xs font-bold ${codeReviewStatusTone(submission.ai_security_status)}`}>
                           Software: {formatCodeReviewStatus(submission.ai_security_status)}
                         </span>
+                        {submission.physical_safety_status === "passed" && submission.ai_security_status === "passed" ? (
+                          <Link
+                            href={getEaicHubTaskPath("schedule-time")}
+                            className="border border-[#008a7a] bg-[#008a7a] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#006a5c]"
+                          >
+                            Schedule Live Viewing
+                          </Link>
+                        ) : submission.ai_security_status === "locked" ? (
+                          <button
+                            type="button"
+                            onClick={() => void runDashboardSoftwareCheck(submission)}
+                            disabled={Boolean(runningSoftwareSubmissionId || deletingSubmissionId)}
+                            className="border border-[#2f70c8] bg-[#2f70c8] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#245da7] disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-300"
+                          >
+                            {runningSoftwareSubmissionId === submission.id ? "Checking..." : "Run Software Check"}
+                          </button>
+                        ) : submission.ai_security_status === "pending" ? (
+                          <span className="border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+                            Software Check Running
+                          </span>
+                        ) : (
+                          <span className="border border-slate-300 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+                            Software Check Used
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={() => downloadCodeSubmission(submission)}
@@ -2448,61 +2629,43 @@ export function AccountDashboard() {
                           </svg>
                           Download
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setExpandedCodeSubmissionId(isExpanded ? "" : submission.id)}
-                          aria-expanded={isExpanded}
-                          aria-controls={detailsId}
+                        <Link
+                          href={`${getEaicHubTaskPath("physical-hardware-check")}?submissionId=${encodeURIComponent(submission.id)}`}
                           className="border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
                         >
-                          {isExpanded ? "Hide Details" : "View Details"}
-                        </button>
+                          View Submission
+                        </Link>
+                        {confirmDeleteSubmissionId === submission.id ? (
+                          <div className="flex items-center gap-2 border border-red-200 bg-red-50 p-1">
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteSubmissionId("")}
+                              className="px-2 py-1 text-xs font-bold text-slate-600 hover:text-slate-950"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void deleteDashboardSubmission(submission)}
+                              disabled={deletingSubmissionId === submission.id}
+                              className="bg-red-600 px-2 py-1 text-xs font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+                            >
+                              {deletingSubmissionId === submission.id ? "Deleting..." : "Confirm Delete"}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteSubmissionId(submission.id)}
+                            disabled={Boolean(runningSoftwareSubmissionId || deletingSubmissionId)}
+                            className="border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    {isExpanded ? (
-                      <div id={detailsId} className="border-t border-slate-200 bg-slate-50 p-4">
-                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)]">
-                          <div className="min-w-0 border border-slate-200 bg-[#0b0f14]">
-                            <div className="flex items-center justify-between gap-3 border-b border-slate-700 px-4 py-3">
-                              <p className="break-all font-mono text-xs text-slate-300">{getCodeSubmissionFileName(submission)}</p>
-                              <p className="shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-400">Saved review version</p>
-                            </div>
-                            <pre className="max-h-80 overflow-auto p-4 font-mono text-xs leading-6 text-slate-100">
-                              <code>{submission.code}</code>
-                            </pre>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div className="border border-slate-200 bg-white p-4">
-                              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Review Result</p>
-                              <p className="mt-2 text-sm font-bold text-slate-950">
-                                {submission.ai_security_status === "passed"
-                                  ? "Approved for supervised custom-code scheduling."
-                                  : submission.physical_safety_status === "passed"
-                                    ? "Hardware passed. Software Check is still required."
-                                    : "This file has not passed the hardware check."}
-                              </p>
-                              {submission.ai_security_summary ? (
-                                <p className="mt-2 text-sm leading-6 text-slate-600">{submission.ai_security_summary}</p>
-                              ) : null}
-                            </div>
-                            <div className="border border-slate-200 bg-white p-4">
-                              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Detected Commands</p>
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {submission.commands.length ? submission.commands.map((command, index) => (
-                                  <span key={`${submission.id}-${index}-${command}`} className="border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-700">
-                                    {command}
-                                  </span>
-                                )) : (
-                                  <span className="text-sm text-slate-500">No commands recorded.</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
                   </article>
                 );
               }) : (
@@ -2512,7 +2675,7 @@ export function AccountDashboard() {
                     Run the Physical Hardware Check from the Command Library. The passing version will be saved to this account automatically.
                   </p>
                   <Link
-                    href="/agentech-products/agentech-library/physical-hardware-check"
+                    href={getEaicHubTaskPath("physical-hardware-check")}
                     className="mt-4 inline-flex border border-[#008a7a] bg-[#008a7a] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#006a5c]"
                   >
                     Open Hardware Check
@@ -2827,7 +2990,7 @@ export function AccountDashboard() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Slots require sign-in, a profile, available credits, and a start time on a 5-minute boundary. Custom-code sessions also require both review gates to pass.
+                Viewing costs {robotViewingCreditsPerMinute} credits per minute. External accounts choose {externalRobotViewingMinimumMinutes}-{externalRobotViewingMaximumMinutes} minutes; @agent-tech.ai accounts are not charged. Custom-code sessions also require both review gates to pass unless the account is internal.
               </p>
             </div>
             <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed || internalTestingBypass ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
@@ -2897,18 +3060,22 @@ export function AccountDashboard() {
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Viewing Duration</span>
-                  <select
+                  <input
+                    type="number"
                     value={robotSlotDurationMinutes}
                     onChange={(event) => setRobotSlotDurationMinutes(event.target.value)}
+                    min={isInternalCompanyAccount ? 1 : externalRobotViewingMinimumMinutes}
+                    max={isInternalCompanyAccount ? undefined : externalRobotViewingMaximumMinutes}
+                    step="1"
                     className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                  >
-                    {robotSlotDurationOptions.map((minutes) => (
-                      <option key={minutes} value={minutes}>
-                        {minutes} minutes
-                      </option>
-                    ))}
-                  </select>
-                  <span className="mt-2 block text-sm text-slate-600">Use 5 minutes for quick demos, or 10+ minutes when the session needs more observation time.</span>
+                  />
+                  <span className="mt-2 block text-sm text-slate-600">
+                    {isInternalCompanyAccount
+                      ? "Internal @agent-tech.ai session: choose any positive whole-minute duration. No credits are charged."
+                      : robotSlotDurationValid
+                        ? `${robotSlotCreditCost.toLocaleString()} credits (${formatUsd(robotSlotCreditCost / 100)}), at ${robotViewingCreditsPerMinute} credits per minute.`
+                        : `Choose ${externalRobotViewingMinimumMinutes}-${externalRobotViewingMaximumMinutes} whole minutes.`}
+                  </span>
                 </label>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Robot Model</span>
@@ -2963,7 +3130,7 @@ export function AccountDashboard() {
                 </label>
                 {robotSlotCreditLocked ? (
                   <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-                    Robot viewing requires credits.
+                    This session requires {robotSlotCreditCost.toLocaleString()} credits. Current balance: {Math.max(0, Math.floor(creditBalance)).toLocaleString()} credits.
                   </p>
                 ) : null}
                 {customCodeLocked ? (
@@ -3020,9 +3187,15 @@ export function AccountDashboard() {
         <section className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6">
           <h2 className="text-xl font-bold text-slate-950">Create a profile to request robot time</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">Robot viewing is tied to a developer, student, teacher, or talent profile so each session has its own credit limit and activity history.</p>
-          <button type="button" onClick={() => setActiveTab("settings")} className="mt-5 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white">
-            Create Profile
-          </button>
+          {focusedRobotScheduling ? (
+            <Link href="/account/create-profile" className="mt-5 inline-flex rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white">
+              Create Profile
+            </Link>
+          ) : (
+            <button type="button" onClick={() => setActiveTab("settings")} className="mt-5 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white">
+              Create Profile
+            </button>
+          )}
         </section>
       ) : null}
 

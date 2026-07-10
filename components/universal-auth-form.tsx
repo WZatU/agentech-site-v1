@@ -256,7 +256,7 @@ export function UniversalAuthForm() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#334155]">Universal Account</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#0b1220]">Agentech sign in</h2>
         <p className="mt-3 text-sm leading-6 text-[#334155]">
-          Access profile tools, EAI Cloud, robot live viewing, billing, and learning programs through one verified Agentech identity.
+          Access profile tools, EAIC HUB, robot live viewing, billing, and learning programs through one verified Agentech identity.
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import {
   allocateCreditSpend,
+  claimCodeSubmissionSoftwareReview,
   createCodeSubmissionRecord,
   getAccountRecord,
   getCodeSubmissionRecord,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/account-records";
 import { runAgentechAiCodeReview } from "@/lib/agentech-ai-review";
 import { evaluateAgentechMovementSafety } from "@/lib/agentech-motion-safety";
+import { getAiReviewCreditCost } from "@/lib/agentech-review-pricing";
 import { validateAgentechCode } from "@/lib/agentech-validation";
 import { getSoftwareCheckCreditPolicy, isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail } from "@/lib/prototype-auth";
@@ -48,11 +50,6 @@ function isAllowedRunMode(value: string) {
   return value === "Physical hardware limit and capability test" || value === "Software check" || value === "AI software security review" || value === "Benchmark review only";
 }
 
-function getAiReviewCreditCost() {
-  const parsed = Number(process.env.AGENTECH_AI_REVIEW_CREDITS ?? 50);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.ceil(parsed) : 1;
-}
-
 function getGatewayErrorStatus(error: unknown) {
   const status = typeof error === "object" && error !== null && "status" in error
     ? Number((error as { status?: unknown }).status)
@@ -85,13 +82,44 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const requestedSubmissionId = request.nextUrl.searchParams.get("submissionId")?.trim() ?? "";
+
     if (isLocalPreview) {
+      const previewSubmission = requestedSubmissionId === "agentech-preview-approved"
+        ? {
+            id: requestedSubmissionId,
+            developerName: "Wesley Fan",
+            robotModel: "Aegies",
+            runMode: "Software check",
+            code: "from agentech import Agentech\n\nAgentech.stand(stand_wait=5)\nAgentech.forward(speed=0.3, seconds=1)\nAgentech.stop()",
+            uploadedFileName: "aegis_forward.py",
+            commands: ["stand(stand_wait=5)", "forward(speed=0.3, seconds=1)", "stop()"],
+            physicalSafetyStatus: "passed",
+            aiSecurityStatus: "passed",
+            creditsCharged: 50,
+            createdAt: new Date().toISOString()
+          }
+        : requestedSubmissionId === "agentech-preview-hardware"
+          ? {
+              id: requestedSubmissionId,
+              developerName: "Wesley Fan",
+              robotModel: "Aegies",
+              runMode: "Physical hardware limit and capability test",
+              code: "from agentech import Agentech\n\nAgentech.stand(stand_wait=5)\nAgentech.turn_left(angle=45, speed=0.35)",
+              uploadedFileName: null,
+              commands: ["stand(stand_wait=5)", "turn_left(angle=45, speed=0.35)"],
+              physicalSafetyStatus: "passed",
+              aiSecurityStatus: "locked",
+              creditsCharged: 0,
+              createdAt: new Date().toISOString()
+            }
+          : null;
       return NextResponse.json({
         ok: true,
         internalAccount: isAgentechCompanyEmail(email),
         creditsRequired: 0,
         creditCost: getAiReviewCreditCost(),
-        latestSubmission: null,
+        latestSubmission: previewSubmission,
         localPreview: true
       });
     }
@@ -105,8 +133,16 @@ export async function GET(request: NextRequest) {
     }
 
     const { internalCompanyAccount: internalAccount } = getSoftwareCheckCreditPolicy(email);
-    const submissionId = account.developer_latest_code_submission_id;
+    const submissionId = requestedSubmissionId || account.developer_latest_code_submission_id;
     const submission = submissionId ? await getCodeSubmissionRecord(submissionId, email) : null;
+
+    if (requestedSubmissionId && !submission) {
+      return NextResponse.json({ error: "That saved submission was not found on this account." }, { status: 404 });
+    }
+
+    if (requestedSubmissionId && submission?.physical_safety_status !== "passed") {
+      return NextResponse.json({ error: "Only hardware-passed submissions can be viewed here." }, { status: 403 });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -348,18 +384,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Physical safety submission not found for this account." }, { status: 404 });
     }
 
-    if (
-      account.developer_latest_code_submission_id !== submissionId ||
-      account.developer_physical_safety_status !== "passed"
-    ) {
-      return NextResponse.json(
-        { error: "Supabase has not marked this account as Physical Hardware Check passed for this submission yet." },
-        { status: 403 }
-      );
-    }
-
     if (submission.physical_safety_status !== "passed") {
       return NextResponse.json({ error: "Software Check unlocks only after Step 3 Physical Hardware Check passes." }, { status: 403 });
+    }
+
+    if (submission.ai_security_status !== "locked" || submission.ai_security_reviewed_at) {
+      const error = submission.ai_security_status === "pending"
+        ? "Software Check is already running for this submission."
+        : "Software Check can only run once for each submission. Save a new hardware-passed submission to run another check.";
+      return NextResponse.json(
+        { error, aiSecurityStatus: submission.ai_security_status },
+        { status: 409 }
+      );
     }
 
     if (submission.code !== code) {
@@ -401,10 +437,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await updateCodeSubmissionRecord(submission.id, {
-      ai_security_status: "pending",
-      credits_charged: 0
-    });
+    const claimedSubmission = await claimCodeSubmissionSoftwareReview(submission.id, email);
+    if (!claimedSubmission) {
+      return NextResponse.json(
+        { error: "Software Check has already been used or started for this submission.", aiSecurityStatus: "pending" },
+        { status: 409 }
+      );
+    }
     await markDeveloperReviewGateOnAccount({
       email,
       submissionId: submission.id,

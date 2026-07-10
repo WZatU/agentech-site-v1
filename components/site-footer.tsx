@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 export function SiteFooter() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/field-interest") || pathname.startsWith("/agentech-products/agentech-library")) {
+  if (
+    pathname.startsWith("/field-interest") ||
+    pathname.startsWith("/agentech-products/agentech-library") ||
+    pathname.startsWith("/agentech-products/eaic-hub")
+  ) {
     return null;
   }
 

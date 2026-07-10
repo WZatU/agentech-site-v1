@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-149eca)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6)](https://www.typescriptlang.org/)
 
-Agentech Website is the main web platform for Agentech robotics, education, talent programs, product documentation, EAI Cloud developer workflows, account tools, robot live viewing, and automated news publishing.
+Agentech Website is the main web platform for Agentech robotics, education, talent programs, product documentation, EAIC HUB developer workflows, account tools, robot live viewing, and automated news publishing.
 
 The repository is designed to work like a professional product codebase: public pages live beside operational documentation, hidden launch switches are easy to find, and repeatable content flows such as News can be maintained through GitHub.
 
@@ -21,7 +21,7 @@ Repository: [agent-tech0316/agentech-site-v1](https://github.com/agent-tech0316/
 - Supabase-backed accounts, profiles, children, enrollments, preorder requests, invoices, and applications.
 - Resend-backed application, invoice, and notification email flows.
 - Hidden product documentation page at `/agentech-products/documents`.
-- Products/EAI Cloud robot command library at `/agentech-products/agentech-library`.
+- Products/EAIC HUB robot command workspace at `/agentech-products/eaic-hub`.
 - Developer code review pipeline for uploaded `.py` files: Step 3 Physical Hardware Check, Supabase gate marking, Step 4 GPT Software Check, account-credit charging, and Step 5 Live Stream unlock.
 - Internal launch switches for preorder, enroll, and grade visibility.
 
@@ -45,11 +45,11 @@ Important documents:
 - [Dropbox News automation](docs/dropbox-news-automation.md)
 - [Documentation index](docs/documentation-index.md)
 - Hidden product documents page: `/agentech-products/documents`
-- Products/EAI Cloud robot dog library page: `/agentech-products/agentech-library`
+- Products/EAIC HUB page: `/agentech-products/eaic-hub`
 
 The product documents page is intentionally not linked from public navigation and is marked `noindex`. It still works by direct URL for internal review.
 
-The Agentech Products experience is currently the EAI Cloud robot dog command library. It is marked `noindex` and treated as collaborator/developer-only: share the direct link only with team members, instructors, students, or developers who are supposed to preview the robot command API, upload `.py` files for review, or schedule supervised robot tests.
+The Agentech Products experience is EAIC HUB. It is marked `noindex` and treated as collaborator/developer-only: share the direct link only with team members, instructors, students, or developers who are supposed to preview the robot command API, upload `.py` files for review, or schedule supervised robot tests.
 
 ## Quick Start
 
@@ -90,10 +90,10 @@ Hidden documents preview:
 http://localhost:3001/agentech-products/documents
 ```
 
-Products/EAI Cloud library preview:
+Products/EAIC HUB preview:
 
 ```text
-http://localhost:3001/agentech-products/agentech-library
+http://localhost:3001/agentech-products/eaic-hub
 ```
 
 ## Environment Variables
@@ -132,7 +132,7 @@ AGENTECH_SUBMISSION_DIR=
 
 `OPENAI_API_KEY` must also stay server-side only. Never add a `NEXT_PUBLIC_OPENAI_API_KEY`. The code review route calls OpenAI from the server through `lib/agentech-ai-review.ts`, and the browser should never see the key.
 
-`AGENTECH_AI_REVIEW_CREDITS` is the number of website credits charged when the GPT Software Check runs. The current production default is `50`, where the business rule is expected to be `1 credit = $0.01`.
+`AGENTECH_AI_REVIEW_CREDITS` is the number of website credits charged when the GPT Software Check runs. The current production default is `50`, and `1 credit = $0.01`, so one completed Software Check is billed as `$0.50`. Before the review, the gateway calls OpenAI's input-token counting endpoint with the exact request payload for quota protection. After the review, it stores OpenAI's official response `usage.input_tokens`, `usage.output_tokens`, and `usage.total_tokens`.
 
 `AGENTECH_SUBMISSION_DIR` optionally overrides the server-side JSON submission mirror. Serverless deployments default to the writable system temp directory; normal hosting defaults to `process.cwd()/review_submissions`.
 
@@ -160,12 +160,13 @@ AGENTECH_SUBMISSION_DIR=
 | `/account` | Account requests dashboard |
 | `/field-interest/agt-qr-2026` | Hidden QR-only field interest form |
 | `/agentech-products/documents` | Hidden internal product docs |
-| `/agentech-products/agentech-library` | Products/EAI Cloud robot dog command library and developer workflow hub |
-| `/agentech-products/agentech-library/start-coding` | SDK setup and first-script workflow |
-| `/agentech-products/agentech-library/view-sdk` | SDK reference, parameters, and motion previews |
-| `/agentech-products/agentech-library/physical-hardware-check` | Step 3 Physical Hardware Check for uploaded/pasted `.py` robot code |
-| `/agentech-products/agentech-library/software-check` | Step 4 Software Check after the hardware gate passes |
-| `/agentech-products/agentech-library/watch-live-run` | Step 5 Live Stream view for supervised sessions |
+| `/agentech-products/eaic-hub` | Products/EAIC HUB developer workflow home |
+| `/agentech-products/eaic-hub/start-coding` | SDK setup and first-script workflow |
+| `/agentech-products/eaic-hub/view-sdk` | SDK reference, parameters, and motion previews |
+| `/agentech-products/eaic-hub/physical-hardware-check` | Step 3 Physical Hardware Check for uploaded/pasted `.py` robot code |
+| `/agentech-products/eaic-hub/software-check` | Step 4 Software Check after the hardware gate passes |
+| `/agentech-products/eaic-hub/watch-live-run` | Step 5 Live Stream view for supervised sessions |
+| `/agentech-products/eaic-hub/schedule-time` | Robot viewing time and duration scheduling |
 
 ## Architecture Overview
 
@@ -502,12 +503,12 @@ docs/
 `-- developer-onboarding.md
 ```
 
-## Products And EAI Cloud Robot Library
+## Products And EAIC HUB
 
-The Products page is currently the EAI Cloud robot dog command library. It lives at:
+The Products developer workspace is EAIC HUB. It lives at:
 
 ```text
-/agentech-products/agentech-library
+/agentech-products/eaic-hub
 ```
 
 This area is the developer-facing workflow for learning the public Agentech robot API, uploading robot-control code, running staged review gates, scheduling supervised robot tests, and watching the live robot feed.
@@ -516,11 +517,12 @@ The page is organized into five workflows:
 
 | Workflow | Route | Purpose |
 | --- | --- | --- |
-| Start Coding | `/agentech-products/agentech-library/start-coding` | Guided SDK install, import, first script, beginner recipes, and starter safety rules |
-| View SDK | `/agentech-products/agentech-library/view-sdk` | Category-based SDK reference for Movement, Posture, Safety, and Sensing commands |
-| Physical Hardware Check | `/agentech-products/agentech-library/physical-hardware-check` | Step 3 upload/paste review that checks robot-body limits before software review |
-| Software Check | `/agentech-products/agentech-library/software-check` | Step 4 GPT review that stays locked until the same file passes Step 3 |
-| Live Stream | `/agentech-products/agentech-library/watch-live-run` | Step 5 focused LiveKit camera view for supervised robot sessions |
+| Start Coding | `/agentech-products/eaic-hub/start-coding` | Guided SDK install, import, first script, beginner recipes, and starter safety rules |
+| View SDK | `/agentech-products/eaic-hub/view-sdk` | Category-based SDK reference for Movement, Posture, Safety, and Sensing commands |
+| Physical Hardware Check | `/agentech-products/eaic-hub/physical-hardware-check` | Step 3 upload/paste review that checks robot-body limits before software review |
+| Software Check | `/agentech-products/eaic-hub/software-check` | Step 4 GPT review that stays locked until the same file passes Step 3 |
+| Live Stream | `/agentech-products/eaic-hub/watch-live-run` | Step 5 focused LiveKit camera view for supervised robot sessions |
+| Schedule Time | `/agentech-products/eaic-hub/schedule-time` | Choose an available start time and viewing duration |
 
 Library behavior:
 
@@ -534,6 +536,7 @@ Library behavior:
 - The Software Check page restores the latest passed Step 3 submission from the signed-in account, so changing routes or refreshing does not relock a valid hardware pass.
 - `@agent-tech.ai` addresses are internal company accounts. Charge the configured Software Check credits when available, but never block an internal test because its credit balance is insufficient. External accounts must have enough credits.
 - `Live Stream` scheduling must remain locked for regular users until both Step 3 Physical Hardware Check and Step 4 Software Check pass. Internal `@agent-tech.ai` accounts can schedule testing slots without the two code-review gates.
+- Live viewing costs 100 credits per minute for external accounts, with a 5-minute minimum and 60-minute maximum. Internal `@agent-tech.ai` accounts choose any positive whole-minute duration and are not charged credits.
 - `Live Stream` stays focused on the webcam/live-view module, but users must still schedule a robot slot before a stream token is issued.
 - The prototype hardware/simulation validator handoff is stored locally at `engineer_handoff/agentech_t3_engineer_handoff/`, with the original zip preserved at `engineer_handoff/agentech_t3_engineer_handoff.zip`.
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
+import { eaicHubPath, getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
@@ -56,6 +57,7 @@ type CachedPhysicalReview = {
   physicalSafetyStatus: string;
   aiSecurityStatus: string;
 };
+const robotSchedulingPath = getEaicHubTaskPath("schedule-time");
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
 const localPreviewAssets: Record<string, string> = {
   forward: "/assets/products/aegis-previews/forward.gif",
@@ -761,7 +763,7 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
       <div className="mx-auto max-w-7xl px-6 py-7 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
-            href="/agentech-products/agentech-library"
+            href={eaicHubPath}
             className={
               isLightTask
                 ? "border border-[#dce7f2] bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#07142e] shadow-sm transition hover:border-[#008a7a] hover:text-[#008a7a]"
@@ -774,7 +776,7 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
             {agentechLibraryTasks.map((item) => (
               <Link
                 key={item.slug}
-                href={`/agentech-products/agentech-library/${item.slug}`}
+                href={getEaicHubTaskPath(item.slug)}
                 className={`border px-2.5 py-1.5 font-mono text-xs transition ${
                   item.slug === task.slug
                     ? isLightTask
@@ -819,7 +821,7 @@ function FocusedLiveRunSection() {
             </div>
             <div className="flex items-center gap-3">
               <Link
-                href="/account"
+                href={robotSchedulingPath}
                 className="border border-[#008a7a] bg-[#e5fff7] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#006b5f] transition hover:bg-[#008a7a] hover:text-white"
               >
                 Schedule Time
@@ -854,7 +856,7 @@ function LockedLiveRunPanel({ dark = false }: { dark?: boolean }) {
             Live camera access only opens during an active scheduled session. For custom-code runs, pass Step 3 Physical Hardware Check and Step 4 Software Check before scheduling.
           </p>
           <Link
-            href="/account"
+            href={robotSchedulingPath}
             className={`mt-5 inline-flex border px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition ${
               dark
                 ? "border-[#8fdc8f] bg-[#17351f] text-[#dfffe0] hover:bg-[#8fdc8f] hover:text-[#08100a]"
@@ -1378,6 +1380,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [isLoadingReviewGate, setIsLoadingReviewGate] = useState(task === "software-check");
   const [isInternalCompanyAccount, setIsInternalCompanyAccount] = useState(false);
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
+  const [softwareReviewStatus, setSoftwareReviewStatus] = useState<"locked" | "pending" | "passed" | "failed" | "error">("locked");
+  const [submissionQuery, setSubmissionQuery] = useState({ ready: false, id: "" });
   const [hardwareResult, setHardwareResult] = useState<HardwareResult | null>(null);
   const initialPreview = previewAssetForCode(starterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
@@ -1437,8 +1441,17 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const useLightTaskPage = Boolean(selectedTask);
 
   useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("submissionId")?.trim() ?? "";
+    setSubmissionQuery({ ready: true, id });
+  }, []);
+
+  useEffect(() => {
     if (!showFocusedReview) {
       setIsLoadingReviewGate(false);
+      return;
+    }
+
+    if (!submissionQuery.ready || (selectedTask?.slug === "physical-hardware-check" && !submissionQuery.id)) {
       return;
     }
 
@@ -1446,9 +1459,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     let active = true;
 
     async function loadLatestReviewGate() {
-      setIsLoadingReviewGate(selectedTask?.slug === "software-check");
+      setIsLoadingReviewGate(selectedTask?.slug === "software-check" || Boolean(submissionQuery.id));
       try {
-        const response = await fetch("/api/agentech-code-submit", {
+        const endpoint = submissionQuery.id
+          ? `/api/agentech-code-submit?submissionId=${encodeURIComponent(submissionQuery.id)}`
+          : "/api/agentech-code-submit";
+        const response = await fetch(endpoint, {
           method: "GET",
           cache: "no-store",
           signal: controller.signal
@@ -1473,10 +1489,6 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         }
 
         setIsInternalCompanyAccount(payload.internalAccount === true);
-        if (selectedTask?.slug !== "software-check") {
-          return;
-        }
-
         if (!response.ok) {
           throw new Error(payload.error ?? "Unable to load the latest Physical Hardware Check.");
         }
@@ -1523,6 +1535,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         });
         setPhysicalSubmissionId(latestSubmission.id);
         setPhysicalSafetyPassed(true);
+        setSoftwareReviewStatus(latestSubmission.aiSecurityStatus as "locked" | "pending" | "passed" | "failed" | "error");
         setCanScheduleRobotSlot(latestSubmission.aiSecurityStatus === "passed");
         setHardwareResult({
           status: "PASS",
@@ -1540,7 +1553,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         setRequestStatus(
           latestSubmission.aiSecurityStatus === "passed"
             ? `Step 4 Software Check already passed for review ${latestSubmission.id}. Step 5 Live Stream scheduling is unlocked.`
-            : `Saved Step 3 Physical Hardware Check restored. Step 4 Software Check is unlocked. Review ID: ${latestSubmission.id}.`
+            : latestSubmission.aiSecurityStatus === "locked"
+              ? `Saved Step 3 Physical Hardware Check restored. Step 4 Software Check is unlocked. Review ID: ${latestSubmission.id}.`
+              : `Saved submission restored. Its one Software Check has status: ${latestSubmission.aiSecurityStatus}. Review ID: ${latestSubmission.id}.`
         );
       } catch (error) {
         if (!active || (error instanceof Error && error.name === "AbortError")) {
@@ -1561,7 +1576,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       active = false;
       controller.abort();
     };
-  }, [selectedTask?.slug, showFocusedReview]);
+  }, [selectedTask?.slug, showFocusedReview, submissionQuery]);
 
   useEffect(() => {
     if (renderedFrames.length <= 1) {
@@ -1596,6 +1611,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     }
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
+    setSoftwareReviewStatus("locked");
     setCanScheduleRobotSlot(false);
     setHardwareResult(null);
     setApprovedCodeFile(null);
@@ -1730,6 +1746,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       const message = "Upload a .py file or paste code containing at least one Agentech command before running the check.";
       setPhysicalSubmissionId("");
       setPhysicalSafetyPassed(false);
+      setSoftwareReviewStatus("locked");
       setCanScheduleRobotSlot(false);
       setHardwareResult(null);
       setReviewInputError(message);
@@ -1742,6 +1759,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setIsRunningPhysicalCheck(true);
     setPhysicalSubmissionId("");
     setPhysicalSafetyPassed(false);
+    setSoftwareReviewStatus("locked");
     setCanScheduleRobotSlot(false);
     setHardwareResult(null);
     setApprovedCodeFile(null);
@@ -1820,6 +1838,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       };
       setPhysicalSubmissionId(payload.id);
       setPhysicalSafetyPassed(true);
+      setSoftwareReviewStatus("locked");
       setIsInternalCompanyAccount(payload.internalAccount === true);
       setApprovedCodeFile(approvedFile);
       setReviewInputError("");
@@ -1868,10 +1887,16 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       return;
     }
 
+    if (softwareReviewStatus !== "locked") {
+      setRequestStatus("Software Check can only run once for each submission. Save a new hardware-passed submission to run another check.");
+      return;
+    }
+
     const reviewCode = approvedCodeFile?.code ?? ensureRequiredStand(code);
     const reviewFileName = approvedCodeFile?.sourceFileName ?? uploadedFileName;
     const reviewPlan = commandPlan(reviewCode);
     setIsRunningSoftwareCheck(true);
+    setSoftwareReviewStatus("pending");
     setCanScheduleRobotSlot(false);
     setRequestStatus("Running Software Check with OpenAI...");
     try {
@@ -1891,6 +1916,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       });
       const payload = await response.json();
       if (!response.ok) {
+        setSoftwareReviewStatus(payload.aiSecurityStatus === "locked" ? "locked" : payload.aiSecurityStatus || "error");
         const findings = Array.isArray(payload.findings) && payload.findings.length
           ? ` Findings: ${payload.findings.slice(0, 3).join(" ")}`
           : "";
@@ -1905,9 +1931,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           ? "No credits charged in local preview."
           : `${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used.`;
       setRequestStatus(`Step 4 Software Check passed. ${creditMessage} Step 5 Live Stream scheduling is now unlocked.`);
+      setSoftwareReviewStatus("passed");
       setCanScheduleRobotSlot(payload.aiSecurityStatus === "passed");
     } catch (error) {
       setCanScheduleRobotSlot(false);
+      setSoftwareReviewStatus((current) => current === "pending" ? "error" : current);
       setRequestStatus(error instanceof Error ? error.message : "Software Check failed.");
     } finally {
       setIsRunningSoftwareCheck(false);
@@ -1953,7 +1981,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               </Link>
             </div>
             <h1 className="mt-8 max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-6xl">
-              Agentech Robot Dog Library
+              EAIC HUB
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
               A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, twist, backflip, jump, posture, stop, and battery status in calls students can read at a glance.
@@ -2013,7 +2041,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       {showFocusedReview ? (
         <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+            <div className="flex h-full flex-col border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
               <div className="border-b border-[#dce7f2] bg-[#f3f7fb] px-4 py-3">
                 <p className="font-mono text-sm text-[#526174]">submission_code.py</p>
               </div>
@@ -2021,7 +2049,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 value={code}
                 onChange={(event) => updateCode(event.target.value)}
                 spellCheck={false}
-                className="h-[520px] w-full resize-none border-0 bg-[#fbfdff] p-5 font-mono text-sm leading-7 text-[#07142e] outline-none selection:bg-[#bfe8d8]"
+                className="min-h-[520px] w-full flex-1 resize-none border-0 bg-[#fbfdff] p-5 font-mono text-sm leading-7 text-[#07142e] outline-none selection:bg-[#bfe8d8] lg:min-h-[760px]"
               />
             </div>
             <div className="border border-[#dce7f2] bg-white p-4 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
@@ -2159,6 +2187,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         </svg>
                         Passed
                       </span>
+                    ) : hardwarePassed && softwareReviewStatus !== "locked" ? (
+                      <span className="border border-slate-300 bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+                        Used
+                      </span>
                     ) : hardwarePassed ? (
                       <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
                         Next
@@ -2174,6 +2206,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                       ? "Checking the latest saved Physical Hardware Check for this account."
                       : softwarePassed
                       ? "Software Check passed. Step 5 Live Stream scheduling is unlocked."
+                      : hardwarePassed && softwareReviewStatus !== "locked"
+                        ? `This submission's one Software Check has status: ${softwareReviewStatus}. Save a new hardware-passed submission to run another check.`
                       : hardwarePassed
                         ? isInternalCompanyAccount
                           ? "Unlocked. Company credits can be charged, but credit balance does not block internal testing."
@@ -2194,14 +2228,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <button
                   type="button"
                   onClick={runSoftwareCheck}
-                  disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck || softwareReviewStatus !== "locked"}
                   className={`w-full border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-[#d5e0ec] disabled:bg-[#edf2f7] disabled:text-[#7d8b9c] ${
-                    hardwarePassed && !softwarePassed
+                    hardwarePassed && !softwarePassed && softwareReviewStatus === "locked"
                       ? "border-[#008a7a] bg-[#008a7a] text-white hover:bg-[#006a5c]"
                       : "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c] hover:bg-[#008a7a] hover:text-white"
                   }`}
                 >
-                  {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
+                  {isRunningSoftwareCheck ? "Checking..." : softwareReviewStatus === "locked" ? "Run Software Check" : "Software Check Used"}
                 </button>
                 <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-[#dce7f2] bg-[#f8fbff]"}`}>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Schedule gate</p>
@@ -2210,7 +2244,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   </p>
                   {canScheduleRobotSlot ? (
                     <Link
-                      href="/account"
+                      href={robotSchedulingPath}
                       className="mt-3 block border border-[#008a7a] bg-[#008a7a] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#006a5c]"
                     >
                       Schedule Robot Slot
@@ -2422,7 +2456,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           <div className="space-y-3 p-3 lg:hidden">
             {canScheduleRobotSlot ? (
               <Link
-                href="/account"
+                href={robotSchedulingPath}
                 className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
               >
                 Schedule Live Stream
@@ -2466,10 +2500,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <button
                   type="button"
                   onClick={runSoftwareCheck}
-                  disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck || softwareReviewStatus !== "locked"}
                   className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
                 >
-                  {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
+                  {isRunningSoftwareCheck ? "Checking..." : softwareReviewStatus === "locked" ? "Run Software Check" : "Software Check Used"}
                 </button>
                 <p className="border border-[#2a3440] bg-[#0b0d10] p-3 text-xs leading-5 text-[#aeb8c2]">{requestStatus}</p>
               </div>
@@ -2549,14 +2583,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             <button
               type="button"
               onClick={runSoftwareCheck}
-              disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+              disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck || softwareReviewStatus !== "locked"}
               className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
             >
-              {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
+              {isRunningSoftwareCheck ? "Checking..." : softwareReviewStatus === "locked" ? "Run Software Check" : "Software Check Used"}
             </button>
             {canScheduleRobotSlot ? (
               <Link
-                href="/account"
+                href={robotSchedulingPath}
                 className="block w-full border border-[#8fdc8f] bg-[#17351f] px-4 py-3 text-center text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a]"
               >
                 Schedule Live Stream

@@ -1,4 +1,5 @@
 import { supabaseRequest } from "@/lib/supabase-server";
+import { getAiReviewRunCostUsd } from "@/lib/agentech-review-pricing";
 
 type GatewayEndpoint = "chat" | "robot_code_security_review";
 
@@ -30,7 +31,7 @@ const defaultAllowedModels = ["gpt-5.5", "gpt-5.1", "gpt-4.1", "gpt-4o-mini"];
 const defaultMonthlyRequestLimit = 20;
 const defaultMonthlyTokenLimit = 100_000;
 const defaultMonthlyCostLimit = 5;
-const defaultEstimatedCostPerRequest = 0.25;
+const defaultEstimatedCostPerRequest = 0.5;
 const maxGatewayBodyChars = 120_000;
 
 function getGatewayConfig() {
@@ -71,10 +72,6 @@ function currentUsagePeriod() {
   return new Date().toISOString().slice(0, 7);
 }
 
-function estimatePromptTokens(body: unknown) {
-  return Math.ceil(JSON.stringify(body).length / 4);
-}
-
 function estimateCost(input: {
   promptTokens: number;
   completionTokens: number;
@@ -89,18 +86,48 @@ function estimateCost(input: {
   return Number(estimatedCost.toFixed(6));
 }
 
-function extractOpenAiUsage(payload: unknown, fallbackPromptTokens: number): OpenAiUsage {
+function toUsageInteger(value: unknown) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function extractOpenAiUsage(payload: unknown): OpenAiUsage | null {
   const record = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
   const usage = record.usage && typeof record.usage === "object" ? record.usage as Record<string, unknown> : {};
-  const promptTokens = toPositiveInteger(usage.input_tokens ?? usage.prompt_tokens, fallbackPromptTokens);
-  const completionTokens = toPositiveInteger(usage.output_tokens ?? usage.completion_tokens, 0);
-  const totalTokens = toPositiveInteger(usage.total_tokens, promptTokens + completionTokens);
+  const promptTokens = toUsageInteger(usage.input_tokens ?? usage.prompt_tokens);
+  const completionTokens = toUsageInteger(usage.output_tokens ?? usage.completion_tokens);
+  const totalTokens = toUsageInteger(usage.total_tokens);
+
+  if (promptTokens === null || completionTokens === null || totalTokens === null) {
+    return null;
+  }
 
   return {
     promptTokens,
     completionTokens,
     totalTokens
   };
+}
+
+async function countOpenAiInputTokens(apiKey: string, body: Record<string, unknown>) {
+  const response = await fetch("https://api.openai.com/v1/responses/input_tokens", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json().catch(() => null);
+  const record = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
+  const inputTokens = toUsageInteger(record.input_tokens);
+
+  if (!response.ok || inputTokens === null) {
+    const message = "error" in record ? JSON.stringify(record.error) : "OpenAI input token count failed.";
+    throw Object.assign(new Error(message), { status: response.ok ? 502 : response.status });
+  }
+
+  return inputTokens;
 }
 
 function assertAllowedEndpoint(endpoint: string): asserts endpoint is GatewayEndpoint {
@@ -201,7 +228,7 @@ async function getOrCreateGatewayCap(input: {
   };
 }
 
-function assertQuota(cap: GatewayCapRecord, estimatedPromptTokens: number) {
+function assertQuota(cap: GatewayCapRecord, promptTokens: number) {
   const monthlyRequestLimit = Number(cap.monthly_request_limit ?? 0);
   const monthlyTokenLimit = Number(cap.monthly_token_limit ?? 0);
   const monthlyCostLimit = Number(cap.monthly_cost_limit ?? 0);
@@ -217,7 +244,7 @@ function assertQuota(cap: GatewayCapRecord, estimatedPromptTokens: number) {
     throw Object.assign(new Error("Monthly AI request quota exceeded."), { status: 429 });
   }
 
-  if (monthlyTokenLimit > 0 && currentTokens + estimatedPromptTokens > monthlyTokenLimit) {
+  if (monthlyTokenLimit > 0 && currentTokens + promptTokens > monthlyTokenLimit) {
     throw Object.assign(new Error("Monthly AI token quota exceeded."), { status: 429 });
   }
 
@@ -284,14 +311,14 @@ export async function callOpenAiResponsesThroughGateway(input: {
   assertBodySize(input.body);
   assertRateLimit(input.userId, input.endpoint, config.requestsPerMinute);
 
-  const estimatedPromptTokens = estimatePromptTokens(input.body);
+  const officialPromptTokens = await countOpenAiInputTokens(config.apiKey, input.body);
   const cap = await getOrCreateGatewayCap({
     userId: input.userId,
     monthlyRequestLimit: config.monthlyRequestLimit,
     monthlyTokenLimit: config.monthlyTokenLimit,
     monthlyCostLimit: config.monthlyCostLimit
   });
-  assertQuota(cap, estimatedPromptTokens);
+  assertQuota(cap, officialPromptTokens);
 
   const startedAt = Date.now();
   const response = await fetch("https://api.openai.com/v1/responses", {
@@ -304,14 +331,27 @@ export async function callOpenAiResponsesThroughGateway(input: {
   });
   const latencyMs = Date.now() - startedAt;
   const payload = await response.json().catch(() => null);
-  const usage = extractOpenAiUsage(payload, estimatedPromptTokens);
-  const estimatedCost = estimateCost({
-    promptTokens: usage.promptTokens,
-    completionTokens: usage.completionTokens,
-    inputCostPerMillion: config.inputCostPerMillion,
-    outputCostPerMillion: config.outputCostPerMillion,
-    defaultEstimatedCostPerRequest: config.defaultEstimatedCostPerRequest
-  });
+  const officialUsage = extractOpenAiUsage(payload);
+  if (response.ok && !officialUsage) {
+    throw Object.assign(new Error("OpenAI completed the response without official token usage data."), { status: 502 });
+  }
+
+  const usage = officialUsage ?? {
+    promptTokens: officialPromptTokens,
+    completionTokens: 0,
+    totalTokens: officialPromptTokens
+  };
+  const estimatedCost = response.ok
+    ? input.endpoint === "robot_code_security_review"
+      ? getAiReviewRunCostUsd()
+      : estimateCost({
+          promptTokens: usage.promptTokens,
+          completionTokens: usage.completionTokens,
+          inputCostPerMillion: config.inputCostPerMillion,
+          outputCostPerMillion: config.outputCostPerMillion,
+          defaultEstimatedCostPerRequest: config.defaultEstimatedCostPerRequest
+        })
+    : 0;
 
   await recordGatewayUsage({
     userId: input.userId,

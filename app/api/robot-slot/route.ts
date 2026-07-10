@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createRobotSession, findRobotSessionConflict, getAccessProfiles, getAccountRecord, getRobotSessionsInWindow, hasPassedDeveloperCodeReview } from "@/lib/account-records";
+import {
+  addAccountCredits,
+  allocateCreditSpend,
+  createRobotSession,
+  findRobotSessionConflict,
+  getAccessProfiles,
+  getAccountRecord,
+  getRobotSessionsInWindow,
+  hasPassedDeveloperCodeReview,
+  spendAccountCredits
+} from "@/lib/account-records";
 import { accountSessionCookieName } from "@/lib/account-session";
 import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import {
+  externalRobotViewingMaximumMinutes,
+  externalRobotViewingMinimumMinutes,
+  getRobotViewingCreditCost,
+  isValidRobotViewingDuration,
+  robotViewingCreditsPerMinute
+} from "@/lib/robot-slot-pricing";
 
 type RobotSlotPayload = {
   email?: string;
@@ -18,8 +35,6 @@ type RobotSlotPayload = {
   notes?: string;
 };
 
-const defaultSlotDurationMinutes = 5;
-const allowedSlotDurations = new Set([5, 10, 15, 30]);
 const slotIntervalMinutes = 5;
 const minimumLeadTimeMs = 2 * 60 * 1000;
 const defaultTimeZone = "America/Los_Angeles";
@@ -51,7 +66,7 @@ async function getSignedInEmail() {
 
 function getDurationMinutes(value: unknown) {
   const parsed = Number(value);
-  return allowedSlotDurations.has(parsed) ? parsed : defaultSlotDurationMinutes;
+  return Number.isInteger(parsed) ? parsed : Number.NaN;
 }
 
 function validTimeZone(value: string) {
@@ -274,8 +289,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
   }
 
-  if (!isAgentechCompanyEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
-    return NextResponse.json({ error: "Robot viewing requires account credits." }, { status: 402 });
+  const internalCompanyAccount = isAgentechCompanyEmail(email);
+  if (!isValidRobotViewingDuration(durationMinutes, internalCompanyAccount)) {
+    return NextResponse.json(
+      {
+        error: internalCompanyAccount
+          ? "Choose a viewing duration of at least 1 whole minute."
+          : `Choose a viewing duration between ${externalRobotViewingMinimumMinutes} and ${externalRobotViewingMaximumMinutes} minutes.`
+      },
+      { status: 400 }
+    );
+  }
+
+  const creditsRequired = internalCompanyAccount ? 0 : getRobotViewingCreditCost(durationMinutes);
+  const creditPreview = allocateCreditSpend(account, creditsRequired);
+  if (!internalCompanyAccount && creditPreview.rechargeRequired) {
+    return NextResponse.json(
+      {
+        error: `This ${durationMinutes}-minute session costs ${creditsRequired.toLocaleString()} credits (${robotViewingCreditsPerMinute} per minute). Add ${creditPreview.shortfall.toLocaleString()} more credits to continue.`
+      },
+      { status: 402 }
+    );
   }
 
   const profiles = await getAccessProfiles(email);
@@ -284,7 +318,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That profile does not belong to this account." }, { status: 403 });
   }
 
-  if (requestedRunType === "custom_code" && !isAgentechCompanyEmail(email) && !(await hasPassedDeveloperCodeReview(email))) {
+  if (requestedRunType === "custom_code" && !internalCompanyAccount && !(await hasPassedDeveloperCodeReview(email))) {
     return NextResponse.json(
       { error: "Custom live-code testing unlocks only after the physical safety gate and AI security scan both pass." },
       { status: 403 }
@@ -295,26 +329,59 @@ export async function POST(request: Request) {
     ? presetDemos.get("approved_custom_code") ?? "Approved custom code live test"
     : presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
   const scheduledEnd = addMinutes(scheduledStart, durationMinutes);
+  const scheduledEndParts = getTimeParts(scheduledEnd, timeZone);
+  if (scheduledEndParts.hour * 60 + scheduledEndParts.minute > 17 * 60) {
+    return NextResponse.json({ error: "Choose a start time that keeps the full viewing session within robot hours." }, { status: 400 });
+  }
+
   const conflictingSession = await findRobotSessionConflict(scheduledStart.toISOString(), scheduledEnd.toISOString());
   if (conflictingSession) {
     return NextResponse.json({ error: "That robot slot is already requested. Choose another available time." }, { status: 409 });
   }
 
-  const session = await createRobotSession({
-    email,
-    accessProfileId: selectedProfile.id,
-    profileUsername: selectedProfile.username,
-    profileType: selectedProfile.profile_type,
-    sessionTitle: `${presetDemo} for @${selectedProfile.username}`,
-    robotModel,
-    scheduledStart: scheduledStart.toISOString(),
-    scheduledEnd: scheduledEnd.toISOString(),
-    requestedRunType: requestedRunType as "preset_demo" | "custom_code",
-    approvedRunType: requestedRunType === "custom_code" ? "custom_code" : "preset_demo",
-    presetDemo,
-    benchmarkStatus: requestedRunType === "custom_code" ? "passed" : "not_started",
-    notes: clean(payload?.notes) || null
-  });
+  let creditSpend: Awaited<ReturnType<typeof spendAccountCredits>> = null;
+  if (!internalCompanyAccount) {
+    creditSpend = await spendAccountCredits(email, creditsRequired);
+    if (!creditSpend || creditSpend.rechargeRequired) {
+      return NextResponse.json({ error: "Your credit balance changed. Add credits and request the slot again." }, { status: 402 });
+    }
+  }
+
+  let session = null;
+  try {
+    session = await createRobotSession({
+      email,
+      accessProfileId: selectedProfile.id,
+      profileUsername: selectedProfile.username,
+      profileType: selectedProfile.profile_type,
+      sessionTitle: `${presetDemo} for @${selectedProfile.username}`,
+      robotModel,
+      scheduledStart: scheduledStart.toISOString(),
+      scheduledEnd: scheduledEnd.toISOString(),
+      requestedRunType: requestedRunType as "preset_demo" | "custom_code",
+      approvedRunType: requestedRunType === "custom_code" ? "custom_code" : "preset_demo",
+      presetDemo,
+      benchmarkStatus: requestedRunType === "custom_code" ? "passed" : "not_started",
+      price: creditsRequired / 100,
+      notes: clean(payload?.notes) || null
+    });
+  } catch {
+    if (creditSpend && !creditSpend.rechargeRequired) {
+      await addAccountCredits(email, "paid", creditSpend.paidCreditsUsed);
+      await addAccountCredits(email, "bonus", creditSpend.bonusCreditsUsed);
+    }
+
+    return NextResponse.json({ error: "Unable to save that robot slot. No credits were charged." }, { status: 500 });
+  }
+
+  if (!session) {
+    if (creditSpend && !creditSpend.rechargeRequired) {
+      await addAccountCredits(email, "paid", creditSpend.paidCreditsUsed);
+      await addAccountCredits(email, "bonus", creditSpend.bonusCreditsUsed);
+    }
+
+    return NextResponse.json({ error: "Unable to save that robot slot. No credits were charged." }, { status: 500 });
+  }
 
   const accountName = [account.first_name, account.last_name].filter(Boolean).join(" ");
   const emailResult = await sendRobotSlotConfirmation({
@@ -329,5 +396,5 @@ export async function POST(request: Request) {
     timeZone
   }).catch(() => ({ sent: false }));
 
-  return NextResponse.json({ ok: true, session, emailSent: emailResult.sent });
+  return NextResponse.json({ ok: true, session, emailSent: emailResult.sent, creditsCharged: creditsRequired });
 }

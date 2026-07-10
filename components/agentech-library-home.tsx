@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { agentechFunctions } from "@/lib/agentech-library";
 import { agentechLibraryTasks } from "@/lib/agentech-library-tasks";
+import { getEaicHubTaskPath } from "@/lib/eaic-hub";
 
 const footerStats = [
   ["Dry-run first", "Test safely before execution"],
@@ -82,9 +83,9 @@ export function AgentechLibraryHome() {
         <section className="mt-10 grid items-center gap-8 lg:grid-cols-[0.86fr_1.14fr]">
           <div>
             <h1 className="text-[4rem] font-extrabold leading-[0.98] tracking-normal text-[#07142e] sm:text-[5.6rem] lg:text-[6.35rem]">
-              EAI
+              EAIC
               <br />
-              Cloud.
+              HUB.
             </h1>
             <p className="mt-5 max-w-sm text-lg font-semibold leading-8 text-[#111d35]">
               Developer-only cloud tools for Aegis robot code, previews, submissions, and supervised live runs.
@@ -115,7 +116,7 @@ export function AgentechLibraryHome() {
             {agentechLibraryTasks.map((task, index) => (
               <div key={task.slug} className="relative pb-9 last:pb-0">
                 <Link
-                  href={`/agentech-products/agentech-library/${task.slug}`}
+                  href={getEaicHubTaskPath(task.slug)}
                   className="group relative z-10 grid min-h-[142px] grid-cols-1 items-center gap-5 rounded-[8px] border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)] transition hover:-translate-y-1 hover:border-current sm:grid-cols-[auto_1fr_auto] sm:gap-6 sm:p-6"
                   style={{ color: task.accent }}
                 >

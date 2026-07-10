@@ -24,7 +24,7 @@ export const navigation: NavItem[] = [
   },
   {
     label: "Agentech Products",
-    href: "/agentech-products/agentech-library",
+    href: "/agentech-products/eaic-hub",
     image: "/assets/logo/AGENTECH-products-grey191.png",
     activeImage: "/assets/logo/AGENTECH-products-solid.png"
   },
