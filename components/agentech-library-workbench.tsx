@@ -1096,24 +1096,55 @@ function FocusedBrowseFunctionsSection() {
                     <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_auto]">
                       <p className="font-mono text-sm text-[#006a5c]">Agentech.{item.name}({item.params.length ? "parameters" : ""})</p>
                       <p className="text-sm leading-6 text-[#111d35]">{item.summary}</p>
-                      <span className="justify-self-start border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c] md:justify-self-end">
-                        details
-                      </span>
+                      <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
+                        {item.params.some((param) => param.status === "development") ? (
+                          <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Includes development items</span>
+                        ) : null}
+                        <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
+                      </div>
                     </summary>
                     <div className="grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] lg:grid-cols-[minmax(0,1fr)_360px]">
                       <div className="bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 font-mono text-sm text-[#006a5c]">{item.signature}</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
+                        {item.profiles?.length ? (
+                          <div className="mt-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Parameter profiles</p>
+                              <span className="border border-[#c9d8e8] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#526174]">Choose one profile only</span>
+                            </div>
+                            <div className="mt-2 grid gap-2">
+                              {item.profiles.map((profile, profileIndex) => (
+                                <div key={profile.name} className={`border p-3 ${profile.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : "border-[#dce7f2] bg-white"}`}>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="grid h-5 w-5 place-items-center bg-[#e8f1fb] font-mono text-[10px] font-bold text-[#005bd6]">{profileIndex + 1}</span>
+                                    <span className="text-xs font-semibold text-[#07142e]">{profile.name}</span>
+                                    {profile.status === "development" ? <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span> : null}
+                                  </div>
+                                  <p className="mt-2 overflow-x-auto font-mono text-xs leading-5 text-[#006a5c]">{profile.syntax}</p>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="mt-2 text-xs leading-5 text-[#526174]">Do not combine selectors from different profiles. Optional modifiers shown inside a profile belong only to that structure.</p>
+                          </div>
+                        ) : null}
                         <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Parameters</p>
                         <div className="mt-2 grid gap-2">
                           {item.params.length ? (
                             item.params.map((param) => (
-                              <div key={param.name} className="border border-[#dce7f2] bg-white p-3">
-                                <div className="flex flex-wrap gap-2">
+                              <div key={param.name} className={`border p-3 ${param.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : param.status === "unsupported" ? "border-[#d88b8b] bg-[#fff5f5]" : "border-[#dce7f2] bg-white"}`}>
+                                <div className="flex flex-wrap items-center gap-2">
                                   <span className="font-mono text-xs text-[#006a5c]">{param.name}</span>
                                   <span className="font-mono text-xs text-[#005bd6]">{param.type}</span>
                                   <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue ?? "required"}</span>
+                                  {param.status === "development" ? (
+                                    <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span>
+                                  ) : param.status === "unsupported" ? (
+                                    <span className="border border-[#c93434] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#a51f1f]">Not Supported</span>
+                                  ) : (
+                                    <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#006a5c]">Available</span>
+                                  )}
                                 </div>
                                 <p className="mt-2 text-xs leading-5 text-[#334155]">{param.description}</p>
                               </div>

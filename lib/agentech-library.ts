@@ -1,8 +1,11 @@
+export type CapabilityStatus = "available" | "development" | "unsupported";
+
 export type AgentechParam = {
   name: string;
   type: string;
   defaultValue?: string;
   description: string;
+  status?: CapabilityStatus;
 };
 
 export type AgentechFunction = {
@@ -12,192 +15,116 @@ export type AgentechFunction = {
   summary: string;
   example: string;
   params: AgentechParam[];
+  profiles?: { name: string; syntax: string; status?: CapabilityStatus }[];
 };
+
+const p = (name: string, type: string, description: string, defaultValue?: string, status: CapabilityStatus = "available"): AgentechParam =>
+  ({ name, type, description, defaultValue, status });
 
 export const agentechFunctions: AgentechFunction[] = [
   {
-    name: "forward",
-    category: "Movement",
-    signature: "Agentech.forward(speed=0.3, seconds=1.0)",
-    summary: "Stand the Aegis robot dog, wait briefly, then move forward for a bounded time.",
-    example: "Agentech.forward(speed=0.3, seconds=1)",
+    name: "forward", category: "Movement", signature: "Agentech.forward(speed_mps=0.4, duration_s=1.0)",
+    summary: "Move forward using direct speed, percentage, level, pace, distance, or step profiles.",
+    example: "Agentech.forward(speed_mps=0.4, duration_s=1.0)",
+    profiles: [
+      { name: "Default", syntax: "Agentech.forward()" },
+      { name: "Direct speed", syntax: "Agentech.forward(speed_mps=0.4, duration_s=1.0)" },
+      { name: "Percentage", syntax: "Agentech.forward(speed_percent=40, duration_s=1.0)" },
+      { name: "Speed level", syntax: "Agentech.forward(speed_level=2, duration_s=1.0)" },
+      { name: "Pace", syntax: "Agentech.forward(pace=\"normal\", duration_s=1.0)" },
+      { name: "Distance", syntax: "Agentech.forward(distance_m=1.0, speed_mps=0.4)" },
+      { name: "Steps", syntax: "Agentech.forward(step_count=6, step_rate_hz=1.5)", status: "development" }
+    ],
     params: [
-      { name: "speed", type: "float", defaultValue: "0.3", description: "Forward speed in meters per second. Aegis safety range: 0.0 to 2.37 m/s." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to walk. Valid range: 0.0 to 10.0." },
-      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts. Set to 0 only if posture is already managed." }
+      p("speed_mps", "float (0, 1.0]", "Direct forward speed.", "0.4"), p("duration_s", "float (0, 10]", "Timed movement duration.", "1.0"),
+      p("speed_percent", "int 1..100", "Percentage of 1.0 m/s."), p("speed_level", "int 1..5", "Maps to 0.2 through 1.0 m/s."),
+      p("pace", "slow | normal | fast", "Maps to 0.2, 0.4, or 0.8 m/s."), p("distance_m", "float (0, 5]", "Open-loop distance converted to duration."),
+      p("step_count", "int 1..20", "Estimated steps; exact foot contacts are not available.", undefined, "development"),
+      p("step_rate_hz", "float 0.5..3.0", "Estimated cadence only; the backend cannot command exact gait cadence.", "1.5", "development")
     ]
   },
   {
-    name: "backward",
-    category: "Movement",
-    signature: "Agentech.backward(speed=0.3, seconds=1.0)",
-    summary: "Stand the robot if needed, wait briefly, then move backward.",
-    example: "Agentech.backward(speed=0.2, seconds=1)",
-    params: [
-      { name: "speed", type: "float", defaultValue: "0.3", description: "Backward speed in meters per second. Aegis safety range: 0.0 to 2.365 m/s." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move backward. Valid range: 0.0 to 10.0." },
-      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
-    ]
+    name: "backward", category: "Movement", signature: "Agentech.backward(speed_mps=0.4, duration_s=1.0)", summary: "Move backward with bounded speed and duration profiles.", example: "Agentech.backward(speed_percent=30, duration_s=1.0)",
+    profiles: [
+      { name: "Default", syntax: "Agentech.backward()" },
+      { name: "Direct speed", syntax: "Agentech.backward(speed_mps=0.4, duration_s=1.0)" },
+      { name: "Percentage", syntax: "Agentech.backward(speed_percent=40, duration_s=1.0)" },
+      { name: "Speed level", syntax: "Agentech.backward(speed_level=2, duration_s=1.0)" },
+      { name: "Pace", syntax: "Agentech.backward(pace=\"normal\", duration_s=1.0)" },
+      { name: "Distance", syntax: "Agentech.backward(distance_m=1.0, speed_mps=0.4)" },
+      { name: "Steps", syntax: "Agentech.backward(step_count=6, step_rate_hz=1.5)", status: "development" }
+    ],
+    params: [p("speed_mps", "float (0, 1.0]", "Direct backward speed magnitude.", "0.4"), p("duration_s", "float (0, 10]", "Timed movement duration.", "1.0"), p("speed_percent", "int 1..100", "Percentage speed profile."), p("speed_level", "int 1..5", "Five mapped speed levels."), p("pace", "slow | normal | fast", "Named speed profile."), p("distance_m", "float (0, 3]", "Open-loop distance conversion."), p("step_count", "int 1..10", "Estimated, not physically counted.", undefined, "development"), p("step_rate_hz", "float 0.5..3.0", "Estimated cadence only.", "1.5", "development")]
   },
   {
-    name: "lateral_left",
-    category: "Movement",
-    signature: "Agentech.lateral_left(speed=0.2, seconds=1.0)",
-    summary: "Walk sideways to the robot's left.",
-    example: "Agentech.lateral_left(speed=0.2, seconds=1)",
-    params: [
-      { name: "speed", type: "float", defaultValue: "0.2", description: "Left lateral speed in meters per second. Aegis safety range: 0.0 to 0.78 m/s." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move laterally. Valid range: 0.0 to 10.0." },
-      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
-    ]
+    name: "lateral", category: "Movement", signature: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)", summary: "Move sideways left or right with a canonical direction parameter.", example: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)",
+    profiles: [
+      { name: "Default speed", syntax: "Agentech.lateral(direction=\"left\")" },
+      { name: "Direct speed", syntax: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)" },
+      { name: "Percentage", syntax: "Agentech.lateral(direction=\"left\", speed_percent=40, duration_s=1.0)" },
+      { name: "Speed level", syntax: "Agentech.lateral(direction=\"left\", speed_level=2, duration_s=1.0)" },
+      { name: "Distance", syntax: "Agentech.lateral(direction=\"left\", distance_m=0.5, speed_mps=0.2)" },
+      { name: "Steps", syntax: "Agentech.lateral(direction=\"left\", step_count=4, step_rate_hz=1.5)", status: "development" }
+    ],
+    params: [p("direction", "left | right", "Required movement direction."), p("speed_mps", "float (0, 0.78]", "Direct lateral speed.", "0.2"), p("duration_s", "float (0, 10]", "Timed movement duration.", "1.0"), p("speed_percent", "int 1..100", "Percentage of 0.5 m/s."), p("speed_level", "int 1..5", "Maps to 0.1 through 0.5 m/s."), p("distance_m", "float (0, 2]", "Open-loop distance conversion."), p("step_count", "int 1..10", "Approximate sidesteps only.", undefined, "development"), p("step_rate_hz", "float 0.5..3.0", "Exact gait cadence is unavailable.", "1.5", "development")]
   },
   {
-    name: "lateral_right",
-    category: "Movement",
-    signature: "Agentech.lateral_right(speed=0.2, seconds=1.0)",
-    summary: "Walk sideways to the robot's right.",
-    example: "Agentech.lateral_right(speed=0.2, seconds=1)",
-    params: [
-      { name: "speed", type: "float", defaultValue: "0.2", description: "Right lateral speed in meters per second. Aegis safety range: 0.0 to 0.78 m/s." },
-      { name: "seconds", type: "float", defaultValue: "1.0", description: "How long to move laterally. Valid range: 0.0 to 10.0." },
-      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Automatic wait after stand before motion starts." }
-    ]
+    name: "turn", category: "Movement", signature: "Agentech.turn(direction=\"right\", angle_deg=90)", summary: "Turn left or right using angle, percentage, level, quarter-turn, or duration profiles.", example: "Agentech.turn(direction=\"right\", quarter_turns=1)",
+    profiles: [
+      { name: "Default angle", syntax: "Agentech.turn(direction=\"right\")" },
+      { name: "Angle", syntax: "Agentech.turn(direction=\"right\", angle_deg=90, yaw_rate_rad_s=0.35)" },
+      { name: "Percentage", syntax: "Agentech.turn(direction=\"right\", angle_percent=25)" },
+      { name: "Turn level", syntax: "Agentech.turn(direction=\"right\", turn_level=3)" },
+      { name: "Quarter turns", syntax: "Agentech.turn(direction=\"right\", quarter_turns=1)" },
+      { name: "Timed yaw", syntax: "Agentech.turn(direction=\"right\", duration_s=1.0, yaw_rate_rad_s=0.35)" }
+    ],
+    params: [p("direction", "left | right", "Required turn direction."), p("angle_deg", "float (0, 360]", "Open-loop turn angle.", "45"), p("yaw_rate_rad_s", "float 0.05..2.09", "Yaw velocity.", "0.35"), p("angle_percent", "int 1..100", "Percentage of 360 degrees."), p("turn_level", "int 1..5", "Maps to 15, 30, 45, 60, or 90 degrees."), p("quarter_turns", "int 1..4", "Number of 90-degree turns."), p("duration_s", "float (0, 10]", "Direct timed yaw profile."), p("slow_large_turn", "derived duration", "Timeout policy for slow, large angle-rate turns is still being finalized.", undefined, "development")]
   },
   {
-    name: "look_up",
-    category: "Sensing",
-    signature: "Agentech.look_up(angle=15, speed=0.12)",
-    summary: "Tilt the Aegis attitude/camera upward before taking the top height photo.",
-    example: "Agentech.look_up(angle=15)",
-    params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate upward attitude/camera tilt change in degrees. Capped at 25 degrees so the motion stays realistic." },
-      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Valid API range: 0.03 to 0.5; recommended first tests stay near 0.10 to 0.15." }
-    ]
+    name: "twist", category: "Movement", signature: "Agentech.twist(direction=\"left\", angle_deg=15)", summary: "Fixed-foot body twist without walking the feet.", example: "Agentech.twist(direction=\"left\", angle_deg=15, hold_s=0.5)",
+    profiles: [
+      { name: "Default angle", syntax: "Agentech.twist(direction=\"left\")" },
+      { name: "Angle", syntax: "Agentech.twist(direction=\"left\", angle_deg=15, yaw_rate_rad_s=0.35)" },
+      { name: "Percentage", syntax: "Agentech.twist(direction=\"left\", angle_percent=50)" },
+      { name: "Twist level", syntax: "Agentech.twist(direction=\"left\", twist_level=3)" }
+    ],
+    params: [p("direction", "left | right", "Required twist direction."), p("angle_deg", "float (0, 30]", "Open-loop twist angle.", "15"), p("angle_percent", "int 1..100", "Percentage of 30 degrees."), p("twist_level", "int 1..5", "Maps to 6, 12, 18, 24, or 30 degrees."), p("hold_s", "float 0..3", "Hold after reaching the twist.", "0"), p("yaw_rate_rad_s", "float 0.05..0.5", "Official fixed-foot attitude-control range.", "0.35"), p("yaw_rate_rad_s > 0.5", "unsupported", "Would move the feet and violate the fixed-foot twist definition.", undefined, "unsupported")]
   },
   {
-    name: "look_down",
-    category: "Sensing",
-    signature: "Agentech.look_down(angle=15, speed=0.12)",
-    summary: "Tilt the Aegis attitude/camera downward before taking the bottom height photo.",
-    example: "Agentech.look_down(angle=15)",
-    params: [
-      { name: "angle", type: "float", defaultValue: "15", description: "Approximate downward attitude/camera tilt change in degrees. Capped at 25 degrees so the motion stays realistic." },
-      { name: "speed", type: "float", defaultValue: "0.12", description: "Pitch velocity in radians per second, streamed at 20 Hz. Valid API range: 0.03 to 0.5; recommended first tests stay near 0.10 to 0.15." }
-    ]
+    name: "backflip", category: "Movement", signature: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)", summary: "Run the official standard backflip preset without automatic retry.", example: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)",
+    params: [p("variant", "standard", "Only the official standard preset is available.", "standard"), p("stabilize_s", "float 0..10", "Post-action stabilization window.", "5.0"), p("SafetyGate", "system behavior", "Formal battery, posture, and readiness thresholds are being implemented.", undefined, "development")]
   },
   {
-    name: "turn_left",
-    category: "Movement",
-    signature: "Agentech.turn_left(angle=45, speed=0.35)",
-    summary: "Turn left by a readable angle instead of thinking in radians.",
-    example: "Agentech.turn_left(angle=45)",
-    params: [
-      { name: "angle", type: "float", defaultValue: "45", description: "Left turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Maximum yaw rate: 2.09 rad/s; slow yaw reference: 1.05 rad/s." }
-    ]
+    name: "jump", category: "Movement", signature: "Agentech.jump(variant=\"standard\", stabilize_s=5.0)", summary: "Run the official standard jump preset.", example: "Agentech.jump(variant=\"standard\", stabilize_s=5.0)",
+    params: [p("variant", "standard", "Only the standard jump exists.", "standard"), p("stabilize_s", "float 0..10", "Post-jump stabilization window.", "5.0"), p("height_level", "1 | 2 | 3", "The audited backend has no low, medium, or high jump presets.", undefined, "unsupported"), p("SafetyGate", "system behavior", "Formal safety thresholds are under development.", undefined, "development")]
   },
   {
-    name: "turn_right",
-    category: "Movement",
-    signature: "Agentech.turn_right(angle=45, speed=0.35)",
-    summary: "Turn right by a readable angle.",
-    example: "Agentech.turn_right(angle=45)",
-    params: [
-      { name: "angle", type: "float", defaultValue: "45", description: "Right turn angle in degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the turn. Maximum yaw rate: 2.09 rad/s; slow yaw reference: 1.05 rad/s." }
-    ]
+    name: "stand", category: "Posture", signature: "Agentech.stand(stabilize_s=5.0, posture=\"neutral\")", summary: "Stand in the supported neutral posture and stabilize.", example: "Agentech.stand(stabilize_s=5.0, posture=\"neutral\")",
+    params: [p("stabilize_s", "float 0..10", "Wait after standing.", "5.0"), p("height_level=2", "neutral", "Supported neutral vendor stand.", "2"), p("posture=neutral", "neutral", "Alias for neutral height level 2.", "neutral"), p("height_level=1 / posture=low", "calibration", "Low stand target has not been physically calibrated.", undefined, "development"), p("height_level=3 / posture=tall", "calibration", "Tall stand target has not been physically calibrated.", undefined, "development"), p("stable-state confirmation", "system behavior", "Polling and timeout thresholds are under development.", undefined, "development")]
   },
   {
-    name: "twist_left",
-    category: "Movement",
-    signature: "Agentech.twist_left(angle=28, speed=0.35)",
-    summary: "Fixed-foot left body twist for small in-place heading adjustment.",
-    example: "Agentech.twist_left(angle=28)",
-    params: [
-      { name: "angle", type: "float", defaultValue: "28", description: "Left twist angle in degrees. Recommended benchmark reference: 28 degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the twist. Valid range: 0.05 to 2.09 rad/s." }
-    ]
+    name: "sit", category: "Posture", signature: "Agentech.sit(mode=\"damping\", stabilize_s=2.0)", summary: "Transition into the supported damping/lie-down posture.", example: "Agentech.sit(mode=\"damping\", stabilize_s=2.0)",
+    params: [p("mode", "damping", "Only the damping mode is approved.", "damping"), p("stabilize_s", "float 0..10", "Posture stabilization wait.", "2.0"), p("posture-state validation", "system behavior", "State-read validation is under development.", undefined, "development")]
   },
   {
-    name: "twist_right",
-    category: "Movement",
-    signature: "Agentech.twist_right(angle=28, speed=0.35)",
-    summary: "Fixed-foot right body twist for small in-place heading adjustment.",
-    example: "Agentech.twist_right(angle=28)",
-    params: [
-      { name: "angle", type: "float", defaultValue: "28", description: "Right twist angle in degrees. Recommended benchmark reference: 28 degrees." },
-      { name: "speed", type: "float", defaultValue: "0.35", description: "Yaw rate used during the twist. Valid range: 0.05 to 2.09 rad/s." }
-    ]
+    name: "stop", category: "Safety", signature: "Agentech.stop(mode=\"quick\", timeout_s=2.0)", summary: "Stop motion immediately or through a developing controlled-deceleration profile.", example: "Agentech.stop(mode=\"quick\", timeout_s=2.0)",
+    params: [p("mode=quick", "quick", "Send zero velocity immediately.", "quick"), p("timeout_s", "float 0.1..5", "Wait or poll timeout.", "2.0"), p("mode=controlled", "controlled", "Software velocity ramp is under development.", undefined, "development"), p("decel_level", "int 1..5", "Calibrated deceleration mappings are under development.", "3", "development"), p("preemption", "system behavior", "Shared command coordination is under development.", undefined, "development")]
   },
   {
-    name: "backflip",
-    category: "Movement",
-    signature: "Agentech.backflip()",
-    summary: "Run the approved Aegis backflip preview motion.",
-    example: "Agentech.backflip()",
-    params: []
+    name: "emergency_stop", category: "Safety", signature: "Agentech.emergency_stop(reason=\"Emergency stop\", latch=True, mode=\"damping\")", summary: "Highest-priority damping stop; persistent latch behavior is still being completed.", example: "Agentech.emergency_stop(reason=\"Operator requested stop\", mode=\"damping\")",
+    params: [p("reason", "str", "Operator-readable trace message.", "Emergency stop"), p("mode", "damping", "Native safe damping path.", "damping"), p("latch", "bool", "Persistent cross-call latch requires shared controller state.", "True", "development"), p("highest-priority preemption", "system behavior", "Shared command coordinator is under development.", undefined, "development"), p("reset API", "unsupported", "No public reset function exists in the current card contract.", undefined, "unsupported")]
   },
   {
-    name: "jump",
-    category: "Movement",
-    signature: "Agentech.jump()",
-    summary: "Jump straight up, shake the legs in the air, and land back in the same spot.",
-    example: "Agentech.jump()",
-    params: []
-  },
-  {
-    name: "stand",
-    category: "Posture",
-    signature: "Agentech.stand()",
-    summary: "Prepare the robot dog for movement.",
-    example: "Agentech.stand()",
-    params: [
-      { name: "stand_wait", type: "float", defaultValue: "5.0", description: "Wait after stand so the dog fully stabilizes before moving. Valid range: 0.0 to 10.0." }
-    ]
-  },
-  {
-    name: "sit",
-    category: "Posture",
-    signature: "Agentech.sit()",
-    summary: "Lower the robot from stand into the floor-sit damping posture.",
-    example: "Agentech.sit()",
-    params: []
-  },
-  {
-    name: "stop",
-    category: "Safety",
-    signature: "Agentech.stop()",
-    summary: "Stop the current motion command.",
-    example: "Agentech.stop()",
-    params: []
-  },
-  {
-    name: "emergency_stop",
-    category: "Safety",
-    signature: "Agentech.emergency_stop()",
-    summary: "Trigger emergency stop and put the robot into damping mode.",
-    example: "Agentech.emergency_stop()",
-    params: [
-      { name: "reason", type: "str", defaultValue: "\"Agentech emergency stop\"", description: "Short operator-readable reason sent with the stop request." }
-    ]
-  },
-  {
-    name: "get_battery_status",
-    category: "Sensing",
-    signature: "Agentech.get_battery_status()",
-    summary: "Read the robot battery level.",
-    example: "battery = Agentech.get_battery_status()\nprint(battery)",
-    params: []
+    name: "look", category: "Sensing", signature: "Agentech.look(direction=\"up\", target=\"body\", angle_deg=10)", summary: "Pitch the robot body up or down; independent camera pitch is unavailable.", example: "Agentech.look(direction=\"down\", target=\"body\", look_level=3)",
+    params: [p("direction", "up | down", "Required pitch direction."), p("target=auto", "auto", "Selects the supported body target.", "auto"), p("target=body", "body", "Native fixed-foot body pitch."), p("target=camera", "unsupported", "No independent camera actuator API is documented.", undefined, "unsupported"), p("angle_deg", "float (0, 25]", "Open-loop body-pitch angle.", "10"), p("pitch_rate_rad_s", "float 0.03..0.5", "Attitude-control pitch velocity.", "0.12"), p("angle_percent", "int 1..100", "Percentage of 25 degrees."), p("look_level", "int 1..5", "Maps to 5, 10, 15, 20, or 25 degrees."), p("final-angle verification", "system behavior", "IMU-backed verification is under development.", undefined, "development")]
   }
 ] as const;
 
 export const starterCode = `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
-Agentech.forward(speed=0.3, seconds=1)
-Agentech.backward(speed=0.2, seconds=1)
-Agentech.lateral_left(speed=0.2, seconds=1)
-Agentech.lateral_right(speed=0.2, seconds=1)
-Agentech.backflip()
-Agentech.jump()
-Agentech.stop()`;
+Agentech.stand(stabilize_s=5.0, posture="neutral")
+Agentech.forward(speed_mps=0.3, duration_s=1.0)
+Agentech.lateral(direction="left", speed_mps=0.2, duration_s=1.0)
+Agentech.turn(direction="right", quarter_turns=1)
+Agentech.look(direction="down", target="body", look_level=3)
+Agentech.stop(mode="quick", timeout_s=2.0)`;
