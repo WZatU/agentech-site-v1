@@ -111,6 +111,17 @@ function formatGatewayCost(value: number | string | undefined | null) {
   return Number.isFinite(amount) ? `$${amount.toFixed(2)}` : "$0.00";
 }
 
+function getDisplayedUsageCost(row: AdminAiUsage) {
+  return row.endpoint === "robot_code_security_review" ? 0.5 : Number(row.estimated_cost ?? 0);
+}
+
+function getCurrentMonthUsageCost(rows: AdminAiUsage[]) {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  return rows.reduce((total, row) => {
+    return row.created_at.startsWith(currentMonth) ? total + getDisplayedUsageCost(row) : total;
+  }, 0);
+}
+
 function formatCreditsWithUsd(value: number | string | undefined | null) {
   const credits = Math.max(0, Math.floor(Number(value ?? 0)));
   return `${credits.toLocaleString()} (${formatGatewayCost(credits / 100)})`;
@@ -282,14 +293,14 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
   const summary = useMemo(() => {
     const totalRequests = data.caps.reduce((total, cap) => total + Number(cap.current_requests ?? 0), 0);
     const totalTokens = data.caps.reduce((total, cap) => total + Number(cap.current_tokens ?? 0), 0);
-    const totalCost = data.caps.reduce((total, cap) => total + Number(cap.current_cost ?? 0), 0);
+    const totalCost = getCurrentMonthUsageCost(data.usage);
     const activeGatewayUsers = data.caps.filter((cap) => Number(cap.current_requests ?? 0) > 0).length;
     const pausedGatewayUsers = data.caps.filter((cap) => isGatewayPaused(cap)).length;
     const internalDeveloperProfiles = data.developerProfiles.filter((profile) => isAgentechCompanyEmail(profile.account_email)).length;
     const internalCodeSubmissions = data.codeSubmissions.filter((submission) => isAgentechCompanyEmail(submission.email)).length;
 
     return { totalRequests, totalTokens, totalCost, activeGatewayUsers, pausedGatewayUsers, internalDeveloperProfiles, internalCodeSubmissions };
-  }, [data.caps, data.codeSubmissions, data.developerProfiles]);
+  }, [data.caps, data.codeSubmissions, data.developerProfiles, data.usage]);
 
   const capByEmail = useMemo(() => new Map(data.caps.map((cap) => [cap.user_id, cap])), [data.caps]);
   const accountByEmail = useMemo(() => new Map(data.developerAccounts.map((account) => [account.email, account])), [data.developerAccounts]);
@@ -472,7 +483,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               const requests = Number(cap?.current_requests ?? 0);
               const requestLimit = Number(cap?.monthly_request_limit ?? 20);
               const tokens = Number(cap?.current_tokens ?? 0);
-              const cost = Number(cap?.current_cost ?? 0);
+              const cost = getCurrentMonthUsageCost(usageByEmail.get(profile.account_email) ?? []);
               const costLimit = Number(cap?.monthly_cost_limit ?? 5);
               const gateStatus = account?.developer_ai_security_status || "not started";
               const history = getUsageWindowStats(usageByEmail.get(profile.account_email) ?? []);
@@ -745,7 +756,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-700">{formatGatewayCost(row.estimated_cost)}</p>
+                  <p className="font-semibold text-slate-700">{formatGatewayCost(getDisplayedUsageCost(row))}</p>
                   <p className="mt-1 text-xs font-semibold text-slate-500">Standard run cost</p>
                 </div>
                 <p className="font-semibold text-slate-700">{formatDurationMs(row.latency_ms)}</p>
