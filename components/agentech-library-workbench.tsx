@@ -37,6 +37,25 @@ type HardwareResult = {
   finalHint: string;
   movementSafety: AgentechMovementSafety;
 };
+type ApprovedCodeFile = {
+  code: string;
+  downloadFileName: string;
+  sourceFileName: string;
+  source: "uploaded" | "editor";
+  editedOnWebsite: boolean;
+};
+type CachedPhysicalReview = {
+  id: string;
+  developerName?: string;
+  robotModel?: string;
+  code: string;
+  originalCode?: string;
+  uploadedFileName?: string | null;
+  downloadFileName?: string;
+  editedOnWebsite?: boolean;
+  physicalSafetyStatus: string;
+  aiSecurityStatus: string;
+};
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
 const localPreviewAssets: Record<string, string> = {
   forward: "/assets/products/aegis-previews/forward.gif",
@@ -198,6 +217,15 @@ function defaultMovementSafety(status: "PASS" | "WARNING" | "FAIL", detail?: str
     maxDyMeters: 0,
     detail: detail || "Movement safety was not measured."
   };
+}
+
+function approvedDownloadFileName(fileName: string) {
+  const baseName = fileName
+    .replace(/^.*[\\/]/, "")
+    .replace(/\.(?:py|txt)$/i, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return `${baseName || "agentech_submission"}-approved.py`;
 }
 
 function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReason = "", movementSafety = defaultMovementSafety(status, failureReason)): HardwareChecklistItem[] {
@@ -1341,6 +1369,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const developerName = "Agentech developer";
   const robotModel = "Aegies";
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [uploadedOriginalCode, setUploadedOriginalCode] = useState("");
+  const [approvedCodeFile, setApprovedCodeFile] = useState<ApprovedCodeFile | null>(null);
   const [physicalSubmissionId, setPhysicalSubmissionId] = useState("");
   const [physicalSafetyPassed, setPhysicalSafetyPassed] = useState(false);
   const [isRunningPhysicalCheck, setIsRunningPhysicalCheck] = useState(false);
@@ -1400,27 +1430,6 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     : hardwarePassed
       ? "border-[#008a7a] bg-white"
       : "border-[#dce7f2] bg-[#f8fbff]";
-  const statusPanelClass = softwarePassed
-    ? "border-[#008a7a] bg-[#e8f7f3]"
-    : hardwareWarning
-      ? "border-[#d99a00] bg-[#fff8df]"
-    : hardwareFailed
-      ? "border-[#c93434] bg-[#fff1f1]"
-      : hardwarePassed
-        ? "border-[#008a7a] bg-[#e8f7f3]"
-        : "border-[#dce7f2] bg-[#f8fbff]";
-  const statusPanelTitle = isLoadingReviewGate ? "Checking saved result" : softwarePassed ? "Step 4 passed" : hardwareWarning ? "Step 3 warning" : hardwareFailed ? "Step 3 failed" : hardwarePassed ? "Step 3 passed" : "Ready";
-  const statusPanelCopy = isLoadingReviewGate
-    ? "Loading your latest Physical Hardware Check from the account record."
-    : softwarePassed
-    ? "Step 5 Live Stream scheduling is unlocked."
-    : hardwareWarning
-      ? "Movement entered the warning zone for the physical test box. Step 4 stays locked until movement is within the pass limit."
-    : hardwareFailed
-      ? "Fix the code, then run the Physical Hardware Check again. Step 4 stays locked until Step 3 passes."
-      : hardwarePassed
-        ? "Next: run Step 4 Software Check."
-        : "Run the Physical Hardware Check first.";
   const showFocusedStartCoding = selectedTask?.slug === "start-coding";
   const showFocusedBrowseFunctions = selectedTask?.slug === "view-sdk";
   const showFocusedLiveRun = selectedTask?.slug === "watch-live-run";
@@ -1472,13 +1481,16 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           throw new Error(payload.error ?? "Unable to load the latest Physical Hardware Check.");
         }
 
+        let cachedSubmission: CachedPhysicalReview | null = null;
+        try {
+          cachedSubmission = JSON.parse(window.sessionStorage.getItem("agentech-latest-physical-review") ?? "null");
+        } catch {
+          cachedSubmission = null;
+        }
+
         let latestSubmission = payload.latestSubmission ?? null;
         if (!latestSubmission && payload.localPreview) {
-          try {
-            latestSubmission = JSON.parse(window.sessionStorage.getItem("agentech-latest-physical-review") ?? "null");
-          } catch {
-            latestSubmission = null;
-          }
+          latestSubmission = cachedSubmission;
         }
 
         if (!latestSubmission || latestSubmission.physicalSafetyStatus !== "passed") {
@@ -1491,6 +1503,24 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         const movementSafety = evaluateAgentechMovementSafety(restoredCode);
         setCode(restoredCode);
         setUploadedFileName(latestSubmission.uploadedFileName ?? "");
+        const cachedSubmissionMatches = cachedSubmission?.id === latestSubmission.id;
+        const cachedReview = cachedSubmissionMatches ? cachedSubmission : null;
+        const restoredSourceFileName = latestSubmission.uploadedFileName || "website-editor.py";
+        setUploadedOriginalCode(
+          cachedReview && typeof cachedReview.originalCode === "string"
+            ? cachedReview.originalCode
+            : restoredCode
+        );
+        setApprovedCodeFile({
+          code: restoredCode,
+          downloadFileName:
+            cachedReview?.downloadFileName
+              ? cachedReview.downloadFileName
+              : approvedDownloadFileName(restoredSourceFileName),
+          sourceFileName: restoredSourceFileName,
+          source: latestSubmission.uploadedFileName ? "uploaded" : "editor",
+          editedOnWebsite: cachedReview?.editedOnWebsite === true
+        });
         setPhysicalSubmissionId(latestSubmission.id);
         setPhysicalSafetyPassed(true);
         setCanScheduleRobotSlot(latestSubmission.aiSecurityStatus === "passed");
@@ -1568,6 +1598,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
     setHardwareResult(null);
+    setApprovedCodeFile(null);
     window.sessionStorage.removeItem("agentech-latest-physical-review");
     resetPreview(normalizedCode, preferredCommand);
   }
@@ -1586,6 +1617,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
     const text = await file.text();
     setUploadedFileName(file.name);
+    setUploadedOriginalCode(text);
     updateCode(text);
     if (!text.trim()) {
       const message = `${file.name} is empty. Add at least one Agentech command before running the check.`;
@@ -1602,6 +1634,22 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     event.preventDefault();
     setIsDraggingCodeFile(false);
     void loadUploadedCodeFile(event.dataTransfer.files?.[0] ?? null);
+  }
+
+  function downloadApprovedCodeFile() {
+    if (!approvedCodeFile) {
+      return;
+    }
+
+    const contents = approvedCodeFile.code.endsWith("\n") ? approvedCodeFile.code : `${approvedCodeFile.code}\n`;
+    const url = URL.createObjectURL(new Blob([contents], { type: "text/x-python;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = approvedCodeFile.downloadFileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   function loadExample(item: AgentechFunction) {
@@ -1696,6 +1744,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
     setHardwareResult(null);
+    setApprovedCodeFile(null);
     setRequestStatus("Running Step 3 Physical Hardware Check...");
     try {
       if (!movementSafety.submitReady) {
@@ -1761,9 +1810,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         setRequestStatus(message);
         return;
       }
+      const sourceFileName = uploadedFileName || "website-editor.py";
+      const approvedFile: ApprovedCodeFile = {
+        code: reviewCode,
+        downloadFileName: approvedDownloadFileName(sourceFileName),
+        sourceFileName,
+        source: uploadedFileName ? "uploaded" : "editor",
+        editedOnWebsite: uploadedFileName ? reviewCode !== uploadedOriginalCode : true
+      };
       setPhysicalSubmissionId(payload.id);
       setPhysicalSafetyPassed(true);
       setIsInternalCompanyAccount(payload.internalAccount === true);
+      setApprovedCodeFile(approvedFile);
       setReviewInputError("");
       setHardwareResult({
         status: "PASS",
@@ -1778,17 +1836,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         simulationError: "",
         finalHint: "All checks passed. This result is ready to submit for further review."
       });
-      if (payload.localPreview) {
-        window.sessionStorage.setItem("agentech-latest-physical-review", JSON.stringify({
-          id: payload.id,
-          developerName,
-          robotModel,
-          code: reviewCode,
-          uploadedFileName: uploadedFileName || null,
-          physicalSafetyStatus: "passed",
-          aiSecurityStatus: "locked"
-        }));
-      }
+      window.sessionStorage.setItem("agentech-latest-physical-review", JSON.stringify({
+        id: payload.id,
+        developerName,
+        robotModel,
+        code: reviewCode,
+        originalCode: uploadedOriginalCode,
+        uploadedFileName: uploadedFileName || null,
+        downloadFileName: approvedFile.downloadFileName,
+        editedOnWebsite: approvedFile.editedOnWebsite,
+        physicalSafetyStatus: "passed",
+        aiSecurityStatus: "locked"
+      }));
       setRequestStatus(`Step 3 Physical Hardware Check passed for ${payload.commandCount} commands. Step 4 Software Check is now unlocked. Review ID: ${payload.id}.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Physical Hardware Check failed.";
@@ -1809,7 +1868,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       return;
     }
 
-    const reviewCode = ensureRequiredStand(code);
+    const reviewCode = approvedCodeFile?.code ?? ensureRequiredStand(code);
+    const reviewFileName = approvedCodeFile?.sourceFileName ?? uploadedFileName;
     const reviewPlan = commandPlan(reviewCode);
     setIsRunningSoftwareCheck(true);
     setCanScheduleRobotSlot(false);
@@ -1825,7 +1885,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           robotModel,
           runMode,
           code: reviewCode,
-          uploadedFileName,
+          uploadedFileName: reviewFileName,
           commands: reviewPlan.trace
         })
       });
@@ -2055,10 +2115,35 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                       ? "Hardware and parameter limits passed. Step 4 Software Check is unlocked."
                       : hardwareWarning
                         ? requestStatus
-                      : hardwareFailed
-                        ? requestStatus
-                        : "Checks robot commands and parameters before Supabase unlocks Software Check."}
+                        : hardwareFailed
+                          ? requestStatus
+                          : "Checks robot commands and parameters before Supabase unlocks Software Check."}
                   </p>
+                  {hardwarePassed && approvedCodeFile ? (
+                    <div className="mt-3 border-t border-[#008a7a]/30 pt-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#006a5c]">Approved code file</p>
+                      <p className="mt-2 break-all font-mono text-xs text-[#07142e]">{approvedCodeFile.downloadFileName}</p>
+                      <p className="mt-1 text-xs leading-5 text-[#526174]">
+                        {approvedCodeFile.editedOnWebsite
+                          ? "This is the version edited in the website editor and passed Step 3."
+                          : "This is the exact uploaded version that passed Step 3."}
+                      </p>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs text-[#526174]">Review ID: {physicalSubmissionId}</p>
+                        <button
+                          type="button"
+                          onClick={downloadApprovedCodeFile}
+                          aria-label="Download approved code file"
+                          title="Download approved code file"
+                          className="inline-flex items-center justify-center border border-[#008a7a] bg-white p-2 text-[#006a5c] transition hover:bg-[#e8f7f3]"
+                        >
+                          <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-[1.8]">
+                            <path d="M8 2.5v7M5.2 7.4 8 10.2l2.8-2.8M3 12.5h10" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 <div className={`border p-3 ${step4PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
@@ -2140,15 +2225,6 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     </button>
                   )}
                 </div>
-                {!hardwareFailed && !hardwareWarning ? (
-                  <div className={`border p-3 text-sm leading-6 text-[#23304a] ${statusPanelClass}`}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#526174]">{statusPanelTitle}</p>
-                    <p className="mt-1">{statusPanelCopy}</p>
-                    {hardwarePassed || softwarePassed ? (
-                      <p className="mt-1 text-xs text-[#526174]">Hardware review ID: {physicalSubmissionId}</p>
-                    ) : null}
-                  </div>
-                ) : null}
               </div>
             </div>
           </div>

@@ -297,6 +297,13 @@ export async function getCodeSubmissionRecord(id: string, email: string) {
   return rows[0] ?? null;
 }
 
+export async function getCodeSubmissionRecords(email: string, requestedLimit = 20) {
+  const limit = Math.min(50, Math.max(1, Math.floor(requestedLimit)));
+  return supabaseRequest<CodeSubmissionRecord[]>("agentech_code_submissions", {
+    query: `email=eq.${encodeURIComponent(email)}&select=id,email,developer_name,robot_model,run_mode,source,uploaded_file_name,github_repo_url,github_branch,commands,code,physical_safety_status,ai_security_status,ai_security_model,ai_security_summary,ai_security_findings,ai_security_risk_level,ai_security_reviewed_at,credits_charged,created_at,updated_at&order=created_at.desc&limit=${limit}`
+  });
+}
+
 export async function updateCodeSubmissionRecord(
   id: string,
   body: Partial<Pick<

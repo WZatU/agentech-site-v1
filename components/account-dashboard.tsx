@@ -34,6 +34,25 @@ type RobotSlotOption = {
   disabled: boolean;
 };
 
+type DashboardCodeSubmission = {
+  id: string;
+  developer_name: string;
+  robot_model: string;
+  run_mode: string;
+  source: "pasted_code" | "uploaded_file" | "github";
+  uploaded_file_name: string | null;
+  commands: string[];
+  code: string;
+  physical_safety_status: "pending" | "passed" | "failed";
+  ai_security_status: "locked" | "pending" | "passed" | "failed" | "error";
+  ai_security_summary: string | null;
+  ai_security_risk_level: string | null;
+  ai_security_reviewed_at: string | null;
+  credits_charged: number;
+  created_at: string;
+  updated_at: string;
+};
+
 type DashboardData = {
   account?: {
     email: string;
@@ -105,6 +124,8 @@ type DashboardData = {
     benchmark_status: string | null;
     created_at: string;
   }>;
+  codeSubmissions?: DashboardCodeSubmission[];
+  codeReviewError?: string;
   enrollments?: Array<{
     id: number;
     site_name: string | null;
@@ -213,7 +234,7 @@ type AdminAiUsageData = {
 };
 
 type AccessProfileType = "developer" | "student" | "teacher" | "talent";
-type DashboardTab = "profile" | "courses" | "balance" | "robot" | "invoices" | "billing" | "settings";
+type DashboardTab = "profile" | "courses" | "balance" | "code" | "robot" | "invoices" | "billing" | "settings";
 
 const profileOptions: Array<{ type: AccessProfileType; label: string; description: string }> = [
   { type: "developer", label: "Developer", description: "Test robots, submit code, and manage supervised runs." },
@@ -228,6 +249,7 @@ const dashboardTabs: Array<{ id: DashboardTab; label: string; mark: string }> = 
   { id: "balance", label: "Billing", mark: "B" },
   { id: "billing", label: "Purchase History", mark: "H" },
   { id: "courses", label: "Courses", mark: "C" },
+  { id: "code", label: "Code Reviews", mark: "{}" },
   { id: "robot", label: "Robot Requests", mark: "R" },
   { id: "invoices", label: "Invoices", mark: "I" }
 ];
@@ -240,6 +262,10 @@ function getDashboardTabs(profileType: AccessProfileType) {
 
     if (tab.id === "courses") {
       return profileType === "student" || profileType === "teacher";
+    }
+
+    if (tab.id === "code") {
+      return profileType === "developer";
     }
 
     return true;
@@ -435,6 +461,68 @@ function formatInvoiceStatus(status: string) {
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function formatCodeReviewStatus(status: DashboardCodeSubmission["physical_safety_status"] | DashboardCodeSubmission["ai_security_status"]) {
+  if (status === "locked") {
+    return "Not run";
+  }
+  if (status === "pending") {
+    return "Checking";
+  }
+  if (status === "error") {
+    return "Needs retry";
+  }
+  return status.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function codeReviewStatusTone(status: DashboardCodeSubmission["physical_safety_status"] | DashboardCodeSubmission["ai_security_status"]) {
+  if (status === "passed") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  }
+  if (status === "failed" || status === "error") {
+    return "border-red-200 bg-red-50 text-red-700";
+  }
+  if (status === "pending") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+  return "border-slate-200 bg-slate-50 text-slate-600";
+}
+
+function getCodeSubmissionFileName(submission: DashboardCodeSubmission) {
+  return submission.uploaded_file_name || "website-editor.py";
+}
+
+function formatCodeSubmissionSource(submission: DashboardCodeSubmission) {
+  if (submission.source === "uploaded_file") {
+    return "Uploaded file, reviewed version saved";
+  }
+  if (submission.source === "github") {
+    return "GitHub submission";
+  }
+  return "Website editor";
+}
+
+function getCodeSubmissionDownloadName(submission: DashboardCodeSubmission) {
+  const baseName = getCodeSubmissionFileName(submission)
+    .replace(/^.*[\\/]/, "")
+    .replace(/\.(?:py|txt)$/i, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const suffix = submission.ai_security_status === "passed" ? "approved" : "hardware-checked";
+  return `${baseName || "agentech_submission"}-${suffix}.py`;
+}
+
+function downloadCodeSubmission(submission: DashboardCodeSubmission) {
+  const contents = submission.code.endsWith("\n") ? submission.code : `${submission.code}\n`;
+  const url = URL.createObjectURL(new Blob([contents], { type: "text/x-python;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = getCodeSubmissionDownloadName(submission);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
 function formatCredits(value: number | string | undefined | null) {
   const amount = Number(value ?? 0);
   if (!Number.isFinite(amount)) {
@@ -526,7 +614,12 @@ function buildPreviewDashboardData(profileType: AccessProfileType): DashboardDat
       phone: "(949) 555-0142",
       credit_balance: 1250,
       paid_credit_balance: 1000,
-      bonus_credit_balance: 250
+      bonus_credit_balance: 250,
+      developer_latest_code_submission_id: profileType === "developer" ? "agentech-preview-approved" : null,
+      developer_physical_safety_status: profileType === "developer" ? "passed" : null,
+      developer_physical_safety_passed_at: profileType === "developer" ? yesterday.toISOString() : null,
+      developer_ai_security_status: profileType === "developer" ? "passed" : null,
+      developer_ai_security_passed_at: profileType === "developer" ? yesterday.toISOString() : null
     },
     accessProfiles: [
       primaryProfile,
@@ -604,6 +697,46 @@ function buildPreviewDashboardData(profileType: AccessProfileType): DashboardDat
         created_at: now.toISOString()
       }
     ],
+    codeSubmissions: profileType === "developer"
+      ? [
+          {
+            id: "agentech-preview-approved",
+            developer_name: displayByType[profileType],
+            robot_model: "Aegies",
+            run_mode: "Software check",
+            source: "uploaded_file",
+            uploaded_file_name: "aegis_forward.py",
+            commands: ["stand(stand_wait=5)", "forward(speed=0.3, seconds=1)", "stop()"],
+            code: "from agentech import Agentech\n\nAgentech.stand(stand_wait=5)\nAgentech.forward(speed=0.3, seconds=1)\nAgentech.stop()",
+            physical_safety_status: "passed",
+            ai_security_status: "passed",
+            ai_security_summary: "The reviewed code uses documented Agentech commands and passed the software safety scan.",
+            ai_security_risk_level: "low",
+            ai_security_reviewed_at: yesterday.toISOString(),
+            credits_charged: 50,
+            created_at: yesterday.toISOString(),
+            updated_at: yesterday.toISOString()
+          },
+          {
+            id: "agentech-preview-hardware",
+            developer_name: displayByType[profileType],
+            robot_model: "Aegies",
+            run_mode: "Physical hardware limit and capability test",
+            source: "pasted_code",
+            uploaded_file_name: null,
+            commands: ["stand(stand_wait=5)", "turn_left(angle=45, speed=0.35)"],
+            code: "from agentech import Agentech\n\nAgentech.stand(stand_wait=5)\nAgentech.turn_left(angle=45, speed=0.35)",
+            physical_safety_status: "passed",
+            ai_security_status: "locked",
+            ai_security_summary: null,
+            ai_security_risk_level: null,
+            ai_security_reviewed_at: null,
+            credits_charged: 0,
+            created_at: threeDaysAgo.toISOString(),
+            updated_at: threeDaysAgo.toISOString()
+          }
+        ]
+      : [],
     enrollments: profileType === "student" || profileType === "teacher"
       ? [
           {
@@ -684,6 +817,7 @@ function buildEmptyPreviewDashboardData(): DashboardData {
     children: [],
     requests: [],
     robotSessions: [],
+    codeSubmissions: [],
     enrollments: [],
     applications: {
       internships: [],
@@ -694,6 +828,26 @@ function buildEmptyPreviewDashboardData(): DashboardData {
       lines: []
     },
     invoices: []
+  };
+}
+
+async function fetchDashboardData(email: string): Promise<DashboardData> {
+  const [accountResponse, codeReviewResponse] = await Promise.all([
+    fetch(`/api/account?email=${encodeURIComponent(email)}`, { cache: "no-store" }),
+    fetch("/api/account/code-submissions", { cache: "no-store" })
+  ]);
+  const [accountResult, codeReviewResult] = await Promise.all([
+    accountResponse.json().catch(() => ({ error: "Unable to load account." })) as Promise<DashboardData>,
+    codeReviewResponse.json().catch(() => ({ error: "Unable to load reviewed code files." })) as Promise<{
+      submissions?: DashboardCodeSubmission[];
+      error?: string;
+    }>
+  ]);
+
+  return {
+    ...accountResult,
+    codeSubmissions: codeReviewResponse.ok ? codeReviewResult.submissions ?? [] : [],
+    codeReviewError: codeReviewResponse.ok ? undefined : codeReviewResult.error || "Unable to load reviewed code files."
   };
 }
 
@@ -855,6 +1009,7 @@ export function AccountDashboard() {
   const [requestingRobotSlot, setRequestingRobotSlot] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
   const [selectedDashboardProfileId, setSelectedDashboardProfileId] = useState<number | null>(null);
+  const [expandedCodeSubmissionId, setExpandedCodeSubmissionId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -891,9 +1046,8 @@ export function AccountDashboard() {
 
       setEmail(session.email);
       setLoading(true);
-      fetch(`/api/account?email=${encodeURIComponent(session.email)}`)
-        .then((response) => response.json())
-        .then((result: DashboardData) => {
+      fetchDashboardData(session.email)
+        .then((result) => {
           if (!cancelled) {
             setData(result);
           }
@@ -1079,16 +1233,14 @@ export function AccountDashboard() {
     }
 
     setActionMessage(removeResult?.message || "Item removed.");
-    const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
-    const result = (await accountResponse.json()) as DashboardData;
+    const result = await fetchDashboardData(email);
     setData(result);
   }
 
   async function refreshAccount() {
     if (!email) return;
 
-    const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
-    const result = (await accountResponse.json()) as DashboardData;
+    const result = await fetchDashboardData(email);
     setData(result);
   }
 
@@ -1111,8 +1263,7 @@ export function AccountDashboard() {
     }
 
     setActionMessage(result.invoiceNumber ? `${result.message || "Request confirmed."} Invoice: ${result.invoiceNumber}.` : result.message || "Request confirmed.");
-    const accountResponse = await fetch(`/api/account?email=${encodeURIComponent(email)}`);
-    const accountResult = (await accountResponse.json()) as DashboardData;
+    const accountResult = await fetchDashboardData(email);
     setData(accountResult);
     setConfirming(false);
   }
@@ -1531,8 +1682,12 @@ export function AccountDashboard() {
       visual: profileVisuals[profile.profile_type]
     }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4);
+  const codeSubmissions = data.codeSubmissions ?? [];
+  const hardwarePassedCodeCount = codeSubmissions.filter((submission) => submission.physical_safety_status === "passed").length;
+  const softwarePassedCodeCount = codeSubmissions.filter((submission) => submission.ai_security_status === "passed").length;
   const tabCounts: Partial<Record<DashboardTab, number>> = {
     courses: selectedDashboardProfileType === "student" || selectedDashboardProfileType === "teacher" ? data.enrollments?.length ?? 0 : 0,
+    code: codeSubmissions.length,
     robot: selectedDashboardProfileType === "developer" ? openRobotCount : 0,
     invoices: invoiceTotal,
     settings: data.accessProfiles?.length ?? 0
@@ -2203,6 +2358,167 @@ export function AccountDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {currentTab === "code" ? (
+          <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-3xl">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#008a7a]">Code Review</p>
+                <h2 className="mt-2 text-2xl font-bold text-slate-950">Reviewed Code Files</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Every download is the exact code saved when the Physical Hardware Check passed. If you corrected an uploaded file in the website editor, the corrected reviewed version is saved here.
+                </p>
+              </div>
+              <Link
+                href="/agentech-products/agentech-library/physical-hardware-check"
+                className="rounded-full border border-[#008a7a] bg-white px-4 py-2 text-sm font-bold text-[#006a5c] transition hover:bg-[#e8f7f3]"
+              >
+                Check New Code
+              </Link>
+            </div>
+
+            <div className="mt-6 grid border border-slate-200 bg-slate-50 sm:grid-cols-3">
+              <div className="border-b border-slate-200 p-4 sm:border-b-0 sm:border-r">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Saved Files</p>
+                <p className="mt-2 text-2xl font-bold text-slate-950">{codeSubmissions.length}</p>
+              </div>
+              <div className="border-b border-slate-200 p-4 sm:border-b-0 sm:border-r">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Hardware Passed</p>
+                <p className="mt-2 text-2xl font-bold text-[#006a5c]">{hardwarePassedCodeCount}</p>
+              </div>
+              <div className="p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Software Passed</p>
+                <p className="mt-2 text-2xl font-bold text-[#006a5c]">{softwarePassedCodeCount}</p>
+              </div>
+            </div>
+
+            {data.codeReviewError ? (
+              <p role="alert" className="mt-5 border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {data.codeReviewError}
+              </p>
+            ) : null}
+
+            <div className="mt-6 space-y-3">
+              {codeSubmissions.length ? codeSubmissions.map((submission) => {
+                const isExpanded = expandedCodeSubmissionId === submission.id;
+                const isLatest = data.account?.developer_latest_code_submission_id === submission.id;
+                const detailsId = `code-review-${submission.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+                return (
+                  <article key={submission.id} className={`border bg-white ${isLatest ? "border-[#008a7a]" : "border-slate-200"}`}>
+                    <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                      <div className="flex min-w-0 gap-3">
+                        <span className={`grid h-11 w-11 shrink-0 place-items-center border font-mono text-xs font-bold ${isLatest ? "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c]" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
+                          .PY
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="break-all font-bold text-slate-950">{getCodeSubmissionDownloadName(submission)}</h3>
+                            {isLatest ? (
+                              <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#006a5c]">
+                                Latest
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-1 text-sm text-slate-600">
+                            {formatCodeSubmissionSource(submission)} - {submission.robot_model} - {formatDateTime(submission.created_at)}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">Review ID: {submission.id}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                        <span className={`border px-3 py-2 text-xs font-bold ${codeReviewStatusTone(submission.physical_safety_status)}`}>
+                          Hardware: {formatCodeReviewStatus(submission.physical_safety_status)}
+                        </span>
+                        <span className={`border px-3 py-2 text-xs font-bold ${codeReviewStatusTone(submission.ai_security_status)}`}>
+                          Software: {formatCodeReviewStatus(submission.ai_security_status)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => downloadCodeSubmission(submission)}
+                          aria-label={`Download ${getCodeSubmissionDownloadName(submission)}`}
+                          title="Download reviewed code file"
+                          className="inline-flex items-center justify-center gap-2 border border-[#008a7a] bg-white px-3 py-2 text-xs font-bold text-[#006a5c] transition hover:bg-[#e8f7f3]"
+                        >
+                          <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-[1.8]">
+                            <path d="M8 2.5v7M5.2 7.4 8 10.2l2.8-2.8M3 12.5h10" />
+                          </svg>
+                          Download
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedCodeSubmissionId(isExpanded ? "" : submission.id)}
+                          aria-expanded={isExpanded}
+                          aria-controls={detailsId}
+                          className="border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
+                        >
+                          {isExpanded ? "Hide Details" : "View Details"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isExpanded ? (
+                      <div id={detailsId} className="border-t border-slate-200 bg-slate-50 p-4">
+                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)]">
+                          <div className="min-w-0 border border-slate-200 bg-[#0b0f14]">
+                            <div className="flex items-center justify-between gap-3 border-b border-slate-700 px-4 py-3">
+                              <p className="break-all font-mono text-xs text-slate-300">{getCodeSubmissionFileName(submission)}</p>
+                              <p className="shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-400">Saved review version</p>
+                            </div>
+                            <pre className="max-h-80 overflow-auto p-4 font-mono text-xs leading-6 text-slate-100">
+                              <code>{submission.code}</code>
+                            </pre>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="border border-slate-200 bg-white p-4">
+                              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Review Result</p>
+                              <p className="mt-2 text-sm font-bold text-slate-950">
+                                {submission.ai_security_status === "passed"
+                                  ? "Approved for supervised custom-code scheduling."
+                                  : submission.physical_safety_status === "passed"
+                                    ? "Hardware passed. Software Check is still required."
+                                    : "This file has not passed the hardware check."}
+                              </p>
+                              {submission.ai_security_summary ? (
+                                <p className="mt-2 text-sm leading-6 text-slate-600">{submission.ai_security_summary}</p>
+                              ) : null}
+                            </div>
+                            <div className="border border-slate-200 bg-white p-4">
+                              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Detected Commands</p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {submission.commands.length ? submission.commands.map((command, index) => (
+                                  <span key={`${submission.id}-${index}-${command}`} className="border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-700">
+                                    {command}
+                                  </span>
+                                )) : (
+                                  <span className="text-sm text-slate-500">No commands recorded.</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              }) : (
+                <div className="border border-dashed border-slate-300 bg-slate-50 p-6">
+                  <p className="font-bold text-slate-950">No reviewed code files yet.</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Run the Physical Hardware Check from the Command Library. The passing version will be saved to this account automatically.
+                  </p>
+                  <Link
+                    href="/agentech-products/agentech-library/physical-hardware-check"
+                    className="mt-4 inline-flex border border-[#008a7a] bg-[#008a7a] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#006a5c]"
+                  >
+                    Open Hardware Check
+                  </Link>
+                </div>
+              )}
             </div>
           </section>
         ) : null}
