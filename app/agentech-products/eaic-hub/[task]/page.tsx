@@ -10,7 +10,8 @@ const legacyTaskRedirects: Record<string, AgentechLibraryTaskSlug> = {
   "safety-limits": "view-sdk",
   examples: "view-sdk",
   submit: "software-check",
-  "submit-review": "physical-hardware-check",
+  "submit-review": "software-check",
+  "physical-hardware-check": "software-check",
   "request-robot-slot": "watch-live-run"
 };
 

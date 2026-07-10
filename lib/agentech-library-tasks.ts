@@ -16,24 +16,16 @@ export const agentechLibraryTasks = [
     tint: "#ecf3ff"
   },
   {
-    slug: "physical-hardware-check",
-    number: "03",
-    title: "Physical Hardware Check",
-    summary: "Upload or paste Python code so command parameters and robot-body limits are checked before software review.",
-    accent: "#6c2bd9",
-    tint: "#f3efff"
-  },
-  {
     slug: "software-check",
-    number: "04",
-    title: "Software Check",
-    summary: "Run the GPT software security review after the physical hardware check passes.",
+    number: "03",
+    title: "Code Certification",
+    summary: "Run hardware safety first, then start software security review after it passes.",
     accent: "#c85016",
     tint: "#fff4ec"
   },
   {
     slug: "watch-live-run",
-    number: "05",
+    number: "04",
     title: "Live Stream",
     summary: "Watch the supervised robot run after scheduling an approved session.",
     accent: "#149448",
@@ -41,7 +33,7 @@ export const agentechLibraryTasks = [
   }
 ] as const;
 
-export type AgentechLibraryTaskSlug = (typeof agentechLibraryTasks)[number]["slug"];
+export type AgentechLibraryTaskSlug = (typeof agentechLibraryTasks)[number]["slug"] | "physical-hardware-check";
 
 export function getAgentechLibraryTask(slug: string) {
   return agentechLibraryTasks.find((task) => task.slug === slug);

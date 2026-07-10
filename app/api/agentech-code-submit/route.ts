@@ -50,6 +50,22 @@ function isAllowedRunMode(value: string) {
   return value === "Physical hardware limit and capability test" || value === "Software check" || value === "AI software security review" || value === "Benchmark review only";
 }
 
+function localSoftwareSecurityFindings(code: string) {
+  const findings: string[] = [];
+  const checks: Array<[RegExp, string]> = [
+    [/^\s*(?:from|import)\s+(?:requests|urllib|http|ftplib|smtplib|paramiko|socket)\b/m, "External network access is not allowed in submitted robot code."],
+    [/\b(?:requests\.(?:get|post|put|patch|delete)|urlopen|socket\.)\s*\(/, "The code attempts an outbound network request or connection."],
+    [/\b(?:os\.environ|getenv)\b|\.env\b|API[_ -]?KEY|SECRET|TOKEN/i, "The code attempts to access or reference credentials or environment secrets."],
+    [/\b(?:subprocess\.|os\.system|popen\s*\(|shell\s*=\s*True)/, "Shell or process execution is not allowed."],
+    [/\b(?:base64|marshal|pickle|exec\s*\(|eval\s*\()/, "Dynamic or encoded execution is not allowed."],
+    [/\bwhile\s+(?:True|1)\s*:/, "An unbounded loop could exhaust resources or hang the robot session."]
+  ];
+  checks.forEach(([pattern, message]) => {
+    if (pattern.test(code) && !findings.includes(message)) findings.push(message);
+  });
+  return findings;
+}
+
 function getGatewayErrorStatus(error: unknown) {
   const status = typeof error === "object" && error !== null && "status" in error
     ? Number((error as { status?: unknown }).status)
@@ -272,6 +288,22 @@ export async function POST(request: NextRequest) {
 
       if (reviewStage === "software") {
         const id = submissionId || `local-software-${Date.now()}`;
+        const findings = localSoftwareSecurityFindings(code);
+        if (findings.length) {
+          return NextResponse.json({
+            error: "Software Security failed.",
+            id,
+            aiSecurityStatus: "failed",
+            riskLevel: "high",
+            summary: "Local preview detected software or platform security risk.",
+            findings,
+            creditsCharged: 0,
+            creditsBypassed: true,
+            internalAccount,
+            status: "software_security_failed",
+            localPreview: true
+          }, { status: 400 });
+        }
         return NextResponse.json({
           id,
           submittedAt: new Date().toISOString(),
