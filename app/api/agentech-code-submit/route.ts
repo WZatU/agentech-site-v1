@@ -14,6 +14,7 @@ import {
 import { runAgentechAiCodeReview } from "@/lib/agentech-ai-review";
 import { evaluateAgentechMovementSafety } from "@/lib/agentech-motion-safety";
 import { validateAgentechCode } from "@/lib/agentech-validation";
+import { getSoftwareCheckCreditPolicy, isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail } from "@/lib/prototype-auth";
 import { getServerAccountEmail } from "@/lib/server-account-session";
 
@@ -71,10 +72,75 @@ async function writeLocalSubmission(id: string, record: unknown) {
   await fs.writeFile(path.join(outputDir, `${id}.json`), JSON.stringify(record, null, 2), "utf8");
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    const submittedEmail = await getServerAccountEmail(request);
+    const isLocalPreview = process.env.NODE_ENV !== "production";
+    const email = isValidEmail(submittedEmail) ? submittedEmail : isLocalPreview ? "developer.preview@agentech.local" : submittedEmail;
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: "Your account session could not be verified. Sign in again, then retry the check.", errorCode: "AUTH_REQUIRED" },
+        { status: 401 }
+      );
+    }
+
+    if (isLocalPreview) {
+      return NextResponse.json({
+        ok: true,
+        internalAccount: isAgentechCompanyEmail(email),
+        creditsRequired: 0,
+        creditCost: getAiReviewCreditCost(),
+        latestSubmission: null,
+        localPreview: true
+      });
+    }
+
+    const account = await getAccountRecord(email);
+    if (!account) {
+      return NextResponse.json(
+        { error: "The signed-in account could not be found. Refresh your account page, then retry.", errorCode: "ACCOUNT_NOT_FOUND" },
+        { status: 404 }
+      );
+    }
+
+    const { internalCompanyAccount: internalAccount } = getSoftwareCheckCreditPolicy(email);
+    const submissionId = account.developer_latest_code_submission_id;
+    const submission = submissionId ? await getCodeSubmissionRecord(submissionId, email) : null;
+
+    return NextResponse.json({
+      ok: true,
+      internalAccount,
+      creditsRequired: internalAccount ? 0 : getAiReviewCreditCost(),
+      creditCost: getAiReviewCreditCost(),
+      latestSubmission: submission
+        ? {
+            id: submission.id,
+            developerName: submission.developer_name,
+            robotModel: submission.robot_model,
+            runMode: submission.run_mode,
+            code: submission.code,
+            uploadedFileName: submission.uploaded_file_name,
+            commands: submission.commands,
+            physicalSafetyStatus: submission.physical_safety_status,
+            aiSecurityStatus: submission.ai_security_status,
+            creditsCharged: submission.credits_charged,
+            createdAt: submission.created_at
+          }
+        : null
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to load the latest code-review gate." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as SubmissionPayload;
-    const submittedEmail = await getServerAccountEmail(request, { allowLegacyCookie: true });
+    const submittedEmail = await getServerAccountEmail(request);
     const isLocalPreview = process.env.NODE_ENV !== "production";
     const email = isValidEmail(submittedEmail) ? submittedEmail : isLocalPreview ? "developer.preview@agentech.local" : submittedEmail;
     const developerName = cleanText(payload.developerName, isLocalPreview ? "Local preview" : "Agentech developer") || "Agentech developer";
@@ -85,6 +151,7 @@ export async function POST(request: NextRequest) {
     const reviewStage = cleanText(payload.reviewStage, "physical");
     const submissionId = cleanText(payload.submissionId);
     const commands = extractCommands(code);
+    const { internalCompanyAccount: internalAccount } = getSoftwareCheckCreditPolicy(email);
 
     if (!isAllowedRunMode(runMode)) {
       return NextResponse.json({ error: "Choose a valid review mode.", errorCode: "INVALID_RUN_MODE" }, { status: 400 });
@@ -162,6 +229,7 @@ export async function POST(request: NextRequest) {
           movementSafety,
           aiSecurityStatus: "locked",
           status: "physical_hardware_passed",
+          internalAccount,
           localPreview: true
         });
       }
@@ -180,6 +248,8 @@ export async function POST(request: NextRequest) {
           summary: "Local preview Software Check passed without account credits.",
           findings: [],
           creditsCharged: 0,
+          creditsBypassed: true,
+          internalAccount,
           status: "approved_for_live_test",
           localPreview: true
         });
@@ -260,7 +330,8 @@ export async function POST(request: NextRequest) {
         physicalSafetyStatus: "passed",
         movementSafety,
         aiSecurityStatus: "locked",
-        status: "physical_hardware_passed"
+        status: "physical_hardware_passed",
+        internalAccount
       });
     }
 
@@ -315,7 +386,7 @@ export async function POST(request: NextRequest) {
 
     const creditCost = getAiReviewCreditCost();
     const spendPreview = allocateCreditSpend(account, creditCost);
-    if (spendPreview.rechargeRequired) {
+    if (spendPreview.rechargeRequired && !internalAccount) {
       await writeLocalSubmission(submission.id, record);
       return NextResponse.json(
         {
@@ -386,8 +457,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const spend = await spendAccountCredits(email, creditCost);
-    if (!spend || spend.rechargeRequired) {
+    let creditsCharged = 0;
+    let spend: Awaited<ReturnType<typeof spendAccountCredits>> = null;
+    try {
+      spend = await spendAccountCredits(email, creditCost);
+    } catch (error) {
+      if (!internalAccount) {
+        throw error;
+      }
+    }
+    if (spend && !spend.rechargeRequired) {
+      creditsCharged = creditCost;
+    } else if (!internalAccount) {
       const message = "AI security scan completed, but account credits could not be charged. Recharge and run Software Check again.";
       await updateCodeSubmissionRecord(submission.id, {
         ai_security_status: "error",
@@ -412,7 +493,7 @@ export async function POST(request: NextRequest) {
       ai_security_findings: aiResult.review.findings,
       ai_security_risk_level: aiResult.review.riskLevel,
       ai_security_reviewed_at: new Date().toISOString(),
-      credits_charged: creditCost
+      credits_charged: creditsCharged
     });
     await markDeveloperReviewGateOnAccount({
       email,
@@ -427,7 +508,7 @@ export async function POST(request: NextRequest) {
       aiSecuritySummary: aiResult.review.summary,
       aiSecurityFindings: aiResult.review.findings,
       aiSecurityRiskLevel: aiResult.review.riskLevel,
-      creditsCharged: creditCost
+      creditsCharged
     });
 
     if (!aiResult.review.passed) {
@@ -439,7 +520,9 @@ export async function POST(request: NextRequest) {
           aiSecurityStatus,
           riskLevel: aiResult.review.riskLevel,
           findings: aiResult.review.findings,
-          creditsCharged: creditCost
+          creditsCharged,
+          creditsBypassed: internalAccount && creditsCharged === 0,
+          internalAccount
         },
         { status: 422 }
       );
@@ -456,7 +539,9 @@ export async function POST(request: NextRequest) {
       riskLevel: aiResult.review.riskLevel,
       summary: aiResult.review.summary,
       findings: aiResult.review.findings,
-      creditsCharged: creditCost,
+      creditsCharged,
+      creditsBypassed: internalAccount && creditsCharged === 0,
+      internalAccount,
       status: "approved_for_live_test"
     });
   } catch (error) {

@@ -12,6 +12,8 @@ Agentech Website is the main web platform for Agentech robotics, education, tale
 
 The repository is designed to work like a professional product codebase: public pages live beside operational documentation, hidden launch switches are easy to find, and repeatable content flows such as News can be maintained through GitHub.
 
+Repository: [agent-tech0316/agentech-site-v1](https://github.com/agent-tech0316/agentech-site-v1)
+
 ## What This Repository Contains
 
 - Public company website for Robotics, Education, Bots, Talents, About, and News.
@@ -38,6 +40,8 @@ The repository is designed to work like a professional product codebase: public 
 
 Important documents:
 
+- [Contributing and repository workflow](CONTRIBUTING.md)
+- [Software Check access policy](docs/software-check-access-policy.md)
 - [Dropbox News automation](docs/dropbox-news-automation.md)
 - [Documentation index](docs/documentation-index.md)
 - Hidden product documents page: `/agentech-products/documents`
@@ -482,7 +486,7 @@ This page is the beginning of a company-wide documentation system inspired by Nu
 
 Initial linked repositories:
 
-- `https://github.com/WZatU/agentech-site-v1`
+- `https://github.com/agent-tech0316/agentech-site-v1`
 - `https://github.com/Agent-tech-ai/grades-3-5-teaching-materials`
 
 Recommended long-term documentation structure:
@@ -527,6 +531,8 @@ Library behavior:
 - Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
 - `Physical Hardware Check` and `Software Check` use one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
 - `Software Check` must remain locked until Supabase says the account/submission passed Step 3 Physical Hardware Check.
+- The Software Check page restores the latest passed Step 3 submission from the signed-in account, so changing routes or refreshing does not relock a valid hardware pass.
+- `@agent-tech.ai` addresses are internal company accounts. Charge the configured Software Check credits when available, but never block an internal test because its credit balance is insufficient. External accounts must have enough credits.
 - `Live Stream` scheduling must remain locked for regular users until both Step 3 Physical Hardware Check and Step 4 Software Check pass. Internal `@agent-tech.ai` accounts can schedule testing slots without the two code-review gates.
 - `Live Stream` stays focused on the webcam/live-view module, but users must still schedule a robot slot before a stream token is issued.
 - The prototype hardware/simulation validator handoff is stored locally at `engineer_handoff/agentech_t3_engineer_handoff/`, with the original zip preserved at `engineer_handoff/agentech_t3_engineer_handoff.zip`.
@@ -556,6 +562,18 @@ Software Check must use the same .py submission that passed Step 3 Physical Hard
 ```
 
 The current implementation already records the uploaded file name and code in Supabase. When the real hardware check from the engineer handoff is wired in, it should plug into Step 3 and keep writing the same Supabase status fields. The GPT Software Check should remain behind that Supabase gate.
+
+### Company Account And Admin Rules
+
+- `@agent-tech.ai` identifies an Agentech company/internal account. The shared source of truth is `lib/company-accounts.ts`.
+- Internal accounts still run the same Physical Hardware Check and Software Check when testing this workflow.
+- After Step 3 passes, a saved submission remains unlocked across navigation and refresh because the Software Check page reloads the latest account-owned submission from the server.
+- Software Check credits are charged to internal accounts when enough credits are available. An insufficient internal balance does not block the test.
+- External accounts must have enough credits before the OpenAI Software Check runs.
+- The AI Gateway admin dashboard labels internal and external accounts, shows Software Check balances and per-submission credits charged, and displays this policy above the developer list.
+- Admin data remains protected by the server-side admin table; a client-side company label does not grant admin access.
+
+See [Software Check access policy](docs/software-check-access-policy.md) for the decision table and operator checks.
 
 ### Step 3 Physical Hardware Check
 
@@ -777,25 +795,20 @@ Useful local scripts:
 
 ## Development Workflow
 
-This repository lives at:
-
-```text
-D:\Agentech\Agentech Website
-```
-
-The parent folder `D:\Agentech` is a workspace folder, not the Git repository.
-
 Typical workflow:
 
 ```bash
-cd "D:\Agentech\Agentech Website"
 git status
-git pull
-npm run build
-git add .
-git commit -m "Update website"
-git push
+git pull --ff-only
+git switch -c codex/short-change-name
+npm install
+npm run check
+git add <changed-files>
+git commit -m "Describe the change"
+git push -u origin codex/short-change-name
 ```
+
+Open a pull request into `main` and use the repository pull-request checklist. Do not commit `.env` files, build output, logs, local submissions, or TypeScript build metadata. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Documentation workflow:
 
@@ -815,13 +828,12 @@ Write Markdown
 | `npm run build` | Build production site |
 | `npm run start` | Start production server |
 | `npm run serve:3001` | Start production server on port 3001 |
+| `npm run lint` | Lint JavaScript and TypeScript source |
+| `npm run typecheck` | Run TypeScript without emitting build files |
+| `npm run check` | Run lint, typecheck, and the production build |
 | `npm run import:news` | Import News from Dropbox |
 | `npm run import:news:local` | Import News from a local source folder |
 | `npm run list:news` | List current News entries |
 | `npm run delete:news:number` | Delete a News entry by list number |
 | `npm run delete:news:date` | Delete a News entry by date |
 | `npm run delete:news:slug` | Delete a News entry by slug |
-
-## Repository Notes
-
-`trae-local/` is a legacy snapshot and is intentionally separate from the current Next.js application.

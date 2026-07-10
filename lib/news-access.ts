@@ -1,6 +1,5 @@
 import type { NewsEntry } from "@/lib/news";
-
-const companyNewsDomain = "@agent-tech.ai";
+import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 
 function getAllowedCompanyNewsEmails() {
   return (process.env.COMPANY_NEWS_ALLOWED_EMAILS || process.env.NEXT_PUBLIC_COMPANY_NEWS_ALLOWED_EMAILS || "")
@@ -30,7 +29,7 @@ export function canViewCompanyNews(email: string | undefined | null) {
     return false;
   }
 
-  return normalizedEmail.endsWith(companyNewsDomain) || getAllowedCompanyNewsEmails().includes(normalizedEmail);
+  return isAgentechCompanyEmail(normalizedEmail) || getAllowedCompanyNewsEmails().includes(normalizedEmail);
 }
 
 export function canViewNewsEntry(entry: Pick<NewsEntry, "visibility">, email: string | undefined | null) {

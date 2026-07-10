@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { AiGatewayAdminDashboard } from "@/components/ai-gateway-admin-dashboard";
+import { isAgentechGatewayOwnerEmail } from "@/lib/company-accounts";
 import { isValidEmail } from "@/lib/prototype-auth";
 import { getServerAccountEmail } from "@/lib/server-account-session";
 import { supabaseRequest } from "@/lib/supabase-server";
@@ -10,7 +11,7 @@ export const metadata = {
 };
 
 async function isAiGatewayAdmin(email: string) {
-  if (email !== "info@agent-tech.ai") {
+  if (!isAgentechGatewayOwnerEmail(email)) {
     return false;
   }
 

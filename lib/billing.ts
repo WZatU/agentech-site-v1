@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { AGENTECH_COMPANY_DOMAIN } from "@/lib/company-accounts";
 import { sendEmail } from "@/lib/email";
 import { type InvoiceItem } from "@/lib/invoices";
 import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
@@ -102,7 +103,7 @@ function nowIso() {
 
 export function isBillingAdminEmail(email: string) {
   const normalized = email.trim().toLowerCase();
-  const companyAdminDomain = process.env.AGENTECH_ADMIN_DOMAIN || "agent-tech.ai";
+  const companyAdminDomain = process.env.AGENTECH_ADMIN_DOMAIN || AGENTECH_COMPANY_DOMAIN;
   const envAdmins = (process.env.AGENTECH_ADMIN_EMAILS || process.env.ADMIN_EMAILS || "")
     .split(",")
     .map((item) => item.trim().toLowerCase())

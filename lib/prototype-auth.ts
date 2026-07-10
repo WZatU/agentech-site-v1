@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { supabaseRequest } from "@/lib/supabase-server";
 
 export type StoredAccount = {
@@ -31,7 +32,7 @@ export function isValidEmail(email: string) {
 }
 
 export function isInternalAccountEmail(email: unknown) {
-  return normalizeEmail(email).endsWith("@agent-tech.ai");
+  return isAgentechCompanyEmail(typeof email === "string" ? email : "");
 }
 
 export function isValidPassword(password: unknown) {

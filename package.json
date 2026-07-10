@@ -16,7 +16,9 @@
     "list:news": "node scripts/delete-news-entry.mjs --list",
     "robot:stream-bridge": "node scripts/robot-stream-bridge.mjs",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.21",

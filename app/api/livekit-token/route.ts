@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { accountSessionCookieName } from "@/lib/account-session";
 import { getAccountRecord } from "@/lib/account-records";
+import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 import { supabaseRequest } from "@/lib/supabase-server";
 
@@ -10,10 +11,6 @@ export const dynamic = "force-dynamic";
 
 const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
 const activeSessionStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
-
-function isInternalEmail(email: string) {
-  return email.trim().toLowerCase().endsWith("@agent-tech.ai");
-}
 
 function normalizeStatus(status: string) {
   return status.replace(/ /g, "_").toLowerCase();
@@ -54,7 +51,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
   }
 
-  if (!isInternalEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
+  if (!isAgentechCompanyEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
     return NextResponse.json({ error: "Live robot viewing requires account credits." }, { status: 402 });
   }
 

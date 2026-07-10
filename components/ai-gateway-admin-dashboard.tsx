@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { clearAccountSession, getAccountSession } from "@/lib/account-session";
+import { AGENTECH_COMPANY_EMAIL_SUFFIX, isAgentechCompanyEmail, isAgentechGatewayOwnerEmail } from "@/lib/company-accounts";
 
 type AdminAiCap = {
   user_id: string;
@@ -43,6 +44,9 @@ type AdminDeveloperProfile = {
 
 type AdminDeveloperAccount = {
   email: string;
+  credit_balance: number | string;
+  paid_credit_balance: number | string;
+  bonus_credit_balance: number | string;
   developer_latest_code_submission_id: string | null;
   developer_physical_safety_status: string | null;
   developer_ai_security_status: string | null;
@@ -83,10 +87,6 @@ type AdminAiUsageData = {
   developerAccounts: AdminDeveloperAccount[];
   codeSubmissions: AdminCodeSubmissionSummary[];
 };
-
-function looksLikeGatewayAdmin(email: string) {
-  return email.trim().toLowerCase() === "info@agent-tech.ai";
-}
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "Not set";
@@ -266,7 +266,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
   }, [adminEmail]);
 
   useEffect(() => {
-    if (!email || !looksLikeGatewayAdmin(email)) {
+    if (!email || !isAgentechGatewayOwnerEmail(email)) {
       setLoading(false);
       return;
     }
@@ -280,9 +280,11 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     const totalCost = data.caps.reduce((total, cap) => total + Number(cap.current_cost ?? 0), 0);
     const activeGatewayUsers = data.caps.filter((cap) => Number(cap.current_requests ?? 0) > 0).length;
     const pausedGatewayUsers = data.caps.filter((cap) => isGatewayPaused(cap)).length;
+    const internalDeveloperProfiles = data.developerProfiles.filter((profile) => isAgentechCompanyEmail(profile.account_email)).length;
+    const internalCodeSubmissions = data.codeSubmissions.filter((submission) => isAgentechCompanyEmail(submission.email)).length;
 
-    return { totalRequests, totalTokens, totalCost, activeGatewayUsers, pausedGatewayUsers };
-  }, [data.caps]);
+    return { totalRequests, totalTokens, totalCost, activeGatewayUsers, pausedGatewayUsers, internalDeveloperProfiles, internalCodeSubmissions };
+  }, [data.caps, data.codeSubmissions, data.developerProfiles]);
 
   const capByEmail = useMemo(() => new Map(data.caps.map((cap) => [cap.user_id, cap])), [data.caps]);
   const accountByEmail = useMemo(() => new Map(data.developerAccounts.map((account) => [account.email, account])), [data.developerAccounts]);
@@ -330,7 +332,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
     );
   }
 
-  if (!looksLikeGatewayAdmin(email)) {
+  if (!isAgentechGatewayOwnerEmail(email)) {
     return (
       <div className="rounded-[24px] border border-red-200 bg-red-50 p-8">
         <h1 className="text-3xl font-bold text-red-950">Admin Access Required</h1>
@@ -408,13 +410,29 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
           </p>
         </section>
 
+        <section className="rounded-[18px] border border-[#2f70c8]/25 bg-[#eff6ff] px-5 py-4 shadow-[0_10px_30px_rgba(47,112,200,0.08)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#245da7]">Company Software Check Policy</p>
+              <h2 className="mt-1 text-xl font-black text-slate-950">{AGENTECH_COMPANY_EMAIL_SUFFIX} accounts are internal company accounts.</h2>
+              <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-700">
+                A passed Physical Hardware Check unlocks Software Check. Charge company credits when they are available, but an insufficient company balance must never block internal testing. External accounts still require enough credits.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2 md:max-w-[260px] md:justify-end">
+              <span className="rounded-full bg-[#2f70c8] px-3 py-1 text-xs font-black text-white">{summary.internalDeveloperProfiles} internal profiles</span>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#245da7]">{summary.internalCodeSubmissions} internal submissions</span>
+            </div>
+          </div>
+        </section>
+
         {message ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">{message}</p>
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[
-            { label: "Developer Profiles", value: data.developerProfiles.length.toLocaleString(), helper: "Profiles with developer access" },
+            { label: "Developer Profiles", value: data.developerProfiles.length.toLocaleString(), helper: `${summary.internalDeveloperProfiles.toLocaleString()} internal company profiles` },
             { label: "Gateway Users", value: summary.activeGatewayUsers.toLocaleString(), helper: "Used AI this month" },
             { label: "Monthly Requests", value: summary.totalRequests.toLocaleString(), helper: "Across all users" },
             { label: "Recent Velocity", value: `${gatewayHistory.callsLastHour.toLocaleString()} / ${gatewayHistory.callsLast24h.toLocaleString()}`, helper: "Calls in 1h / 24h" },
@@ -456,6 +474,8 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               const highRecentUse = history.callsLastHour >= 5;
               const paused = isGatewayPaused(cap);
               const isActing = actingEmail === profile.account_email;
+              const internalCompanyAccount = isAgentechCompanyEmail(profile.account_email);
+              const creditBalance = Number(account?.credit_balance ?? 0);
 
               return (
                 <article
@@ -468,6 +488,15 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate text-lg font-black text-slate-950">{profile.display_name || profile.username}</p>
+                        {internalCompanyAccount ? (
+                          <span className="inline-flex rounded-full bg-[#2f70c8] px-2 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-white">
+                            Company / Internal
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600">
+                            External
+                          </span>
+                        )}
                         {paused ? (
                           <span className="inline-flex rounded-full bg-red-600 px-2 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-white">
                             AI Paused
@@ -497,11 +526,16 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                       </div>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                       {[
                         { label: "Requests", value: `${requests.toLocaleString()} / ${requestLimit.toLocaleString()}`, helper: "monthly calls" },
                         { label: "Tokens", value: formatTokenCount(tokens), helper: "prompt + completion" },
                         { label: "Cost", value: formatGatewayCost(cost), helper: `limit ${formatGatewayCost(costLimit)}` },
+                        {
+                          label: "Software Credits",
+                          value: Math.max(0, Math.floor(creditBalance)).toLocaleString(),
+                          helper: internalCompanyAccount ? "charge if available; never blocks" : "required for Software Check"
+                        },
                         {
                           label: "History",
                           value: history.latest ? formatDateTime(history.latest.created_at) : "Never used",
@@ -568,6 +602,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               const fileLabel = submission.uploaded_file_name || (submission.source === "pasted_code" ? "Pasted code" : "No filename");
               const isSelected = selectedSubmission?.id === submission.id;
               const loadingCode = loadingSubmissionId === submission.id;
+              const internalCompanyAccount = isAgentechCompanyEmail(submission.email);
 
               return (
                 <article
@@ -578,12 +613,19 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                 >
                   <div className="grid gap-4 xl:grid-cols-[minmax(240px,1fr)_minmax(360px,1.2fr)_170px] xl:items-center">
                     <div className="min-w-0">
-                      <p className="break-all text-sm font-black text-slate-950">{submission.email}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="break-all text-sm font-black text-slate-950">{submission.email}</p>
+                        <span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${
+                          internalCompanyAccount ? "bg-[#2f70c8] text-white" : "bg-slate-100 text-slate-600"
+                        }`}>
+                          {internalCompanyAccount ? "Company / Internal" : "External"}
+                        </span>
+                      </div>
                       <p className="mt-2 min-w-0 break-words font-mono text-xs font-semibold text-slate-600 [overflow-wrap:anywhere]">{fileLabel}</p>
                       <p className="mt-2 text-xs font-semibold text-slate-500">{formatDateTime(submission.created_at)}</p>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                         <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Physical</p>
                         <p className="mt-2 text-sm font-black text-slate-950">{formatStatus(submission.physical_safety_status)}</p>
@@ -595,6 +637,10 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                         <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Commands</p>
                         <p className="mt-2 text-sm font-black text-slate-950">{commands.length.toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Credits Charged</p>
+                        <p className="mt-2 text-sm font-black text-slate-950">{formatTokenCount(submission.credits_charged)}</p>
                       </div>
                     </div>
 
@@ -651,10 +697,12 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                   </button>
                 </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
                   {[
+                    { label: "Account", value: isAgentechCompanyEmail(selectedSubmission.email) ? "Company / Internal" : "External" },
                     { label: "Physical", value: formatStatus(selectedSubmission.physical_safety_status) },
                     { label: "Software", value: formatStatus(selectedSubmission.ai_security_status) },
+                    { label: "Credits Charged", value: formatTokenCount(selectedSubmission.credits_charged) },
                     { label: "Robot", value: selectedSubmission.robot_model || "Not set" },
                     { label: "Submitted", value: formatDateTime(selectedSubmission.created_at) }
                   ].map((item) => (

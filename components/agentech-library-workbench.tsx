@@ -1345,6 +1345,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [physicalSafetyPassed, setPhysicalSafetyPassed] = useState(false);
   const [isRunningPhysicalCheck, setIsRunningPhysicalCheck] = useState(false);
   const [isRunningSoftwareCheck, setIsRunningSoftwareCheck] = useState(false);
+  const [isLoadingReviewGate, setIsLoadingReviewGate] = useState(task === "software-check");
+  const [isInternalCompanyAccount, setIsInternalCompanyAccount] = useState(false);
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
   const [hardwareResult, setHardwareResult] = useState<HardwareResult | null>(null);
   const initialPreview = previewAssetForCode(starterCode, "stand");
@@ -1407,8 +1409,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       : hardwarePassed
         ? "border-[#008a7a] bg-[#e8f7f3]"
         : "border-[#dce7f2] bg-[#f8fbff]";
-  const statusPanelTitle = softwarePassed ? "Step 4 passed" : hardwareWarning ? "Step 3 warning" : hardwareFailed ? "Step 3 failed" : hardwarePassed ? "Step 3 passed" : "Ready";
-  const statusPanelCopy = softwarePassed
+  const statusPanelTitle = isLoadingReviewGate ? "Checking saved result" : softwarePassed ? "Step 4 passed" : hardwareWarning ? "Step 3 warning" : hardwareFailed ? "Step 3 failed" : hardwarePassed ? "Step 3 passed" : "Ready";
+  const statusPanelCopy = isLoadingReviewGate
+    ? "Loading your latest Physical Hardware Check from the account record."
+    : softwarePassed
     ? "Step 5 Live Stream scheduling is unlocked."
     : hardwareWarning
       ? "Movement entered the warning zone for the physical test box. Step 4 stays locked until movement is within the pass limit."
@@ -1422,6 +1426,112 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const showFocusedLiveRun = selectedTask?.slug === "watch-live-run";
   const showDocs = !selectedTask;
   const useLightTaskPage = Boolean(selectedTask);
+
+  useEffect(() => {
+    if (!showFocusedReview) {
+      setIsLoadingReviewGate(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+
+    async function loadLatestReviewGate() {
+      setIsLoadingReviewGate(selectedTask?.slug === "software-check");
+      try {
+        const response = await fetch("/api/agentech-code-submit", {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal
+        });
+        const payload = (await response.json().catch(() => ({ error: "The saved review result could not be read." }))) as {
+          error?: string;
+          internalAccount?: boolean;
+          localPreview?: boolean;
+          latestSubmission?: {
+            id: string;
+            developerName?: string;
+            robotModel?: string;
+            code: string;
+            uploadedFileName?: string | null;
+            physicalSafetyStatus: string;
+            aiSecurityStatus: string;
+          } | null;
+        };
+
+        if (!active) {
+          return;
+        }
+
+        setIsInternalCompanyAccount(payload.internalAccount === true);
+        if (selectedTask?.slug !== "software-check") {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Unable to load the latest Physical Hardware Check.");
+        }
+
+        let latestSubmission = payload.latestSubmission ?? null;
+        if (!latestSubmission && payload.localPreview) {
+          try {
+            latestSubmission = JSON.parse(window.sessionStorage.getItem("agentech-latest-physical-review") ?? "null");
+          } catch {
+            latestSubmission = null;
+          }
+        }
+
+        if (!latestSubmission || latestSubmission.physicalSafetyStatus !== "passed") {
+          setRequestStatus("Run and pass Step 3 Physical Hardware Check before starting Step 4 Software Check.");
+          return;
+        }
+
+        const restoredCode = ensureRequiredStand(latestSubmission.code);
+        const restoredPlan = commandPlan(restoredCode);
+        const movementSafety = evaluateAgentechMovementSafety(restoredCode);
+        setCode(restoredCode);
+        setUploadedFileName(latestSubmission.uploadedFileName ?? "");
+        setPhysicalSubmissionId(latestSubmission.id);
+        setPhysicalSafetyPassed(true);
+        setCanScheduleRobotSlot(latestSubmission.aiSecurityStatus === "passed");
+        setHardwareResult({
+          status: "PASS",
+          resultId: latestSubmission.id,
+          robotModel: latestSubmission.robotModel || robotModel,
+          fileName: latestSubmission.uploadedFileName || "pasted code",
+          commandCount: restoredPlan.trace.length,
+          checklist: buildHardwareChecklist("PASS", "", movementSafety),
+          motionPlan: restoredPlan.trace,
+          simulationClips: simulationClipsForMotionPlan(restoredPlan.trace),
+          simulationError: "",
+          finalHint: "The saved Physical Hardware Check passed. This submission is ready for Software Check.",
+          movementSafety
+        });
+        setRequestStatus(
+          latestSubmission.aiSecurityStatus === "passed"
+            ? `Step 4 Software Check already passed for review ${latestSubmission.id}. Step 5 Live Stream scheduling is unlocked.`
+            : `Saved Step 3 Physical Hardware Check restored. Step 4 Software Check is unlocked. Review ID: ${latestSubmission.id}.`
+        );
+      } catch (error) {
+        if (!active || (error instanceof Error && error.name === "AbortError")) {
+          return;
+        }
+        const message = error instanceof Error ? error.message : "Unable to load the latest Physical Hardware Check.";
+        setReviewInputError(message);
+        setRequestStatus(message);
+      } finally {
+        if (active) {
+          setIsLoadingReviewGate(false);
+        }
+      }
+    }
+
+    void loadLatestReviewGate();
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [selectedTask?.slug, showFocusedReview]);
 
   useEffect(() => {
     if (renderedFrames.length <= 1) {
@@ -1458,6 +1568,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setPhysicalSafetyPassed(false);
     setCanScheduleRobotSlot(false);
     setHardwareResult(null);
+    window.sessionStorage.removeItem("agentech-latest-physical-review");
     resetPreview(normalizedCode, preferredCommand);
   }
 
@@ -1652,6 +1763,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       }
       setPhysicalSubmissionId(payload.id);
       setPhysicalSafetyPassed(true);
+      setIsInternalCompanyAccount(payload.internalAccount === true);
       setReviewInputError("");
       setHardwareResult({
         status: "PASS",
@@ -1666,6 +1778,17 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         simulationError: "",
         finalHint: "All checks passed. This result is ready to submit for further review."
       });
+      if (payload.localPreview) {
+        window.sessionStorage.setItem("agentech-latest-physical-review", JSON.stringify({
+          id: payload.id,
+          developerName,
+          robotModel,
+          code: reviewCode,
+          uploadedFileName: uploadedFileName || null,
+          physicalSafetyStatus: "passed",
+          aiSecurityStatus: "locked"
+        }));
+      }
       setRequestStatus(`Step 3 Physical Hardware Check passed for ${payload.commandCount} commands. Step 4 Software Check is now unlocked. Review ID: ${payload.id}.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Physical Hardware Check failed.";
@@ -1713,7 +1836,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           : "";
         throw new Error(`${payload.error ?? "Software Check failed."}${findings}`);
       }
-      setRequestStatus(`Step 4 Software Check passed. ${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used. Step 5 Live Stream scheduling is now unlocked.`);
+      setIsInternalCompanyAccount(payload.internalAccount === true);
+      const creditMessage = payload.internalAccount
+        ? payload.creditsCharged > 0
+          ? `${payload.creditsCharged} company account credit${payload.creditsCharged === 1 ? "" : "s"} used; internal access remains available for testing.`
+          : "No company credits were available, so the internal test continued without a charge."
+        : payload.creditsBypassed
+          ? "No credits charged in local preview."
+          : `${payload.creditsCharged} account credit${payload.creditsCharged === 1 ? "" : "s"} used.`;
+      setRequestStatus(`Step 4 Software Check passed. ${creditMessage} Step 5 Live Stream scheduling is now unlocked.`);
       setCanScheduleRobotSlot(payload.aiSecurityStatus === "passed");
     } catch (error) {
       setCanScheduleRobotSlot(false);
@@ -1932,7 +2063,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <div className={`border p-3 ${step4PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Step 4 - Software Check</p>
-                    {softwarePassed ? (
+                    {isLoadingReviewGate ? (
+                      <span className="border border-[#93c5fd] bg-[#eaf3ff] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#194f92]">
+                        Checking
+                      </span>
+                    ) : softwarePassed ? (
                       <span className="inline-flex items-center gap-1 border border-[#008a7a] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
                         <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 fill-none stroke-current stroke-[2.5]">
                           <path d="M3.5 8.2 6.7 11.2 12.8 4.8" />
@@ -1950,17 +2085,23 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     )}
                   </div>
                   <p className="mt-2 text-xs leading-5 text-[#23304a]">
-                    {softwarePassed
+                    {isLoadingReviewGate
+                      ? "Checking the latest saved Physical Hardware Check for this account."
+                      : softwarePassed
                       ? "Software Check passed. Step 5 Live Stream scheduling is unlocked."
                       : hardwarePassed
-                        ? "Unlocked. Run Software Check now to continue to Live Stream scheduling."
-                        : "Locked until Step 3 passes. Uses GPT-5.5 and charges account credits."}
+                        ? isInternalCompanyAccount
+                          ? "Unlocked. Company credits can be charged, but credit balance does not block internal testing."
+                          : "Unlocked. Run Software Check now to continue to Live Stream scheduling."
+                        : isInternalCompanyAccount
+                          ? "Locked until Step 3 passes. Company credit balance does not block internal testing."
+                          : "Locked until Step 3 passes. Uses GPT-5.5 and charges account credits."}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={runPhysicalSafetyCheck}
-                  disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  disabled={isLoadingReviewGate || isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#2f70c8] bg-[#eaf3ff] px-4 py-3 text-sm font-semibold text-[#194f92] transition hover:bg-[#2f70c8] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRunningPhysicalCheck ? "Checking..." : hardwarePassed || hardwareFailed || hardwareWarning ? "Re-run Physical Hardware Check" : "Run Physical Hardware Check"}
@@ -1968,7 +2109,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <button
                   type="button"
                   onClick={runSoftwareCheck}
-                  disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className={`w-full border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-[#d5e0ec] disabled:bg-[#edf2f7] disabled:text-[#7d8b9c] ${
                     hardwarePassed && !softwarePassed
                       ? "border-[#008a7a] bg-[#008a7a] text-white hover:bg-[#006a5c]"
@@ -2241,7 +2382,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <button
                   type="button"
                   onClick={runPhysicalSafetyCheck}
-                  disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  disabled={isLoadingReviewGate || isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRunningPhysicalCheck ? "Checking..." : "Run Physical Hardware Check"}
@@ -2249,7 +2390,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <button
                   type="button"
                   onClick={runSoftwareCheck}
-                  disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
                   className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
                 >
                   {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}
@@ -2301,7 +2442,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Step 3 / Step 4 Review</p>
               <p className="mt-2 font-mono text-xs leading-5 text-[#cdd6df]">{plan.motionCount} motion commands</p>
-              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Physical Hardware Check must pass before Software Check uses account credits.</p>
+              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">
+                {isInternalCompanyAccount
+                  ? "Physical Hardware Check must pass first. Company credits may be charged, but balance never blocks internal testing."
+                  : "Physical Hardware Check must pass before Software Check uses account credits."}
+              </p>
             </div>
             <label className="block">
               <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Upload code file</span>
@@ -2320,7 +2465,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             <button
               type="button"
               onClick={runPhysicalSafetyCheck}
-              disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
+              disabled={isLoadingReviewGate || isRunningPhysicalCheck || isRunningSoftwareCheck}
               className="w-full border border-[#93c5fd] bg-[#101d2e] px-4 py-3 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isRunningPhysicalCheck ? "Checking..." : "Run Physical Hardware Check"}
@@ -2328,7 +2473,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             <button
               type="button"
               onClick={runSoftwareCheck}
-              disabled={!physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+              disabled={isLoadingReviewGate || !physicalSafetyPassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
               className="w-full border border-[#8fdc8f] bg-[#102015] px-4 py-3 text-sm font-semibold text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#151a20] disabled:text-[#687583]"
             >
               {isRunningSoftwareCheck ? "Checking..." : "Run Software Check"}

@@ -23,13 +23,15 @@ Write Markdown
 Repository:
 
 ```text
-https://github.com/WZatU/agentech-site-v1
+https://github.com/agent-tech0316/agentech-site-v1
 ```
 
 Primary docs:
 
 ```text
 README.md
+CONTRIBUTING.md
+docs/software-check-access-policy.md
 docs/dropbox-news-automation.md
 ```
 
@@ -38,6 +40,8 @@ Current documentation structure:
 ```text
 agentech-site-v1/
 |-- README.md
+|-- CONTRIBUTING.md
+|-- Software Check Access Policy
 |-- Overview
 |-- Architecture
 |-- News Automation
@@ -56,6 +60,7 @@ Covered topics:
 - Supabase tables for accounts, profiles, children, enrollments, invoices, preorder requests, and talent applications.
 - Environment variables and server-only secrets.
 - Local development, production build, preview server, and GitHub workflow.
+- Internal/external account identity, Software Check credit policy, persisted review gates, and admin visibility.
 - Hidden preorder, enroll, grade visibility, and QR route switch points.
 
 Next expansion targets:

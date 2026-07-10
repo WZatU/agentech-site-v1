@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       query: "profile_type=eq.developer&select=id,account_email,username,display_name,monthly_credit_limit,monthly_credits_used,monthly_usage_period,created_at&order=created_at.desc"
     }).catch(() => []),
     supabaseRequest("agentech_accounts", {
-      query: "select=email,developer_latest_code_submission_id,developer_physical_safety_status,developer_ai_security_status,developer_ai_security_passed_at"
+      query: "select=email,credit_balance,paid_credit_balance,bonus_credit_balance,developer_latest_code_submission_id,developer_physical_safety_status,developer_ai_security_status,developer_ai_security_passed_at"
     }).catch(() => []),
     supabaseRequest("agentech_code_submissions", {
       query: `${submissionFilter}select=id,email,developer_name,robot_model,run_mode,source,uploaded_file_name,commands,physical_safety_status,ai_security_status,ai_security_model,ai_security_summary,ai_security_findings,ai_security_risk_level,ai_security_reviewed_at,credits_charged,created_at,updated_at&order=created_at.desc&limit=${limit}`

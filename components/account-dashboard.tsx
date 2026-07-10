@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
+import { isAgentechCompanyEmail, isAgentechGatewayOwnerEmail } from "@/lib/company-accounts";
 import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 
@@ -700,14 +701,6 @@ function getCurrentUsagePeriod() {
   return new Date().toISOString().slice(0, 7);
 }
 
-function looksLikeAdminEmail(email: string) {
-  return email.trim().toLowerCase().endsWith("@agent-tech.ai");
-}
-
-function looksLikeGatewayOwnerEmail(email: string) {
-  return email.trim().toLowerCase() === "info@agent-tech.ai";
-}
-
 function toDateTimeLocalValue(date: Date) {
   return date.toISOString();
 }
@@ -929,7 +922,7 @@ export function AccountDashboard() {
   }, []);
 
   useEffect(() => {
-    if (email && looksLikeAdminEmail(email) && !adminCreditTargetEmail) {
+    if (email && isAgentechCompanyEmail(email) && !adminCreditTargetEmail) {
       setAdminCreditTargetEmail(email);
     }
   }, [adminCreditTargetEmail, email]);
@@ -946,13 +939,13 @@ export function AccountDashboard() {
   }, [data.accessProfiles, selectedDashboardProfileId]);
 
   useEffect(() => {
-    if (email && looksLikeGatewayOwnerEmail(email)) {
+    if (email && isAgentechGatewayOwnerEmail(email)) {
       router.replace("/admin/ai-gateway");
     }
   }, [email, router]);
 
   useEffect(() => {
-    if (!email || !looksLikeGatewayOwnerEmail(email)) {
+    if (!email || !isAgentechGatewayOwnerEmail(email)) {
       setAdminAiUsage(null);
       return;
     }
@@ -1235,7 +1228,7 @@ export function AccountDashboard() {
   }
 
   async function refreshAdminAiUsage() {
-    if (!email || !looksLikeGatewayOwnerEmail(email)) return;
+    if (!email || !isAgentechGatewayOwnerEmail(email)) return;
 
     setLoadingAdminAiUsage(true);
     setAdminAiUsageMessage("");
@@ -1419,9 +1412,9 @@ export function AccountDashboard() {
   const selectedRechargeCredits = Math.max(0, Math.floor(Number(rechargeCredits || 0)));
   const selectedCardChargeCents = calculateCardChargeCents(selectedRechargeCredits);
   const selectedProcessingFeeCents = Math.max(0, selectedCardChargeCents - selectedRechargeCredits);
-  const isAdminAccount = looksLikeAdminEmail(email);
-  const isGatewayOwnerAccount = looksLikeGatewayOwnerEmail(email);
-  const isInternalCompanyAccount = looksLikeAdminEmail(email);
+  const isAdminAccount = isAgentechCompanyEmail(email);
+  const isGatewayOwnerAccount = isAgentechGatewayOwnerEmail(email);
+  const isInternalCompanyAccount = isAgentechCompanyEmail(email);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
   const internalTestingBypass = isInternalCompanyAccount;

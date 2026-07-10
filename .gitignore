@@ -6,6 +6,7 @@ out
 dist
 .DS_Store
 *.log
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
@@ -14,3 +15,4 @@ data/verification-codes.json
 data/preorder-invoices.json
 teaching-materials/
 agentech_submissions/
+review_submissions/

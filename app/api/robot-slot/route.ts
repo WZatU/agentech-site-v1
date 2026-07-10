@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createRobotSession, findRobotSessionConflict, getAccessProfiles, getAccountRecord, getRobotSessionsInWindow, hasPassedDeveloperCodeReview } from "@/lib/account-records";
 import { accountSessionCookieName } from "@/lib/account-session";
+import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 
@@ -46,10 +47,6 @@ function toProfileId(value: unknown) {
 async function getSignedInEmail() {
   const cookieStore = await cookies();
   return normalizeEmail(cookieStore.get(accountSessionCookieName)?.value);
-}
-
-function isInternalEmail(email: string) {
-  return email.trim().toLowerCase().endsWith("@agent-tech.ai");
 }
 
 function getDurationMinutes(value: unknown) {
@@ -277,7 +274,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
   }
 
-  if (!isInternalEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
+  if (!isAgentechCompanyEmail(email) && Number(account.credit_balance ?? 0) <= 0) {
     return NextResponse.json({ error: "Robot viewing requires account credits." }, { status: 402 });
   }
 
@@ -287,7 +284,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That profile does not belong to this account." }, { status: 403 });
   }
 
-  if (requestedRunType === "custom_code" && !isInternalEmail(email) && !(await hasPassedDeveloperCodeReview(email))) {
+  if (requestedRunType === "custom_code" && !isAgentechCompanyEmail(email) && !(await hasPassedDeveloperCodeReview(email))) {
     return NextResponse.json(
       { error: "Custom live-code testing unlocks only after the physical safety gate and AI security scan both pass." },
       { status: 403 }
