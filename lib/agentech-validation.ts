@@ -1,447 +1,84 @@
-export const agentechLimits = {
-  maxLinearVelocity: 2.37,
-  maxBackwardVelocity: 2.365,
-  maxLateralVelocity: 0.78,
-  maxLinearAcceleration: 2.5,
-  maxYawRate: 2.09,
-  slowYawRate: 1.05,
-  maxPitchRate: 0.5,
-  recommendedPitchRate: 0.15,
-  maxSeconds: 10,
-  maxRotateAngle: 360,
-  maxLookUpAngle: 25,
-  maxLookDownAngle: 25,
-  maxRollAngle: 28,
-  minTurnRate: 0.05,
-  minPitchRate: 0.03
-} as const;
+export type CheckFinding = { code: string; message: string; line?: number };
+export type CheckItem = { name: string; status: "PASS" | "FAIL"; detail: string };
+export type SoftwareCheckReport = { status: "PASS" | "FAIL"; commands: string[]; findings: CheckFinding[]; checklist: CheckItem[] };
 
-type MotionParameterRule = {
-  required: Set<string>;
-  allowed: Set<string>;
-  ranges: Record<string, { low: number; high: number; allowZero: boolean }>;
-  example: string;
+type Rule = { type: "number" | "integer" | "choice" | "string" | "boolean" | "list"; min?: number; max?: number; open?: boolean; values?: readonly (string | number)[] };
+type Spec = { allowed: string[]; required?: string[]; selectors?: string[]; rules: Record<string, Rule> };
+const num = (min: number, max: number, open = false): Rule => ({ type: "number", min, max, open });
+const integer = (min: number, max: number): Rule => ({ type: "integer", min, max });
+const pick = (...values: (string | number)[]): Rule => ({ type: "choice", values });
+const level = pick(1, 2, 3, 4, 5);
+const linearRules = { speed_mps: num(0, 1, true), duration_s: num(0, 10, true), speed_percent: integer(1, 100), speed_level: level, pace: pick("slow", "normal", "fast"), step_rate_hz: num(0.5, 3), gait: pick("auto") };
+
+export const agentechSdkSpec: Record<string, Spec> = {
+  forward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 20), distance_m: num(0, 5, true) } },
+  backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 3, true) } },
+  lateral: { allowed: ["direction", "speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], required: ["direction"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { direction: pick("left", "right"), speed_mps: num(0, 0.78, true), duration_s: num(0, 10, true), speed_percent: integer(1, 100), speed_level: level, step_count: integer(1, 10), step_rate_hz: num(0.5, 3), gait: pick("auto"), distance_m: num(0, 2, true) } },
+  turn: { allowed: ["direction", "angle_deg", "yaw_rate_rad_s", "angle_percent", "turn_level", "quarter_turns", "duration_s"], required: ["direction"], selectors: ["angle_deg", "angle_percent", "turn_level", "quarter_turns", "duration_s"], rules: { direction: pick("left", "right"), angle_deg: num(0, 360, true), yaw_rate_rad_s: num(0.05, 2.09), angle_percent: integer(1, 100), turn_level: level, quarter_turns: integer(1, 4), duration_s: num(0, 10, true) } },
+  twist: { allowed: ["direction", "angle_deg", "yaw_rate_rad_s", "angle_percent", "twist_level", "hold_s"], required: ["direction"], selectors: ["angle_deg", "angle_percent", "twist_level"], rules: { direction: pick("left", "right"), angle_deg: num(0, 30, true), yaw_rate_rad_s: num(0.05, 2.09), angle_percent: integer(1, 100), twist_level: level, hold_s: num(0, 3) } },
+  backflip: { allowed: ["variant", "stabilize_s"], rules: { variant: pick("standard"), stabilize_s: num(0, 10) } },
+  jump: { allowed: ["variant", "height_level", "stabilize_s"], selectors: ["variant", "height_level"], rules: { variant: pick("standard"), height_level: pick(1, 2, 3), stabilize_s: num(0, 10) } },
+  stand: { allowed: ["stabilize_s", "height_level", "posture"], selectors: ["height_level", "posture"], rules: { stabilize_s: num(0, 10), height_level: pick(1, 2, 3), posture: pick("low", "neutral", "tall") } },
+  sit: { allowed: ["mode", "stabilize_s"], rules: { mode: pick("damping"), stabilize_s: num(0, 10) } },
+  stop: { allowed: ["mode", "decel_level", "timeout_s"], rules: { mode: pick("controlled", "quick"), decel_level: level, timeout_s: num(0.1, 5) } },
+  emergency_stop: { allowed: ["reason", "latch", "mode"], rules: { reason: { type: "string" }, latch: { type: "boolean" }, mode: pick("damping") } },
+  look: { allowed: ["target", "direction", "angle_deg", "pitch_rate_rad_s", "angle_percent", "look_level"], required: ["direction"], selectors: ["angle_deg", "angle_percent", "look_level"], rules: { target: pick("auto", "body", "camera"), direction: pick("up", "down"), angle_deg: num(0, 25, true), pitch_rate_rad_s: num(0.03, 0.5), angle_percent: integer(1, 100), look_level: level } },
+  get_battery_status: { allowed: ["fields", "max_age_s", "timeout_s"], rules: { fields: { type: "list" }, max_age_s: num(0, 5), timeout_s: num(0.1, 2) } }
 };
 
-const commandLibraryActionNames = [
-  "forward",
-  "backward",
-  "lateral_left",
-  "lateral_right",
-  "turn_left",
-  "turn_right",
-  "twist_left",
-  "twist_right",
-  "backflip",
-  "jump",
-  "stand",
-  "sit",
-  "stop",
-  "look_up",
-  "look_down",
-  "emergency_stop",
-  "get_battery_status"
-] as const;
-const allowedPhysicalActions = new Set<string>(commandLibraryActionNames);
-const commandLibraryActionHelp = commandLibraryActionNames.join(", ");
-const motionParameterRules: Record<string, MotionParameterRule> = {
-  stand: {
-    required: new Set(),
-    allowed: new Set(["stand_wait"]),
-    ranges: { stand_wait: { low: 0, high: 10, allowZero: true } },
-    example: "Agentech.stand(stand_wait=1)"
-  },
-  forward: {
-    required: new Set(["speed", "seconds"]),
-    allowed: new Set(["speed", "seconds", "stand_wait"]),
-    ranges: {
-      speed: { low: 0, high: agentechLimits.maxLinearVelocity, allowZero: false },
-      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
-      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
-    },
-    example: "Agentech.forward(speed=0.3, seconds=3)"
-  },
-  backward: {
-    required: new Set(["speed", "seconds"]),
-    allowed: new Set(["speed", "seconds", "stand_wait"]),
-    ranges: {
-      speed: { low: 0, high: agentechLimits.maxBackwardVelocity, allowZero: false },
-      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
-      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
-    },
-    example: "Agentech.backward(speed=0.3, seconds=3)"
-  },
-  lateral_left: {
-    required: new Set(["speed", "seconds"]),
-    allowed: new Set(["speed", "seconds", "stand_wait"]),
-    ranges: {
-      speed: { low: 0, high: agentechLimits.maxLateralVelocity, allowZero: false },
-      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
-      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
-    },
-    example: "Agentech.lateral_left(speed=0.2, seconds=1)"
-  },
-  lateral_right: {
-    required: new Set(["speed", "seconds"]),
-    allowed: new Set(["speed", "seconds", "stand_wait"]),
-    ranges: {
-      speed: { low: 0, high: agentechLimits.maxLateralVelocity, allowZero: false },
-      seconds: { low: 0, high: agentechLimits.maxSeconds, allowZero: false },
-      stand_wait: { low: 0, high: agentechLimits.maxSeconds, allowZero: true }
-    },
-    example: "Agentech.lateral_right(speed=0.2, seconds=1)"
-  },
-  turn_left: {
-    required: new Set(["angle"]),
-    allowed: new Set(["angle", "speed"]),
-    ranges: {
-      angle: { low: 0, high: agentechLimits.maxRotateAngle, allowZero: false },
-      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
-    },
-    example: "Agentech.turn_left(angle=45, speed=0.35)"
-  },
-  turn_right: {
-    required: new Set(["angle"]),
-    allowed: new Set(["angle", "speed"]),
-    ranges: {
-      angle: { low: 0, high: agentechLimits.maxRotateAngle, allowZero: false },
-      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
-    },
-    example: "Agentech.turn_right(angle=45, speed=0.35)"
-  },
-  twist_left: {
-    required: new Set(["angle"]),
-    allowed: new Set(["angle", "speed"]),
-    ranges: {
-      angle: { low: 0, high: agentechLimits.maxRollAngle, allowZero: false },
-      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
-    },
-    example: "Agentech.twist_left(angle=28, speed=0.35)"
-  },
-  twist_right: {
-    required: new Set(["angle"]),
-    allowed: new Set(["angle", "speed"]),
-    ranges: {
-      angle: { low: 0, high: agentechLimits.maxRollAngle, allowZero: false },
-      speed: { low: agentechLimits.minTurnRate, high: agentechLimits.maxYawRate, allowZero: true }
-    },
-    example: "Agentech.twist_right(angle=28, speed=0.35)"
-  },
-  backflip: {
-    required: new Set(),
-    allowed: new Set(),
-    ranges: {},
-    example: "Agentech.backflip()"
-  },
-  jump: {
-    required: new Set(),
-    allowed: new Set(),
-    ranges: {},
-    example: "Agentech.jump()"
-  },
-  sit: {
-    required: new Set(),
-    allowed: new Set(),
-    ranges: {},
-    example: "Agentech.sit()"
-  },
-  look_up: {
-    required: new Set(["angle"]),
-    allowed: new Set(["angle", "speed"]),
-    ranges: {
-      angle: { low: 0, high: agentechLimits.maxLookUpAngle, allowZero: false },
-      speed: { low: agentechLimits.minPitchRate, high: agentechLimits.maxPitchRate, allowZero: true }
-    },
-    example: "Agentech.look_up(angle=15, speed=0.12)"
-  },
-  look_down: {
-    required: new Set(["angle"]),
-    allowed: new Set(["angle", "speed"]),
-    ranges: {
-      angle: { low: 0, high: agentechLimits.maxLookDownAngle, allowZero: false },
-      speed: { low: agentechLimits.minPitchRate, high: agentechLimits.maxPitchRate, allowZero: true }
-    },
-    example: "Agentech.look_down(angle=15, speed=0.12)"
-  },
-  emergency_stop: {
-    required: new Set(),
-    allowed: new Set(["reason"]),
-    ranges: {},
-    example: "Agentech.emergency_stop()"
-  },
-  get_battery_status: {
-    required: new Set(),
-    allowed: new Set(),
-    ranges: {},
-    example: "Agentech.get_battery_status()"
-  },
-  stop: {
-    required: new Set(),
-    allowed: new Set(),
-    ranges: {},
-    example: "Agentech.stop()"
-  }
-};
-
-type ParsedCall = {
-  action: string;
-  args: string;
-  line: number;
-};
-
-function parseCalls(code: string): ParsedCall[] {
-  const calls: ParsedCall[] = [];
-  const pattern = /(?:Agentech|dog)\.(\w+)\(([^)]*)\)/g;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(code)) !== null) {
-    calls.push({
-      action: match[1],
-      args: match[2],
-      line: code.slice(0, match.index).split(/\r\n|\r|\n/).length
-    });
-  }
-  return calls;
+function valueOf(raw: string): unknown {
+  const v = raw.trim();
+  if (/^-?\d+(?:\.\d+)?$/.test(v)) return Number(v);
+  if (/^(?:True|true)$/.test(v)) return true;
+  if (/^(?:False|false)$/.test(v)) return false;
+  if (/^(["']).*\1$/.test(v)) return v.slice(1, -1);
+  if (/^\[.*\]$/.test(v)) return [];
+  return undefined; // Variables are allowed; runtime resolves them.
+}
+function argsOf(raw: string) { return raw.split(/,(?![^\[]*\])/).map((v) => v.trim()).filter(Boolean); }
+function checkRule(command: string, name: string, value: unknown, rule: Rule, line: number, add: (code: string, message: string, line?: number) => void) {
+  if (value === undefined) return;
+  if (rule.type === "number" || rule.type === "integer") {
+    if (typeof value !== "number" || (rule.type === "integer" && !Number.isInteger(value))) return add("TYPE_INVALID", `${command}() '${name}' has the wrong type.`, line);
+    if ((rule.min !== undefined && (rule.open ? value <= rule.min : value < rule.min)) || (rule.max !== undefined && value > rule.max)) add("RANGE_INVALID", `${command}() '${name}' is outside ${rule.open ? "> " : ""}${rule.min} to ${rule.max}.`, line);
+  } else if (rule.type === "choice" && !rule.values?.includes(value as string | number)) add("CHOICE_INVALID", `${command}() '${name}' has unsupported value ${JSON.stringify(value)}.`, line);
+  else if (rule.type === "string" && typeof value !== "string") add("TYPE_INVALID", `${command}() '${name}' must be a string.`, line);
+  else if (rule.type === "boolean" && typeof value !== "boolean") add("TYPE_INVALID", `${command}() '${name}' must be True or False.`, line);
+  else if (rule.type === "list" && !Array.isArray(value)) add("TYPE_INVALID", `${command}() '${name}' must be a list.`, line);
 }
 
-function splitArguments(args: string) {
-  const parts: string[] = [];
-  let current = "";
-  let quote: string | null = null;
-  let escaped = false;
-  let depth = 0;
-
-  for (const char of args) {
-    if (quote) {
-      current += char;
-      if (escaped) {
-        escaped = false;
-      } else if (char === "\\") {
-        escaped = true;
-      } else if (char === quote) {
-        quote = null;
-      }
-      continue;
-    }
-
-    if (char === "\"" || char === "'") {
-      quote = char;
-      current += char;
-      continue;
-    }
-
-    if (char === "(" || char === "[" || char === "{") {
-      depth += 1;
-      current += char;
-      continue;
-    }
-
-    if (char === ")" || char === "]" || char === "}") {
-      depth = Math.max(0, depth - 1);
-      current += char;
-      continue;
-    }
-
-    if (char === "," && depth === 0) {
-      if (current.trim()) {
-        parts.push(current.trim());
-      }
-      current = "";
-      continue;
-    }
-
-    current += char;
-  }
-
-  if (current.trim()) {
-    parts.push(current.trim());
-  }
-
-  return parts;
-}
-
-function findTopLevelEquals(value: string) {
-  let quote: string | null = null;
-  let escaped = false;
-  let depth = 0;
-
-  for (let index = 0; index < value.length; index += 1) {
-    const char = value[index];
-    if (quote) {
-      if (escaped) {
-        escaped = false;
-      } else if (char === "\\") {
-        escaped = true;
-      } else if (char === quote) {
-        quote = null;
-      }
-      continue;
-    }
-
-    if (char === "\"" || char === "'") {
-      quote = char;
-      continue;
-    }
-
-    if (char === "(" || char === "[" || char === "{") {
-      depth += 1;
-      continue;
-    }
-
-    if (char === ")" || char === "]" || char === "}") {
-      depth = Math.max(0, depth - 1);
-      continue;
-    }
-
-    if (char === "=" && depth === 0) {
-      return index;
-    }
-  }
-
-  return -1;
-}
-
-function literalNumber(value: string) {
-  const trimmed = value.trim();
-  if (!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(trimmed)) {
-    return null;
-  }
-  const numeric = Number(trimmed);
-  return Number.isFinite(numeric) ? numeric : null;
-}
-
-function validateImportsAndUnsafeCode(code: string, errors: string[]) {
-  const lines = code.split(/\r\n|\r|\n/);
-
-  lines.forEach((line, index) => {
-    const lineNumber = index + 1;
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
-      return;
-    }
-
-    const importMatch = trimmed.match(/^import\s+(.+)$/);
-    if (importMatch) {
-      for (const item of importMatch[1].split(",")) {
-        const moduleName = item.trim().split(/\s+as\s+/)[0];
-        if (moduleName !== "agentech") {
-          errors.push(`Line ${lineNumber}: blocked import '${moduleName}'. Customer code can only use the Agentech SDK.`);
-        }
-      }
-    }
-
-    const importFromMatch = trimmed.match(/^from\s+([.\w]+)\s+import\s+/);
-    if (importFromMatch && importFromMatch[1] !== "agentech") {
-      errors.push(`Line ${lineNumber}: blocked import from '${importFromMatch[1]}'. Customer code can only import from the Agentech SDK.`);
-    }
-
-    if (/^(for|while|with|try|class)\b/.test(trimmed) || /\blambda\b/.test(trimmed)) {
-      errors.push(`Line ${lineNumber}: blocked Python structure. This hardware check only accepts direct Agentech motion commands.`);
-    }
+export function checkAgentechSoftware(code: string): SoftwareCheckReport {
+  const findings: CheckFinding[] = []; const commands: string[] = []; const add = (code: string, message: string, line?: number) => findings.push({ code, message, line });
+  const blockedImports = ["os", "sys", "subprocess", "socket", "serial", "mujoco", "unitree", "agibot", "ff_sdk", "mc_sdk_zsl_1_py"];
+  const blockedCalls = ["eval", "exec", "open", "compile", "__import__", "input", "globals", "locals", "vars"];
+  code.split(/\r?\n/).forEach((text, index) => {
+    blockedImports.forEach((name) => { if (new RegExp(`^\\s*(?:from|import)\\s+${name}\\b`).test(text)) add("IMPORT_BLOCKED", `Import '${name}' is blocked.`, index + 1); });
+    blockedCalls.forEach((name) => { if (new RegExp(`\\b${name}\\s*\\(`).test(text)) add("UNSAFE_CALL", `${name}() is blocked.`, index + 1); });
+    if (/\.__\w+__/.test(text)) add("PRIVATE_ACCESS_BLOCKED", "Private/dunder access is blocked.", index + 1);
+    if (/\b(?:ctrl|qpos|qvel|qacc|actuator|motor|torque|joint)\b/i.test(text) && /[=(]/.test(text)) add("DIRECT_CONTROL_BLOCKED", "Direct robot state or actuator control is blocked.", index + 1);
   });
-
-  const blockedCallPattern = /\b(eval|exec|open|compile|__import__|input|globals|locals|vars)\s*\(/g;
-  let blockedCallMatch: RegExpExecArray | null;
-  while ((blockedCallMatch = blockedCallPattern.exec(code)) !== null) {
-    const line = code.slice(0, blockedCallMatch.index).split(/\r\n|\r|\n/).length;
-    errors.push(`Line ${line}: blocked function call '${blockedCallMatch[1]}()'. Use the Agentech SDK only.`);
+  const pattern = /(?:Agentech|agentech\.Agentech|dog)\.(\w+)\s*\(([^)]*)\)/g; let match: RegExpExecArray | null;
+  while ((match = pattern.exec(code))) {
+    const command = match[1]; const raw = match[2]; const line = code.slice(0, match.index).split(/\r?\n/).length; commands.push(command); const spec = agentechSdkSpec[command];
+    if (!spec) { add("UNAPPROVED_SDK_CALL", `${command}() is not in the approved L0.5 SDK.`, line); continue; }
+    const values: Record<string, unknown> = {};
+    argsOf(raw).forEach((arg) => { const eq = arg.indexOf("="); if (eq < 0) return add("POSITIONAL_PARAMETER_BLOCKED", `${command}() must use named parameters.`, line); const name = arg.slice(0, eq).trim(); if (!spec.allowed.includes(name)) return add("UNKNOWN_PARAMETER", `${command}() does not support '${name}'.`, line); values[name] = valueOf(arg.slice(eq + 1)); });
+    (spec.required ?? []).forEach((name) => { if (!(name in values)) add("REQUIRED_PARAMETER", `${command}() requires '${name}'.`, line); });
+    let selectors = (spec.selectors ?? []).filter((name) => name in values); if (["forward", "backward", "lateral"].includes(command) && selectors.includes("distance_m") && selectors.includes("speed_mps")) selectors = selectors.filter((name) => name !== "speed_mps");
+    if (selectors.length > 1) add("PROFILE_MIXED", `${command}() mixes profiles: ${selectors.join(", ")}.`, line);
+    if (command === "turn" && "yaw_rate_rad_s" in values && !("angle_deg" in values || "duration_s" in values)) add("PROFILE_MIXED", "turn() yaw_rate_rad_s requires angle_deg or duration_s.", line);
+    Object.entries(values).forEach(([name, value]) => checkRule(command, name, value, spec.rules[name], line, add));
   }
+  if (!commands.length) add("COMMAND_MISSING", "No approved Agentech SDK command was found.");
+  const has = (...codes: string[]) => findings.some((f) => codes.some((c) => f.code.includes(c)));
+  const checklist: CheckItem[] = [
+    { name: "Software safety", status: has("IMPORT", "UNSAFE", "PRIVATE", "DIRECT") ? "FAIL" : "PASS", detail: "Variables, helper functions, if, for, and while are allowed. Unsafe system and direct robot control are blocked." },
+    { name: "SDK commands", status: has("UNAPPROVED", "COMMAND_MISSING") ? "FAIL" : "PASS", detail: `${commands.length} command${commands.length === 1 ? "" : "s"} detected against the L0.5 contract.` },
+    { name: "Named parameters", status: has("POSITIONAL", "UNKNOWN", "REQUIRED") ? "FAIL" : "PASS", detail: "Calls use supported named parameters and required fields." },
+    { name: "Parameter safety", status: has("TYPE", "RANGE", "CHOICE", "PROFILE") ? "FAIL" : "PASS", detail: "Types, ranges, choices, and profiles match the SDK cards." },
+    { name: "Benchmark readiness", status: findings.length ? "FAIL" : "PASS", detail: findings.length ? "Fix findings before simulation and robot review." : "Ready for simulation and real-robot translation checks." }
+  ];
+  return { status: findings.length ? "FAIL" : "PASS", commands, findings, checklist };
 }
 
-function validateMotionCallParameters(errors: string[], call: ParsedCall) {
-  const rule = motionParameterRules[call.action];
-  if (!rule) {
-    errors.push(
-      `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${commandLibraryActionHelp}.`
-    );
-    return;
-  }
-
-  const kwargs = new Map<string, string>();
-  const args = splitArguments(call.args);
-  let reportedPositionalParameter = false;
-
-  for (const arg of args) {
-    if (arg.startsWith("**")) {
-      errors.push(`Line ${call.line}: Agentech.${call.action}() cannot use expanded keyword arguments. Example: ${rule.example}`);
-      continue;
-    }
-
-    const equalsIndex = findTopLevelEquals(arg);
-    if (equalsIndex < 0) {
-      if (!reportedPositionalParameter) {
-        errors.push(`Line ${call.line}: Agentech.${call.action}() must use named keyword parameters. Example: ${rule.example}`);
-        reportedPositionalParameter = true;
-      }
-      continue;
-    }
-
-    const name = arg.slice(0, equalsIndex).trim();
-    const value = arg.slice(equalsIndex + 1).trim();
-
-    if (!/^[A-Za-z_]\w*$/.test(name)) {
-      errors.push(`Line ${call.line}: Agentech.${call.action}() has an invalid parameter name. Example: ${rule.example}`);
-      continue;
-    }
-
-    if (!rule.allowed.has(name)) {
-      const allowed = rule.allowed.size ? [...rule.allowed].sort().join(", ") : "no parameters";
-      errors.push(`Line ${call.line}: Agentech.${call.action}() does not support parameter '${name}'. Allowed parameters: ${allowed}. Example: ${rule.example}`);
-      continue;
-    }
-
-    if (!value) {
-      errors.push(`Line ${call.line}: Agentech.${call.action}() parameter '${name}' must be a literal value. Example: ${rule.example}`);
-      continue;
-    }
-
-    if (kwargs.has(name)) {
-      errors.push(`Line ${call.line}: Agentech.${call.action}() repeats parameter '${name}'. Example: ${rule.example}`);
-      continue;
-    }
-
-    kwargs.set(name, value);
-  }
-
-  const missing = [...rule.required].filter((name) => !kwargs.has(name)).sort();
-  if (missing.length) {
-    errors.push(`Line ${call.line}: Agentech.${call.action}() is missing required parameter(s): ${missing.join(", ")}. Example: ${rule.example}`);
-  }
-
-  for (const [name, rawValue] of kwargs) {
-    const range = rule.ranges[name];
-    if (!range) {
-      continue;
-    }
-
-    const numeric = literalNumber(rawValue);
-    if (numeric === null) {
-      errors.push(`Line ${call.line}: Agentech.${call.action}() parameter '${name}' must be a finite number. Example: ${rule.example}`);
-      continue;
-    }
-
-    const lowerOk = range.allowZero ? numeric >= range.low : numeric > range.low;
-    if (!lowerOk || numeric > range.high) {
-      const lowerText = range.allowZero ? `>= ${range.low}` : `> ${range.low}`;
-      errors.push(
-        `Line ${call.line}: Agentech.${call.action}() parameter '${name}' is out of range: ${numeric}. Required range: ${lowerText} and <= ${range.high}. Example: ${rule.example}`
-      );
-    }
-  }
-}
-
-export function validateAgentechCode(code: string): string[] {
-  const errors: string[] = [];
-  validateImportsAndUnsafeCode(code, errors);
-
-  for (const call of parseCalls(code)) {
-    if (!allowedPhysicalActions.has(call.action)) {
-      errors.push(
-        `Line ${call.line}: Agentech.${call.action}() is not supported by the Step 3 Physical Hardware Check. Supported commands: ${commandLibraryActionHelp}.`
-      );
-      continue;
-    }
-    validateMotionCallParameters(errors, call);
-  }
-
-  return errors;
-}
+export function validateAgentechCode(code: string) { return checkAgentechSoftware(code).findings.map((f) => `${f.line ? `Line ${f.line}: ` : ""}${f.message}`); }
