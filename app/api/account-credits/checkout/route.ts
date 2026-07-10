@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { createAccountCreditPayment, getAccountRecord } from "@/lib/account-records";
-import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { NextRequest, NextResponse } from "next/server";
+import { addAccountCredits, createAccountCreditPayment, getAccountRecord } from "@/lib/account-records";
+import { isInternalAccountEmail, isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { getServerAccountEmail } from "@/lib/server-account-session";
 import { siteUrl } from "@/lib/site-config";
 
 type CreditCheckoutPayload = {
@@ -25,27 +26,46 @@ function calculateCardChargeCents(creditValueCents: number) {
   return Math.ceil((creditValueCents + 30) / 0.971);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const payload = (await request.json().catch(() => null)) as CreditCheckoutPayload | null;
-  const email = normalizeEmail(payload?.email);
+  const requestedEmail = normalizeEmail(payload?.email);
+  const email = normalizeEmail(await getServerAccountEmail(request));
   const credits = toCreditAmount(payload?.credits);
-  const secretKey = process.env.STRIPE_SECRET_KEY;
 
   if (!isValidEmail(email)) {
-    return NextResponse.json({ error: "A valid account email is required." }, { status: 400 });
+    return NextResponse.json({ error: "Sign in again before adding account credits." }, { status: 401 });
+  }
+
+  if (requestedEmail && requestedEmail !== email) {
+    return NextResponse.json({ error: "Credits can only be added to the signed-in account." }, { status: 403 });
   }
 
   if (credits < 100) {
     return NextResponse.json({ error: "Enter at least 100 credits." }, { status: 400 });
   }
 
-  if (!secretKey) {
-    return NextResponse.json({ error: "Stripe is not configured yet. Set STRIPE_SECRET_KEY to enable card payments." }, { status: 500 });
-  }
-
   const account = await getAccountRecord(email);
   if (!account) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
+  }
+
+  if (isInternalAccountEmail(email)) {
+    const result = await addAccountCredits(email, "bonus", credits);
+    if (!result) {
+      return NextResponse.json({ error: "The internal credit balance could not be saved." }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      creditedDirectly: true,
+      creditsAdded: credits,
+      ...result
+    });
+  }
+
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    return NextResponse.json({ error: "Stripe is not configured yet. Set STRIPE_SECRET_KEY to enable card payments." }, { status: 500 });
   }
 
   const amountCents = calculateCardChargeCents(credits);

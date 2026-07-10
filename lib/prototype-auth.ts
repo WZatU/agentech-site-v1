@@ -30,6 +30,10 @@ export function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+export function isInternalAccountEmail(email: unknown) {
+  return normalizeEmail(email).endsWith("@agent-tech.ai");
+}
+
 export function isValidPassword(password: unknown) {
   return typeof password === "string" && password.length >= 8;
 }

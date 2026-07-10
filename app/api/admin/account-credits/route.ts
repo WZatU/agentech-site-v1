@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { addAccountCredits } from "@/lib/account-records";
-import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { isInternalAccountEmail, isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
 import { getServerAccountEmail } from "@/lib/server-account-session";
-import { supabaseRequest } from "@/lib/supabase-server";
 
 type CreditPayload = {
   targetEmail?: string;
@@ -19,18 +18,6 @@ function toCreditAmount(value: unknown) {
   return Math.max(0, Math.floor(amount));
 }
 
-async function isAdminEmail(email: string) {
-  if (email !== "info@agent-tech.ai") {
-    return false;
-  }
-
-  const rows = await supabaseRequest<Array<{ email: string; active: boolean }>>("agentech_admin_users", {
-    query: `email=eq.${encodeURIComponent(email)}&active=eq.true&select=email,active&limit=1`
-  }).catch(() => []);
-
-  return rows.length > 0;
-}
-
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as CreditPayload | null;
   const adminEmail = await getServerAccountEmail();
@@ -38,8 +25,8 @@ export async function POST(request: Request) {
   const creditType = payload?.creditType === "bonus" ? "bonus" : "paid";
   const credits = toCreditAmount(payload?.credits);
 
-  if (!isValidEmail(adminEmail) || !(await isAdminEmail(adminEmail))) {
-    return NextResponse.json({ error: "The info@agent-tech.ai admin account is required." }, { status: 403 });
+  if (!isValidEmail(adminEmail) || !isInternalAccountEmail(adminEmail)) {
+    return NextResponse.json({ error: "An authenticated @agent-tech.ai company account is required." }, { status: 403 });
   }
 
   if (!isValidEmail(targetEmail)) {

@@ -1,6 +1,7 @@
 import { supabaseRequest } from "@/lib/supabase-server";
 import { getUnpaidBalanceLines } from "@/lib/invoices";
 import { getBillingInvoicesForEmail, type BillingInvoice } from "@/lib/billing";
+import { normalizeEmail } from "@/lib/prototype-auth";
 
 export type AccountRecord = {
   email: string;
@@ -453,7 +454,8 @@ export function allocateCreditSpend(account: Pick<AccountRecord, "credit_balance
 }
 
 export async function addAccountCredits(email: string, creditType: "paid" | "bonus", creditsToAdd: number) {
-  const account = await getAccountRecord(email);
+  const normalizedEmail = normalizeEmail(email);
+  const account = await getAccountRecord(normalizedEmail);
   if (!account) {
     return null;
   }
@@ -463,10 +465,9 @@ export async function addAccountCredits(email: string, creditType: "paid" | "bon
   const paidCreditBalance = creditType === "paid" ? current.paid + amount : current.paid;
   const bonusCreditBalance = creditType === "bonus" ? current.bonus + amount : current.bonus;
 
-  await supabaseRequest<null>("agentech_accounts", {
+  const updatedRows = await supabaseRequest<AccountRecord[]>("agentech_accounts", {
     method: "PATCH",
-    query: `email=eq.${encodeURIComponent(email)}`,
-    prefer: "return=minimal",
+    query: `email=eq.${encodeURIComponent(normalizedEmail)}`,
     body: {
       credit_balance: paidCreditBalance,
       paid_credit_balance: paidCreditBalance,
@@ -474,11 +475,16 @@ export async function addAccountCredits(email: string, creditType: "paid" | "bon
     }
   });
 
+  const updatedAccount = updatedRows[0] ?? null;
+  if (!updatedAccount) {
+    return null;
+  }
+
   return {
-    email,
-    paid: paidCreditBalance,
-    bonus: bonusCreditBalance,
-    balance: paidCreditBalance + bonusCreditBalance
+    email: normalizedEmail,
+    paid: Number(updatedAccount.paid_credit_balance ?? paidCreditBalance),
+    bonus: Number(updatedAccount.bonus_credit_balance ?? bonusCreditBalance),
+    balance: Number(updatedAccount.paid_credit_balance ?? paidCreditBalance) + Number(updatedAccount.bonus_credit_balance ?? bonusCreditBalance)
   };
 }
 

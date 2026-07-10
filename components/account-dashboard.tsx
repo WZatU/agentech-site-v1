@@ -847,6 +847,7 @@ export function AccountDashboard() {
   const [adminAiUsageMessage, setAdminAiUsageMessage] = useState("");
   const [rechargeCredits, setRechargeCredits] = useState("1000");
   const [rechargeMessage, setRechargeMessage] = useState("");
+  const [rechargeMessageType, setRechargeMessageType] = useState<"success" | "error" | null>(null);
   const [startingRecharge, setStartingRecharge] = useState(false);
   const [robotSlotProfileId, setRobotSlotProfileId] = useState("");
   const [robotSlotStart, setRobotSlotStart] = useState(getDefaultRobotSlotValue);
@@ -1294,6 +1295,7 @@ export function AccountDashboard() {
 
     setStartingRecharge(true);
     setRechargeMessage("");
+    setRechargeMessageType(null);
 
     const response = await fetch("/api/account-credits/checkout", {
       method: "POST",
@@ -1303,10 +1305,32 @@ export function AccountDashboard() {
         credits: rechargeCredits
       })
     });
-    const result = (await response.json().catch(() => null)) as { checkoutUrl?: string; error?: string } | null;
+    const result = (await response.json().catch(() => null)) as {
+      checkoutUrl?: string;
+      creditedDirectly?: boolean;
+      creditsAdded?: number;
+      balance?: number;
+      error?: string;
+    } | null;
 
-    if (!response.ok || !result?.checkoutUrl) {
+    if (!response.ok) {
       setRechargeMessage(result?.error || "Unable to start card payment.");
+      setRechargeMessageType("error");
+      setStartingRecharge(false);
+      return;
+    }
+
+    if (result?.creditedDirectly) {
+      await refreshAccount();
+      setRechargeMessage(`${formatCredits(result.creditsAdded ?? Number(rechargeCredits))} added. New account balance: ${formatCredits(result.balance ?? 0)}.`);
+      setRechargeMessageType("success");
+      setStartingRecharge(false);
+      return;
+    }
+
+    if (!result?.checkoutUrl) {
+      setRechargeMessage("Unable to start card payment.");
+      setRechargeMessageType("error");
       setStartingRecharge(false);
       return;
     }
@@ -1980,12 +2004,16 @@ export function AccountDashboard() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase text-[#2f70c8]">Recharge Credits</p>
-                  <h2 className="mt-2 text-xl font-bold text-slate-950">Pay by card</h2>
-                  <p className="mt-2 text-sm text-slate-500">The account receives the full credit value. Card processing is added on top.</p>
+                  <h2 className="mt-2 text-xl font-bold text-slate-950">{isInternalCompanyAccount ? "Add internal credits" : "Pay by card"}</h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {isInternalCompanyAccount
+                      ? "Company accounts are not charged. Credits save directly to the account and remain available for Software Check usage."
+                      : "The account receives the full credit value. Card processing is added on top."}
+                  </p>
                 </div>
                 <div className="rounded-xl bg-slate-50 px-4 py-3 text-right">
-                  <p className="text-xs font-bold text-slate-500">Card Charge</p>
-                  <p className="mt-1 text-lg font-bold text-slate-950">{formatUsd(selectedCardChargeCents / 100)}</p>
+                  <p className="text-xs font-bold text-slate-500">{isInternalCompanyAccount ? "Account Charge" : "Card Charge"}</p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">{isInternalCompanyAccount ? "$0.00" : formatUsd(selectedCardChargeCents / 100)}</p>
                 </div>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -1998,7 +2026,7 @@ export function AccountDashboard() {
                   >
                     {creditRechargeOptions.map((credits) => (
                       <option key={credits} value={credits}>
-                        {credits.toLocaleString()} credits - card charge {formatUsd(calculateCardChargeCents(credits) / 100)}
+                        {credits.toLocaleString()} credits{isInternalCompanyAccount ? " - no charge" : ` - card charge ${formatUsd(calculateCardChargeCents(credits) / 100)}`}
                       </option>
                     ))}
                   </select>
@@ -2009,15 +2037,19 @@ export function AccountDashboard() {
                   disabled={startingRecharge}
                   className="rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
-                  {startingRecharge ? "Starting..." : "Pay By Card"}
+                  {startingRecharge ? "Saving..." : isInternalCompanyAccount ? "Add Credits" : "Pay By Card"}
                 </button>
               </div>
               <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-                <p>Credits added: {formatUsd(selectedRechargeCredits / 100)}</p>
-                <p>Card processing: {formatUsd(selectedProcessingFeeCents / 100)}</p>
-                <p className="font-bold text-slate-950">Total charge: {formatUsd(selectedCardChargeCents / 100)}</p>
+                <p>{isInternalCompanyAccount ? "Credits added" : "Credit value"}: {isInternalCompanyAccount ? formatCredits(selectedRechargeCredits) : formatUsd(selectedRechargeCredits / 100)}</p>
+                <p>{isInternalCompanyAccount ? "Payment" : "Card processing"}: {isInternalCompanyAccount ? "Not charged" : formatUsd(selectedProcessingFeeCents / 100)}</p>
+                <p className="font-bold text-slate-950">Total charge: {isInternalCompanyAccount ? "$0.00" : formatUsd(selectedCardChargeCents / 100)}</p>
               </div>
-              {rechargeMessage ? <p className="mt-3 text-sm font-bold text-red-600">{rechargeMessage}</p> : null}
+              {rechargeMessage ? (
+                <p className={`mt-3 text-sm font-bold ${rechargeMessageType === "success" ? "text-emerald-700" : "text-red-600"}`}>
+                  {rechargeMessage}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -2182,13 +2214,13 @@ export function AccountDashboard() {
           </section>
         ) : null}
 
-      {currentTab === "settings" && isAdminAccount ? (
+      {currentTab === "balance" && isAdminAccount ? (
         <section className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Admin Credits</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Manual Credit Add</h2>
-              <p className="mt-2 text-sm text-slate-600">Paid credits are used before bonus credits when a profile spends.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Company Account Controls</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Account Credit Adjustment</h2>
+              <p className="mt-2 text-sm text-slate-600">Add credits directly to any account without a card charge. Paid credits are used before bonus credits when a profile spends.</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
               <p className="font-semibold text-slate-950">Visible to internal admins only</p>

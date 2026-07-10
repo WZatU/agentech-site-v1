@@ -1915,13 +1915,17 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     ) : null}
                   </div>
                   <p className="mt-2 font-mono text-xs leading-5 text-[#07142e]">{plan.motionCount} motion commands</p>
-                  <p className="mt-1 text-xs leading-5 text-[#526174]">
+                  <p
+                    className={`mt-1 text-xs leading-5 ${
+                      hardwareFailed ? "text-[#a51f1f]" : hardwareWarning ? "text-[#9a6700]" : "text-[#526174]"
+                    }`}
+                  >
                     {hardwarePassed
                       ? "Hardware and parameter limits passed. Step 4 Software Check is unlocked."
                       : hardwareWarning
-                        ? "Movement is warning-level for the physical test box. Step 4 stays locked."
+                        ? requestStatus
                       : hardwareFailed
-                        ? "Hardware failed. Fix the blocked command or parameter before Software Check."
+                        ? requestStatus
                         : "Checks robot commands and parameters before Supabase unlocks Software Check."}
                   </p>
                 </div>
@@ -1995,16 +1999,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     </button>
                   )}
                 </div>
-                <div className={`border p-3 text-sm leading-6 text-[#23304a] ${statusPanelClass}`}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#526174]">{statusPanelTitle}</p>
-                  <p className="mt-1">{statusPanelCopy}</p>
-                  {hardwarePassed || softwarePassed ? (
-                    <p className="mt-1 text-xs text-[#526174]">Hardware review ID: {physicalSubmissionId}</p>
-                  ) : null}
-                  {hardwareFailed || hardwareWarning ? (
-                    <p className={`mt-1 text-xs ${hardwareWarning ? "text-[#9a6700]" : "text-[#a51f1f]"}`}>{requestStatus}</p>
-                  ) : null}
-                </div>
+                {!hardwareFailed && !hardwareWarning ? (
+                  <div className={`border p-3 text-sm leading-6 text-[#23304a] ${statusPanelClass}`}>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#526174]">{statusPanelTitle}</p>
+                    <p className="mt-1">{statusPanelCopy}</p>
+                    {hardwarePassed || softwarePassed ? (
+                      <p className="mt-1 text-xs text-[#526174]">Hardware review ID: {physicalSubmissionId}</p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
