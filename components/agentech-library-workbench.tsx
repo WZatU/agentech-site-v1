@@ -434,7 +434,7 @@ function FunctionReference({ item }: { item: AgentechFunction }) {
                     <tr key={param.name}>
                       <td className="px-3 py-2 font-mono text-[#8fdc8f]">{param.name}</td>
                       <td className="px-3 py-2 font-mono text-[#93c5fd]">{param.type}</td>
-                      <td className="px-3 py-2 font-mono text-[#f5d06f]">{param.defaultValue ?? "required"}</td>
+                      <td className="px-3 py-2 font-mono text-[#f5d06f]">{param.defaultValue ?? "—"}</td>
                       <td className="px-3 py-2 text-[#aeb8c2]">{param.description}</td>
                     </tr>
                   ))
@@ -643,7 +643,7 @@ Live camera -> Website viewer -> Student watches the run`;
                       <td className="px-4 py-3 font-mono text-[#8fdc8f]">{item.signature}</td>
                       <td className="px-4 py-3 text-[#aeb8c2]">{item.summary}</td>
                       <td className="px-4 py-3 font-mono text-xs text-[#f5d06f]">
-                        {item.params.length ? item.params.map((param) => `${param.name}=${param.defaultValue ?? "required"}`).join(", ") : "none"}
+                        {item.params.length ? item.params.map((param) => param.defaultValue ? `${param.name}=${param.defaultValue}` : param.name).join(", ") : "none"}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-[#93c5fd]">{item.example}</td>
                     </tr>
@@ -731,7 +731,7 @@ Live camera -> Website viewer -> Student watches the run`;
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span className="font-mono text-xs text-[#8fdc8f]">{param.name}</span>
                             <span className="font-mono text-[11px] text-[#93c5fd]">{param.type}</span>
-                            <span className="font-mono text-[11px] text-[#f5d06f]">default {param.defaultValue ?? "required"}</span>
+                            {param.defaultValue ? <span className="font-mono text-[11px] text-[#f5d06f]">default {param.defaultValue}</span> : null}
                           </div>
                           <p className="mt-1 text-xs leading-5 text-[#aeb8c2]">{param.description}</p>
                         </div>
@@ -1137,7 +1137,7 @@ function FocusedBrowseFunctionsSection() {
                                 <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-3 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#005bd6]/25">
                                   <span className="font-mono text-xs text-[#006a5c]">{param.name}</span>
                                   <span className="font-mono text-xs text-[#005bd6]">{param.type}</span>
-                                  <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue ?? "required"}</span>
+                                  {param.defaultValue ? <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue}</span> : null}
                                   {param.status === "development" ? (
                                     <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span>
                                   ) : param.status === "unsupported" ? (
