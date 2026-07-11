@@ -1093,7 +1093,7 @@ function FocusedBrowseFunctionsSection() {
               <div className="divide-y divide-[#dce7f2]">
                 {group.items.map((item) => (
                   <details key={item.name} className="group bg-white">
-                    <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_auto]">
+                    <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_335px]">
                       <p className="font-mono text-sm text-[#006a5c]">Agentech.{item.name}({item.params.length ? "parameters" : ""})</p>
                       <p className="text-sm leading-6 text-[#111d35]">{item.summary}</p>
                       <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
