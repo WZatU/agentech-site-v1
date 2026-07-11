@@ -24,37 +24,37 @@ const p = (name: string, type: string, description: string, defaultValue?: strin
 export const agentechFunctions: AgentechFunction[] = [
   {
     name: "forward", category: "Movement", signature: "Agentech.forward(speed_mps=0.4, duration_s=1.0)",
-    summary: "Move forward using direct speed, percentage, level, pace, distance, or step profiles.",
+    summary: "Move forward using one positive speed-magnitude profile and a controlled stop.",
     example: "Agentech.forward(speed_mps=0.4, duration_s=1.0)",
     profiles: [
       { name: "Default", syntax: "Agentech.forward()" },
       { name: "Direct speed", syntax: "Agentech.forward(speed_mps=0.4, duration_s=1.0)" },
       { name: "Percentage", syntax: "Agentech.forward(speed_percent=40, duration_s=1.0)" },
-      { name: "Speed level", syntax: "Agentech.forward(speed_level=2, duration_s=1.0)" },
-      { name: "Pace", syntax: "Agentech.forward(pace=\"normal\", duration_s=1.0)" },
-      { name: "Distance", syntax: "Agentech.forward(distance_m=1.0, speed_mps=0.4)" },
+      { name: "Speed level", syntax: "Agentech.forward(speed_level=100, duration_s=1.0)" },
+      { name: "Pace", syntax: "Agentech.forward(pace=\"normal\", duration_s=1.0)", status: "development" },
+      { name: "Distance (open-loop estimate)", syntax: "Agentech.forward(distance_m=1.0, duration_s=2.0)" },
       { name: "Steps", syntax: "Agentech.forward(step_count=6, step_rate_hz=1.5)", status: "development" }
     ],
     params: [
-      p("speed_mps", "float (0, 1.0]", "Direct forward speed.", "0.4"), p("duration_s", "float (0, 10]", "Timed movement duration.", "1.0"),
-      p("speed_percent", "int 1..100", "Percentage of 1.0 m/s."), p("speed_level", "int 1..5", "Maps to 0.2 through 1.0 m/s."),
-      p("pace", "slow | normal | fast", "Maps to 0.2, 0.4, or 0.8 m/s."), p("distance_m", "float (0, 5]", "Open-loop distance converted to duration."),
+      p("speed_mps", "float 0.05..3.00", "Direct positive forward speed in meters per second. Values outside the range are rejected.", "0.4"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"),
+      p("speed_percent", "float 0..100", "Accepts any percentage from 0% through 100%, including decimal values. Use this as a relative speed request; no meters-per-second conversion is promised."), p("speed_level", "int 0..511", "Select one of 512 integer speed levels. Level 0 is the lowest moving-speed level and level 511 is the highest."),
+      p("pace", "slow | normal | fast", "Named pace profiles are still being designed and physically validated.", undefined, "development"), p("distance_m", "float (0, 5]", "Open-loop estimate only. The SDK derives a timed velocity from distance and duration; acceleration, gait transitions, foot slip, terrain, and stopping latency can change the actual distance."),
       p("step_count", "int 1..20", "Estimated steps; exact foot contacts are not available.", undefined, "development"),
       p("step_rate_hz", "float 0.5..3.0", "Estimated cadence only; the backend cannot command exact gait cadence.", "1.5", "development")
     ]
   },
   {
-    name: "backward", category: "Movement", signature: "Agentech.backward(speed_mps=0.4, duration_s=1.0)", summary: "Move backward with bounded speed and duration profiles.", example: "Agentech.backward(speed_percent=30, duration_s=1.0)",
+    name: "backward", category: "Movement", signature: "Agentech.backward(speed_mps=0.4, duration_s=1.0)", summary: "Move backward using one positive speed-magnitude profile; direction is applied internally.", example: "Agentech.backward(speed_percent=30, duration_s=1.0)",
     profiles: [
       { name: "Default", syntax: "Agentech.backward()" },
       { name: "Direct speed", syntax: "Agentech.backward(speed_mps=0.4, duration_s=1.0)" },
       { name: "Percentage", syntax: "Agentech.backward(speed_percent=40, duration_s=1.0)" },
-      { name: "Speed level", syntax: "Agentech.backward(speed_level=2, duration_s=1.0)" },
-      { name: "Pace", syntax: "Agentech.backward(pace=\"normal\", duration_s=1.0)" },
-      { name: "Distance", syntax: "Agentech.backward(distance_m=1.0, speed_mps=0.4)" },
+      { name: "Speed level", syntax: "Agentech.backward(speed_level=100, duration_s=1.0)" },
+      { name: "Pace", syntax: "Agentech.backward(pace=\"normal\", duration_s=1.0)", status: "development" },
+      { name: "Distance (open-loop estimate)", syntax: "Agentech.backward(distance_m=1.0, duration_s=2.0)" },
       { name: "Steps", syntax: "Agentech.backward(step_count=6, step_rate_hz=1.5)", status: "development" }
     ],
-    params: [p("speed_mps", "float (0, 1.0]", "Direct backward speed magnitude.", "0.4"), p("duration_s", "float (0, 10]", "Timed movement duration.", "1.0"), p("speed_percent", "int 1..100", "Percentage speed profile."), p("speed_level", "int 1..5", "Five mapped speed levels."), p("pace", "slow | normal | fast", "Named speed profile."), p("distance_m", "float (0, 3]", "Open-loop distance conversion."), p("step_count", "int 1..10", "Estimated, not physically counted.", undefined, "development"), p("step_rate_hz", "float 0.5..3.0", "Estimated cadence only.", "1.5", "development")]
+    params: [p("speed_mps", "float 0.05..3.00", "Enter a positive backward speed magnitude in meters per second; the SDK applies the negative body-X direction internally. Negative public inputs and out-of-range values are rejected.", "0.4"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"), p("speed_percent", "float 0..100", "Accepts any percentage from 0% through 100%, including decimal values. Use this as a relative speed request; no meters-per-second conversion is promised."), p("speed_level", "int 0..511", "Select one of 512 integer speed levels. Level 0 is the lowest moving-speed level and level 511 is the highest."), p("pace", "slow | normal | fast", "Named pace profiles are still being designed and physically validated.", undefined, "development"), p("distance_m", "float (0, 3]", "Open-loop estimate only. The SDK derives a timed backward velocity from distance and duration; acceleration, gait transitions, foot slip, terrain, and stopping latency can change the actual distance."), p("step_count", "int 1..10", "Estimated, not physically counted.", undefined, "development"), p("step_rate_hz", "float 0.5..3.0", "Estimated cadence only.", "1.5", "development")]
   },
   {
     name: "lateral", category: "Movement", signature: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)", summary: "Move sideways left or right with a canonical direction parameter.", example: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)",

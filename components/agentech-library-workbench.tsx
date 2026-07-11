@@ -1133,8 +1133,8 @@ function FocusedBrowseFunctionsSection() {
                         <div className="mt-2 grid gap-2">
                           {item.params.length ? (
                             item.params.map((param) => (
-                              <div key={param.name} className={`border p-3 ${param.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : param.status === "unsupported" ? "border-[#d88b8b] bg-[#fff5f5]" : "border-[#dce7f2] bg-white"}`}>
-                                <div className="flex flex-wrap items-center gap-2">
+                              <details key={param.name} className={`group/param border ${param.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : param.status === "unsupported" ? "border-[#d88b8b] bg-[#fff5f5]" : "border-[#dce7f2] bg-white"}`}>
+                                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-3 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#005bd6]/25">
                                   <span className="font-mono text-xs text-[#006a5c]">{param.name}</span>
                                   <span className="font-mono text-xs text-[#005bd6]">{param.type}</span>
                                   <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue ?? "required"}</span>
@@ -1145,9 +1145,15 @@ function FocusedBrowseFunctionsSection() {
                                   ) : (
                                     <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#006a5c]">Available</span>
                                   )}
+                                  <span className="ml-auto border border-[#c9d8e8] bg-white px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#005bd6] group-open/param:border-[#008a7a] group-open/param:text-[#006a5c]">
+                                    <span className="group-open/param:hidden">Details</span>
+                                    <span className="hidden group-open/param:inline">Hide</span>
+                                  </span>
+                                </summary>
+                                <div className="border-t border-inherit px-3 py-3">
+                                  <p className="text-xs leading-5 text-[#334155]">{param.description}</p>
                                 </div>
-                                <p className="mt-2 text-xs leading-5 text-[#334155]">{param.description}</p>
-                              </div>
+                              </details>
                             ))
                           ) : (
                             <p className="border border-[#dce7f2] bg-white p-3 text-xs text-[#334155]">No parameters.</p>
