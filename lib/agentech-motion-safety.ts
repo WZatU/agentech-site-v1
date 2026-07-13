@@ -23,6 +23,45 @@ function numberArg(args: string, name: string) {
   return Number.isFinite(value) ? value : null;
 }
 
+function stringArg(args: string, name: string) {
+  const match = args.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`));
+  return match?.[1] ?? null;
+}
+
+function linearDistance(args: string, defaultSpeed: number) {
+  const directDistance = numberArg(args, "distance_m");
+  if (directDistance !== null) return directDistance;
+
+  const stepCount = numberArg(args, "step_count");
+  if (stepCount !== null) return stepCount * 0.25;
+
+  const percent = numberArg(args, "speed_percent");
+  const level = numberArg(args, "speed_level");
+  const pace = stringArg(args, "pace");
+  const speed = numberArg(args, "speed_mps")
+    ?? (percent !== null ? 3 * percent / 100 : null)
+    ?? (level !== null ? 3 * level / 511 : null)
+    ?? (pace === "slow" ? 0.2 : pace === "fast" ? 0.8 : pace === "normal" ? 0.4 : null)
+    ?? defaultSpeed;
+  const duration = numberArg(args, "duration_s") ?? 1;
+  return speed * duration;
+}
+
+function turnDegrees(args: string) {
+  const angle = numberArg(args, "angle_deg");
+  if (angle !== null) return angle;
+  const percent = numberArg(args, "angle_percent");
+  if (percent !== null) return percent * 3.6;
+  const level = numberArg(args, "turn_level");
+  if (level !== null) return [15, 30, 45, 60, 90][Math.max(0, Math.min(4, level - 1))];
+  const quarters = numberArg(args, "quarter_turns");
+  if (quarters !== null) return quarters * 90;
+  const duration = numberArg(args, "duration_s");
+  const yawRate = numberArg(args, "yaw_rate_rad_s");
+  if (duration !== null) return duration * (yawRate ?? 0.35) * 180 / Math.PI;
+  return 45;
+}
+
 function roundMeters(value: number) {
   return Math.round(value * 1000) / 1000;
 }
@@ -36,6 +75,7 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
   let match: RegExpExecArray | null;
   let x = 0;
   let y = 0;
+  let headingRad = 0;
   let maxDistance = 0;
   let maxAbsDx = 0;
   let maxAbsDy = 0;
@@ -51,23 +91,28 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
   while ((match = pattern.exec(code)) !== null) {
     const command = match[1];
     const args = match[2];
-    const speed = numberArg(args, "speed") ?? 0;
-    const seconds = numberArg(args, "seconds") ?? 0;
-
     if (command === "forward") {
-      x += speed * seconds;
+      const distance = linearDistance(args, 0.4);
+      x += Math.cos(headingRad) * distance;
+      y += Math.sin(headingRad) * distance;
       samplePosition();
     } else if (command === "backward") {
-      x -= speed * seconds;
+      const distance = linearDistance(args, 0.4);
+      x -= Math.cos(headingRad) * distance;
+      y -= Math.sin(headingRad) * distance;
       samplePosition();
-    } else if (command === "lateral_left") {
-      y += speed * seconds;
+    } else if (command === "lateral") {
+      const distance = linearDistance(args, 0.2);
+      const side = stringArg(args, "direction") === "right" ? -1 : 1;
+      x += Math.cos(headingRad + side * Math.PI / 2) * distance;
+      y += Math.sin(headingRad + side * Math.PI / 2) * distance;
       samplePosition();
-    } else if (command === "lateral_right") {
-      y -= speed * seconds;
-      samplePosition();
+    } else if (command === "turn") {
+      const direction = stringArg(args, "direction") === "right" ? -1 : 1;
+      headingRad += direction * turnDegrees(args) * Math.PI / 180;
     } else if (command === "backflip") {
-      x -= 0.44;
+      x -= Math.cos(headingRad) * 0.44;
+      y -= Math.sin(headingRad) * 0.44;
       samplePosition();
     } else {
       samplePosition();
