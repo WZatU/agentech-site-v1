@@ -79,21 +79,47 @@ const localPreviewAssets: Record<string, string> = {
   get_battery_status: "/assets/products/aegis-previews/battery_status.gif"
 };
 const localPreviewFallback = "/assets/products/aegis-previews/stand.gif";
-const protectedStandLine = "Agentech.stand(stand_wait=5)";
+const protectedStandLine = "Agentech.stand()";
 const commandsRequiringStand = new Set([
   "forward",
   "backward",
+  "lateral",
   "lateral_left",
   "lateral_right",
+  "turn",
   "turn_left",
   "turn_right",
+  "twist",
   "twist_left",
   "twist_right",
   "backflip",
   "jump",
+  "look",
   "look_up",
   "look_down"
 ]);
+
+function previewDirection(args: string) {
+  return args.match(/\bdirection\s*=\s*(["'])(left|right|up|down)\1/i)?.[2]?.toLowerCase() ?? "";
+}
+
+function resolvePreviewCommand(command: string, args = "") {
+  if (command === "lateral" || command === "turn" || command === "twist" || command === "look") {
+    const direction = previewDirection(args);
+    const defaultDirections: Record<string, string> = {
+      lateral: "left",
+      turn: "right",
+      twist: "left",
+      look: "down"
+    };
+    const directedCommand = `${command}_${direction || defaultDirections[command]}`;
+    if (directedCommand && localPreviewAssets[directedCommand]) {
+      return directedCommand;
+    }
+  }
+
+  return command;
+}
 
 function detectPrimaryPreviewCommand(code: string) {
   const lines = code.split(/\r?\n/);
@@ -104,7 +130,8 @@ function detectPrimaryPreviewCommand(code: string) {
     if (!match) {
       continue;
     }
-    const [, command] = match;
+    const [, rawCommand, args] = match;
+    const command = resolvePreviewCommand(rawCommand, args);
     if (localPreviewAssets[command]) {
       if (command === "stand") {
         fallbackCommand = "stand";
@@ -181,7 +208,8 @@ function previewCommandLabel(command: string) {
 function simulationClipsForMotionPlan(motionPlan: string[]): HardwareSimulationClip[] {
   const clips = motionPlan
     .map((line) => {
-      const command = line.match(/^([a-zA-Z_][\w]*)\s*\(/)?.[1] ?? "";
+      const match = line.match(/^([a-zA-Z_][\w]*)\s*\((.*)\)$/);
+      const command = match ? resolvePreviewCommand(match[1], match[2]) : "";
       const gif = localPreviewAssets[command];
       if (!command || !gif) {
         return null;
@@ -358,7 +386,11 @@ function commandPlan(code: string) {
 
   return {
     trace,
-    motionCount: trace.filter((line) => /forward|backward|lateral_left|lateral_right|turn_left|turn_right|twist_left|twist_right|backflip|jump|look_up|look_down/.test(line)).length
+    motionCount: trace.filter((line) => {
+      const match = line.match(/^([a-zA-Z_][\w]*)\s*\((.*)\)$/);
+      const command = match ? resolvePreviewCommand(match[1], match[2]) : "";
+      return commandsRequiringStand.has(command);
+    }).length
   };
 }
 
@@ -1169,8 +1201,8 @@ function FocusedBrowseFunctionsSection() {
                         <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={localPreviewAssets[item.name] ?? localPreviewFallback}
-                          alt={`Aegis preview for ${previewCommandLabel(item.name)}`}
+                          src={previewAssetForCode(item.example).gif}
+                          alt={`Aegis preview for ${previewCommandLabel(previewAssetForCode(item.example).command)}`}
                           loading="lazy"
                           className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
                         />
