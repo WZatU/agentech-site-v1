@@ -11,6 +11,73 @@ const cacheTtlMs = 5 * 60 * 1000;
 const simulationTimeoutMs = 20_000;
 const remoteSimulatorUrl = process.env.AGENTECH_SIMULATOR_URL;
 
+function numberArg(args: string, name: string) {
+  const match = args.match(new RegExp(`${name}\\s*=\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)`));
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+}
+
+function stringArg(args: string, name: string) {
+  return args.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`))?.[1] ?? null;
+}
+
+function yawAngleDeg(args: string) {
+  const angle = numberArg(args, "angle_deg");
+  if (angle !== null) return angle;
+  const percent = numberArg(args, "angle_percent");
+  if (percent !== null) return 30 * percent / 100;
+  const level = numberArg(args, "yaw_level");
+  if (level !== null) return level * 6;
+  return 15;
+}
+
+function turnLevelRateDeg(level: number) {
+  return (level / 511) * 3 * 180 / Math.PI;
+}
+
+function signedTurnRateRad(args: string) {
+  const rateRad = numberArg(args, "turn_rate_rad_s");
+  if (rateRad !== null) return rateRad;
+  const rateDeg = numberArg(args, "turn_rate_deg_s");
+  if (rateDeg !== null) return rateDeg * Math.PI / 180;
+  const percent = numberArg(args, "rate_percentage");
+  if (percent !== null) return 3 * percent / 100;
+  const level = numberArg(args, "turn_level");
+  if (level !== null) return turnLevelRateDeg(level) * Math.PI / 180;
+  return 0.35;
+}
+
+function signedTurnAngleDeg(args: string) {
+  const angleRad = numberArg(args, "angle_rad");
+  if (angleRad !== null) return angleRad * 180 / Math.PI;
+  const angleDeg = numberArg(args, "angle_deg");
+  if (angleDeg !== null) return angleDeg;
+  const duration = numberArg(args, "duration_s");
+  if (duration !== null) return duration * signedTurnRateRad(args) * 180 / Math.PI;
+  return 45;
+}
+
+function normalizeCanonicalTurnsForMuJoCo(code: string) {
+  const aliasSpeed = 2;
+  return code
+    .replace(/((?:Agentech|dog))\.turnright\(\s*\)/g, `$1.turn_right(angle=90, speed=${aliasSpeed})`)
+    .replace(/((?:Agentech|dog))\.turnleft\(\s*\)/g, `$1.turn_left(angle=90, speed=${aliasSpeed})`)
+    .replace(/((?:Agentech|dog))\.uturn\(\s*\)/g, `$1.turn_right(angle=180, speed=${aliasSpeed})`)
+    .replace(/((?:Agentech|dog))\.yaw\(([^)]*)\)/g, (_match, owner: string, args: string) => {
+      const direction = stringArg(args, "direction") === "right" ? "right" : "left";
+      return `${owner}.twist_${direction}(angle=${yawAngleDeg(args)})`;
+    })
+    .replace(/((?:Agentech|dog))\.turn\(([^)]*)\)/g, (_match, owner: string, args: string) => {
+      const signedAngle = signedTurnAngleDeg(args);
+      const signedRate = signedTurnRateRad(args);
+      const direction = (signedAngle || signedRate) < 0 ? "left" : "right";
+      const angle = Math.abs(signedAngle);
+      const speed = Math.abs(signedRate) || 0.35;
+      return `${owner}.turn_${direction}(angle=${angle}, speed=${speed})`;
+    });
+}
+
 async function runRemoteSimulator(code: string) {
   if (!remoteSimulatorUrl) {
     return null;
@@ -41,7 +108,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
   }
 
-  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v4:${code}`).digest("hex");
+  const simulatorCode = normalizeCanonicalTurnsForMuJoCo(code);
+  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v8:${simulatorCode}`).digest("hex");
   const cached = simulationCache.get(cacheKey);
   if (cached && Date.now() - cached.createdAt < cacheTtlMs) {
     return NextResponse.json({ ...(cached.payload as object), cached: true });
@@ -50,7 +118,7 @@ export async function POST(request: Request) {
   const simulatorScript = path.join(aegisHeightRoot, "scripts", "agentech_simulate_code.py");
   if (!fs.existsSync(simulatorScript)) {
     try {
-      const payload = await runRemoteSimulator(code);
+      const payload = await runRemoteSimulator(simulatorCode);
       if (payload !== null) {
         simulationCache.set(cacheKey, { createdAt: Date.now(), payload });
         return NextResponse.json(payload);
@@ -106,7 +174,7 @@ export async function POST(request: Request) {
     child.on("close", (status) => {
       finish(status ?? 1);
     });
-    child.stdin.end(JSON.stringify({ code, max_render_frames: 32, render_width: 480, render_height: 320 }));
+    child.stdin.end(JSON.stringify({ code: simulatorCode, max_render_frames: 32, render_width: 480, render_height: 320 }));
   });
 
   if (result.status !== 0) {

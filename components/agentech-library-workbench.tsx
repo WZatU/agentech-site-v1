@@ -89,6 +89,10 @@ const commandsRequiringStand = new Set([
   "turn",
   "turn_left",
   "turn_right",
+  "turnright",
+  "turnleft",
+  "uturn",
+  "yaw",
   "twist",
   "twist_left",
   "twist_right",
@@ -104,6 +108,17 @@ function previewDirection(args: string) {
 }
 
 function resolvePreviewCommand(command: string, args = "") {
+  if (command === "turnright") return "turn_right";
+  if (command === "turnleft") return "turn_left";
+  if (command === "uturn") return "turn_right";
+  if (command === "yaw") return previewDirection(args) === "right" ? "twist_right" : "twist_left";
+  if (command === "turn") {
+    const signedNames = ["angle_rad", "angle_deg", "rate_percentage", "turn_level", "turn_rate_deg_s", "turn_rate_rad_s"];
+    for (const name of signedNames) {
+      const value = args.match(new RegExp(`\\b${name}\\s*=\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))`));
+      if (value) return Number(value[1]) < 0 ? "turn_left" : "turn_right";
+    }
+  }
   if (command === "lateral" || command === "turn" || command === "twist" || command === "look") {
     const direction = previewDirection(args);
     const defaultDirections: Record<string, string> = {
@@ -190,8 +205,8 @@ function previewCommandLabel(command: string) {
     lateral_right: "Lateral Right",
     turn_left: "Turn Left",
     turn_right: "Turn Right",
-    twist_left: "Twist Left",
-    twist_right: "Twist Right",
+    twist_left: "Yaw Left",
+    twist_right: "Yaw Right",
     backflip: "Backflip",
     jump: "Jump",
     look_up: "Look Up",
@@ -241,7 +256,7 @@ function simulationClipsForMotionPlan(motionPlan: string[]): HardwareSimulationC
 function defaultMovementSafety(status: "PASS" | "WARNING" | "FAIL", detail?: string): AgentechMovementSafety {
   return {
     level: status,
-    submitReady: status === "PASS",
+    submitReady: status !== "FAIL",
     maxDistanceMeters: 0,
     maxDxMeters: 0,
     maxDyMeters: 0,
@@ -260,7 +275,7 @@ function approvedDownloadFileName(fileName: string) {
 
 function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReason = "", movementSafety = defaultMovementSafety(status, failureReason)): HardwareChecklistItem[] {
   const failDetail = failureReason || "Fix the checklist items before simulation can run.";
-  const blocked = status !== "PASS";
+  const blocked = status === "FAIL";
   return [
     {
       name: "SDK-only usage check",
@@ -295,7 +310,7 @@ function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReas
     {
       name: "MuJoCo simulation check",
       status: blocked ? "FAIL" : "PASS",
-      detail: !blocked ? "Approved command sequence is ready for the simulation/result view." : "Simulation blocked because validation failed or produced warning-level movement."
+      detail: !blocked ? "Approved command sequence is ready for the simulation/result view." : "Simulation blocked because validation failed."
     }
   ];
 }
@@ -310,10 +325,9 @@ Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed=0.2, seconds=1)
 Agentech.lateral_right(speed=0.2, seconds=1)
-Agentech.turn_left(angle=45)
-Agentech.turn_right(angle=45)
-Agentech.twist_left(angle=28)
-Agentech.twist_right(angle=28)
+Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
+Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
+Agentech.yaw(direction="left", angle_deg=15)
 Agentech.backflip()
 Agentech.jump()
 Agentech.look_up(angle=15)
@@ -330,10 +344,8 @@ Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed=0.2, seconds=1)
 Agentech.lateral_right(speed=0.2, seconds=1)
-Agentech.turn_left(angle=45)
-Agentech.turn_right(angle=45)
-Agentech.twist_left(angle=28)
-Agentech.twist_right(angle=28)
+Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
+Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.backflip()
 Agentech.jump()`
   },
@@ -342,6 +354,7 @@ Agentech.jump()`
     code: `from agentech import Agentech
 
 Agentech.stand(stand_wait=5)
+Agentech.yaw(direction="left", angle_deg=15)
 Agentech.sit()`
   },
   Safety: {
@@ -367,8 +380,8 @@ function commandPlan(code: string) {
   const trace: string[] = [];
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
-    "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turn_left", "turn_right",
-    "twist", "twist_left", "twist_right", "backflip", "jump", "stand", "sit", "stop", "emergency_stop",
+    "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turnright", "turnleft", "uturn",
+    "yaw", "twist_left", "twist_right", "backflip", "jump", "stand", "sit", "stop", "emergency_stop",
     "look", "look_up", "look_down", "get_battery_status"
   ]);
 
@@ -575,10 +588,8 @@ function DocsSection() {
       "backward",
       "lateral_left",
       "lateral_right",
-      "turn_left",
-      "turn_right",
-      "twist_left",
-      "twist_right",
+      "turn",
+      "yaw",
       "backflip",
       "jump",
       "look_up",
@@ -598,8 +609,8 @@ with Agentech.robot(dry_run=True) as dog:
     dog.backward(speed=0.2, seconds=1)
     dog.lateral_left(speed=0.2, seconds=1)
     dog.lateral_right(speed=0.2, seconds=1)
-    dog.turn_left(angle=45)
-    dog.twist_right(angle=28)
+    dog.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
+    dog.yaw(direction="right", angle_deg=15)
     dog.backflip()
     dog.jump()
     dog.look_up(angle=15)
@@ -692,7 +703,7 @@ Live camera -> Website viewer -> Student watches the run`;
                 <p>Linear speed is capped at 2.37 m/s.</p>
                 <p>Backward speed is capped at 2.365 m/s.</p>
                 <p>Lateral speed benchmark is 0.78 m/s.</p>
-                <p>Yaw rate is capped at +/-2.09 rad/s; slow yaw reference is 1.05 rad/s.</p>
+                <p>Yaw rate is capped at +/-3 rad/s. Negative values turn left; positive values turn right.</p>
                 <p>Look up and look down are capped at 25 degrees so the dog does not tilt unrealistically.</p>
                 <p>Roll benchmark limit is 28 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
@@ -1150,11 +1161,16 @@ function FocusedBrowseFunctionsSection() {
                               {item.profiles.map((profile, profileIndex) => (
                                 <div key={profile.name} className={`border p-3 ${profile.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : "border-[#dce7f2] bg-white"}`}>
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <span className="grid h-5 w-5 place-items-center bg-[#e8f1fb] font-mono text-[10px] font-bold text-[#005bd6]">{profileIndex + 1}</span>
+                                    <span className="grid h-5 w-5 place-items-center bg-[#e8f1fb] font-mono text-[10px] font-bold text-[#005bd6]">{profile.number ?? profileIndex + 1}</span>
                                     <span className="text-xs font-semibold text-[#07142e]">{profile.name}</span>
                                     {profile.status === "development" ? <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span> : null}
                                   </div>
                                   <p className="mt-2 overflow-x-auto font-mono text-xs leading-5 text-[#006a5c]">{profile.syntax}</p>
+                                  {profile.note ? (
+                                    <p className="mt-3 border border-[#e1ad32] bg-[#fff8df] p-3 text-xs leading-5 text-[#704b00]">
+                                      <span className="font-semibold">{profile.noteLabel ?? "Distance note"}:</span> {profile.note}
+                                    </p>
+                                  ) : null}
                                 </div>
                               ))}
                             </div>
@@ -1856,7 +1872,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           motionPlan: reviewPlan.trace,
           simulationClips: [],
           simulationError: movementSafety.detail,
-          finalHint: movementSafety.level === "WARNING" ? "Warning-level movement is not submit-ready. Keep max movement within 0.8m before Step 4 unlocks." : "Submission is locked until movement stays inside the physical test box limits.",
+          finalHint: "Submission is locked when movement exceeds the 1.0m physical test boundary.",
           movementSafety
         });
         setRequestStatus(movementSafety.detail);
@@ -1902,7 +1918,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           motionPlan: reviewPlan.trace,
           simulationClips: [],
           simulationError: message,
-          finalHint: blockedSafety.level === "WARNING" ? "Warning-level movement is not submit-ready. Keep max movement within 0.8m before Step 4 unlocks." : "Submission is locked until every checklist item passes.",
+          finalHint: "Submission is locked until every checklist item passes and movement is no greater than 1.0m.",
           movementSafety: blockedSafety
         });
         setRequestStatus(message);
@@ -2072,7 +2088,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               EAIC HUB
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, twist, backflip, jump, posture, stop, and battery status in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, yaw posture, backflip, jump, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">

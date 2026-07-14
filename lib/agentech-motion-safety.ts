@@ -9,7 +9,7 @@ export type AgentechMovementSafety = {
   detail: string;
 };
 
-const warningDistanceMeters = 0.8;
+const warningDistanceMeters = 0.9;
 const failDistanceMeters = 1.0;
 const failAxisMeters = 1.0;
 
@@ -48,17 +48,19 @@ function linearDistance(args: string, defaultSpeed: number) {
 }
 
 function turnDegrees(args: string) {
-  const angle = numberArg(args, "angle_deg");
-  if (angle !== null) return angle;
-  const percent = numberArg(args, "angle_percent");
-  if (percent !== null) return percent * 3.6;
+  const angleRad = numberArg(args, "angle_rad");
+  if (angleRad !== null) return angleRad * 180 / Math.PI;
+  const angleDeg = numberArg(args, "angle_deg");
+  if (angleDeg !== null) return angleDeg;
+  const duration = numberArg(args, "duration_s") ?? 1;
+  const percent = numberArg(args, "rate_percentage");
+  if (percent !== null) return duration * (3 * percent / 100) * 180 / Math.PI;
   const level = numberArg(args, "turn_level");
-  if (level !== null) return [15, 30, 45, 60, 90][Math.max(0, Math.min(4, level - 1))];
-  const quarters = numberArg(args, "quarter_turns");
-  if (quarters !== null) return quarters * 90;
-  const duration = numberArg(args, "duration_s");
-  const yawRate = numberArg(args, "yaw_rate_rad_s");
-  if (duration !== null) return duration * (yawRate ?? 0.35) * 180 / Math.PI;
+  if (level !== null) return duration * (3 * level / 511) * 180 / Math.PI;
+  const rateDeg = numberArg(args, "turn_rate_deg_s");
+  if (rateDeg !== null && numberArg(args, "angle_deg") === null) return duration * rateDeg;
+  const rateRad = numberArg(args, "turn_rate_rad_s");
+  if (rateRad !== null && numberArg(args, "angle_rad") === null) return duration * rateRad * 180 / Math.PI;
   return 45;
 }
 
@@ -108,8 +110,13 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
       y += Math.sin(headingRad + side * Math.PI / 2) * distance;
       samplePosition();
     } else if (command === "turn") {
-      const direction = stringArg(args, "direction") === "right" ? -1 : 1;
-      headingRad += direction * turnDegrees(args) * Math.PI / 180;
+      headingRad -= turnDegrees(args) * Math.PI / 180;
+    } else if (command === "turnright") {
+      headingRad -= Math.PI / 2;
+    } else if (command === "turnleft") {
+      headingRad += Math.PI / 2;
+    } else if (command === "uturn") {
+      headingRad -= Math.PI;
     } else if (command === "backflip") {
       x -= Math.cos(headingRad) * 0.44;
       y -= Math.sin(headingRad) * 0.44;
@@ -125,11 +132,11 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
   const axisExceeded = maxAbsDx > failAxisMeters || maxAbsDy > failAxisMeters;
   const level: AgentechMovementSafetyLevel = axisExceeded || maxDistance > failDistanceMeters
     ? "FAIL"
-    : maxDistance > warningDistanceMeters
+    : maxDistance >= warningDistanceMeters
       ? "WARNING"
       : "PASS";
-  const submitReady = level === "PASS";
-  const detail = `Movement safety ${level.toLowerCase()}: max distance ${formatMeters(maxDistanceMeters)}, dx ${formatMeters(maxDxMeters)}, dy ${formatMeters(maxDyMeters)}. Limits: pass <= 0.800m, warning > 0.800m, fail > 1.000m or dx/dy > 1.000m.`;
+  const submitReady = level !== "FAIL";
+  const detail = `Movement safety ${level.toLowerCase()}: max distance ${formatMeters(maxDistanceMeters)}, dx ${formatMeters(maxDxMeters)}, dy ${formatMeters(maxDyMeters)}. Limits: pass < 0.900m, non-blocking warning >= 0.900m and <= 1.000m, fail > 1.000m or dx/dy > 1.000m.`;
 
   return {
     level,
