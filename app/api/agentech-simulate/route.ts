@@ -45,7 +45,7 @@ function signedTurnRateRad(args: string) {
   if (percent !== null) return 3 * percent / 100;
   const level = numberArg(args, "turn_level");
   if (level !== null) return turnLevelRateDeg(level) * Math.PI / 180;
-  return 0.35;
+  return 2;
 }
 
 function signedTurnAngleDeg(args: string) {
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
   }
 
   const simulatorCode = normalizeCanonicalTurnsForMuJoCo(code);
-  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v8:${simulatorCode}`).digest("hex");
+  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v9:${simulatorCode}`).digest("hex");
   const cached = simulationCache.get(cacheKey);
   if (cached && Date.now() - cached.createdAt < cacheTtlMs) {
     return NextResponse.json({ ...(cached.payload as object), cached: true });

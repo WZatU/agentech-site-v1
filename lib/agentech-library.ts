@@ -23,11 +23,11 @@ const p = (name: string, type: string, description: string, defaultValue?: strin
 
 export const agentechFunctions: AgentechFunction[] = [
   {
-    name: "forward", category: "Movement", signature: "Agentech.forward(speed_mps=0.4, duration_s=1.0)",
+    name: "forward", category: "Movement", signature: "Agentech.forward(speed_mps=1.0, duration_s=1.0)",
     summary: "Move forward using one positive speed-magnitude profile and a controlled stop.",
-    example: "Agentech.forward(speed_mps=0.4, duration_s=1.0)",
+    example: "Agentech.forward(speed_mps=1.0, duration_s=1.0)",
     profiles: [
-      { name: "Default", syntax: "Agentech.forward()" },
+      { name: "Default: 1 m/s for 1 second", syntax: "Agentech.forward()" },
       { name: "Direct speed", syntax: "Agentech.forward(speed_mps=0.4, duration_s=1.0)", note: "Distance is an estimate, not a guarantee: the robot needs time to accelerate to the requested speed, so the actual distance traveled may differ from the value you calculate." },
       { name: "Distance + speed", syntax: "Agentech.forward(distance_m=1.0, speed_mps=0.4)", noteLabel: "Time note", note: "Time is an estimate, not a guarantee: the robot needs time to accelerate to the requested speed, so the actual time used may differ from the value you calculate." },
       { name: "Percentage", syntax: "Agentech.forward(speed_percent=40, duration_s=1.0)" },
@@ -36,7 +36,7 @@ export const agentechFunctions: AgentechFunction[] = [
       { name: "Steps", syntax: "Agentech.forward(step_count=6, step_rate_hz=1.5)", status: "development" }
     ],
     params: [
-      p("speed_mps", "float [0.05, 3.00]", "Direct positive forward speed in meters per second. Values outside the range are rejected.", "0.4"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"),
+      p("speed_mps", "float [0.05, 3.00]", "Direct positive forward speed in meters per second. Values outside the range are rejected.", "1.0"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"),
       p("distance_m", "float [0, 2]", "Requested travel distance for the distance-and-speed profile. This is an open-loop estimate; acceleration and stopping can change the actual distance."),
       p("speed_percent", "float [0, 100]", "Accepts any percentage from 0% through 100%, including decimal values. Use this as a relative speed request; no meters-per-second conversion is promised."), p("speed_level", "int [0, 511]", "Select one of 512 integer speed levels. Level 0 is the lowest moving-speed level and level 511 is the highest."),
       p("pace", "enum {slow, normal, fast}", "Named pace profiles are still being designed and physically validated.", undefined, "development"),
@@ -45,9 +45,9 @@ export const agentechFunctions: AgentechFunction[] = [
     ]
   },
   {
-    name: "backward", category: "Movement", signature: "Agentech.backward(speed_mps=0.4, duration_s=1.0)", summary: "Move backward using one positive speed-magnitude profile; direction is applied internally.", example: "Agentech.backward(speed_percent=30, duration_s=1.0)",
+    name: "backward", category: "Movement", signature: "Agentech.backward(speed_mps=1.0, duration_s=1.0)", summary: "Move backward using one positive speed-magnitude profile; direction is applied internally.", example: "Agentech.backward(speed_mps=1.0, duration_s=1.0)",
     profiles: [
-      { name: "Default", syntax: "Agentech.backward()" },
+      { name: "Default: 1 m/s for 1 second", syntax: "Agentech.backward()" },
       { name: "Direct speed", syntax: "Agentech.backward(speed_mps=0.4, duration_s=1.0)", note: "Distance is an estimate, not a guarantee: the robot needs time to accelerate to the requested speed, so the actual distance traveled may differ from the value you calculate." },
       { name: "Distance + speed", syntax: "Agentech.backward(distance_m=1.0, speed_mps=0.4)", noteLabel: "Time note", note: "Time is an estimate, not a guarantee: the robot needs time to accelerate to the requested speed, so the actual time used may differ from the value you calculate." },
       { name: "Percentage", syntax: "Agentech.backward(speed_percent=40, duration_s=1.0)" },
@@ -55,7 +55,7 @@ export const agentechFunctions: AgentechFunction[] = [
       { name: "Pace", syntax: "Agentech.backward(pace=\"normal\", duration_s=1.0)", status: "development" },
       { name: "Steps", syntax: "Agentech.backward(step_count=6, step_rate_hz=1.5)", status: "development" }
     ],
-    params: [p("speed_mps", "float [0.05, 3.00]", "Enter a positive backward speed magnitude in meters per second; the SDK applies the negative body-X direction internally. Negative public inputs and out-of-range values are rejected.", "0.4"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"), p("distance_m", "float [0, 2]", "Requested travel distance for the distance-and-speed profile. This is an open-loop estimate; acceleration and stopping can change the actual distance."), p("speed_percent", "float [0, 100]", "Accepts any percentage from 0% through 100%, including decimal values. Use this as a relative speed request; no meters-per-second conversion is promised."), p("speed_level", "int [0, 511]", "Select one of 512 integer speed levels. Level 0 is the lowest moving-speed level and level 511 is the highest."), p("pace", "enum {slow, normal, fast}", "Named pace profiles are still being designed and physically validated.", undefined, "development"), p("step_count", "int [1, 10]", "Estimated, not physically counted.", undefined, "development"), p("step_rate_hz", "float [0.5, 3.0]", "Estimated cadence only.", "1.5", "development")]
+    params: [p("speed_mps", "float [0.05, 3.00]", "Enter a positive backward speed magnitude in meters per second; the SDK applies the negative body-X direction internally. Negative public inputs and out-of-range values are rejected.", "1.0"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"), p("distance_m", "float [0, 2]", "Requested travel distance for the distance-and-speed profile. This is an open-loop estimate; acceleration and stopping can change the actual distance."), p("speed_percent", "float [0, 100]", "Accepts any percentage from 0% through 100%, including decimal values. Use this as a relative speed request; no meters-per-second conversion is promised."), p("speed_level", "int [0, 511]", "Select one of 512 integer speed levels. Level 0 is the lowest moving-speed level and level 511 is the highest."), p("pace", "enum {slow, normal, fast}", "Named pace profiles are still being designed and physically validated.", undefined, "development"), p("step_count", "int [1, 10]", "Estimated, not physically counted.", undefined, "development"), p("step_rate_hz", "float [0.5, 3.0]", "Estimated cadence only.", "1.5", "development")]
   },
   {
     name: "lateral", category: "Movement", signature: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)", summary: "Move sideways left or right with a canonical direction parameter.", example: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)",
@@ -73,12 +73,10 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "turn", category: "Movement", signature: "Agentech.turn()", summary: "Turn using signed angles or rates. Direction note: all negative values turn left, and all positive values turn right. The default is +45 degrees (right).", example: "Agentech.turn()",
     profiles: [
       { name: "Default: turn right 45 degrees", syntax: "Agentech.turn()" },
-      { name: "Radian angle + radian rate", syntax: "Agentech.turn(angle_rad=0.7854, turn_rate_rad_s=0.3927)", noteLabel: "Angle note", note: "One full circle is 2pi radians, which equals 360 degrees." },
-      { name: "Degree angle + degree rate", syntax: "Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)", noteLabel: "Angle note", note: "One full circle is 360 degrees." },
+      { name: "Angle + rate", syntax: "Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)\nAgentech.turn(angle_rad=0.7854, turn_rate_rad_s=0.3927)", noteLabel: "Angle note", note: "One full circle is 360 degrees, which equals 2pi radians. If you omit the rate, it defaults to 2 rad/s." },
       { name: "Rate percentage + time", syntax: "Agentech.turn(rate_percentage=40, duration_s=2.0)" },
       { name: "Turn level + time", syntax: "Agentech.turn(turn_level=256, duration_s=2.0)" },
-      { name: "Degree rate + time", syntax: "Agentech.turn(turn_rate_deg_s=45, duration_s=2.0)" },
-      { name: "Radian rate + time", syntax: "Agentech.turn(turn_rate_rad_s=0.7854, duration_s=2.0)" },
+      { name: "Rate + time", syntax: "Agentech.turn(turn_rate_deg_s=45, duration_s=2.0)\nAgentech.turn(turn_rate_rad_s=0.7854, duration_s=2.0)" },
       { name: "Default right: 90 degrees at 2 rad/s", syntax: "Agentech.turnright()" },
       { name: "Default left: 90 degrees at 2 rad/s", syntax: "Agentech.turnleft()" },
       { name: "Default U-turn: 180 degrees at 2 rad/s", syntax: "Agentech.uturn()" }

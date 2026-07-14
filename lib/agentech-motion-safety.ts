@@ -94,12 +94,12 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
     const command = match[1];
     const args = match[2];
     if (command === "forward") {
-      const distance = linearDistance(args, 0.4);
+      const distance = linearDistance(args, 1.0);
       x += Math.cos(headingRad) * distance;
       y += Math.sin(headingRad) * distance;
       samplePosition();
     } else if (command === "backward") {
-      const distance = linearDistance(args, 0.4);
+      const distance = linearDistance(args, 1.0);
       x -= Math.cos(headingRad) * distance;
       y -= Math.sin(headingRad) * distance;
       samplePosition();

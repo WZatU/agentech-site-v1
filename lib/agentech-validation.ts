@@ -74,7 +74,9 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
       const provided = Object.keys(values).sort();
       const profiles = [
         [],
+        ["angle_rad"],
         ["angle_rad", "turn_rate_rad_s"],
+        ["angle_deg"],
         ["angle_deg", "turn_rate_deg_s"],
         ["duration_s", "rate_percentage"],
         ["duration_s", "turn_level"],

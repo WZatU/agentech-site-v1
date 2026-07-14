@@ -107,6 +107,14 @@ function previewDirection(args: string) {
   return args.match(/\bdirection\s*=\s*(["'])(left|right|up|down)\1/i)?.[2]?.toLowerCase() ?? "";
 }
 
+function profileSyntaxWithPlaceholders(syntax: string) {
+  return syntax.split(/([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g).map((part, index) =>
+    /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(part)
+      ? <span key={`${part}-${index}`} className="font-normal text-[#4c1d95]">x</span>
+      : part
+  );
+}
+
 function resolvePreviewCommand(command: string, args = "") {
   if (command === "turnright") return "turn_right";
   if (command === "turnleft") return "turn_left";
@@ -1149,7 +1157,6 @@ function FocusedBrowseFunctionsSection() {
                     <div className="grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] lg:grid-cols-[minmax(0,1fr)_360px]">
                       <div className="bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
-                        <p className="mt-2 font-mono text-sm text-[#006a5c]">{item.signature}</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
                         {item.profiles?.length ? (
                           <div className="mt-4">
@@ -1165,7 +1172,7 @@ function FocusedBrowseFunctionsSection() {
                                     <span className="text-xs font-semibold text-[#07142e]">{profile.name}</span>
                                     {profile.status === "development" ? <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span> : null}
                                   </div>
-                                  <p className="mt-2 overflow-x-auto font-mono text-xs leading-5 text-[#006a5c]">{profile.syntax}</p>
+                                  <p className="mt-2 whitespace-pre-wrap overflow-x-auto font-mono text-xs leading-5 text-[#006a5c]">{profileSyntaxWithPlaceholders(profile.syntax)}</p>
                                   {profile.note ? (
                                     <p className="mt-3 border border-[#e1ad32] bg-[#fff8df] p-3 text-xs leading-5 text-[#704b00]">
                                       <span className="font-semibold">{profile.noteLabel ?? "Distance note"}:</span> {profile.note}
