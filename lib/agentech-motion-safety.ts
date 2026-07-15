@@ -9,8 +9,7 @@ export type AgentechMovementSafety = {
   detail: string;
 };
 
-const warningDistanceMeters = 0.9;
-const failDistanceMeters = 1.0;
+const warningAxisMeters = 0.9;
 const failAxisMeters = 1.0;
 
 function numberArg(args: string, name: string) {
@@ -28,7 +27,7 @@ function stringArg(args: string, name: string) {
   return match?.[1] ?? null;
 }
 
-function linearDistance(args: string, defaultSpeed: number) {
+function linearDistance(args: string, defaultSpeed: number, defaultDuration = 1) {
   const directDistance = numberArg(args, "distance_m");
   if (directDistance !== null) return directDistance;
 
@@ -43,7 +42,7 @@ function linearDistance(args: string, defaultSpeed: number) {
     ?? (level !== null ? 3 * level / 511 : null)
     ?? (pace === "slow" ? 0.2 : pace === "fast" ? 0.8 : pace === "normal" ? 0.4 : null)
     ?? defaultSpeed;
-  const duration = numberArg(args, "duration_s") ?? 1;
+  const duration = numberArg(args, "duration_s") ?? defaultDuration;
   return speed * duration;
 }
 
@@ -103,9 +102,9 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
       x -= Math.cos(headingRad) * distance;
       y -= Math.sin(headingRad) * distance;
       samplePosition();
-    } else if (command === "lateral") {
-      const distance = linearDistance(args, 0.2);
-      const side = stringArg(args, "direction") === "right" ? -1 : 1;
+    } else if (command === "lateral" || command === "lateral_left" || command === "lateral_right") {
+      const distance = linearDistance(args, 0.5, 2.0);
+      const side = command === "lateral_right" || stringArg(args, "direction") === "right" ? -1 : 1;
       x += Math.cos(headingRad + side * Math.PI / 2) * distance;
       y += Math.sin(headingRad + side * Math.PI / 2) * distance;
       samplePosition();
@@ -130,13 +129,14 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
   const maxDxMeters = roundMeters(maxAbsDx);
   const maxDyMeters = roundMeters(maxAbsDy);
   const axisExceeded = maxAbsDx > failAxisMeters || maxAbsDy > failAxisMeters;
-  const level: AgentechMovementSafetyLevel = axisExceeded || maxDistance > failDistanceMeters
+  const axisWarning = maxAbsDx >= warningAxisMeters || maxAbsDy >= warningAxisMeters;
+  const level: AgentechMovementSafetyLevel = axisExceeded
     ? "FAIL"
-    : maxDistance >= warningDistanceMeters
+    : axisWarning
       ? "WARNING"
       : "PASS";
   const submitReady = level !== "FAIL";
-  const detail = `Movement safety ${level.toLowerCase()}: max distance ${formatMeters(maxDistanceMeters)}, dx ${formatMeters(maxDxMeters)}, dy ${formatMeters(maxDyMeters)}. Limits: pass < 0.900m, non-blocking warning >= 0.900m and <= 1.000m, fail > 1.000m or dx/dy > 1.000m.`;
+  const detail = `Movement safety ${level.toLowerCase()}: max distance ${formatMeters(maxDistanceMeters)}, dx ${formatMeters(maxDxMeters)}, dy ${formatMeters(maxDyMeters)}. Temporary 2m x 2m safety box: warning when |dx| or |dy| reaches 0.900m; fail when |dx| or |dy| exceeds 1.000m.`;
 
   return {
     level,

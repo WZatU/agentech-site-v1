@@ -1076,10 +1076,15 @@ function FocusedBrowseFunctionsSection() {
       items: agentechFunctions.filter((item) => item.category === category)
     }));
   const safetyLimits = [
-    "Dry-run before hardware",
-    "10s max per motion",
-    "Speed caps enforced",
-    "Emergency stop available"
+    { label: "Dry-run before hardware" },
+    { label: "10s max per motion" },
+    { label: "Speed caps enforced" },
+    { label: "Emergency stop available" },
+    {
+      label: "Boundary: 2 m x 2 m safety box",
+      detail: "Crossing this temporary boundary fails the Hardware Check.",
+      temporary: true
+    }
   ];
   const tutorialCards = [
     {
@@ -1116,8 +1121,21 @@ function FocusedBrowseFunctionsSection() {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#c85016]">Safety Limits</p>
             <div className="mt-4 grid gap-2">
               {safetyLimits.map((limit) => (
-                <div key={limit} className="border border-[#ffd3bd] bg-[#fff7f2] px-3 py-2 text-sm font-semibold text-[#7b2b0d]">
-                  {limit}
+                <div
+                  key={limit.label}
+                  className={limit.temporary
+                    ? "border border-[#ff7a1a] bg-[#fff0e6] px-3 py-2.5 text-[#8a2c0d] shadow-[inset_3px_0_0_#ff5a1f]"
+                    : "border border-[#ffd3bd] bg-[#fff7f2] px-3 py-2 text-sm font-semibold text-[#7b2b0d]"}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold">{limit.label}</span>
+                    {limit.temporary ? (
+                      <span className="border border-[#ff9b63] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#b83a0b]">
+                        Temporary
+                      </span>
+                    ) : null}
+                  </div>
+                  {limit.detail ? <p className="mt-1 text-xs font-medium leading-5 text-[#9a3412]">{limit.detail}</p> : null}
                 </div>
               ))}
             </div>
