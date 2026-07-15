@@ -198,14 +198,18 @@ COMMANDS = {
     "backward": [MuJoCoCommand("backward", {"speed": 0.2, "seconds": 1.0})],
     "lateral_left": [MuJoCoCommand("lateral_left", {"speed": 0.2, "seconds": 1.0})],
     "lateral_right": [MuJoCoCommand("lateral_right", {"speed": 0.2, "seconds": 1.0})],
+    "diagonal_left": [],
+    "diagonal_right": [],
     "turn_left": [MuJoCoCommand("turn_left", {"angle": 45.0, "speed": 0.45})],
     "turn_right": [MuJoCoCommand("turn_right", {"angle": 45.0, "speed": 0.45})],
     "twist_left": [],
     "twist_right": [],
     "backflip": [],
     "jump": [],
-    "look_up": [MuJoCoCommand("look_up", {"angle": 15.0, "speed": 0.12})],
-    "look_down": [MuJoCoCommand("look_down", {"angle": 15.0, "speed": 0.12})],
+    "look_up": [MuJoCoCommand("pitch", {"speed": 0.12, "seconds": 1.0})],
+    "look_down": [MuJoCoCommand("pitch", {"speed": -0.12, "seconds": 1.0})],
+    "roll": [],
+    "squat": [],
     "sit": [MuJoCoCommand("sit", {})],
     "stop": [MuJoCoCommand("stop", {})],
     "emergency_stop": [],
@@ -572,7 +576,207 @@ def command_frames(preview: MuJoCoPreview, commands: list[MuJoCoCommand]) -> lis
     if not commands:
         return []
     result = preview.run(commands, timestep_s=1 / FPS)
-    return result.frames[1:]
+    # The first frame is already the standing pose. Keep it so commands that
+    # produce no subsequent motion frames still have a valid preview; it is not
+    # a lay-to-stand transition.
+    return result.frames
+
+
+def diagonal_frames(*, right: bool) -> list[dict[str, float]]:
+    """Default 45-degree diagonal from an already-standing pose."""
+    frames: list[dict[str, float]] = []
+    duration_s = 2.0
+    combined_speed_mps = 0.5
+    component_speed = combined_speed_mps / math.sqrt(2.0)
+    count = int(duration_s * FPS)
+    lateral_sign = -1.0 if right else 1.0
+    end_x = component_speed * duration_s
+    end_y = lateral_sign * component_speed * duration_s
+    for index in range(count + 1):
+        elapsed = index / FPS
+        gait_phase = 2.0 * math.pi * 1.35 * elapsed
+        x = component_speed * elapsed
+        y = lateral_sign * component_speed * elapsed
+        frames.append(
+            {
+                "x": x,
+                "y": y,
+                "root_x": x,
+                "root_y": y,
+                "root_z": STAND_BASE_Z + 0.012 * math.sin(gait_phase),
+                "z": STAND_BASE_Z + 0.012 * math.sin(gait_phase),
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "gait_phase": gait_phase,
+                "gait_settle": 1.0 if index else 0.0,
+                "gait_direction": 1.0,
+                "stand_progress": 1.0,
+                "time_s": elapsed,
+                # Hold an elevated three-quarter camera over the center of the
+                # route. Unlike the normal follow camera, this makes both the
+                # forward and lateral parts of the diagonal easy to see.
+                "camera_lookat_x": end_x * 0.5,
+                "camera_lookat_y": end_y * 0.5,
+                "camera_distance": 2.25,
+                "camera_azimuth": 135.0 if right else 45.0,
+                "camera_elevation": -34.0,
+            }
+        )
+    return frames
+
+
+def roll_frames(preview: MuJoCoPreview) -> list[dict[str, object]]:
+    """Default body roll with inverse-kinematics fixed feet."""
+    try:
+        import mujoco
+        import numpy as np
+    except ImportError as exc:
+        raise RuntimeError("Install MuJoCo and NumPy before generating the roll preview.") from exc
+
+    model = sim._build_ff_preview_model(mujoco, preview.model_path, width=WIDTH, height=HEIGHT)
+    data = mujoco.MjData(model)
+    root_qpos = int(model.jnt_qposadr[0])
+    joint_addresses = sim._joint_qpos_addresses(model, mujoco)
+    joint_names = [f"{leg}_{joint}_JOINT" for leg in sim.LEGS for joint in ("ABAD", "HIP", "KNEE")]
+    joint_qpos = [joint_addresses[name] for name in joint_names]
+
+    # The final geometry attached to each knee link is the spherical foot.
+    foot_geom_ids: list[int] = []
+    for leg in sim.LEGS:
+        body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"{leg}_KNEE_LINK")
+        geom_ids = [geom_id for geom_id in range(model.ngeom) if int(model.geom_bodyid[geom_id]) == body_id]
+        foot_geom_ids.append(max(geom_ids))
+
+    data.qpos[:] = 0.0
+    data.qpos[root_qpos : root_qpos + 3] = [0.0, 0.0, STAND_BASE_Z]
+    data.qpos[root_qpos + 3 : root_qpos + 7] = [1.0, 0.0, 0.0, 0.0]
+    for name, address in joint_addresses.items():
+        data.qpos[address] = STAND_POSE[name]
+    mujoco.mj_forward(model, data)
+    fixed_feet = np.array([data.geom_xpos[geom_id].copy() for geom_id in foot_geom_ids])
+
+    frames: list[dict[str, float]] = []
+    duration_s = 2.0
+    count = int(duration_s * FPS)
+    target_roll_rad = 0.463
+    for index in range(count + 1):
+        elapsed = index / FPS
+        progress = smoothstep(min(1.0, elapsed / 1.25))
+        roll = target_roll_rad * progress
+        data.qpos[root_qpos + 3 : root_qpos + 7] = [math.cos(roll / 2.0), math.sin(roll / 2.0), 0.0, 0.0]
+
+        # Newton iterations adjust all 12 leg joints so the four foot centers
+        # remain at their original world-space contact points.
+        for _ in range(12):
+            mujoco.mj_forward(model, data)
+            current = np.array([data.geom_xpos[geom_id].copy() for geom_id in foot_geom_ids])
+            residual = (fixed_feet - current).reshape(-1)
+            if float(np.linalg.norm(residual)) < 2e-5:
+                break
+            jacobian = np.zeros((12, 12))
+            epsilon = 1e-4
+            for column, address in enumerate(joint_qpos):
+                original = float(data.qpos[address])
+                data.qpos[address] = original + epsilon
+                mujoco.mj_forward(model, data)
+                moved = np.array([data.geom_xpos[geom_id].copy() for geom_id in foot_geom_ids])
+                jacobian[:, column] = ((moved - current) / epsilon).reshape(-1)
+                data.qpos[address] = original
+            step = np.linalg.lstsq(jacobian, residual, rcond=1e-5)[0]
+            step = np.clip(step, -0.12, 0.12)
+            for address, delta in zip(joint_qpos, step):
+                data.qpos[address] += float(delta)
+
+        solved_joints = {name: float(data.qpos[address]) for name, address in joint_addresses.items()}
+        frames.append(
+            {
+                "x": 0.0,
+                "y": 0.0,
+                "root_x": 0.0,
+                "root_y": 0.0,
+                "root_z": STAND_BASE_Z,
+                "z": STAND_BASE_Z,
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "roll_rad": roll,
+                "gait_phase": 0.0,
+                "gait_settle": 0.0,
+                "gait_direction": 1.0,
+                "stand_progress": 1.0,
+                "time_s": elapsed,
+                "joints": solved_joints,
+                "clip_joints": False,
+            }
+        )
+    return frames
+
+
+def squat_frames(preview: MuJoCoPreview) -> list[dict[str, object]]:
+    """Lower the torso to a halfway crouch while all four feet stay fixed."""
+    import mujoco
+    import numpy as np
+
+    model = sim._build_ff_preview_model(mujoco, preview.model_path, width=WIDTH, height=HEIGHT)
+    data = mujoco.MjData(model)
+    root_qpos = int(model.jnt_qposadr[0])
+    joint_addresses = sim._joint_qpos_addresses(model, mujoco)
+    joint_names = [f"{leg}_{joint}_JOINT" for leg in sim.LEGS for joint in ("ABAD", "HIP", "KNEE")]
+    joint_qpos = [joint_addresses[name] for name in joint_names]
+    foot_geom_ids: list[int] = []
+    for leg in sim.LEGS:
+        body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, f"{leg}_KNEE_LINK")
+        foot_geom_ids.append(max(i for i in range(model.ngeom) if int(model.geom_bodyid[i]) == body_id))
+
+    data.qpos[:] = 0.0
+    data.qpos[root_qpos : root_qpos + 3] = [0.0, 0.0, STAND_BASE_Z]
+    data.qpos[root_qpos + 3 : root_qpos + 7] = [1.0, 0.0, 0.0, 0.0]
+    for name, address in joint_addresses.items():
+        data.qpos[address] = STAND_POSE[name]
+    mujoco.mj_forward(model, data)
+    fixed_feet = np.array([data.geom_xpos[i].copy() for i in foot_geom_ids])
+
+    frames: list[dict[str, object]] = []
+    duration_s = 2.0
+    count = int(duration_s * FPS)
+    target_root_z = 0.235
+    for index in range(count + 1):
+        elapsed = index / FPS
+        progress = smoothstep(min(1.0, elapsed / 1.35))
+        root_z = mix(STAND_BASE_Z, target_root_z, progress)
+        data.qpos[root_qpos + 2] = root_z
+        for _ in range(12):
+            mujoco.mj_forward(model, data)
+            current = np.array([data.geom_xpos[i].copy() for i in foot_geom_ids])
+            residual = (fixed_feet - current).reshape(-1)
+            if float(np.linalg.norm(residual)) < 2e-5:
+                break
+            jacobian = np.zeros((12, 12))
+            epsilon = 1e-4
+            for column, address in enumerate(joint_qpos):
+                original = float(data.qpos[address])
+                data.qpos[address] = original + epsilon
+                mujoco.mj_forward(model, data)
+                moved = np.array([data.geom_xpos[i].copy() for i in foot_geom_ids])
+                jacobian[:, column] = ((moved - current) / epsilon).reshape(-1)
+                data.qpos[address] = original
+            step = np.clip(np.linalg.lstsq(jacobian, residual, rcond=1e-5)[0], -0.12, 0.12)
+            for address, delta in zip(joint_qpos, step):
+                data.qpos[address] += float(delta)
+
+        frames.append(
+            {
+                "root_x": 0.0,
+                "root_y": 0.0,
+                "root_z": root_z,
+                "z": root_z,
+                "yaw": 0.0,
+                "pitch": 0.0,
+                "time_s": elapsed,
+                "joints": {name: float(data.qpos[address]) for name, address in joint_addresses.items()},
+                "clip_joints": False,
+            }
+        )
+    return frames
 
 
 def interpolated_twist_keyframe(
@@ -733,7 +937,19 @@ def render_data_urls(preview: MuJoCoPreview, frames: list[dict[str, object]], *,
             data.qpos[:] = 0.0
             data.qvel[:] = 0.0
             data.qpos[root_qpos : root_qpos + 3] = [root_x, root_y, root_z]
-            data.qpos[root_qpos + 3 : root_qpos + 7] = sim._quat_from_yaw_pitch(yaw_rad, -pitch_rad)
+            roll_rad = float(frame.get("roll_rad", 0.0))
+            if roll_rad:
+                cy, sy = math.cos(yaw_rad / 2.0), math.sin(yaw_rad / 2.0)
+                cp, sp = math.cos(-pitch_rad / 2.0), math.sin(-pitch_rad / 2.0)
+                cr, sr = math.cos(roll_rad / 2.0), math.sin(roll_rad / 2.0)
+                data.qpos[root_qpos + 3 : root_qpos + 7] = [
+                    cr * cp * cy + sr * sp * sy,
+                    sr * cp * cy - cr * sp * sy,
+                    cr * sp * cy + sr * cp * sy,
+                    cr * cp * sy - sr * sp * cy,
+                ]
+            else:
+                data.qpos[root_qpos + 3 : root_qpos + 7] = sim._quat_from_yaw_pitch(yaw_rad, -pitch_rad)
             joints = frame.get("joints")
             if isinstance(joints, dict):
                 for joint_name, value in joints.items():
@@ -758,6 +974,15 @@ def render_data_urls(preview: MuJoCoPreview, frames: list[dict[str, object]], *,
                 )
             mujoco.mj_forward(model, data)
             sim._update_ff_demo_camera(model, mujoco, data, camera, time_s)
+            if "camera_lookat_x" in frame:
+                camera.lookat[:] = [
+                    float(frame["camera_lookat_x"]),
+                    float(frame["camera_lookat_y"]),
+                    0.16,
+                ]
+                camera.distance = float(frame.get("camera_distance", camera.distance))
+                camera.azimuth = float(frame.get("camera_azimuth", camera.azimuth))
+                camera.elevation = float(frame.get("camera_elevation", camera.elevation))
             renderer.update_scene(data, camera=camera)
             image = Image.fromarray(renderer.render())
             buffer = io.BytesIO()
@@ -807,10 +1032,20 @@ def main() -> int:
     preview = MuJoCoPreview.aegis()
     base_stand = stand_frames()
     for name, commands in COMMANDS.items():
-        if name == "twist_left":
-            frames = base_stand + twist_frames(TWIST_LEFT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
+        if name == "stand":
+            frames = base_stand
+        elif name == "twist_left":
+            frames = twist_frames(TWIST_LEFT_KEYFRAMES, 0.0)
         elif name == "twist_right":
-            frames = base_stand + twist_frames(TWIST_RIGHT_KEYFRAMES, base_stand[-1]["time_s"] + 1 / FPS)
+            frames = twist_frames(TWIST_RIGHT_KEYFRAMES, 0.0)
+        elif name == "diagonal_left":
+            frames = diagonal_frames(right=False)
+        elif name == "diagonal_right":
+            frames = diagonal_frames(right=True)
+        elif name == "roll":
+            frames = roll_frames(preview)
+        elif name == "squat":
+            frames = squat_frames(preview)
         elif name == "backflip":
             frames = backflip_frames(0.0)
         elif name == "jump":
@@ -820,7 +1055,7 @@ def main() -> int:
         elif name == "emergency_stop":
             frames = emergency_stop_frames(0.0)
         else:
-            frames = base_stand + command_frames(preview, commands)
+            frames = command_frames(preview, commands)
         max_frames = min(len(frames), 78)
         data_urls = render_data_urls(preview, frames, max_frames=max_frames)
         save_gif(name, data_urls)

@@ -59,27 +59,31 @@ type CachedPhysicalReview = {
 };
 const robotSchedulingPath = getEaicHubTaskPath("schedule-time");
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
+const previewAsset = (name: string) => `/assets/products/aegis-previews/${name}.gif?v=squat-half-height-20260715`;
 const localPreviewAssets: Record<string, string> = {
-  forward: "/assets/products/aegis-previews/forward.gif",
-  backward: "/assets/products/aegis-previews/backward.gif",
-  lateral_left: "/assets/products/aegis-previews/lateral_left.gif",
-  lateral_right: "/assets/products/aegis-previews/lateral_right.gif",
-  turn_left: "/assets/products/aegis-previews/turn_left.gif",
-  turn_right: "/assets/products/aegis-previews/turn_right.gif",
-  twist_left: "/assets/products/aegis-previews/twist_left.gif",
-  twist_right: "/assets/products/aegis-previews/twist_right.gif",
-  pitch_up: "/assets/products/aegis-previews/look_up.gif",
-  pitch_down: "/assets/products/aegis-previews/look_down.gif",
-  roll: "/assets/products/aegis-previews/roll.gif",
-  backflip: "/assets/products/aegis-previews/backflip.gif",
-  jump: "/assets/products/aegis-previews/jump.gif",
-  stand: "/assets/products/aegis-previews/stand.gif",
-  sit: "/assets/products/aegis-previews/sit.gif",
-  stop: "/assets/products/aegis-previews/stop.gif",
-  emergency_stop: "/assets/products/aegis-previews/emergency_stop.gif",
-  get_battery_status: "/assets/products/aegis-previews/battery_status.gif"
+  forward: previewAsset("forward"),
+  backward: previewAsset("backward"),
+  lateral_left: previewAsset("lateral_left"),
+  lateral_right: previewAsset("lateral_right"),
+  diagonal_left: previewAsset("diagonal_left"),
+  diagonal_right: previewAsset("diagonal_right"),
+  turn_left: previewAsset("turn_left"),
+  turn_right: previewAsset("turn_right"),
+  twist_left: previewAsset("twist_left"),
+  twist_right: previewAsset("twist_right"),
+  pitch_up: previewAsset("look_up"),
+  pitch_down: previewAsset("look_down"),
+  roll: previewAsset("roll"),
+  squat: previewAsset("squat"),
+  backflip: previewAsset("backflip"),
+  jump: previewAsset("jump"),
+  stand: previewAsset("stand"),
+  sit: previewAsset("sit"),
+  stop: previewAsset("stop"),
+  emergency_stop: previewAsset("emergency_stop"),
+  get_battery_status: previewAsset("battery_status")
 };
-const localPreviewFallback = "/assets/products/aegis-previews/stand.gif";
+const localPreviewFallback = previewAsset("stand");
 const protectedStandLine = "Agentech.stand()";
 const commandsRequiringStand = new Set([
   "forward",
@@ -87,6 +91,7 @@ const commandsRequiringStand = new Set([
   "lateral",
   "lateral_left",
   "lateral_right",
+  "diagonal",
   "turn",
   "turn_left",
   "turn_right",
@@ -126,6 +131,12 @@ function resolvePreviewCommand(command: string, args = "") {
     return position && Number(position[1]) < 0 ? "pitch_down" : "pitch_up";
   }
   if (command === "roll") return "roll";
+  if (command === "diagonal") {
+    const x = args.match(/\bx_m\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
+    const angle = args.match(/\bangle_deg\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
+    const pointsRight = x ? Number(x[1]) > 0 : !angle || Number(angle[1]) > 0;
+    return pointsRight ? "diagonal_right" : "diagonal_left";
+  }
   if (command === "stay") return "stand";
   if (command === "turn") {
     const signedNames = ["angle_rad", "angle_deg", "rate_percentage", "turn_level", "turn_rate_deg_s", "turn_rate_rad_s"];
@@ -203,6 +214,18 @@ function ensureRequiredStand(code: string) {
   return `from agentech import Agentech\n\n${protectedStandLine}\n${code.trimStart()}`;
 }
 
+function prepareMuJoCoCode(code: string) {
+  const hasMovement = codeUsesStandRequiredCommand(code);
+  if (!hasMovement) {
+    return code;
+  }
+
+  return code
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*(?:Agentech|dog)\.stand\s*\(\s*\)\s*;?\s*$/.test(line))
+    .join("\n");
+}
+
 function previewAssetForCode(code: string, preferredCommand?: string) {
   const command = preferredCommand && localPreviewAssets[preferredCommand] ? preferredCommand : detectPrimaryPreviewCommand(code);
   return {
@@ -217,6 +240,8 @@ function previewCommandLabel(command: string) {
     backward: "Backward",
     lateral_left: "Lateral Left",
     lateral_right: "Lateral Right",
+    diagonal_left: "Diagonal Left",
+    diagonal_right: "Diagonal Right",
     turn_left: "Turn Left",
     turn_right: "Turn Right",
     twist_left: "Yaw Left",
@@ -342,6 +367,7 @@ Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
+Agentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)
@@ -362,6 +388,7 @@ Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
+Agentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.backflip()
@@ -398,7 +425,7 @@ function commandPlan(code: string) {
   const trace: string[] = [];
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
-    "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turn_right", "turn_left", "u_turn",
+    "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
     "get_battery_status"
   ]);
@@ -1192,7 +1219,7 @@ function FocusedBrowseFunctionsSection() {
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
-                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" || item.name === "squat" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
+                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
                       <div className="bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
@@ -1262,7 +1289,7 @@ function FocusedBrowseFunctionsSection() {
                           </>
                         )}
                       </div>
-                      {item.name === "stay" || item.name === "squat" ? null : (
+                      {item.name === "stay" ? null : (
                         <div className="bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1542,6 +1569,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
   const activeFunction = agentechFunctions.find((item) => item.name === activeName) ?? agentechFunctions[0];
   const plan = useMemo(() => commandPlan(code), [code]);
+  const previewPlan = useMemo(() => commandPlan(prepareMuJoCoCode(code)), [code]);
   const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
   const previewFrameCount = renderedFrames.length || simFrames.length;
   const selectedTask = task ? getAgentechLibraryTask(task) : undefined;
@@ -1829,10 +1857,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   }
 
   async function runPreviewSimulation() {
-    const runnableCode = ensureRequiredStand(code);
-    if (runnableCode !== code) {
-      setCode(runnableCode);
-    }
+    const runnableCode = prepareMuJoCoCode(code);
     setIsSimulating(true);
     const primary = detectPrimaryPreviewCommand(runnableCode);
     setPreviewCommand(primary);
@@ -2549,7 +2574,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 className="h-[340px] w-full resize-none border-0 bg-[#0d1117] p-4 font-mono text-[13px] leading-6 text-[#e5edf5] outline-none selection:bg-[#275c37] sm:h-[440px] sm:text-sm sm:leading-7 lg:h-[520px] lg:p-5"
               />
               <div className="border-t border-[#2a3440] bg-[#0d1117] px-4 py-2 text-[11px] leading-5 text-[#8fdc8f] sm:px-5 sm:py-3 sm:text-xs">
-                Required for motion code: <span className="font-mono">{protectedStandLine}</span>. Motion previews and submissions keep this parameterless stand command before movement.
+                MuJoCo previews start in a standing pose and run movement directly. Physical robot submissions still add <span className="font-mono">{protectedStandLine}</span> before motion.
               </div>
             </div>
             <div className="border-t border-[#2a3440] bg-[#11151b] xl:border-l xl:border-t-0">
@@ -2596,7 +2621,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <div className="mt-4 hidden grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs sm:grid">
                   <div className="border-r border-[#2a3440] p-2">model ready</div>
                   <div className="border-r border-[#2a3440] p-2">{renderedFrames.length ? "sim" : "gif"}</div>
-                  <div className="p-2">{plan.motionCount} moves</div>
+                  <div className="p-2">{previewPlan.motionCount} moves</div>
                 </div>
                 <button
                   type="button"
@@ -2608,10 +2633,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 </button>
                 <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{previewStatus}</p>
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
-                  detected command: {plan.trace[0] ?? "none"} - {useRealMuJoCoPreview || renderedFrames.length ? `frame ${Math.min(simFrameIndex + 1, previewFrameCount)} / ${previewFrameCount}` : "official clip"}
+                  detected command: {previewPlan.trace[0] ?? "none"} - {useRealMuJoCoPreview || renderedFrames.length ? `frame ${Math.min(simFrameIndex + 1, previewFrameCount)} / ${previewFrameCount}` : "official clip"}
                 </div>
                 <div className="mt-4 max-h-32 space-y-2 overflow-auto sm:max-h-52">
-                  {plan.trace.map((line, index) => (
+                  {previewPlan.trace.map((line, index) => (
                     <p key={`${line}-${index}`} className="border border-[#2a3440] bg-[#0d1117] px-3 py-2 font-mono text-xs text-[#cdd6df]">
                       {line}
                     </p>

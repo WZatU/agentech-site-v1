@@ -14,6 +14,7 @@ export const agentechSdkSpec: Record<string, Spec> = {
   forward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 20), distance_m: num(0, 2) } },
   backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2) } },
   lateral: { allowed: ["direction", "speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], required: ["direction"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { direction: pick("left", "right"), ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
+  diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
   turn: { allowed: ["angle_rad", "turn_rate_rad_s", "angle_deg", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, turn_rate_rad_s: num(-3, 3), angle_deg: { type: "number" }, turn_rate_deg_s: num(-120, 120), rate_percentage: num(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
   turn_right: { allowed: [], rules: {} },
   turn_left: { allowed: [], rules: {} },
@@ -99,6 +100,19 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
           add("SIGN_CONFLICT", `turn() '${angleName}' and '${rateName}' must use the same sign.`, line);
         }
       });
+    }
+    if (command === "diagonal") {
+      const provided = Object.keys(values).sort();
+      const profiles = [
+        [],
+        ["duration_s", "x_m", "y_m"],
+        ["angle_deg", "duration_s", "speed_mps"]
+      ].map((profile) => [...profile].sort());
+      const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
+      if (!validProfile) add("PROFILE_MIXED", `diagonal() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
+      if ((typeof values.x_m === "number" && values.x_m === 0) || (typeof values.y_m === "number" && values.y_m === 0)) {
+        add("RANGE_INVALID", "diagonal() x_m and y_m must both be nonzero.", line);
+      }
     }
     if (command === "yaw") {
       const provided = Object.keys(values).sort();

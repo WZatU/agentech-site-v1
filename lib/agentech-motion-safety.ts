@@ -108,6 +108,23 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
       x += Math.cos(headingRad + side * Math.PI / 2) * distance;
       y += Math.sin(headingRad + side * Math.PI / 2) * distance;
       samplePosition();
+    } else if (command === "diagonal") {
+      const coordinateX = numberArg(args, "x_m");
+      const coordinateY = numberArg(args, "y_m");
+      let rightDistance: number;
+      let forwardDistance: number;
+      if (coordinateX !== null && coordinateY !== null) {
+        rightDistance = coordinateX;
+        forwardDistance = coordinateY;
+      } else {
+        const angle = (numberArg(args, "angle_deg") ?? 45) * Math.PI / 180;
+        const distance = (numberArg(args, "speed_mps") ?? 0.5) * (numberArg(args, "duration_s") ?? 2.0);
+        rightDistance = Math.sin(angle) * distance;
+        forwardDistance = Math.cos(angle) * distance;
+      }
+      x += Math.cos(headingRad) * forwardDistance + Math.cos(headingRad - Math.PI / 2) * rightDistance;
+      y += Math.sin(headingRad) * forwardDistance + Math.sin(headingRad - Math.PI / 2) * rightDistance;
+      samplePosition();
     } else if (command === "turn") {
       headingRad -= turnDegrees(args) * Math.PI / 180;
     } else if (command === "turn_right") {
