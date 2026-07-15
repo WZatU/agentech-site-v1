@@ -127,13 +127,13 @@ function resolvePreviewCommand(command: string, args = "") {
   if (command === "uturn") return "turn_right";
   if (command === "yaw") {
     const position = args.match(/\bposition_(?:rad|deg)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
-    return position && Number(position[1]) > 0 ? "twist_right" : "twist_left";
+    return !position || Number(position[1]) > 0 ? "twist_right" : "twist_left";
   }
   if (command === "pitch") {
     const position = args.match(/\bposition_(?:rad|deg)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
     return position && Number(position[1]) < 0 ? "pitch_down" : "pitch_up";
   }
-  if (command === "roll" || command === "stay" || command === "return_to_neutral") return "stand";
+  if (command === "roll" || command === "stay") return "stand";
   if (command === "turn") {
     const signedNames = ["angle_rad", "angle_deg", "rate_percentage", "turn_level", "turn_rate_deg_s", "turn_rate_rad_s"];
     for (const name of signedNames) {
@@ -236,6 +236,7 @@ function previewCommandLabel(command: string) {
     look_up: "Look Up",
     look_down: "Look Down",
     stand: "Stand",
+    squat: "Squat",
     sit: "Sit",
     stop: "Stop",
     emergency_stop: "Emergency Stop",
@@ -314,7 +315,7 @@ function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReas
     {
       name: "Agentech command check",
       status: blocked ? "FAIL" : "PASS",
-      detail: !blocked ? "Documented robot commands were found and can be inspected." : "Requires one of the 17 documented Agentech commands from the command library."
+      detail: !blocked ? "Documented robot commands were found and can be inspected." : "Requires a documented Agentech command from the command library."
     },
     {
       name: "SDK parameter requirement check",
@@ -344,18 +345,18 @@ const categoryExamples: Record<Category, { activeName: string; code: string }> =
     activeName: "stand",
     code: `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
+Agentech.squat()
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
-Agentech.lateral_left(speed=0.2, seconds=1)
-Agentech.lateral_right(speed=0.2, seconds=1)
+Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
+Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
-Agentech.yaw(speed_rad_s=0.4, position_rad=-0.466)
+Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)
 Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)
 Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
 Agentech.stay(time=1.0)
-Agentech.return_to_neutral()
 Agentech.backflip()
 Agentech.jump()
 Agentech.look_up(angle=15)
@@ -367,11 +368,11 @@ Agentech.stop()`
     activeName: "forward",
     code: `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
-Agentech.lateral_left(speed=0.2, seconds=1)
-Agentech.lateral_right(speed=0.2, seconds=1)
+Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
+Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.backflip()
@@ -381,12 +382,12 @@ Agentech.jump()`
     activeName: "stand",
     code: `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
-Agentech.yaw(speed_rad_s=0.4, position_rad=-0.466)
+Agentech.stand()
+Agentech.squat()
+Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)
 Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)
 Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
 Agentech.stay(time=1.0)
-Agentech.return_to_neutral()
 Agentech.sit()`
   },
   Safety: {
@@ -401,7 +402,7 @@ Agentech.get_battery_status()`
     activeName: "look_up",
     code: `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
 Agentech.look_up(angle=15)
 Agentech.look_down(angle=15)
 print(Agentech.get_battery_status())`
@@ -413,7 +414,7 @@ function commandPlan(code: string) {
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turnright", "turnleft", "uturn",
-    "yaw", "pitch", "roll", "stay", "return_to_neutral", "twist_left", "twist_right", "backflip", "jump", "stand", "sit", "stop", "emergency_stop",
+    "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
     "look", "look_up", "look_down", "get_battery_status"
   ]);
 
@@ -576,11 +577,11 @@ function DocsOverview() {
 
 from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.backward(speed=0.2, seconds=1)
-Agentech.lateral_left(speed=0.2, seconds=1)
-Agentech.lateral_right(speed=0.2, seconds=1)`}</pre>
+Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
+Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)`}</pre>
           </div>
         </div>
 
@@ -618,19 +619,18 @@ function DocsSection() {
     [
       "forward",
       "backward",
-      "lateral_left",
-      "lateral_right",
+      "lateral",
       "turn",
       "yaw",
       "pitch",
       "roll",
       "stay",
-      "return_to_neutral",
       "backflip",
       "jump",
       "look_up",
       "look_down",
       "stand",
+      "squat",
       "sit",
       "stop",
       "emergency_stop",
@@ -640,17 +640,17 @@ function DocsSection() {
   const workflowExample = `from agentech import Agentech
 
 with Agentech.robot(dry_run=True) as dog:
-    dog.stand(stand_wait=5)
+    dog.stand()
+    dog.squat()
     dog.forward(speed=0.25, seconds=1)
     dog.backward(speed=0.2, seconds=1)
-    dog.lateral_left(speed=0.2, seconds=1)
-    dog.lateral_right(speed=0.2, seconds=1)
+    dog.lateral_left(speed_mps=0.5, duration_s=2.0)
+    dog.lateral_right(speed_mps=0.5, duration_s=2.0)
     dog.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
     dog.yaw(speed_rad_s=0.4, position_rad=0.4426)
     dog.pitch(speed_rad_s=0.4, position_rad=0.4)
     dog.roll(speed_rad_s=0.4, position_rad=-0.463)
     dog.stay(time=1.0)
-    dog.return_to_neutral()
     dog.backflip()
     dog.jump()
     dog.look_up(angle=15)
@@ -658,16 +658,16 @@ with Agentech.robot(dry_run=True) as dog:
     battery = dog.get_battery_status()
     dog.stop()`;
   const submitExample = `# Option 1: paste code into this page
-Agentech.stand(stand_wait=5)
+Agentech.stand()
 Agentech.forward()
-Agentech.lateral_left(speed=0.2, seconds=1)
+Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 
 # Option 2: upload a Python file on this page
 file = "submission_code.py"`; 
   const robotRunnerExample = `# student_forward.py
 from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
 Agentech.forward()
 
 # After review, the scheduled robot session sends approved code
@@ -977,7 +977,7 @@ function FocusedStartCodingSection() {
       label: "03",
       title: "Stand first",
       body: "Movement examples begin with a stand command so the robot is ready before motion.",
-      code: "Agentech.stand(stand_wait=5)"
+      code: "Agentech.stand()"
     },
     {
       label: "04",
@@ -992,7 +992,7 @@ function FocusedStartCodingSection() {
       title: "First Forward Step",
       code: `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
 Agentech.forward(speed=0.3, seconds=1)
 Agentech.stop()`
     },
@@ -1000,7 +1000,8 @@ Agentech.stop()`
       title: "Posture Check",
       code: `from agentech import Agentech
 
-Agentech.stand(stand_wait=5)
+Agentech.stand()
+Agentech.squat()
 Agentech.sit()`
     },
     {
@@ -1183,7 +1184,7 @@ function FocusedBrowseFunctionsSection() {
                 {group.items.map((item) => (
                   <details key={item.name} className="group bg-white">
                     <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_335px]">
-                      <p className="font-mono text-sm text-[#006a5c]">Agentech.{item.name}({item.params.length ? "parameters" : ""})</p>
+                      <p className="font-mono text-sm text-[#006a5c]">{item.name === "lateral" ? item.signature : `Agentech.${item.name}(${item.params.length ? "parameters" : ""})`}</p>
                       <p className="text-sm leading-6 text-[#111d35]">{item.summary}</p>
                       <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
                         {item.params.some((param) => param.status === "development") ? (
@@ -1192,7 +1193,7 @@ function FocusedBrowseFunctionsSection() {
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
-                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" || item.name === "return_to_neutral" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
+                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" || item.name === "squat" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
                       <div className="bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
@@ -1252,13 +1253,17 @@ function FocusedBrowseFunctionsSection() {
                             <p className="border border-[#dce7f2] bg-white p-3 text-xs text-[#334155]">No parameters.</p>
                           )}
                         </div>
-                        <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Example</p>
-                        <div className="relative mt-2 border border-[#dce7f2] bg-white">
-                          <CopyCodeButton value={item.example} className="absolute right-2 top-2 z-10" />
-                          <pre className="overflow-x-auto p-3 pr-24 pt-12 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
-                        </div>
+                        {item.name === "lateral" ? null : (
+                          <>
+                            <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Example</p>
+                            <div className="relative mt-2 border border-[#dce7f2] bg-white">
+                              <CopyCodeButton value={item.example} className="absolute right-2 top-2 z-10" />
+                              <pre className="min-h-14 overflow-x-auto p-3 pr-16 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      {item.name === "stay" || item.name === "return_to_neutral" ? null : (
+                      {item.name === "stay" || item.name === "squat" ? null : (
                         <div className="bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2135,7 +2140,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               EAIC HUB
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, yaw, pitch, and roll posture, timed holds, neutral return, backflip, jump, stop, and battery status in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: stand, squat, forward, backward, lateral walking, turns, yaw, pitch, and roll posture, timed holds, backflip, jump, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">
@@ -2545,7 +2550,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 className="h-[340px] w-full resize-none border-0 bg-[#0d1117] p-4 font-mono text-[13px] leading-6 text-[#e5edf5] outline-none selection:bg-[#275c37] sm:h-[440px] sm:text-sm sm:leading-7 lg:h-[520px] lg:p-5"
               />
               <div className="border-t border-[#2a3440] bg-[#0d1117] px-4 py-2 text-[11px] leading-5 text-[#8fdc8f] sm:px-5 sm:py-3 sm:text-xs">
-                Required for motion code: <span className="font-mono">{protectedStandLine}</span>. Students can change parameters, but motion previews and submissions keep a stand command before movement.
+                Required for motion code: <span className="font-mono">{protectedStandLine}</span>. Motion previews and submissions keep this parameterless stand command before movement.
               </div>
             </div>
             <div className="border-t border-[#2a3440] bg-[#11151b] xl:border-l xl:border-t-0">

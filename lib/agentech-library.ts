@@ -58,16 +58,13 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [p("speed_mps", "float [0.05, 3.00]", "Enter a positive backward speed magnitude in meters per second; the SDK applies the negative body-X direction internally. Negative public inputs and out-of-range values are rejected.", "1.0"), p("duration_s", "float (0, 10]", "How long to hold the movement command. Must be greater than 0 and no more than 10 seconds.", "1.0"), p("distance_m", "float [0, 2]", "Requested travel distance for the distance-and-speed profile. This is an open-loop estimate; acceleration and stopping can change the actual distance."), p("speed_percent", "float [0, 100]", "Accepts any percentage from 0% through 100%, including decimal values. Use this as a relative speed request; no meters-per-second conversion is promised."), p("speed_level", "int [0, 511]", "Select one of 512 integer speed levels. Level 0 is the lowest moving-speed level and level 511 is the highest."), p("pace", "enum {slow, normal, fast}", "Named pace profiles are still being designed and physically validated.", undefined, "development"), p("step_count", "int [1, 10]", "Estimated, not physically counted.", undefined, "development"), p("step_rate_hz", "float [0.5, 3.0]", "Estimated cadence only.", "1.5", "development")]
   },
   {
-    name: "lateral", category: "Movement", signature: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)", summary: "Move sideways left or right with a canonical direction parameter.", example: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)",
+    name: "lateral", category: "Movement", signature: "Agentech.lateral_left() / Agentech.lateral_right()", summary: "Move sideways using the matching left or right function.", example: "# Distance + speed\nAgentech.lateral_left(distance_m=1.0, speed_mps=0.5)\nAgentech.lateral_right(distance_m=1.0, speed_mps=0.5)\n\n# Speed + time\nAgentech.lateral_left(speed_mps=0.5, duration_s=2.0)\nAgentech.lateral_right(speed_mps=0.5, duration_s=2.0)",
     profiles: [
-      { name: "Default speed", syntax: "Agentech.lateral(direction=\"left\")" },
-      { name: "Direct speed", syntax: "Agentech.lateral(direction=\"left\", speed_mps=0.2, duration_s=1.0)" },
-      { name: "Percentage", syntax: "Agentech.lateral(direction=\"left\", speed_percent=40, duration_s=1.0)" },
-      { name: "Speed level", syntax: "Agentech.lateral(direction=\"left\", speed_level=2, duration_s=1.0)" },
-      { name: "Distance", syntax: "Agentech.lateral(direction=\"left\", distance_m=0.5, speed_mps=0.2)" },
-      { name: "Steps", syntax: "Agentech.lateral(direction=\"left\", step_count=4, step_rate_hz=1.5)", status: "development" }
+      { name: "Default: 0.5 m/s for 2 seconds", syntax: "Agentech.lateral_left()\nAgentech.lateral_right()" },
+      { name: "Distance + speed", syntax: "Agentech.lateral_left(distance_m=x, speed_mps=x)\nAgentech.lateral_right(distance_m=x, speed_mps=x)", noteLabel: "Movement area note", note: "The robot is restricted to a 2 m by 2 m movement box. Completion time remains an estimate because acceleration, stabilization, and controller timing can change how long the movement takes." },
+      { name: "Speed + time", syntax: "Agentech.lateral_left(speed_mps=x, duration_s=x)\nAgentech.lateral_right(speed_mps=x, duration_s=x)", noteLabel: "Distance note", note: "Distance traveled is an estimate, not a guarantee. Acceleration and stopping can change the actual distance." }
     ],
-    params: [p("direction", "left | right", "Required movement direction."), p("speed_mps", "float [0.05, 3.00]", "Direct lateral speed.", "0.2"), p("duration_s", "float (0, 10]", "Timed movement duration.", "1.0"), p("speed_percent", "float [0, 100]", "Percentage-based speed selector."), p("speed_level", "int [0, 511]", "Integer speed-level selector."), p("distance_m", "float (0, 2]", "Open-loop distance conversion."), p("step_count", "int [1, 10]", "Approximate sidesteps only.", undefined, "development"), p("step_rate_hz", "float [0.5, 3.0]", "Exact gait cadence is unavailable.", "1.5", "development")]
+    params: [p("speed_mps", "float [0.10, 1.0] m/s", "Positive lateral speed in meters per second. The supported range is 0.10 m/s through 1.0 m/s, inclusive.", "0.5"), p("duration_s", "float (0, 10] seconds", "How long to apply the lateral movement command.", "2.0"), p("distance_m", "float [0, 2] meters", "Requested open-loop lateral travel distance, including 0 and 2 meters. A value of 0 is accepted and produces no lateral movement. The robot is restricted to a 2 m by 2 m movement box.")]
   },
   {
     name: "turn", category: "Movement", signature: "Agentech.turn()", summary: "Turn using signed angles or rates. Direction note: all negative values turn left, and all positive values turn right. The default is +45 degrees (right).", example: "Agentech.turn()",
@@ -86,8 +83,8 @@ export const agentechFunctions: AgentechFunction[] = [
   {
     name: "yaw", category: "Posture", signature: "Agentech.yaw()", summary: "Adjust the body's yaw posture using a positive speed and signed target position. Direction note: negative position moves left, and positive position moves right.", example: "Agentech.yaw()",
     profiles: [
-      { name: "Default: 0.4 rad/s, position -0.466 rad (maximum left)", syntax: "Agentech.yaw()" },
-      { name: "Speed + position", syntax: "Agentech.yaw(speed_rad_s=0.4, position_rad=-0.466)\nAgentech.yaw(speed_deg_s=22.92, position_deg=-26.73)", noteLabel: "Direction note", note: "Negative position moves left; positive position moves right." }
+      { name: "Default: 0.4 rad/s, position +0.4426 rad (maximum right)", syntax: "Agentech.yaw()" },
+      { name: "Speed + position", syntax: "Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)\nAgentech.yaw(speed_deg_s=22.92, position_deg=25.36)", noteLabel: "Direction and time note", note: "Negative position moves left; positive position moves right. Completion time cannot be guaranteed because acceleration, stabilization, and controller timing can change how long the movement takes." }
     ],
     params: [p("speed_rad_s", "float [0, 0.6]", "Positive yaw speed magnitude in radians per second."), p("speed_deg_s", "float [0, 34.38]", "Positive yaw speed magnitude in degrees per second."), p("position_rad", "float [-0.466, 0.4426]", "Signed target position in radians. Negative moves left; positive moves right."), p("position_deg", "float [-26.73, 25.36]", "Signed target position in degrees. Negative moves left; positive moves right.")]
   },
@@ -95,7 +92,7 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "pitch", category: "Posture", signature: "Agentech.pitch()", summary: "Adjust the body's pitch posture using a positive speed and signed target position. Direction note: negative position moves down, and positive position moves up.", example: "Agentech.pitch()",
     profiles: [
       { name: "Default: 0.4 rad/s, position 0.4 rad (maximum up)", syntax: "Agentech.pitch()" },
-      { name: "Speed + position", syntax: "Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)\nAgentech.pitch(speed_deg_s=22.92, position_deg=22.98)", noteLabel: "Direction note", note: "Negative position moves down; positive position moves up." }
+      { name: "Speed + position", syntax: "Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)\nAgentech.pitch(speed_deg_s=22.92, position_deg=22.98)", noteLabel: "Direction and time note", note: "Negative position moves down; positive position moves up. Completion time cannot be guaranteed because acceleration, stabilization, and controller timing can change how long the movement takes." }
     ],
     params: [p("speed_rad_s", "float [0, 0.6]", "Positive pitch speed magnitude in radians per second."), p("speed_deg_s", "float [0, 34.38]", "Positive pitch speed magnitude in degrees per second."), p("position_rad", "float [-0.368, 0.4]", "Signed target position in radians. Negative moves down; positive moves up."), p("position_deg", "float [-21.11, 22.98]", "Signed target position in degrees. Negative moves down; positive moves up.")]
   },
@@ -103,7 +100,7 @@ export const agentechFunctions: AgentechFunction[] = [
     name: "roll", category: "Posture", signature: "Agentech.roll()", summary: "Adjust the body's roll posture using a positive speed and signed target position. Direction note: negative position rolls left, and positive position rolls right.", example: "Agentech.roll()",
     profiles: [
       { name: "Default: 0.4 rad/s, position -0.463 rad (maximum left)", syntax: "Agentech.roll()" },
-      { name: "Speed + position", syntax: "Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)\nAgentech.roll(speed_deg_s=22.92, position_deg=-26.6)", noteLabel: "Direction note", note: "Negative position rolls left; positive position rolls right." }
+      { name: "Speed + position", syntax: "Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)\nAgentech.roll(speed_deg_s=22.92, position_deg=-26.6)", noteLabel: "Direction and time note", note: "Negative position rolls left; positive position rolls right. Completion time cannot be guaranteed because acceleration, stabilization, and controller timing can change how long the movement takes." }
     ],
     params: [p("speed_rad_s", "float [0, 0.6]", "Positive roll speed magnitude in radians per second."), p("speed_deg_s", "float [0, 34.38]", "Positive roll speed magnitude in degrees per second."), p("position_rad", "float [-0.463, 0.461]", "Signed target position in radians. Negative rolls left; positive rolls right."), p("position_deg", "float [-26.6, 26.4]", "Signed target position in degrees. Negative rolls left; positive rolls right.")]
   },
@@ -115,13 +112,6 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [p("time", "float > 0 (no maximum)", "How long to hold the current four-foot planted posture. Time must be greater than 0 and has no maximum.")]
   },
   {
-    name: "return_to_neutral", category: "Posture", signature: "Agentech.return_to_neutral()", summary: "Return the robot's body posture to its neutral position.", example: "Agentech.return_to_neutral()",
-    profiles: [
-      { name: "No parameters", syntax: "Agentech.return_to_neutral()" }
-    ],
-    params: []
-  },
-  {
     name: "backflip", category: "Movement", signature: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)", summary: "Run the official standard backflip preset without automatic retry.", example: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)",
     params: [p("variant", "standard", "Only the official standard preset is available.", "standard"), p("stabilize_s", "float 0..10", "Post-action stabilization window.", "5.0"), p("SafetyGate", "system behavior", "Formal battery, posture, and readiness thresholds are being implemented.", undefined, "development")]
   },
@@ -130,8 +120,12 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [p("variant", "standard", "Only the standard jump exists.", "standard"), p("stabilize_s", "float 0..10", "Post-jump stabilization window.", "5.0"), p("height_level", "1 | 2 | 3", "The audited backend has no low, medium, or high jump presets.", undefined, "unsupported"), p("SafetyGate", "system behavior", "Formal safety thresholds are under development.", undefined, "development")]
   },
   {
-    name: "stand", category: "Posture", signature: "Agentech.stand(stabilize_s=5.0, posture=\"neutral\")", summary: "Stand in the supported neutral posture and stabilize.", example: "Agentech.stand(stabilize_s=5.0, posture=\"neutral\")",
-    params: [p("stabilize_s", "float 0..10", "Wait after standing.", "5.0"), p("height_level=2", "neutral", "Supported neutral vendor stand.", "2"), p("posture=neutral", "neutral", "Alias for neutral height level 2.", "neutral"), p("height_level=1 / posture=low", "calibration", "Low stand target has not been physically calibrated.", undefined, "development"), p("height_level=3 / posture=tall", "calibration", "Tall stand target has not been physically calibrated.", undefined, "development"), p("stable-state confirmation", "system behavior", "Polling and timeout thresholds are under development.", undefined, "development")]
+    name: "stand", category: "Posture", signature: "Agentech.stand()", summary: "Raise the dog into its full standing stance so it is ready to move forward.", example: "Agentech.stand()",
+    params: []
+  },
+  {
+    name: "squat", category: "Posture", signature: "Agentech.squat()", summary: "Lower the dog into a half-height standing stance so it is ready to crawl forward.", example: "Agentech.squat()",
+    params: []
   },
   {
     name: "sit", category: "Posture", signature: "Agentech.sit(mode=\"damping\", stabilize_s=2.0)", summary: "Transition into the supported damping/lie-down posture.", example: "Agentech.sit(mode=\"damping\", stabilize_s=2.0)",
@@ -153,9 +147,9 @@ export const agentechFunctions: AgentechFunction[] = [
 
 export const starterCode = `from agentech import Agentech
 
-Agentech.stand(stabilize_s=5.0, posture="neutral")
+Agentech.stand()
 Agentech.forward(speed_mps=0.3, duration_s=1.0)
-Agentech.lateral(direction="left", speed_mps=0.2, duration_s=1.0)
+Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.look(direction="down", target="body", look_level=3)
 Agentech.stop(mode="quick", timeout_s=2.0)`;
