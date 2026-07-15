@@ -72,8 +72,6 @@ const localPreviewAssets: Record<string, string> = {
   pitch_down: "/assets/products/aegis-previews/look_down.gif",
   backflip: "/assets/products/aegis-previews/backflip.gif",
   jump: "/assets/products/aegis-previews/jump.gif",
-  look_up: "/assets/products/aegis-previews/look_up.gif",
-  look_down: "/assets/products/aegis-previews/look_down.gif",
   stand: "/assets/products/aegis-previews/stand.gif",
   sit: "/assets/products/aegis-previews/sit.gif",
   stop: "/assets/products/aegis-previews/stop.gif",
@@ -101,10 +99,7 @@ const commandsRequiringStand = new Set([
   "twist_left",
   "twist_right",
   "backflip",
-  "jump",
-  "look",
-  "look_up",
-  "look_down"
+  "jump"
 ]);
 
 function previewDirection(args: string) {
@@ -137,13 +132,12 @@ function resolvePreviewCommand(command: string, args = "") {
       if (value) return Number(value[1]) < 0 ? "turn_left" : "turn_right";
     }
   }
-  if (command === "lateral" || command === "turn" || command === "twist" || command === "look") {
+  if (command === "lateral" || command === "turn" || command === "twist") {
     const direction = previewDirection(args);
     const defaultDirections: Record<string, string> = {
       lateral: "left",
       turn: "right",
-      twist: "left",
-      look: "down"
+      twist: "left"
     };
     const directedCommand = `${command}_${direction || defaultDirections[command]}`;
     if (directedCommand && localPreviewAssets[directedCommand]) {
@@ -229,8 +223,6 @@ function previewCommandLabel(command: string) {
     pitch_down: "Pitch Down",
     backflip: "Backflip",
     jump: "Jump",
-    look_up: "Look Up",
-    look_down: "Look Down",
     stand: "Stand",
     squat: "Squat",
     sit: "Sit",
@@ -355,9 +347,7 @@ Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
 Agentech.stay(time=1.0)
 Agentech.backflip()
 Agentech.jump()
-Agentech.look_up(angle=15)
-Agentech.look_down(angle=15)
-print(Agentech.get_battery_status())
+battery_percentage = Agentech.get_battery_status()
 Agentech.stop()`
   },
   Movement: {
@@ -391,17 +381,13 @@ Agentech.sit()`
     code: `from agentech import Agentech
 
 Agentech.stop()
-Agentech.emergency_stop()
-Agentech.get_battery_status()`
+Agentech.emergency_stop()`
   },
   Sensing: {
-    activeName: "look_up",
+    activeName: "get_battery_status",
     code: `from agentech import Agentech
 
-Agentech.stand()
-Agentech.look_up(angle=15)
-Agentech.look_down(angle=15)
-print(Agentech.get_battery_status())`
+battery_percentage = Agentech.get_battery_status()`
   }
 };
 
@@ -411,7 +397,7 @@ function commandPlan(code: string) {
   const supportedCommands = new Set([
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
-    "look", "look_up", "look_down", "get_battery_status"
+    "get_battery_status"
   ]);
 
   for (const rawLine of lines) {
@@ -623,8 +609,6 @@ function DocsSection() {
       "stay",
       "backflip",
       "jump",
-      "look_up",
-      "look_down",
       "stand",
       "squat",
       "sit",
@@ -649,9 +633,7 @@ with Agentech.robot(dry_run=True) as dog:
     dog.stay(time=1.0)
     dog.backflip()
     dog.jump()
-    dog.look_up(angle=15)
-    dog.look_down(angle=15)
-    battery = dog.get_battery_status()
+    battery_percentage = dog.get_battery_status()
     dog.stop()`;
   const submitExample = `# Option 1: paste code into this page
 Agentech.stand()
@@ -740,7 +722,7 @@ Live camera -> Website viewer -> Student watches the run`;
                 <p>Backward speed is capped at 2.365 m/s.</p>
                 <p>Lateral speed benchmark is 0.78 m/s.</p>
                 <p>Yaw rate is capped at +/-3 rad/s. Negative values turn left; positive values turn right.</p>
-                <p>Look up and look down are capped at 25 degrees so the dog does not tilt unrealistically.</p>
+                <p>`Agentech.get_battery_status()` returns the current battery percentage.</p>
                 <p>Roll benchmark limit is 28 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Linear acceleration benchmark is about 2.5 m/s^2.</p>

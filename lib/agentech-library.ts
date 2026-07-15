@@ -128,20 +128,20 @@ export const agentechFunctions: AgentechFunction[] = [
     params: []
   },
   {
-    name: "sit", category: "Posture", signature: "Agentech.sit(mode=\"damping\", stabilize_s=2.0)", summary: "Transition into the supported damping/lie-down posture.", example: "Agentech.sit(mode=\"damping\", stabilize_s=2.0)",
-    params: [p("mode", "damping", "Only the damping mode is approved.", "damping"), p("stabilize_s", "float 0..10", "Posture stabilization wait.", "2.0"), p("posture-state validation", "system behavior", "State-read validation is under development.", undefined, "development")]
+    name: "sit", category: "Posture", signature: "Agentech.sit()", summary: "Put the dog into damping mode.", example: "Agentech.sit()",
+    params: []
   },
   {
-    name: "stop", category: "Safety", signature: "Agentech.stop(mode=\"quick\", timeout_s=2.0)", summary: "Stop motion immediately or through a developing controlled-deceleration profile.", example: "Agentech.stop(mode=\"quick\", timeout_s=2.0)",
-    params: [p("mode=quick", "quick", "Send zero velocity immediately.", "quick"), p("timeout_s", "float 0.1..5", "Wait or poll timeout.", "2.0"), p("mode=controlled", "controlled", "Software velocity ramp is under development.", undefined, "development"), p("decel_level", "int 1..5", "Calibrated deceleration mappings are under development.", "3", "development"), p("preemption", "system behavior", "Shared command coordination is under development.", undefined, "development")]
+    name: "stop", category: "Safety", signature: "Agentech.stop()", summary: "Stop the current motion while the dog remains standing.", example: "Agentech.stop()",
+    params: []
   },
   {
-    name: "emergency_stop", category: "Safety", signature: "Agentech.emergency_stop(reason=\"Emergency stop\", latch=True, mode=\"damping\")", summary: "Highest-priority damping stop; persistent latch behavior is still being completed.", example: "Agentech.emergency_stop(reason=\"Operator requested stop\", mode=\"damping\")",
-    params: [p("reason", "str", "Operator-readable trace message.", "Emergency stop"), p("mode", "damping", "Native safe damping path.", "damping"), p("latch", "bool", "Persistent cross-call latch requires shared controller state.", "True", "development"), p("highest-priority preemption", "system behavior", "Shared command coordinator is under development.", undefined, "development"), p("reset API", "unsupported", "No public reset function exists in the current card contract.", undefined, "unsupported")]
+    name: "emergency_stop", category: "Safety", signature: "Agentech.emergency_stop()", summary: "Immediately stop the dog and put it into damping mode.", example: "Agentech.emergency_stop()",
+    params: []
   },
   {
-    name: "look", category: "Sensing", signature: "Agentech.look(direction=\"up\", target=\"body\", angle_deg=10)", summary: "Pitch the robot body up or down; independent camera pitch is unavailable.", example: "Agentech.look(direction=\"down\", target=\"body\", look_level=3)",
-    params: [p("direction", "up | down", "Required pitch direction."), p("target=auto", "auto", "Selects the supported body target.", "auto"), p("target=body", "body", "Native fixed-foot body pitch."), p("target=camera", "unsupported", "No independent camera actuator API is documented.", undefined, "unsupported"), p("angle_deg", "float (0, 25]", "Open-loop body-pitch angle.", "10"), p("pitch_rate_rad_s", "float 0.03..0.5", "Attitude-control pitch velocity.", "0.12"), p("angle_percent", "int 1..100", "Percentage of 25 degrees."), p("look_level", "int 1..5", "Maps to 5, 10, 15, 20, or 25 degrees."), p("final-angle verification", "system behavior", "IMU-backed verification is under development.", undefined, "development")]
+    name: "get_battery_status", category: "Sensing", signature: "Agentech.get_battery_status()", summary: "Return the dog's current battery percentage.", example: "battery_percentage = Agentech.get_battery_status()",
+    params: []
   }
 ] as const;
 
@@ -151,5 +151,5 @@ Agentech.stand()
 Agentech.forward(speed_mps=0.3, duration_s=1.0)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
-Agentech.look(direction="down", target="body", look_level=3)
-Agentech.stop(mode="quick", timeout_s=2.0)`;
+battery_percentage = Agentech.get_battery_status()
+Agentech.stop()`;

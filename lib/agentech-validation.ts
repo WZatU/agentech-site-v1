@@ -7,7 +7,6 @@ type Spec = { allowed: string[]; required?: string[]; selectors?: string[]; rule
 const num = (min: number, max: number, open = false): Rule => ({ type: "number", min, max, open });
 const integer = (min: number, max: number): Rule => ({ type: "integer", min, max });
 const pick = (...values: (string | number)[]): Rule => ({ type: "choice", values });
-const level = pick(1, 2, 3, 4, 5);
 const positiveNumber = (): Rule => ({ type: "number", min: 0, open: true });
 const linearRules = { speed_mps: num(0.05, 3), duration_s: num(0, 10, true), speed_percent: num(0, 100), speed_level: integer(0, 511), pace: pick("slow", "normal", "fast"), step_rate_hz: num(0.5, 3), gait: pick("auto") };
 
@@ -27,11 +26,10 @@ export const agentechSdkSpec: Record<string, Spec> = {
   jump: { allowed: ["variant", "stabilize_s"], rules: { variant: pick("standard"), stabilize_s: num(0, 10) } },
   stand: { allowed: [], rules: {} },
   squat: { allowed: [], rules: {} },
-  sit: { allowed: ["mode", "stabilize_s"], rules: { mode: pick("damping"), stabilize_s: num(0, 10) } },
-  stop: { allowed: ["mode", "decel_level", "timeout_s"], rules: { mode: pick("controlled", "quick"), decel_level: level, timeout_s: num(0.1, 5) } },
-  emergency_stop: { allowed: ["reason", "latch", "mode"], rules: { reason: { type: "string" }, latch: { type: "boolean" }, mode: pick("damping") } },
-  look: { allowed: ["target", "direction", "angle_deg", "pitch_rate_rad_s", "angle_percent", "look_level"], required: ["direction"], selectors: ["angle_deg", "angle_percent", "look_level"], rules: { target: pick("auto", "body"), direction: pick("up", "down"), angle_deg: num(0, 25, true), pitch_rate_rad_s: num(0.03, 0.5), angle_percent: integer(1, 100), look_level: level } },
-  get_battery_status: { allowed: ["fields", "max_age_s", "timeout_s"], rules: { fields: { type: "list" }, max_age_s: num(0, 5), timeout_s: num(0.1, 2) } }
+  sit: { allowed: [], rules: {} },
+  stop: { allowed: [], rules: {} },
+  emergency_stop: { allowed: [], rules: {} },
+  get_battery_status: { allowed: [], rules: {} }
 };
 
 function valueOf(raw: string): unknown {
