@@ -303,7 +303,7 @@ Manual run in GitHub:
 3. Select `Import Dropbox News`.
 4. Click `Run workflow`.
 
-The importer uses the Dropbox API token first. If no token is configured, it can fall back to downloading the shared folder zip from the Dropbox link.
+The importer uses the Dropbox API token first. If no token is configured, it can fall back to downloading the shared folder zip from the Dropbox link. Every scheduled workflow run also executes `npm run cleanup:news:apply`, so unreferenced News copies are removed and committed automatically even when Dropbox has no new article.
 
 ### Updating Existing News
 
