@@ -18,20 +18,6 @@ function numberArg(args: string, name: string) {
   return Number.isFinite(value) ? value : null;
 }
 
-function stringArg(args: string, name: string) {
-  return args.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`))?.[1] ?? null;
-}
-
-function yawAngleDeg(args: string) {
-  const angle = numberArg(args, "angle_deg");
-  if (angle !== null) return angle;
-  const percent = numberArg(args, "angle_percent");
-  if (percent !== null) return 30 * percent / 100;
-  const level = numberArg(args, "yaw_level");
-  if (level !== null) return level * 6;
-  return 15;
-}
-
 function turnLevelRateDeg(level: number) {
   return (level / 511) * 3 * 180 / Math.PI;
 }
@@ -65,9 +51,22 @@ function normalizeCanonicalTurnsForMuJoCo(code: string) {
     .replace(/((?:Agentech|dog))\.turnleft\(\s*\)/g, `$1.turn_left(angle=90, speed=${aliasSpeed})`)
     .replace(/((?:Agentech|dog))\.uturn\(\s*\)/g, `$1.turn_right(angle=180, speed=${aliasSpeed})`)
     .replace(/((?:Agentech|dog))\.yaw\(([^)]*)\)/g, (_match, owner: string, args: string) => {
-      const direction = stringArg(args, "direction") === "right" ? "right" : "left";
-      return `${owner}.twist_${direction}(angle=${yawAngleDeg(args)})`;
+      const positionRad = numberArg(args, "position_rad");
+      const positionDeg = numberArg(args, "position_deg");
+      const signedPositionDeg = positionRad !== null ? positionRad * 180 / Math.PI : positionDeg ?? -26.73;
+      const direction = signedPositionDeg > 0 ? "right" : "left";
+      return `${owner}.twist_${direction}(angle=${Math.abs(signedPositionDeg)})`;
     })
+    .replace(/((?:Agentech|dog))\.pitch\(([^)]*)\)/g, (_match, owner: string, args: string) => {
+      const positionRad = numberArg(args, "position_rad");
+      const positionDeg = numberArg(args, "position_deg");
+      const signedPositionDeg = positionRad !== null ? positionRad * 180 / Math.PI : positionDeg ?? 22.98;
+      const direction = signedPositionDeg < 0 ? "down" : "up";
+      return `${owner}.look_${direction}(angle=${Math.abs(signedPositionDeg)})`;
+    })
+    .replace(/((?:Agentech|dog))\.roll\(([^)]*)\)/g, "$1.stand()")
+    .replace(/((?:Agentech|dog))\.stay\(([^)]*)\)/g, "$1.stand()")
+    .replace(/((?:Agentech|dog))\.return_to_neutral\(\s*\)/g, "$1.stand()")
     .replace(/((?:Agentech|dog))\.turn\(([^)]*)\)/g, (_match, owner: string, args: string) => {
       const signedAngle = signedTurnAngleDeg(args);
       const signedRate = signedTurnRateRad(args);
@@ -109,7 +108,7 @@ export async function POST(request: Request) {
   }
 
   const simulatorCode = normalizeCanonicalTurnsForMuJoCo(code);
-  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v9:${simulatorCode}`).digest("hex");
+  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v13:${simulatorCode}`).digest("hex");
   const cached = simulationCache.get(cacheKey);
   if (cached && Date.now() - cached.createdAt < cacheTtlMs) {
     return NextResponse.json({ ...(cached.payload as object), cached: true });

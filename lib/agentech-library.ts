@@ -84,14 +84,42 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [p("angle_rad", "float (unbounded)", "Signed target angle in radians. Negative turns left; positive turns right. One full circle is 2pi radians (360 degrees)."), p("turn_rate_rad_s", "float [-3, 3]", "Signed turn rate in radians per second. Negative turns left; positive turns right."), p("angle_deg", "float (unbounded)", "Signed target angle in degrees. Negative turns left; positive turns right. One full circle is 360 degrees."), p("turn_rate_deg_s", "float [-120, 120]", "Signed turn rate in degrees per second. Negative turns left; positive turns right."), p("rate_percentage", "float [-100, 100]", "Signed percentage of the maximum turn rate. Negative turns left; positive turns right."), p("turn_level", "int [-511, 511]", "Signed turn-rate level: -511 is maximum left, 0 is neutral, and 511 is maximum right."), p("duration_s", "float > 0 (no maximum)", "How long to apply a rate-based turn command. There is no maximum duration."), p("turnright()", "convenience call", "Turns right 90 degrees at 2 radians per second."), p("turnleft()", "convenience call", "Turns left 90 degrees at 2 radians per second."), p("uturn()", "convenience call", "Turns right 180 degrees at 2 radians per second.")]
   },
   {
-    name: "yaw", category: "Posture", signature: "Agentech.yaw(direction=\"left\", angle_deg=15)", summary: "Adjust the body's yaw posture without walking the feet.", example: "Agentech.yaw(direction=\"left\", angle_deg=15, hold_s=0.5)",
+    name: "yaw", category: "Posture", signature: "Agentech.yaw()", summary: "Adjust the body's yaw posture using a positive speed and signed target position. Direction note: negative position moves left, and positive position moves right.", example: "Agentech.yaw()",
     profiles: [
-      { name: "Default angle", syntax: "Agentech.yaw(direction=\"left\")" },
-      { name: "Angle", syntax: "Agentech.yaw(direction=\"left\", angle_deg=15, yaw_rate_rad_s=0.35)" },
-      { name: "Percentage", syntax: "Agentech.yaw(direction=\"left\", angle_percent=50)" },
-      { name: "Yaw level", syntax: "Agentech.yaw(direction=\"left\", yaw_level=3)" }
+      { name: "Default: 0.4 rad/s, position -0.466 rad (maximum left)", syntax: "Agentech.yaw()" },
+      { name: "Speed + position", syntax: "Agentech.yaw(speed_rad_s=0.4, position_rad=-0.466)\nAgentech.yaw(speed_deg_s=22.92, position_deg=-26.73)", noteLabel: "Direction note", note: "Negative position moves left; positive position moves right." }
     ],
-    params: [p("direction", "left | right", "Required yaw direction."), p("angle_deg", "float (0, 30]", "Open-loop body-yaw angle.", "15"), p("angle_percent", "int 1..100", "Percentage of 30 degrees."), p("yaw_level", "int 1..5", "Maps to 6, 12, 18, 24, or 30 degrees."), p("hold_s", "float 0..3", "Hold after reaching the yaw posture.", "0"), p("yaw_rate_rad_s", "float 0.05..0.5", "Official fixed-foot attitude-control range.", "0.35"), p("yaw_rate_rad_s > 0.5", "unsupported", "Would move the feet and violate the fixed-foot yaw definition.", undefined, "unsupported")]
+    params: [p("speed_rad_s", "float [0, 0.6]", "Positive yaw speed magnitude in radians per second."), p("speed_deg_s", "float [0, 34.38]", "Positive yaw speed magnitude in degrees per second."), p("position_rad", "float [-0.466, 0.4426]", "Signed target position in radians. Negative moves left; positive moves right."), p("position_deg", "float [-26.73, 25.36]", "Signed target position in degrees. Negative moves left; positive moves right.")]
+  },
+  {
+    name: "pitch", category: "Posture", signature: "Agentech.pitch()", summary: "Adjust the body's pitch posture using a positive speed and signed target position. Direction note: negative position moves down, and positive position moves up.", example: "Agentech.pitch()",
+    profiles: [
+      { name: "Default: 0.4 rad/s, position 0.4 rad (maximum up)", syntax: "Agentech.pitch()" },
+      { name: "Speed + position", syntax: "Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)\nAgentech.pitch(speed_deg_s=22.92, position_deg=22.98)", noteLabel: "Direction note", note: "Negative position moves down; positive position moves up." }
+    ],
+    params: [p("speed_rad_s", "float [0, 0.6]", "Positive pitch speed magnitude in radians per second."), p("speed_deg_s", "float [0, 34.38]", "Positive pitch speed magnitude in degrees per second."), p("position_rad", "float [-0.368, 0.4]", "Signed target position in radians. Negative moves down; positive moves up."), p("position_deg", "float [-21.11, 22.98]", "Signed target position in degrees. Negative moves down; positive moves up.")]
+  },
+  {
+    name: "roll", category: "Posture", signature: "Agentech.roll()", summary: "Adjust the body's roll posture using a positive speed and signed target position. Direction note: negative position rolls left, and positive position rolls right.", example: "Agentech.roll()",
+    profiles: [
+      { name: "Default: 0.4 rad/s, position -0.463 rad (maximum left)", syntax: "Agentech.roll()" },
+      { name: "Speed + position", syntax: "Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)\nAgentech.roll(speed_deg_s=22.92, position_deg=-26.6)", noteLabel: "Direction note", note: "Negative position rolls left; positive position rolls right." }
+    ],
+    params: [p("speed_rad_s", "float [0, 0.6]", "Positive roll speed magnitude in radians per second."), p("speed_deg_s", "float [0, 34.38]", "Positive roll speed magnitude in degrees per second."), p("position_rad", "float [-0.463, 0.461]", "Signed target position in radians. Negative rolls left; positive rolls right."), p("position_deg", "float [-26.6, 26.4]", "Signed target position in degrees. Negative rolls left; positive rolls right.")]
+  },
+  {
+    name: "stay", category: "Posture", signature: "Agentech.stay(time=1.0)", summary: "Holds the posture the dog has moved to while all four feet remain planted on the ground.", example: "Agentech.stay(time=1.0)",
+    profiles: [
+      { name: "Holding time", syntax: "Agentech.stay(time=1.0)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "How long to hold the current four-foot planted posture. Time must be greater than 0 and has no maximum.")]
+  },
+  {
+    name: "return_to_neutral", category: "Posture", signature: "Agentech.return_to_neutral()", summary: "Return the robot's body posture to its neutral position.", example: "Agentech.return_to_neutral()",
+    profiles: [
+      { name: "No parameters", syntax: "Agentech.return_to_neutral()" }
+    ],
+    params: []
   },
   {
     name: "backflip", category: "Movement", signature: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)", summary: "Run the official standard backflip preset without automatic retry.", example: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)",

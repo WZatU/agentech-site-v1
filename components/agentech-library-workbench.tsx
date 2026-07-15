@@ -68,6 +68,8 @@ const localPreviewAssets: Record<string, string> = {
   turn_right: "/assets/products/aegis-previews/turn_right.gif",
   twist_left: "/assets/products/aegis-previews/twist_left.gif",
   twist_right: "/assets/products/aegis-previews/twist_right.gif",
+  pitch_up: "/assets/products/aegis-previews/look_up.gif",
+  pitch_down: "/assets/products/aegis-previews/look_down.gif",
   backflip: "/assets/products/aegis-previews/backflip.gif",
   jump: "/assets/products/aegis-previews/jump.gif",
   look_up: "/assets/products/aegis-previews/look_up.gif",
@@ -93,6 +95,10 @@ const commandsRequiringStand = new Set([
   "turnleft",
   "uturn",
   "yaw",
+  "pitch",
+  "roll",
+  "pitch_up",
+  "pitch_down",
   "twist",
   "twist_left",
   "twist_right",
@@ -119,7 +125,15 @@ function resolvePreviewCommand(command: string, args = "") {
   if (command === "turnright") return "turn_right";
   if (command === "turnleft") return "turn_left";
   if (command === "uturn") return "turn_right";
-  if (command === "yaw") return previewDirection(args) === "right" ? "twist_right" : "twist_left";
+  if (command === "yaw") {
+    const position = args.match(/\bposition_(?:rad|deg)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
+    return position && Number(position[1]) > 0 ? "twist_right" : "twist_left";
+  }
+  if (command === "pitch") {
+    const position = args.match(/\bposition_(?:rad|deg)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
+    return position && Number(position[1]) < 0 ? "pitch_down" : "pitch_up";
+  }
+  if (command === "roll" || command === "stay" || command === "return_to_neutral") return "stand";
   if (command === "turn") {
     const signedNames = ["angle_rad", "angle_deg", "rate_percentage", "turn_level", "turn_rate_deg_s", "turn_rate_rad_s"];
     for (const name of signedNames) {
@@ -215,6 +229,8 @@ function previewCommandLabel(command: string) {
     turn_right: "Turn Right",
     twist_left: "Yaw Left",
     twist_right: "Yaw Right",
+    pitch_up: "Pitch Up",
+    pitch_down: "Pitch Down",
     backflip: "Backflip",
     jump: "Jump",
     look_up: "Look Up",
@@ -335,7 +351,11 @@ Agentech.lateral_left(speed=0.2, seconds=1)
 Agentech.lateral_right(speed=0.2, seconds=1)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
-Agentech.yaw(direction="left", angle_deg=15)
+Agentech.yaw(speed_rad_s=0.4, position_rad=-0.466)
+Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)
+Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
+Agentech.stay(time=1.0)
+Agentech.return_to_neutral()
 Agentech.backflip()
 Agentech.jump()
 Agentech.look_up(angle=15)
@@ -362,7 +382,11 @@ Agentech.jump()`
     code: `from agentech import Agentech
 
 Agentech.stand(stand_wait=5)
-Agentech.yaw(direction="left", angle_deg=15)
+Agentech.yaw(speed_rad_s=0.4, position_rad=-0.466)
+Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)
+Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
+Agentech.stay(time=1.0)
+Agentech.return_to_neutral()
 Agentech.sit()`
   },
   Safety: {
@@ -389,7 +413,7 @@ function commandPlan(code: string) {
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turnright", "turnleft", "uturn",
-    "yaw", "twist_left", "twist_right", "backflip", "jump", "stand", "sit", "stop", "emergency_stop",
+    "yaw", "pitch", "roll", "stay", "return_to_neutral", "twist_left", "twist_right", "backflip", "jump", "stand", "sit", "stop", "emergency_stop",
     "look", "look_up", "look_down", "get_battery_status"
   ]);
 
@@ -598,6 +622,10 @@ function DocsSection() {
       "lateral_right",
       "turn",
       "yaw",
+      "pitch",
+      "roll",
+      "stay",
+      "return_to_neutral",
       "backflip",
       "jump",
       "look_up",
@@ -618,7 +646,11 @@ with Agentech.robot(dry_run=True) as dog:
     dog.lateral_left(speed=0.2, seconds=1)
     dog.lateral_right(speed=0.2, seconds=1)
     dog.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
-    dog.yaw(direction="right", angle_deg=15)
+    dog.yaw(speed_rad_s=0.4, position_rad=0.4426)
+    dog.pitch(speed_rad_s=0.4, position_rad=0.4)
+    dog.roll(speed_rad_s=0.4, position_rad=-0.463)
+    dog.stay(time=1.0)
+    dog.return_to_neutral()
     dog.backflip()
     dog.jump()
     dog.look_up(angle=15)
@@ -1134,6 +1166,12 @@ function FocusedBrowseFunctionsSection() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#008a7a]">{group.category}</p>
                   <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category} Commands</h2>
+                  {group.category === "Movement" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">All commands in this section move the robot by moving its four feet.</p>
+                  ) : null}
+                  {group.category === "Posture" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">All commands in this section use a four-foot planted hold, with all four feet remaining planted on the ground.</p>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <span className="font-mono text-sm text-[#005bd6]">{group.items.length} functions</span>
@@ -1154,7 +1192,7 @@ function FocusedBrowseFunctionsSection() {
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
-                    <div className="grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] lg:grid-cols-[minmax(0,1fr)_360px]">
+                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" || item.name === "return_to_neutral" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
                       <div className="bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
@@ -1220,16 +1258,18 @@ function FocusedBrowseFunctionsSection() {
                           <pre className="overflow-x-auto p-3 pr-24 pt-12 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
                         </div>
                       </div>
-                      <div className="bg-white p-4">
-                        <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={previewAssetForCode(item.example).gif}
-                          alt={`Aegis preview for ${previewCommandLabel(previewAssetForCode(item.example).command)}`}
-                          loading="lazy"
-                          className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
-                        />
-                      </div>
+                      {item.name === "stay" || item.name === "return_to_neutral" ? null : (
+                        <div className="bg-white p-4">
+                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={previewAssetForCode(item.example).gif}
+                            alt={`Aegis preview for ${previewCommandLabel(previewAssetForCode(item.example).command)}`}
+                            loading="lazy"
+                            className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
+                          />
+                        </div>
+                      )}
                     </div>
                   </details>
                 ))}
@@ -2095,7 +2135,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               EAIC HUB
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, yaw posture, backflip, jump, stop, and battery status in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: stand, forward, backward, lateral walking, turns, yaw, pitch, and roll posture, timed holds, neutral return, backflip, jump, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">

@@ -19,7 +19,11 @@ export const agentechSdkSpec: Record<string, Spec> = {
   turnright: { allowed: [], rules: {} },
   turnleft: { allowed: [], rules: {} },
   uturn: { allowed: [], rules: {} },
-  yaw: { allowed: ["direction", "angle_deg", "yaw_rate_rad_s", "angle_percent", "yaw_level", "hold_s"], required: ["direction"], selectors: ["angle_deg", "angle_percent", "yaw_level"], rules: { direction: pick("left", "right"), angle_deg: num(0, 30, true), yaw_rate_rad_s: num(0.05, 0.5), angle_percent: integer(1, 100), yaw_level: level, hold_s: num(0, 3) } },
+  yaw: { allowed: ["speed_rad_s", "speed_deg_s", "position_rad", "position_deg"], rules: { speed_rad_s: num(0, 0.6), speed_deg_s: num(0, 34.38), position_rad: num(-0.466, 0.4426), position_deg: num(-26.73, 25.36) } },
+  pitch: { allowed: ["speed_rad_s", "speed_deg_s", "position_rad", "position_deg"], rules: { speed_rad_s: num(0, 0.6), speed_deg_s: num(0, 34.38), position_rad: num(-0.368, 0.4), position_deg: num(-21.11, 22.98) } },
+  roll: { allowed: ["speed_rad_s", "speed_deg_s", "position_rad", "position_deg"], rules: { speed_rad_s: num(0, 0.6), speed_deg_s: num(0, 34.38), position_rad: num(-0.463, 0.461), position_deg: num(-26.6, 26.4) } },
+  stay: { allowed: ["time"], required: ["time"], rules: { time: positiveNumber() } },
+  return_to_neutral: { allowed: [], rules: {} },
   backflip: { allowed: ["variant", "stabilize_s"], rules: { variant: pick("standard"), stabilize_s: num(0, 10) } },
   jump: { allowed: ["variant", "stabilize_s"], rules: { variant: pick("standard"), stabilize_s: num(0, 10) } },
   stand: { allowed: ["stabilize_s", "height_level", "posture"], selectors: ["height_level", "posture"], rules: { stabilize_s: num(0, 10), height_level: pick(2), posture: pick("neutral") } },
@@ -44,7 +48,10 @@ function checkRule(command: string, name: string, value: unknown, rule: Rule, li
   if (value === undefined) return;
   if (rule.type === "number" || rule.type === "integer") {
     if (typeof value !== "number" || (rule.type === "integer" && !Number.isInteger(value))) return add("TYPE_INVALID", `${command}() '${name}' has the wrong type.`, line);
-    if ((rule.min !== undefined && (rule.open ? value <= rule.min : value < rule.min)) || (rule.max !== undefined && value > rule.max)) add("RANGE_INVALID", `${command}() '${name}' is outside ${rule.open ? "> " : ""}${rule.min} to ${rule.max}.`, line);
+    if ((rule.min !== undefined && (rule.open ? value <= rule.min : value < rule.min)) || (rule.max !== undefined && value > rule.max)) {
+      const range = rule.max === undefined ? `${rule.open ? "> " : ""}${rule.min} with no maximum` : `${rule.open ? "> " : ""}${rule.min} to ${rule.max}`;
+      add("RANGE_INVALID", `${command}() '${name}' is outside ${range}.`, line);
+    }
   } else if (rule.type === "choice" && !rule.values?.includes(value as string | number)) add("CHOICE_INVALID", `${command}() '${name}' has unsupported value ${JSON.stringify(value)}.`, line);
   else if (rule.type === "string" && typeof value !== "string") add("TYPE_INVALID", `${command}() '${name}' must be a string.`, line);
   else if (rule.type === "boolean" && typeof value !== "boolean") add("TYPE_INVALID", `${command}() '${name}' must be True or False.`, line);
@@ -94,6 +101,36 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
           add("SIGN_CONFLICT", `turn() '${angleName}' and '${rateName}' must use the same sign.`, line);
         }
       });
+    }
+    if (command === "yaw") {
+      const provided = Object.keys(values).sort();
+      const profiles = [
+        [],
+        ["position_rad", "speed_rad_s"],
+        ["position_deg", "speed_deg_s"]
+      ].map((profile) => [...profile].sort());
+      const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
+      if (!validProfile) add("PROFILE_MIXED", `yaw() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
+    }
+    if (command === "pitch") {
+      const provided = Object.keys(values).sort();
+      const profiles = [
+        [],
+        ["position_rad", "speed_rad_s"],
+        ["position_deg", "speed_deg_s"]
+      ].map((profile) => [...profile].sort());
+      const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
+      if (!validProfile) add("PROFILE_MIXED", `pitch() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
+    }
+    if (command === "roll") {
+      const provided = Object.keys(values).sort();
+      const profiles = [
+        [],
+        ["position_rad", "speed_rad_s"],
+        ["position_deg", "speed_deg_s"]
+      ].map((profile) => [...profile].sort());
+      const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
+      if (!validProfile) add("PROFILE_MIXED", `roll() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
     }
     Object.entries(values).forEach(([name, value]) => checkRule(command, name, value, spec.rules[name], line, add));
   }
