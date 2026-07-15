@@ -91,9 +91,7 @@ const commandsRequiringStand = new Set([
   "turn",
   "turn_left",
   "turn_right",
-  "turnright",
-  "turnleft",
-  "uturn",
+  "u_turn",
   "yaw",
   "pitch",
   "roll",
@@ -122,9 +120,7 @@ function profileSyntaxWithPlaceholders(syntax: string) {
 }
 
 function resolvePreviewCommand(command: string, args = "") {
-  if (command === "turnright") return "turn_right";
-  if (command === "turnleft") return "turn_left";
-  if (command === "uturn") return "turn_right";
+  if (command === "u_turn") return "turn_left";
   if (command === "yaw") {
     const position = args.match(/\bposition_(?:rad|deg)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
     return !position || Number(position[1]) > 0 ? "twist_right" : "twist_left";
@@ -413,7 +409,7 @@ function commandPlan(code: string) {
   const trace: string[] = [];
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
-    "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turnright", "turnleft", "uturn",
+    "forward", "backward", "lateral", "lateral_left", "lateral_right", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
     "look", "look_up", "look_down", "get_battery_status"
   ]);

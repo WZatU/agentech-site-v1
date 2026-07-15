@@ -315,6 +315,8 @@ data/news-imports.json
 
 Do not delete rows from `data/news-imports.json` unless you intentionally want the importer to treat the Dropbox folder as new.
 
+After an update is written successfully, the importer removes the replaced article's obsolete media copies. To audit the news asset folder manually, run `npm run cleanup:news`; the command is dry-run only unless `npm run cleanup:news:apply` is used.
+
 ### Listing And Deleting News
 
 Useful commands:
@@ -582,7 +584,7 @@ See [Software Check access policy](docs/software-check-access-policy.md) for the
 
 The Physical Hardware Check answers:
 
-- Does the uploaded script use one of the 17 command-library functions: `forward`, `backward`, `lateral_left`, `lateral_right`, `turn_left`, `turn_right`, `twist_left`, `twist_right`, `backflip`, `jump`, `stand`, `sit`, `stop`, `look_up`, `look_down`, `emergency_stop`, or `get_battery_status`?
+- Does the uploaded script use only the current public command contract in `lib/agentech-validation.ts`? Keep that contract synchronized with the SDK cards in `lib/agentech-library.ts`, including the official `turn_left()`, `turn_right()`, and `u_turn()` spellings.
 
 ```text
 Can this code damage the robot?
@@ -836,6 +838,8 @@ Write Markdown
 | `npm run check` | Run lint, typecheck, and the production build |
 | `npm run import:news` | Import News from Dropbox |
 | `npm run import:news:local` | Import News from a local source folder |
+| `npm run cleanup:news` | Audit unreferenced News assets without deleting them |
+| `npm run cleanup:news:apply` | Remove only News assets that are unreferenced by structured article data |
 | `npm run list:news` | List current News entries |
 | `npm run delete:news:number` | Delete a News entry by list number |
 | `npm run delete:news:date` | Delete a News entry by date |

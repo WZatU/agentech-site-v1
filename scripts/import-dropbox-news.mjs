@@ -6,6 +6,7 @@ import path from "node:path";
 import sharp from "sharp";
 import { fileURLToPath } from "node:url";
 import { TextDecoder } from "node:util";
+import { removeUnreferencedNewsAssets } from "./news-assets.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -814,6 +815,16 @@ async function importNews() {
   imports.push(...newImports);
   await fs.writeFile(newsDataPath, `${JSON.stringify(newsEntries, null, 2)}\n`);
   await fs.writeFile(importsPath, `${JSON.stringify(imports, null, 2)}\n`);
+  const cleanup = await removeUnreferencedNewsAssets({
+    entries: newsEntries,
+    newsAssetsRoot,
+    publicRoot: path.join(repoRoot, "public"),
+    apply: true
+  });
+
+  if (cleanup.removedFiles) {
+    console.log(`Removed ${cleanup.removedFiles} obsolete news asset file${cleanup.removedFiles === 1 ? "" : "s"}.`);
+  }
 }
 
 importNews().catch((error) => {

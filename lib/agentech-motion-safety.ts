@@ -111,12 +111,12 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
       samplePosition();
     } else if (command === "turn") {
       headingRad -= turnDegrees(args) * Math.PI / 180;
-    } else if (command === "turnright") {
+    } else if (command === "turn_right") {
       headingRad -= Math.PI / 2;
-    } else if (command === "turnleft") {
+    } else if (command === "turn_left") {
       headingRad += Math.PI / 2;
-    } else if (command === "uturn") {
-      headingRad -= Math.PI;
+    } else if (command === "u_turn") {
+      headingRad += Math.PI;
     } else if (command === "backflip") {
       x -= Math.cos(headingRad) * 0.44;
       y -= Math.sin(headingRad) * 0.44;

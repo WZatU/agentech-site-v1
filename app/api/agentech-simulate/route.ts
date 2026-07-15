@@ -47,9 +47,9 @@ function signedTurnAngleDeg(args: string) {
 function normalizeCanonicalTurnsForMuJoCo(code: string) {
   const aliasSpeed = 2;
   return code
-    .replace(/((?:Agentech|dog))\.turnright\(\s*\)/g, `$1.turn_right(angle=90, speed=${aliasSpeed})`)
-    .replace(/((?:Agentech|dog))\.turnleft\(\s*\)/g, `$1.turn_left(angle=90, speed=${aliasSpeed})`)
-    .replace(/((?:Agentech|dog))\.uturn\(\s*\)/g, `$1.turn_right(angle=180, speed=${aliasSpeed})`)
+    .replace(/((?:Agentech|dog))\.turn_right\(\s*\)/g, `$1.turn_right(angle=90, speed=${aliasSpeed})`)
+    .replace(/((?:Agentech|dog))\.turn_left\(\s*\)/g, `$1.turn_left(angle=90, speed=${aliasSpeed})`)
+    .replace(/((?:Agentech|dog))\.u_turn\(\s*\)/g, `$1.turn_left(angle=180, speed=${aliasSpeed})`)
     .replace(/((?:Agentech|dog))\.yaw\(([^)]*)\)/g, (_match, owner: string, args: string) => {
       const positionRad = numberArg(args, "position_rad");
       const positionDeg = numberArg(args, "position_deg");
