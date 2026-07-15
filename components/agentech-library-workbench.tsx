@@ -70,6 +70,7 @@ const localPreviewAssets: Record<string, string> = {
   twist_right: "/assets/products/aegis-previews/twist_right.gif",
   pitch_up: "/assets/products/aegis-previews/look_up.gif",
   pitch_down: "/assets/products/aegis-previews/look_down.gif",
+  roll: "/assets/products/aegis-previews/roll.gif",
   backflip: "/assets/products/aegis-previews/backflip.gif",
   jump: "/assets/products/aegis-previews/jump.gif",
   stand: "/assets/products/aegis-previews/stand.gif",
@@ -124,7 +125,8 @@ function resolvePreviewCommand(command: string, args = "") {
     const position = args.match(/\bposition_(?:rad|deg)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))/);
     return position && Number(position[1]) < 0 ? "pitch_down" : "pitch_up";
   }
-  if (command === "roll" || command === "stay") return "stand";
+  if (command === "roll") return "roll";
+  if (command === "stay") return "stand";
   if (command === "turn") {
     const signedNames = ["angle_rad", "angle_deg", "rate_percentage", "turn_level", "turn_rate_deg_s", "turn_rate_rad_s"];
     for (const name of signedNames) {
@@ -221,6 +223,7 @@ function previewCommandLabel(command: string) {
     twist_right: "Yaw Right",
     pitch_up: "Pitch Up",
     pitch_down: "Pitch Down",
+    roll: "Roll Right",
     backflip: "Backflip",
     jump: "Jump",
     stand: "Stand",
