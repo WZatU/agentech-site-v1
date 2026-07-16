@@ -4,11 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
+import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk-reference";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
 import { eaicHubPath, getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
+const naviReferenceCategories: AgentechFunction["category"][] = [
+  "Movement",
+  "Athletics",
+  "Actions",
+  "Posture",
+  "Configuration",
+  "Safety",
+  "Sensing"
+];
 type Category = (typeof categories)[number];
 type SimFrame = { x: number; y: number; z: number; yaw: number; pitch?: number };
 type AgentechLibraryWorkbenchProps = {
@@ -845,7 +855,7 @@ Live camera -> Website viewer -> Student watches the run`;
 
 const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
-  "view-sdk": "Browse the SDK by category, open function details only when needed, and preview the matching motion GIF.",
+  "view-sdk": "Choose Aegis or Navi, then browse exact functions, parameters, limits, examples, and reference media.",
   "physical-hardware-check": "Upload or paste one Python file, then run the physical hardware check before any software review.",
   "software-check": "Upload, paste, or type one file. Pass Hardware Safety first, then run Software Security on the exact same code.",
   "watch-live-run": "Live Stream opens only during an approved scheduled robot slot after the required checks pass."
@@ -1099,23 +1109,40 @@ print(Agentech.get_battery_status())`
 }
 
 function FocusedBrowseFunctionsSection() {
-  const groupedFunctions = categories
-    .filter((category) => category !== "All")
+  const [selectedRobot, setSelectedRobot] = useState<"aegis" | "navi">("aegis");
+  const selectedFunctions = selectedRobot === "navi"
+    ? naviFunctions.map((item) => ({
+        ...item,
+        verification: undefined,
+        platformNote: undefined,
+        profiles: item.profiles?.filter((profile) => profile.name !== "Legacy aliases"),
+        params: item.params.filter((param) => !["**connect_kwargs", "speed", "seconds", "stop", "operation"].includes(param.name))
+      }))
+    : agentechFunctions;
+  const selectedStarterCode = selectedRobot === "navi" ? naviStarterCode : starterCode;
+  const selectedRobotLabel = selectedRobot === "navi" ? "Navi" : "Aegis";
+  const referenceCategories: AgentechFunction["category"][] = selectedRobot === "navi"
+    ? naviReferenceCategories
+    : categories.filter((category): category is Exclude<Category, "All"> => category !== "All");
+  const groupedFunctions = referenceCategories
     .map((category) => ({
       category,
-      items: agentechFunctions.filter((item) => item.category === category)
-    }));
-  const safetyLimits = [
-    { label: "Dry-run before hardware" },
-    { label: "10s max per motion" },
-    { label: "Speed caps enforced" },
-    { label: "Emergency stop available" },
-    {
-      label: "Boundary: 2 m x 2 m safety box",
-      detail: "Crossing this temporary boundary fails the Hardware Check.",
-      temporary: true
-    }
-  ];
+      items: selectedFunctions.filter((item) => item.category === category)
+    }))
+    .filter((group) => group.items.length > 0);
+  const safetyLimits = selectedRobot === "navi"
+    ? naviSafetyLimits.map((label) => ({ label }))
+    : [
+        { label: "Dry-run before hardware" },
+        { label: "10s max per linear motion" },
+        { label: "Speed caps enforced" },
+        { label: "Emergency stop available" },
+        {
+          label: "Boundary: 2 m x 2 m safety box",
+          detail: "Crossing this temporary boundary fails the Hardware Check.",
+          temporary: true
+        }
+      ];
   const tutorialCards = [
     {
       title: "Read the signature",
@@ -1123,7 +1150,7 @@ function FocusedBrowseFunctionsSection() {
     },
     {
       title: "Open details",
-      body: "Details reveal definitions, parameter meanings, examples, and GIF previews."
+      body: `Details reveal definitions, parameter meanings, examples, and ${selectedRobot === "navi" ? "Navi reference media" : "GIF previews"}.`
     },
     {
       title: "Copy into Hardware Check",
@@ -1134,10 +1161,49 @@ function FocusedBrowseFunctionsSection() {
   return (
     <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
+        <div className="mb-6 border border-[#b9d7f6] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Robot SDK Reference</p>
+              <h2 className="mt-2 text-3xl font-semibold text-[#07142e]">Choose the robot. Use its real capabilities.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#334155]">
+                The import stays the same. Shared functions keep the same names where the robots match, while Navi-only actions and tuning controls appear only for Navi.
+              </p>
+              <div className="mt-5 inline-grid grid-cols-2 border border-[#93bce8] bg-[#eef6ff] p-1" role="group" aria-label="Select robot SDK">
+                {(["aegis", "navi"] as const).map((robot) => {
+                  const selected = selectedRobot === robot;
+                  return (
+                    <button
+                      key={robot}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setSelectedRobot(robot)}
+                      className={`min-w-28 px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005bd6] ${selected ? "bg-[#005bd6] text-white" : "bg-white text-[#17436f] hover:bg-[#e5f1ff]"}`}
+                    >
+                      {robot === "aegis" ? "Aegis" : "Navi"}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">{selectedFunctions.length} reference cards</span>
+                {selectedRobot === "navi" ? (
+                  <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Tested on Navi hardware</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="relative min-w-0 border border-[#dce7f2] bg-[#0d1726] p-4 pr-14">
+              <CopyCodeButton value={selectedStarterCode} className="absolute right-3 top-3" />
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fc5ff]">{selectedRobotLabel} setup</p>
+              <pre className="mt-3 max-h-52 min-w-0 overflow-auto whitespace-pre-wrap font-mono text-xs leading-6 text-[#dff7ed] [overflow-wrap:anywhere]">{selectedStarterCode}</pre>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
           <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">SDK Tutorial</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#07142e]">Find a command, open details, preview the motion.</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#07142e]">Browse {selectedRobotLabel} commands and parameters.</h2>
             <div className="mt-5 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] md:grid-cols-3">
               {tutorialCards.map((card) => (
                 <div key={card.title} className="bg-[#f8fbff] p-4">
@@ -1187,20 +1253,36 @@ function FocusedBrowseFunctionsSection() {
             <details
               key={group.category}
               id={`function-${group.category.toLowerCase()}`}
-              className="group/category scroll-mt-6 border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]"
+              className="group/category min-w-0 scroll-mt-6 overflow-hidden border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25">
-                <div>
+              <summary className="flex cursor-pointer list-none flex-col items-stretch gap-4 px-5 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.14em] text-[#008a7a]">{group.category}</p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category} Commands</h2>
+                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category === "Actions" ? "Action" : group.category} Commands</h2>
                   {group.category === "Movement" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">All commands in this section move the robot by moving its four feet.</p>
                   ) : null}
                   {group.category === "Posture" ? (
-                    <p className="mt-2 text-sm leading-6 text-[#526174]">All commands in this section use a four-foot planted hold, with all four feet remaining planted on the ground.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">
+                      {selectedRobot === "navi"
+                        ? "Commands in this section set, hold, lower, or recover Navi's body posture."
+                        : "All commands in this section use a four-foot planted hold, with all four feet remaining planted on the ground."}
+                    </p>
+                  ) : null}
+                  {group.category === "Athletics" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Jumps, flips, and kicks that move Navi&apos;s whole body.</p>
+                  ) : null}
+                  {group.category === "Actions" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">These gesture descriptions were physically observed on Navi. Timed poses return to standing automatically.</p>
+                  ) : null}
+                  {group.category === "Configuration" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Walking, floor-grip, jump, and collision-protection settings supported by Navi.</p>
+                  ) : null}
+                  {group.category === "Safety" && selectedRobot === "navi" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Stop active movement or lower Navi into its relaxed damping posture for charging.</p>
                   ) : null}
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
+                <div className="flex w-full shrink-0 items-center justify-between gap-3 sm:w-auto sm:justify-start">
                   <span className="font-mono text-sm text-[#005bd6]">{group.items.length} functions</span>
                   <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#006a5c] group-open/category:hidden">View functions</span>
                   <span className="hidden border border-[#008a7a] bg-[#e8f7f3] px-3 py-1 font-mono text-xs text-[#006a5c] group-open/category:inline">Hide functions</span>
@@ -1208,21 +1290,33 @@ function FocusedBrowseFunctionsSection() {
               </summary>
               <div className="divide-y divide-[#dce7f2]">
                 {group.items.map((item) => (
-                  <details key={item.name} className="group bg-white">
-                    <summary className="grid cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1fr)_335px]">
-                      <p className="font-mono text-sm text-[#006a5c]">{item.name === "lateral" ? item.signature : `Agentech.${item.name}(${item.params.length ? "parameters" : ""})`}</p>
-                      <p className="text-sm leading-6 text-[#111d35]">{item.summary}</p>
+                  <details key={item.name} className="group min-w-0 bg-white">
+                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_max-content]">
+                      <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">{item.signature}</p>
+                      <p className="min-w-0 text-sm leading-6 text-[#111d35]">{item.summary}</p>
                       <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
-                        {item.params.some((param) => param.status === "development") ? (
+                        {item.status === "development" || item.params.some((param) => param.status === "development") ? (
                           <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Includes development items</span>
                         ) : null}
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
-                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
-                      <div className="bg-[#fbfdff] p-4">
+                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" || item.name === "squat" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
+                      <div className="min-w-0 bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
+                        {item.verification ? (
+                          <div className="mt-3 border border-[#9cc9be] bg-[#e8f7f3] p-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">Verification</p>
+                            <p className="mt-1 text-xs leading-5 text-[#174b42]">{item.verification}</p>
+                          </div>
+                        ) : null}
+                        {item.platformNote ? (
+                          <div className="mt-3 border border-[#e1ad32] bg-[#fff8df] p-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a5b00]">Platform note</p>
+                            <p className="mt-1 text-xs leading-5 text-[#704b00]">{item.platformNote}</p>
+                          </div>
+                        ) : null}
                         {item.profiles?.length ? (
                           <div className="mt-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1289,16 +1383,26 @@ function FocusedBrowseFunctionsSection() {
                           </>
                         )}
                       </div>
-                      {item.name === "stay" ? null : (
-                        <div className="bg-white p-4">
-                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} preview</p>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={previewAssetForCode(item.example).gif}
-                            alt={`Aegis preview for ${previewCommandLabel(previewAssetForCode(item.example).command)}`}
-                            loading="lazy"
-                            className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
-                          />
+                      {item.name === "stay" || item.name === "squat" ? null : (
+                        <div className="min-w-0 bg-white p-4">
+                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}</p>
+                          {selectedRobot === "navi" ? (
+                            <Image
+                              src="/assets/robotics/ff-navi-white.jpg"
+                              alt={`FF Navi robot for Agentech.${item.name}`}
+                              width={1200}
+                              height={675}
+                              className="aspect-video w-full border border-[#dce7f2] bg-white object-contain"
+                            />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={previewAssetForCode(item.example).gif}
+                              alt={`Aegis preview for ${previewCommandLabel(previewAssetForCode(item.example).command)}`}
+                              loading="lazy"
+                              className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
+                            />
+                          )}
                         </div>
                       )}
                     </div>

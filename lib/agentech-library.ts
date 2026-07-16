@@ -10,12 +10,15 @@ export type AgentechParam = {
 
 export type AgentechFunction = {
   name: string;
-  category: "Movement" | "Posture" | "Safety" | "Sensing";
+  category: "Movement" | "Athletics" | "Actions" | "Posture" | "Configuration" | "Safety" | "Sensing";
   signature: string;
   summary: string;
   example: string;
   params: AgentechParam[];
   profiles?: { name: string; syntax: string; number?: number; note?: string; noteLabel?: string; status?: CapabilityStatus }[];
+  verification?: string;
+  platformNote?: string;
+  status?: CapabilityStatus;
 };
 
 const p = (name: string, type: string, description: string, defaultValue?: string, status: CapabilityStatus = "available"): AgentechParam =>
@@ -161,10 +164,4 @@ export const agentechFunctions: AgentechFunction[] = [
 ] as const;
 
 export const starterCode = `from agentech import Agentech
-
-Agentech.stand()
-Agentech.forward(speed_mps=0.3, duration_s=1.0)
-Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
-Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
-battery_percentage = Agentech.get_battery_status()
-Agentech.stop()`;
+Agentech.use("aegis")`;
