@@ -123,8 +123,8 @@ function previewDirection(args: string) {
 }
 
 function profileSyntaxWithPlaceholders(syntax: string) {
-  return syntax.split(/([-+]?(?:\d+(?:\.\d*)?|\.\d+))/g).map((part, index) =>
-    /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(part)
+  return syntax.split(/(\bx\b|[-+]?(?:\d+(?:\.\d*)?|\.\d+))/g).map((part, index) =>
+    /^(?:x|[-+]?(?:\d+(?:\.\d*)?|\.\d+))$/.test(part)
       ? <span key={`${part}-${index}`} className="font-normal text-[#4c1d95]">x</span>
       : part
   );
@@ -1150,7 +1150,7 @@ function FocusedBrowseFunctionsSection() {
   const tutorialCards = [
     {
       title: "Read the signature",
-      body: "Use the compact row for the function name and default parameters."
+      body: "Use the compact row for the function name and its public call shape."
     },
     {
       title: "Open details",
@@ -1296,7 +1296,9 @@ function FocusedBrowseFunctionsSection() {
                 {group.items.map((item) => (
                   <details key={item.name} className="group min-w-0 bg-white">
                     <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_max-content]">
-                      <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">{item.signature}</p>
+                      <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">
+                        {selectedRobot === "navi" ? profileSyntaxWithPlaceholders(item.signature) : item.signature}
+                      </p>
                       <p className="min-w-0 text-sm leading-6 text-[#111d35]">{item.summary}</p>
                       <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
                         {item.status === "development" || item.params.some((param) => param.status === "development") ? (

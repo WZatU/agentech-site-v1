@@ -54,7 +54,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "forward",
     category: "Movement",
-    signature: "Agentech.forward(parameters)",
+    signature: "Agentech.forward()",
     summary: "Move forward with the same profiles as Aegis, then enforce Navi's +1.34 m/s body-X limit.",
     example: "Agentech.forward(speed_mps=0.5, duration_s=1.0)",
     verification: `${motionVerification}; tested through 1.20 m/s`,
@@ -82,7 +82,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "backward",
     category: "Movement",
-    signature: "Agentech.backward(parameters)",
+    signature: "Agentech.backward()",
     summary: "Move backward with the shared Aegis profiles and Navi's 0.67 m/s reverse limit.",
     example: "Agentech.backward(speed_mps=0.5, duration_s=1.0)",
     verification: `${motionVerification}; tested through 0.65 m/s`,
@@ -110,7 +110,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "lateral",
     category: "Movement",
-    signature: "Agentech.lateral_left(parameters) / Agentech.lateral_right(parameters)",
+    signature: "Agentech.lateral_left() / Agentech.lateral_right()",
     summary: "Step left or right using speed/time or distance/speed profiles.",
     example: "Agentech.lateral_left(speed_mps=0.5, duration_s=1.0)\nAgentech.lateral_right(distance_m=0.2, speed_mps=0.4)",
     verification: `${motionVerification}; both directions tested through 0.65 m/s`,
@@ -133,7 +133,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "turn",
     category: "Movement",
-    signature: "Agentech.turn(parameters)",
+    signature: "Agentech.turn()",
     summary: "Turn with signed angle, rate, percentage, level, timed, or fixed-shortcut profiles.",
     example: "Agentech.turn(angle_deg=-45, turn_rate_rad_s=0.5)",
     verification: `${motionVerification}; tested through 2.5 rad/s in both directions`,
@@ -214,7 +214,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "sideflip",
     category: "Athletics",
-    signature: "Agentech.sideflip(direction=\"left\")",
+    signature: "Agentech.sideflip(direction=x)",
     summary: "Navi completes a lateral rotation toward the selected side and returns to a stable four-foot landing.",
     example: "Agentech.sideflip(direction=\"left\")",
     verification: "Physically verified 2026-07-15 in both directions with clean rotations and no landing slip",
@@ -234,7 +234,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "sway",
     category: "Actions",
-    signature: "Agentech.sway(parameters)",
+    signature: "Agentech.sway()",
     summary: "Navi continuously rocks its body left and right for the requested time, then automatically returns to standing.",
     example: "Agentech.sway(duration_s=3.0)",
     profiles: [
@@ -246,7 +246,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "pee",
     category: "Actions",
-    signature: "Agentech.pee(parameters)",
+    signature: "Agentech.pee()",
     summary: "Navi raises its right rear leg into a one-legged pose, holds it for the requested time, then automatically returns to standing.",
     example: "Agentech.pee(duration_s=3.0)",
     profiles: [
@@ -258,7 +258,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "shake_hand",
     category: "Actions",
-    signature: "Agentech.shake_hand(parameters)",
+    signature: "Agentech.shake_hand()",
     summary: "Navi raises its right front leg and presents it forward for the requested time, then automatically returns to standing.",
     example: "Agentech.shake_hand(duration_s=3.0)",
     profiles: [
@@ -271,7 +271,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "hip_shake",
     category: "Actions",
-    signature: "Agentech.hip_shake(parameters)",
+    signature: "Agentech.hip_shake()",
     summary: "Navi shakes its rear hips left and right for the requested time, then automatically returns to standing. The motion may slip or fail on a low-traction floor.",
     example: "Agentech.hip_shake(duration_s=3.0)",
     profiles: [
@@ -292,7 +292,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "dance",
     category: "Actions",
-    signature: "Agentech.dance(style=\"beats\")",
+    signature: "Agentech.dance()",
     summary: "Navi performs the selected whole-body dance, then returns to standing. Each style's physical choreography will be documented after charging.",
     example: "Agentech.dance(style=\"shoulder\")",
     profiles: [
@@ -355,7 +355,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "recovery_stand",
     category: "Posture",
-    signature: "Agentech.recovery_stand(direction=\"back\")",
+    signature: "Agentech.recovery_stand(direction=x)",
     summary: "Navi recovers from the selected fallen orientation and returns to a normal four-foot stance. Each direction requires an isolated test after charging.",
     example: "Agentech.recovery_stand(direction=\"back\")",
     params: [
@@ -365,7 +365,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "set_gait",
     category: "Configuration",
-    signature: "Agentech.set_gait(gait_id)",
+    signature: "Agentech.set_gait(gait_id=x)",
     summary: "Choose one of Navi's installed walking patterns.",
     example: "Agentech.set_gait(gait_id=3)",
     params: [p("gait_id", "int [0, 15]", "Select one of the 16 gait presets installed on this Navi.", "3")]
@@ -373,7 +373,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "set_foot_height",
     category: "Configuration",
-    signature: "Agentech.set_foot_height(height_m)",
+    signature: "Agentech.set_foot_height(height_m=x)",
     summary: "Set Navi's foot lift height in meters.",
     example: "Agentech.set_foot_height(height_m=0.08)",
     params: [p("height_m", "float [0.001, 0.4] meters", "Set how high Navi lifts each foot while walking.", "0.03")]
@@ -381,7 +381,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "set_collision_protect",
     category: "Configuration",
-    signature: "Agentech.set_collision_protect(enabled)",
+    signature: "Agentech.set_collision_protect(enabled=x)",
     summary: "Enable or disable Navi's collision-protection setting.",
     example: "Agentech.set_collision_protect(enabled=True)",
     params: [p("enabled", "bool", "True keeps collision protection enabled; false disables it.", "True")]
@@ -389,7 +389,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "set_friction",
     category: "Configuration",
-    signature: "Agentech.set_friction(friction)",
+    signature: "Agentech.set_friction(friction=x)",
     summary: "Tell Navi how much grip to expect from the floor surface.",
     example: "Agentech.set_friction(friction=0.5)",
     params: [p("friction", "float [0.01, 1.0]", "Use a lower value for slippery floors and a higher value for grippy floors.", "0.4")]
@@ -397,7 +397,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "set_jump_distance",
     category: "Configuration",
-    signature: "Agentech.set_jump_distance(distance_m)",
+    signature: "Agentech.set_jump_distance(distance_m=x)",
     summary: "Set how far Navi travels during the next forward jump.",
     example: "Agentech.set_jump_distance(distance_m=0.3)",
     params: [p("distance_m", "float [0, 1.0] meters", "Forward travel requested by Agentech.jump_forward().", "0.5")]
@@ -405,7 +405,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "set_jump_angle",
     category: "Configuration",
-    signature: "Agentech.set_jump_angle(angle_rad)",
+    signature: "Agentech.set_jump_angle(angle_rad=x)",
     summary: "Set how far Navi rotates during the next round jump.",
     example: "Agentech.set_jump_angle(angle_rad=0.2)",
     params: [p("angle_rad", "float [-3.14, 3.14] radians", "Positive and negative values choose opposite rotation directions for Agentech.jump_round().", "0.0")]
@@ -422,7 +422,7 @@ export const naviFunctions: AgentechFunction[] = [
   {
     name: "emergency_stop",
     category: "Safety",
-    signature: "Agentech.emergency_stop()",
+    signature: "Agentech.emergency_stop(reason=x)",
     summary: "Best-effort software zero-velocity stop; this is not Navi's physical hardware e-stop.",
     example: "Agentech.emergency_stop(reason=\"Operator requested stop\")",
     verification: "Zero-velocity implementation tested; hardware e-stop behavior is not claimed",
