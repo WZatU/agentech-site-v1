@@ -360,21 +360,88 @@ export const naviFunctions: AgentechFunction[] = [
     params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the forequarters-low posture before returning to regular standing mode.", "30.0")]
   },
   {
+    name: "prostrate",
+    category: "Posture",
+    signature: "Agentech.prostrate()",
+    summary: "Navi lowers its level torso close to the floor with all four legs deeply folded and spread outward, then returns to regular Stand after the requested time.",
+    example: "Agentech.prostrate(time=30.0)",
+    verification: "Physically verified 2026-07-16; timed automatic return to Stand is implemented in the Navi SDK",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.prostrate()" },
+      { name: "Holding time", syntax: "Agentech.prostrate(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the prostrate posture before returning to regular standing mode.", "30.0")]
+  },
+  {
+    name: "sphinx_lie",
+    category: "Posture",
+    signature: "Agentech.sphinx_lie()",
+    summary: "Navi extends its front legs to support raised forequarters while its torso slopes toward lowered hindquarters and rear legs stretched behind, then automatically returns to Stand after the requested time.",
+    example: "Agentech.sphinx_lie(time=30.0)",
+    verification: "Physically verified 2026-07-16; Navi automatically returns to Stand when the requested hold ends",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.sphinx_lie()" },
+      { name: "Holding time", syntax: "Agentech.sphinx_lie(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the sphinx posture before Navi automatically returns to regular standing mode.", "30.0")]
+  },
+  {
+    name: "sphinx_left_lie",
+    category: "Posture",
+    signature: "Agentech.sphinx_left_lie()",
+    summary: "Navi rolls its torso toward the left, lays its left-side legs along the floor, and keeps the opposite-side legs braced before automatically returning to Stand after the requested time.",
+    example: "Agentech.sphinx_left_lie(time=30.0)",
+    verification: "Physically verified 2026-07-16; Navi automatically returns to Stand when the requested hold ends",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.sphinx_left_lie()" },
+      { name: "Holding time", syntax: "Agentech.sphinx_left_lie(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the left sphinx posture before Navi automatically returns to regular standing mode.", "30.0")]
+  },
+  {
+    name: "sphinx_right_lie",
+    category: "Posture",
+    signature: "Agentech.sphinx_right_lie()",
+    summary: "Navi rolls its torso toward the right, lays its right-side legs along the floor, and keeps the opposite-side legs braced before automatically returning to Stand after the requested time.",
+    example: "Agentech.sphinx_right_lie(time=30.0)",
+    verification: "Physically verified 2026-07-16; Navi automatically returns to Stand when the requested hold ends",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.sphinx_right_lie()" },
+      { name: "Holding time", syntax: "Agentech.sphinx_right_lie(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the right sphinx posture before Navi automatically returns to regular standing mode.", "30.0")]
+  },
+  {
     name: "stand_high",
     category: "Posture",
     signature: "Agentech.stand_high()",
-    summary: "Navi enters its high standing posture. The exact physical height will be confirmed after charging.",
+    summary: "Navi extends all four planted legs and holds its level torso slightly higher than normal. Starting forward movement lowers it to the normal walking height before it moves.",
     example: "Agentech.stand_high()",
+    verification: "Physically verified 2026-07-16; a forward command transitions Navi from the raised stance to its normal walking height",
     params: []
+  },
+  {
+    name: "stand_at_ease",
+    category: "Posture",
+    signature: "Agentech.stand_at_ease()",
+    summary: "Navi holds a relaxed staggered stance by placing its left front foot slightly ahead of the right front foot, then returns to regular Stand after the requested time.",
+    example: "Agentech.stand_at_ease(time=30.0)",
+    verification: "Physically verified 2026-07-16; timed automatic return to Stand is implemented in the Navi SDK",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.stand_at_ease()" },
+      { name: "Holding time", syntax: "Agentech.stand_at_ease(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the at-ease stance before returning to regular standing mode.", "30.0")]
   },
   {
     name: "recovery_stand",
     category: "Posture",
     signature: "Agentech.recovery_stand(direction=x)",
-    summary: "Navi recovers from the selected fallen orientation and returns to a normal four-foot stance. Each direction requires an isolated test after charging.",
-    example: "Agentech.recovery_stand(direction=\"back\")",
+    summary: "Under development. This recovery command is currently blocked and sends no motion to Navi.",
+    example: "# Under development: no robot command is sent\nAgentech.recovery_stand(direction=\"back\")",
+    status: "development",
     params: [
-      p("direction", '"back" | "front" | "left" | "right"', "Tell Navi which side of its body is against the floor before recovery.", '"back"')
+      p("direction", '"back" | "front" | "left" | "right"', "Planned recovery selector; not currently available for hardware use.", '"back"', "development")
     ]
   },
   {

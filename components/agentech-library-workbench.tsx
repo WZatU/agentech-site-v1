@@ -1319,14 +1319,14 @@ function FocusedBrowseFunctionsSection() {
               <div className="divide-y divide-[#dce7f2]">
                 {group.items.map((item) => (
                   <details key={item.name} className="group min-w-0 bg-white">
-                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_max-content]">
+                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 lg:grid-cols-[41%_minmax(0,1fr)_260px]">
                       <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">
                         {selectedRobot === "navi" ? profileSyntaxWithPlaceholders(item.signature) : item.signature}
                       </p>
                       <p className="min-w-0 text-sm leading-6 text-[#111d35]">{item.summary}</p>
-                      <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
+                      <div className="flex flex-wrap items-center gap-2 justify-self-start lg:justify-self-end">
                         {item.status === "development" || item.params.some((param) => param.status === "development") ? (
-                          <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Includes development items</span>
+                          <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under development</span>
                         ) : null}
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
