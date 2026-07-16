@@ -21,6 +21,9 @@ const controlledStop = p(
   "True"
 );
 
+const athleticsCarpetNote =
+  "These athletics tests were performed on carpet. Its compliant surface can cause landing rebound, foot slip, or uneven recovery even when Navi completes the command successfully.";
+
 const namedExtendedAction = (
   name: string,
   summary: string,
@@ -174,38 +177,47 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.jump()",
     summary: "Navi bends all four legs, springs straight upward, and lands on all four feet in nearly the same place.",
     example: "Agentech.jump()",
+    verification: "Physically verified 2026-07-15 with a clean vertical takeoff and four-foot landing",
+    platformNote: `${athleticsCarpetNote} The standard jump showed foot slip while absorbing the landing.`,
     params: []
   },
   {
     name: "jump_round",
     category: "Athletics",
     signature: "Agentech.jump_round()",
-    summary: "Navi performs its rotating jump and lands facing a new direction. The exact physical sequence will be confirmed after charging.",
+    summary: "Navi makes a small vertical hop and lands close to its starting position.",
     example: "Agentech.jump_round()",
+    verification: "Physically verified 2026-07-15; visibly smaller than Agentech.jump(), with no obvious rotation in the tested default configuration",
+    platformNote: athleticsCarpetNote,
     params: []
   },
   {
     name: "jump_forward",
     category: "Athletics",
     signature: "Agentech.jump_forward()",
-    summary: "Navi performs its forward jump and lands ahead of its starting position. The exact physical sequence will be confirmed after charging.",
+    summary: "Navi crouches, leaps forward, and makes an initial four-foot landing ahead of its starting position.",
     example: "Agentech.jump_forward()",
+    verification: "Physically verified 2026-07-15 with clear forward travel and an initial four-foot landing",
+    platformNote: `${athleticsCarpetNote} The forward jump showed a clean initial landing followed by rebound and disrupted foot placement.`,
     params: []
   },
   {
     name: "frontflip",
     category: "Athletics",
     signature: "Agentech.frontflip()",
-    summary: "Navi performs a forward flip and returns to a four-foot landing. The exact physical sequence will be confirmed after charging.",
+    summary: "Navi completes a forward rotation and returns to a stable four-foot landing.",
     example: "Agentech.frontflip()",
+    verification: "Physically verified 2026-07-15 with a clean forward rotation and no landing slip",
+    platformNote: athleticsCarpetNote,
     params: []
   },
   {
     name: "sideflip",
     category: "Athletics",
     signature: "Agentech.sideflip(direction=\"left\")",
-    summary: "Navi performs a lateral flip toward the selected side and returns to a four-foot landing. The exact physical sequence will be confirmed after charging.",
+    summary: "Navi completes a lateral rotation toward the selected side and returns to a stable four-foot landing.",
     example: "Agentech.sideflip(direction=\"left\")",
+    verification: "Physically verified 2026-07-15 in both directions with clean rotations and no landing slip",
     params: [
       p("direction", '"left" | "right"', "Choose which side Navi flips toward.", '"left"')
     ]
@@ -216,6 +228,7 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.kick()",
     summary: "Navi performs its kicking gesture, then returns to standing. The active leg and exact motion will be confirmed after charging.",
     example: "Agentech.kick()",
+    platformNote: athleticsCarpetNote,
     params: []
   },
   {
