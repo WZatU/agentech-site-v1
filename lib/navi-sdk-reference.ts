@@ -350,9 +350,14 @@ export const naviFunctions: AgentechFunction[] = [
     name: "lie_on_elbows",
     category: "Posture",
     signature: "Agentech.lie_on_elbows()",
-    summary: "Navi enters its elbows-down resting posture. The exact physical position will be confirmed after charging.",
-    example: "Agentech.lie_on_elbows()",
-    params: []
+    summary: "Navi keeps its hindquarters seated while folding its front joints more deeply than in sit(), lowers the shoulders and chest for the requested time, then returns to regular standing mode.",
+    example: "Agentech.lie_on_elbows(time=30.0)",
+    verification: "Physically verified 2026-07-16; timed automatic return to Stand is implemented in the Navi SDK",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.lie_on_elbows()" },
+      { name: "Holding time", syntax: "Agentech.lie_on_elbows(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the forequarters-low posture before returning to regular standing mode.", "30.0")]
   },
   {
     name: "stand_high",
