@@ -1,0 +1,122 @@
+import { DataPacket_Kind, RoomServiceClient } from "livekit-server-sdk";
+import { NextResponse } from "next/server";
+import { getAccountRecord, spendAccountCredits } from "@/lib/account-records";
+import { isAgentechCompanyEmail } from "@/lib/company-accounts";
+import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+
+export const dynamic = "force-dynamic";
+
+const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
+const captureTopic = "agentech.capture-image";
+const maxImageBytes = 8 * 1024 * 1024;
+const base64ChunkSize = 10_000;
+const configuredDisplayCaptureCredits = Number(process.env.AGENTECH_CAPTURE_DISPLAY_CREDITS || 10);
+const displayCaptureCredits = Number.isFinite(configuredDisplayCaptureCredits)
+  ? Math.max(1, Math.floor(configuredDisplayCaptureCredits))
+  : 10;
+
+type LocalCapture = {
+  captureId: string;
+  createdAt: string;
+  dataUrl: string;
+};
+
+const localCaptureStore = globalThis as typeof globalThis & {
+  agentechLatestCapture?: LocalCapture;
+  agentechCaptureHistory?: LocalCapture[];
+};
+
+function authorized(request: Request) {
+  const secret = process.env.ROBOT_RUNNER_SECRET;
+  const expected = secret || (process.env.NODE_ENV !== "production" ? "agentech-local-runner" : "");
+  return Boolean(expected) && request.headers.get("authorization") === `Bearer ${expected}`;
+}
+
+export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Local capture polling is disabled." }, { status: 404 });
+  }
+  return NextResponse.json({
+    capture: localCaptureStore.agentechLatestCapture ?? null,
+    captures: localCaptureStore.agentechCaptureHistory ?? []
+  });
+}
+
+export async function POST(request: Request) {
+  if (!authorized(request)) {
+    return NextResponse.json({ error: "Robot runner authentication failed." }, { status: 401 });
+  }
+
+  const mimeType = request.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+  if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(mimeType)) {
+    return NextResponse.json({ error: "Capture must be JPEG, PNG, or WebP." }, { status: 415 });
+  }
+
+  const image = Buffer.from(await request.arrayBuffer());
+  if (image.length === 0 || image.length > maxImageBytes) {
+    return NextResponse.json({ error: "Capture must be between 1 byte and 8 MB." }, { status: 413 });
+  }
+
+  const accountEmail = normalizeEmail(request.headers.get("x-agentech-account-email"));
+  if (!isValidEmail(accountEmail)) {
+    return NextResponse.json({ error: "The code runner did not provide a valid customer account." }, { status: 400 });
+  }
+  if (!isAgentechCompanyEmail(accountEmail)) {
+    const account = await getAccountRecord(accountEmail);
+    if (!account) {
+      return NextResponse.json({ error: "Customer account not found." }, { status: 404 });
+    }
+    const spend = await spendAccountCredits(accountEmail, displayCaptureCredits);
+    if (!spend || spend.rechargeRequired) {
+      return NextResponse.json(
+        { error: `Displaying a captured image requires ${displayCaptureCredits} credits.` },
+        { status: 402 }
+      );
+    }
+  }
+
+  const roomName = request.headers.get("x-livekit-room")?.trim() || defaultRoomName;
+  const captureId = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+  const encoded = image.toString("base64");
+  if (process.env.NODE_ENV !== "production") {
+    const capture = {
+      captureId,
+      createdAt,
+      dataUrl: `data:${mimeType};base64,${encoded}`
+    };
+    localCaptureStore.agentechLatestCapture = capture;
+    localCaptureStore.agentechCaptureHistory = [
+      ...(localCaptureStore.agentechCaptureHistory ?? []),
+      capture
+    ];
+  }
+
+  const livekitUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL;
+  const apiKey = process.env.LIVEKIT_API_KEY;
+  const apiSecret = process.env.LIVEKIT_API_SECRET;
+  if (!livekitUrl || !apiKey || !apiSecret) {
+    if (process.env.NODE_ENV !== "production") {
+      return NextResponse.json({ ok: true, captureId, chunks: 0, creditsCharged: 0, transport: "local-preview" });
+    }
+    return NextResponse.json({ error: "LiveKit is not configured." }, { status: 500 });
+  }
+  const chunks = Array.from({ length: Math.ceil(encoded.length / base64ChunkSize) }, (_, index) =>
+    encoded.slice(index * base64ChunkSize, (index + 1) * base64ChunkSize)
+  );
+  const client = new RoomServiceClient(livekitUrl, apiKey, apiSecret);
+
+  for (const [index, data] of chunks.entries()) {
+    const packet = new TextEncoder().encode(JSON.stringify({
+      captureId,
+      index,
+      total: chunks.length,
+      mimeType,
+      createdAt,
+      data
+    }));
+    await client.sendData(roomName, packet, DataPacket_Kind.RELIABLE, { topic: captureTopic });
+  }
+
+  return NextResponse.json({ ok: true, captureId, chunks: chunks.length, creditsCharged: isAgentechCompanyEmail(accountEmail) ? 0 : displayCaptureCredits });
+}

@@ -1,19 +1,84 @@
 "use client";
 
 import { Room, RoomEvent, Track, type RemoteTrack } from "livekit-client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type LiveRobotCameraProps = {
   roomName: string;
 };
 
 const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || "";
+const captureTopic = "agentech.capture-image";
+
+type CaptureChunk = {
+  captureId: string;
+  index: number;
+  total: number;
+  mimeType: string;
+  createdAt: string;
+  data: string;
+};
+
+type DisplayCapture = {
+  captureId: string;
+  createdAt: string;
+  dataUrl: string;
+};
+
+function captureExtension(dataUrl: string) {
+  if (dataUrl.startsWith("data:image/png")) return "png";
+  if (dataUrl.startsWith("data:image/webp")) return "webp";
+  return "jpg";
+}
 
 export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isViewing, setIsViewing] = useState(false);
   const [status, setStatus] = useState(livekitUrl ? "Press Start Live View when you are ready to watch." : "LiveKit URL is not configured.");
+  const [captureUrl, setCaptureUrl] = useState("");
+  const [captureTime, setCaptureTime] = useState("");
+  const [captureHistory, setCaptureHistory] = useState<DisplayCapture[]>([]);
+  const localCaptureIdRef = useRef("");
+
+  const receiveCapture = useCallback((capture: DisplayCapture) => {
+    setCaptureUrl(capture.dataUrl);
+    setCaptureTime(capture.createdAt);
+    setCaptureHistory((current) => current.some((item) => item.captureId === capture.captureId)
+      ? current
+      : [...current, capture]);
+  }, []);
+
+  useEffect(() => {
+    if (livekitUrl) {
+      return;
+    }
+    let active = true;
+    async function readLocalCapture() {
+      try {
+        const response = await fetch("/api/agentech-capture", { cache: "no-store" });
+        const payload = (await response.json()) as {
+          capture?: { captureId: string; createdAt: string; dataUrl: string } | null;
+          captures?: DisplayCapture[];
+        };
+        if (active && response.ok && payload.captures) {
+          payload.captures.forEach(receiveCapture);
+        }
+        if (active && response.ok && payload.capture && payload.capture.captureId !== localCaptureIdRef.current) {
+          localCaptureIdRef.current = payload.capture.captureId;
+          receiveCapture(payload.capture);
+        }
+      } catch {
+        // The local relay may not be ready while the development server recompiles.
+      }
+    }
+    void readLocalCapture();
+    const timer = window.setInterval(() => void readLocalCapture(), 750);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [receiveCapture]);
 
   useEffect(() => {
     if (!livekitUrl || !isViewing) {
@@ -67,6 +132,33 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           }
         });
 
+        const captureChunks = new Map<string, Array<string | undefined>>();
+        room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
+          if (topic !== captureTopic) {
+            return;
+          }
+
+          try {
+            const chunk = JSON.parse(new TextDecoder().decode(payload)) as CaptureChunk;
+            if (!chunk.captureId || !Number.isInteger(chunk.index) || !Number.isInteger(chunk.total) || chunk.total < 1) {
+              return;
+            }
+            const chunks = captureChunks.get(chunk.captureId) ?? new Array<string | undefined>(chunk.total);
+            chunks[chunk.index] = chunk.data;
+            captureChunks.set(chunk.captureId, chunks);
+            if (chunks.every((part) => typeof part === "string")) {
+              receiveCapture({
+                captureId: chunk.captureId,
+                createdAt: chunk.createdAt,
+                dataUrl: `data:${chunk.mimeType};base64,${chunks.join("")}`
+              });
+              captureChunks.delete(chunk.captureId);
+            }
+          } catch {
+            // Ignore unrelated or incomplete room data.
+          }
+        });
+
         room.on(RoomEvent.Disconnected, () => {
           if (isMounted) {
             setStatus("Robot camera disconnected.");
@@ -115,7 +207,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       }
       activeRoom?.disconnect();
     };
-  }, [roomName, isViewing]);
+  }, [roomName, isViewing, receiveCapture]);
 
   useEffect(() => {
     if (!isViewing) {
@@ -166,8 +258,10 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   }
 
   return (
-    <div ref={containerRef} className="relative h-full w-full bg-black">
-      <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
+    <div ref={containerRef}>
+    <div className="grid gap-3 lg:grid-cols-2">
+      <div className="relative aspect-video min-h-64 w-full bg-black">
+        <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
       {status === "Live robot camera connected." ? null : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center text-sm leading-6 text-[#aeb8c2]">
           <span>{status}</span>
@@ -181,7 +275,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           </button>
         </div>
       )}
-      {isViewing ? (
+        {isViewing ? (
         <button
           type="button"
           onClick={stopViewing}
@@ -189,7 +283,59 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
         >
           Stop Live View
         </button>
-      ) : null}
+        ) : null}
+      </div>
+      <div className="relative aspect-video min-h-64 overflow-hidden border border-[#2a3440] bg-[#080b0f]">
+        {captureUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={captureUrl} alt="Latest image captured by Agentech.capture_image()" className="h-full w-full object-contain" />
+        ) : (
+          <div className="grid h-full place-items-center px-6 text-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">Captured Image</p>
+              <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">
+                Run <span className="font-mono text-white">Agentech.capture_image(mode=&quot;display&quot;)</span> in the website code runner. This paid result will appear here.
+              </p>
+            </div>
+          </div>
+        )}
+        {captureUrl ? (
+          <div className="absolute inset-x-0 bottom-0 bg-black/75 px-3 py-2 text-xs text-white">
+            Latest capture{captureTime ? ` · ${new Date(captureTime).toLocaleTimeString()}` : ""}
+          </div>
+        ) : null}
+      </div>
+    </div>
+    {captureHistory.length ? (
+      <section className="mt-3 border border-[#2a3440] bg-[#080b0f] p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">Download Captures</p>
+            <p className="mt-1 text-xs text-[#aeb8c2]">The preview shows only the latest image. Every displayed capture remains downloadable below.</p>
+          </div>
+          <span className="text-xs text-[#aeb8c2]">{captureHistory.length} image{captureHistory.length === 1 ? "" : "s"}</span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {[...captureHistory].reverse().map((capture, index) => (
+            <article key={capture.captureId} className="flex items-center gap-3 border border-[#25303b] bg-[#0d1218] p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={capture.dataUrl} alt={`Captured robot image ${captureHistory.length - index}`} className="h-16 w-24 shrink-0 object-cover" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs text-white">Capture {captureHistory.length - index}</p>
+                <p className="mt-1 text-[11px] text-[#8995a3]">{new Date(capture.createdAt).toLocaleString()}</p>
+                <a
+                  href={capture.dataUrl}
+                  download={`agentech-capture-${capture.createdAt.replace(/[:.]/g, "-")}.${captureExtension(capture.dataUrl)}`}
+                  className="mt-2 inline-block text-xs font-semibold text-[#93c5fd] underline-offset-4 hover:underline"
+                >
+                  Download image
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    ) : null}
     </div>
   );
 }

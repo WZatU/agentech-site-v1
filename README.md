@@ -113,6 +113,8 @@ LIVEKIT_URL=
 LIVEKIT_API_KEY=
 LIVEKIT_API_SECRET=
 LIVEKIT_ROOM_NAME=
+ROBOT_RUNNER_SECRET=
+AGENTECH_CAPTURE_DISPLAY_CREDITS=10
 
 RESEND_API_KEY=
 APPLICATION_FROM_EMAIL=
@@ -137,6 +139,8 @@ AGENTECH_SUBMISSION_DIR=
 `AGENTECH_SUBMISSION_DIR` optionally overrides the server-side JSON submission mirror. Serverless deployments default to the writable system temp directory; normal hosting defaults to `process.cwd()/review_submissions`.
 
 `LIVEKIT_API_SECRET` and any FF SDK / robot-control implementation details must also stay server-side or on the private robot/OBS computer. The website may show public beginner calls such as `Agentech.forward()`, but it must not expose private SDK internals, SSH credentials, robot hotspot details, or service-role keys in client code.
+
+The private website code runner should set `AGENTECH_CAPTURE_UPLOAD_URL` to the site's `/api/agentech-capture` URL, `AGENTECH_CAPTURE_UPLOAD_TOKEN` to the same value as `ROBOT_RUNNER_SECRET`, `AGENTECH_CAPTURE_LIVEKIT_ROOM` to the active room, and `AGENTECH_CAPTURE_ACCOUNT_EMAIL` to the authenticated customer's account. `Agentech.capture_image(mode="internal")` returns the image only to Python. `mode="display"` sends it to the website panel and charges `AGENTECH_CAPTURE_DISPLAY_CREDITS` (10 by default). Company accounts are not charged.
 
 ## Core Routes
 

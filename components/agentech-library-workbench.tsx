@@ -8,6 +8,7 @@ import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
 import { eaicHubPath, getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
+import { LiveRobotCamera } from "@/components/live-robot-camera";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 const naviReferenceCategories: AgentechFunction["category"][] = [
@@ -91,9 +92,9 @@ const localPreviewAssets: Record<string, string> = {
   sit: previewAsset("sit"),
   stop: previewAsset("stop"),
   emergency_stop: previewAsset("emergency_stop"),
-  get_battery_status: previewAsset("battery_status")
+  battery: previewAsset("battery_status")
 };
-const commandsWithoutReferencePreview = new Set(["stay", "squat", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal"]);
+const commandsWithoutReferencePreview = new Set(["stay", "squat", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
 const localPreviewFallback = previewAsset("stand");
 const protectedStandLine = "Agentech.stand()";
 const commandsRequiringStand = new Set([
@@ -118,7 +119,7 @@ const commandsRequiringStand = new Set([
   "backflip",
   "jump"
 ]);
-const lowGaitMovementCommands = new Set(["squat_forward", "squat_backward", "squat_lateral", "squat_diagonal"]);
+const lowGaitMovementCommands = new Set(["squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn"]);
 const motionCommands = new Set([...commandsRequiringStand, ...lowGaitMovementCommands]);
 
 function previewDirection(args: string) {
@@ -269,7 +270,7 @@ function previewCommandLabel(command: string) {
     sit: "Sit",
     stop: "Stop",
     emergency_stop: "Emergency Stop",
-    get_battery_status: "Get Battery Status"
+    battery: "Battery"
   };
   return labels[command] ?? command;
 }
@@ -393,7 +394,7 @@ Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
 Agentech.stay(time=1.0)
 Agentech.backflip()
 Agentech.jump()
-battery_percentage = Agentech.get_battery_status()
+battery = Agentech.battery()
 Agentech.stop()`
   },
   Movement: {
@@ -435,10 +436,10 @@ Agentech.stop()
 Agentech.emergency_stop()`
   },
   Sensing: {
-    activeName: "get_battery_status",
+    activeName: "battery",
     code: `from agentech import Agentech
 
-battery_percentage = Agentech.get_battery_status()`
+battery = Agentech.battery()`
   }
 };
 
@@ -446,9 +447,9 @@ function commandPlan(code: string) {
   const trace: string[] = [];
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
-    "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "turn", "turn_right", "turn_left", "u_turn",
+    "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
-    "get_battery_status"
+    "battery", "get_body_state", "imu", "capture_image"
   ]);
 
   for (const rawLine of lines) {
@@ -658,6 +659,7 @@ function DocsSection() {
       "squat_backward",
       "squat_lateral",
       "squat_diagonal",
+      "squat_turn",
       "turn",
       "yaw",
       "pitch",
@@ -670,7 +672,10 @@ function DocsSection() {
       "sit",
       "stop",
       "emergency_stop",
-      "get_battery_status"
+      "battery",
+      "get_body_state",
+      "imu",
+      "capture_image"
     ].includes(item.name)
   );
   const workflowExample = `from agentech import Agentech
@@ -693,7 +698,6 @@ with Agentech.robot(dry_run=True) as dog:
     dog.stay(time=1.0)
     dog.backflip()
     dog.jump()
-    battery_percentage = dog.get_battery_status()
     dog.stop()`;
   const submitExample = `# Option 1: paste code into this page
 Agentech.stand()
@@ -782,7 +786,7 @@ Live camera -> Website viewer -> Student watches the run`;
                 <p>Backward speed is capped at 2.365 m/s.</p>
                 <p>Lateral speed benchmark is 0.78 m/s.</p>
                 <p>Yaw rate is capped at +/-3 rad/s. Negative values turn left; positive values turn right.</p>
-                <p>`Agentech.get_battery_status()` returns the current battery percentage.</p>
+                <p>`Agentech.battery()` returns the current battery percentage without changing body mode.</p>
                 <p>Roll benchmark limit is 28 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Linear acceleration benchmark is about 2.5 m/s^2.</p>
@@ -941,9 +945,7 @@ function FocusedLiveRunSection() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce7f2] px-4 py-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Stream Camera</p>
-              <p className="mt-1 text-xs leading-5 text-[#526174]">
-                Locked until an approved scheduled session is active.
-              </p>
+              <p className="mt-1 text-xs leading-5 text-[#526174]">Live video and code-runner image results appear together.</p>
             </div>
             <div className="flex items-center gap-3">
               <Link
@@ -956,9 +958,11 @@ function FocusedLiveRunSection() {
             </div>
           </div>
           <div className="border-b border-[#dce7f2] bg-[#f5fbff] px-4 py-3 text-sm leading-6 text-[#23304a]">
-            Live viewing is locked until your account has an active scheduled robot slot. Custom-code sessions also require Step 3 Physical Hardware Check and Step 4 Software Check to pass.
+            Use <span className="font-mono">mode=&quot;internal&quot;</span> for code-only vision or the paid <span className="font-mono">mode=&quot;display&quot;</span> option to show the returned frame beside the stream. Neither option opens a local viewer.
           </div>
-          <LockedLiveRunPanel />
+          <div className="bg-[#0d1117] p-4">
+            <LiveRobotCamera roomName={process.env.NEXT_PUBLIC_LIVEKIT_ROOM_NAME || "aegis-lab-1"} />
+          </div>
         </div>
       </div>
     </section>
@@ -1046,7 +1050,7 @@ Agentech.sit()`
       title: "Battery Check",
       code: `from agentech import Agentech
 
-print(Agentech.get_battery_status())`
+print(Agentech.battery())`
     }
   ];
 

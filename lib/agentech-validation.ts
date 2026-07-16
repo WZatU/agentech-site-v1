@@ -14,11 +14,14 @@ export const agentechSdkSpec: Record<string, Spec> = {
   forward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 20), distance_m: num(0, 2) } },
   backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2) } },
   lateral: { allowed: ["direction", "speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], required: ["direction"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { direction: pick("left", "right"), ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
+  lateral_left: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
+  lateral_right: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
   diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
   squat_forward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
   squat_backward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
   squat_lateral: { allowed: ["direction", "speed_mps", "duration_s"], required: ["direction", "speed_mps", "duration_s"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true) } },
   squat_diagonal: { allowed: ["angle_deg", "speed_mps", "duration_s"], required: ["angle_deg", "speed_mps", "duration_s"], rules: { angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
+  squat_turn: { allowed: ["angle_deg"], required: ["angle_deg"], rules: { angle_deg: { type: "number" } } },
   turn: { allowed: ["angle_rad", "turn_rate_rad_s", "angle_deg", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, turn_rate_rad_s: num(-3, 3), angle_deg: { type: "number" }, turn_rate_deg_s: num(-120, 120), rate_percentage: num(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
   turn_right: { allowed: [], rules: {} },
   turn_left: { allowed: [], rules: {} },
@@ -34,7 +37,10 @@ export const agentechSdkSpec: Record<string, Spec> = {
   sit: { allowed: [], rules: {} },
   stop: { allowed: [], rules: {} },
   emergency_stop: { allowed: [], rules: {} },
-  get_battery_status: { allowed: [], rules: {} }
+  battery: { allowed: [], rules: {} },
+  get_body_state: { allowed: [], rules: {} },
+  imu: { allowed: ["freq_hz"], rules: { freq_hz: num(1, 5) } },
+  capture_image: { allowed: ["mode"], rules: { mode: pick("internal", "display") } }
 };
 
 function valueOf(raw: string): unknown {
@@ -94,7 +100,7 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
     const values: Record<string, unknown> = {};
     argsOf(raw).forEach((arg) => { const eq = arg.indexOf("="); if (eq < 0) return add("POSITIONAL_PARAMETER_BLOCKED", `${command}() must use named parameters.`, line); const name = arg.slice(0, eq).trim(); if (!spec.allowed.includes(name)) return add("UNKNOWN_PARAMETER", `${command}() does not support '${name}'.`, line); values[name] = valueOf(arg.slice(eq + 1)); });
     (spec.required ?? []).forEach((name) => { if (!(name in values)) add("REQUIRED_PARAMETER", `${command}() requires '${name}'.`, line); });
-    let selectors = (spec.selectors ?? []).filter((name) => name in values); if (["forward", "backward", "lateral"].includes(command) && selectors.includes("distance_m") && selectors.includes("speed_mps")) selectors = selectors.filter((name) => name !== "speed_mps");
+    let selectors = (spec.selectors ?? []).filter((name) => name in values); if (["forward", "backward", "lateral", "lateral_left", "lateral_right"].includes(command) && selectors.includes("distance_m") && selectors.includes("speed_mps")) selectors = selectors.filter((name) => name !== "speed_mps");
     if (selectors.length > 1) add("PROFILE_MIXED", `${command}() mixes profiles: ${selectors.join(", ")}.`, line);
     if (command === "turn") {
       const provided = Object.keys(values).sort();

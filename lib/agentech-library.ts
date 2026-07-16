@@ -147,6 +147,19 @@ export const agentechFunctions: AgentechFunction[] = [
     platformNoteLabel: "Before movement"
   },
   {
+    name: "squat_turn", category: "Movement", signature: "Agentech.squat_turn()",
+    summary: "Turn by an IMU-measured angle while remaining in the latched squat gait.",
+    example: "Agentech.squat_turn(angle_deg=90)",
+    profiles: [
+      { name: "Angle", syntax: "Agentech.squat_turn(angle_deg=90)", noteLabel: "Direction note", note: "Positive angles turn right and negative angles turn left. The low-gait turn rate is selected automatically." }
+    ],
+    params: [
+      p("angle_deg", "float (nonzero, unbounded)", "Required signed target angle in degrees. Positive turns right and negative turns left.")
+    ],
+    platformNote: squatPreparationNote,
+    platformNoteLabel: "Before movement"
+  },
+  {
     name: "turn", category: "Movement", signature: "Agentech.turn()", summary: "Turn using signed angles or rates. Direction note: all negative values turn left, and all positive values turn right. The default is +45 degrees (right).", example: "Agentech.turn()",
     profiles: [
       { name: "Default: turn right 45 degrees", syntax: "Agentech.turn()" },
@@ -220,8 +233,28 @@ export const agentechFunctions: AgentechFunction[] = [
     params: []
   },
   {
-    name: "get_battery_status", category: "Sensing", signature: "Agentech.get_battery_status()", summary: "Return the dog's current battery percentage.", example: "battery_percentage = Agentech.get_battery_status()",
+    name: "battery", category: "Sensing", signature: "Agentech.battery()", summary: "Read the current battery percentage without changing the dog's body mode.", example: "battery = Agentech.battery()\nprint(battery)  # Battery: 76%",
     params: []
+  },
+  {
+    name: "get_body_state", category: "Sensing", signature: "Agentech.get_body_state()", summary: "Return the current body mode as Stand, Squat, or Damp.", example: "mode = Agentech.get_body_state()\nprint(mode)  # Mode: Stand",
+    params: []
+  },
+  {
+    name: "imu", category: "Sensing", signature: "Agentech.imu()", summary: "Start a non-blocking live IMU monitor that can run while other movement commands execute.", example: "imu = Agentech.imu(freq_hz=5)\nAgentech.forward(speed_mps=0.5, duration_s=2.0)\nimu.stop()",
+    profiles: [
+      { name: "Default: 5 Hz", syntax: "imu = Agentech.imu()" },
+      { name: "Selected frequency", syntax: "imu = Agentech.imu(freq_hz=3)" }
+    ],
+    params: [p("freq_hz", "float [1, 5] Hz", "How many readable IMU updates to produce per second.", "5")]
+  },
+  {
+    name: "capture_image", category: "Sensing", signature: "Agentech.capture_image()", summary: "Capture one auto-discovered dog-camera frame for internal Python decisions or paid website display.", example: "# Internal code use; no website display charge\nimage = Agentech.capture_image(mode=\"internal\")\n\n# Paid website display\nimage = Agentech.capture_image(mode=\"display\")",
+    profiles: [
+      { name: "Internal (default)", syntax: "image = Agentech.capture_image(mode=\"internal\")", noteLabel: "Display note", note: "The image is returned to Python only and is not displayed on the website." },
+      { name: "Website display (paid)", syntax: "image = Agentech.capture_image(mode=\"display\")", noteLabel: "Credit note", note: "The image is returned to Python and displayed beside the live stream. The website charges the configured display-image credit price." }
+    ],
+    params: [p("mode", "enum {internal, display}", "Choose internal Python use or paid website display.", "internal")]
   }
 ] as const;
 
