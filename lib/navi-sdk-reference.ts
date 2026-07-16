@@ -316,17 +316,27 @@ export const naviFunctions: AgentechFunction[] = [
     name: "squat",
     category: "Posture",
     signature: "Agentech.squat()",
-    summary: "Navi enters its compact squat posture. The exact leg and body position will be confirmed after charging.",
-    example: "Agentech.squat()",
-    params: []
+    summary: "Navi lowers its level torso close to the floor with all four legs folded outward, holds the posture for the requested time, then returns to regular standing mode.",
+    example: "Agentech.squat(time=30.0)",
+    verification: "Physically verified 2026-07-16; timed automatic return to Stand is implemented in the Navi SDK",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.squat()" },
+      { name: "Holding time", syntax: "Agentech.squat(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the squat before returning to regular standing mode.", "30.0")]
   },
   {
     name: "sit",
     category: "Posture",
     signature: "Agentech.sit()",
-    summary: "Navi lowers its rear body to the floor while keeping its front body upright.",
-    example: "Agentech.sit()",
-    params: []
+    summary: "Navi lowers its rear body to the floor while its extended front legs keep the shoulders elevated, holds the posture for the requested time, then returns to regular standing mode.",
+    example: "Agentech.sit(time=30.0)",
+    verification: "Physically verified 2026-07-16; timed automatic return to Stand is implemented in the Navi SDK",
+    profiles: [
+      { name: "Default: 30 seconds", syntax: "Agentech.sit()" },
+      { name: "Holding time", syntax: "Agentech.sit(time=x)" }
+    ],
+    params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the seated posture before returning to regular standing mode.", "30.0")]
   },
   {
     name: "lie_down",
