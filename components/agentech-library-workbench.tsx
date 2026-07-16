@@ -93,6 +93,7 @@ const localPreviewAssets: Record<string, string> = {
   emergency_stop: previewAsset("emergency_stop"),
   get_battery_status: previewAsset("battery_status")
 };
+const commandsWithoutReferencePreview = new Set(["stay", "squat", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal"]);
 const localPreviewFallback = previewAsset("stand");
 const protectedStandLine = "Agentech.stand()";
 const commandsRequiringStand = new Set([
@@ -117,6 +118,8 @@ const commandsRequiringStand = new Set([
   "backflip",
   "jump"
 ]);
+const lowGaitMovementCommands = new Set(["squat_forward", "squat_backward", "squat_lateral", "squat_diagonal"]);
+const motionCommands = new Set([...commandsRequiringStand, ...lowGaitMovementCommands]);
 
 function previewDirection(args: string) {
   return args.match(/\bdirection\s*=\s*(["'])(left|right|up|down)\1/i)?.[2]?.toLowerCase() ?? "";
@@ -378,6 +381,10 @@ Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
 Agentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)
+Agentech.squat_forward(speed_mps=0.5, duration_s=1.0)
+Agentech.squat_backward(speed_mps=0.5, duration_s=1.0)
+Agentech.squat_lateral(direction="left", speed_mps=0.5, duration_s=1.0)
+Agentech.squat_diagonal(angle_deg=45, speed_mps=0.5, duration_s=1.0)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)
@@ -399,6 +406,10 @@ Agentech.backward(speed=0.2, seconds=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
 Agentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)
+Agentech.squat_forward(speed_mps=0.5, duration_s=1.0)
+Agentech.squat_backward(speed_mps=0.5, duration_s=1.0)
+Agentech.squat_lateral(direction="right", speed_mps=0.5, duration_s=1.0)
+Agentech.squat_diagonal(angle_deg=45, speed_mps=0.5, duration_s=1.0)
 Agentech.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
 Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.backflip()
@@ -435,7 +446,7 @@ function commandPlan(code: string) {
   const trace: string[] = [];
   const lines = code.split(/\r?\n/);
   const supportedCommands = new Set([
-    "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "turn", "turn_right", "turn_left", "u_turn",
+    "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
     "get_battery_status"
   ]);
@@ -456,8 +467,8 @@ function commandPlan(code: string) {
     trace,
     motionCount: trace.filter((line) => {
       const match = line.match(/^([a-zA-Z_][\w]*)\s*\((.*)\)$/);
-      const command = match ? resolvePreviewCommand(match[1], match[2]) : "";
-      return commandsRequiringStand.has(command);
+      const command = match?.[1] ?? "";
+      return motionCommands.has(command);
     }).length
   };
 }
@@ -642,6 +653,11 @@ function DocsSection() {
       "forward",
       "backward",
       "lateral",
+      "diagonal",
+      "squat_forward",
+      "squat_backward",
+      "squat_lateral",
+      "squat_diagonal",
       "turn",
       "yaw",
       "pitch",
@@ -666,6 +682,10 @@ with Agentech.robot(dry_run=True) as dog:
     dog.backward(speed=0.2, seconds=1)
     dog.lateral_left(speed_mps=0.5, duration_s=2.0)
     dog.lateral_right(speed_mps=0.5, duration_s=2.0)
+    dog.squat_forward(speed_mps=0.5, duration_s=1.0)
+    dog.squat_backward(speed_mps=0.5, duration_s=1.0)
+    dog.squat_lateral(direction="left", speed_mps=0.5, duration_s=1.0)
+    dog.squat_diagonal(angle_deg=45, speed_mps=0.5, duration_s=1.0)
     dog.turn(angle_deg=-45, turn_rate_deg_s=-22.5)
     dog.yaw(speed_rad_s=0.4, position_rad=0.4426)
     dog.pitch(speed_rad_s=0.4, position_rad=0.4)
@@ -1150,7 +1170,7 @@ function FocusedBrowseFunctionsSection() {
   const tutorialCards = [
     {
       title: "Read the signature",
-      body: "Use the compact row for the function name and its public call shape."
+      body: "Use the compact row for the function name. Open details for required inputs, profiles, and limits."
     },
     {
       title: "Open details",
@@ -1307,7 +1327,7 @@ function FocusedBrowseFunctionsSection() {
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
-                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${item.name === "stay" || item.name === "squat" ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
+                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${commandsWithoutReferencePreview.has(item.name) ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
                       <div className="min-w-0 bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
@@ -1319,7 +1339,7 @@ function FocusedBrowseFunctionsSection() {
                         ) : null}
                         {item.platformNote ? (
                           <div className="mt-3 border border-[#e1ad32] bg-[#fff8df] p-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a5b00]">Platform note</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a5b00]">{item.platformNoteLabel ?? "Platform note"}</p>
                             <p className="mt-1 text-xs leading-5 text-[#704b00]">{item.platformNote}</p>
                           </div>
                         ) : null}
@@ -1389,7 +1409,7 @@ function FocusedBrowseFunctionsSection() {
                           </>
                         )}
                       </div>
-                      {item.name === "stay" || item.name === "squat" ? null : (
+                      {commandsWithoutReferencePreview.has(item.name) ? null : (
                         <div className="min-w-0 bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}</p>
                           {selectedRobot === "navi" ? (
@@ -2274,7 +2294,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               EAIC HUB
             </h1>
             <p className="mt-5 max-w-3xl text-base leading-8 text-[#b8c2cc]">
-              A clean Python layer for Aegis robot commands: stand, squat, forward, backward, lateral walking, turns, yaw, pitch, and roll posture, timed holds, backflip, jump, stop, and battery status in calls students can read at a glance.
+              A clean Python layer for Aegis robot commands: stand, latched squat and low-gait movement, forward, backward, lateral and diagonal walking, turns, yaw, pitch, and roll posture, timed holds, backflip, jump, stop, and battery status in calls students can read at a glance.
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">

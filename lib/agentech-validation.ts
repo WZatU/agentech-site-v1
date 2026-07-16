@@ -15,6 +15,10 @@ export const agentechSdkSpec: Record<string, Spec> = {
   backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2) } },
   lateral: { allowed: ["direction", "speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], required: ["direction"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { direction: pick("left", "right"), ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
   diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
+  squat_forward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
+  squat_backward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
+  squat_lateral: { allowed: ["direction", "speed_mps", "duration_s"], required: ["direction", "speed_mps", "duration_s"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true) } },
+  squat_diagonal: { allowed: ["angle_deg", "speed_mps", "duration_s"], required: ["angle_deg", "speed_mps", "duration_s"], rules: { angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
   turn: { allowed: ["angle_rad", "turn_rate_rad_s", "angle_deg", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, turn_rate_rad_s: num(-3, 3), angle_deg: { type: "number" }, turn_rate_deg_s: num(-120, 120), rate_percentage: num(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
   turn_right: { allowed: [], rules: {} },
   turn_left: { allowed: [], rules: {} },
@@ -55,6 +59,22 @@ function checkRule(command: string, name: string, value: unknown, rule: Rule, li
   else if (rule.type === "string" && typeof value !== "string") add("TYPE_INVALID", `${command}() '${name}' must be a string.`, line);
   else if (rule.type === "boolean" && typeof value !== "boolean") add("TYPE_INVALID", `${command}() '${name}' must be True or False.`, line);
   else if (rule.type === "list" && !Array.isArray(value)) add("TYPE_INVALID", `${command}() '${name}' must be a list.`, line);
+}
+
+function checkSquatDiagonalComponent(
+  command: string,
+  axis: "forward" | "lateral",
+  value: number,
+  min: number,
+  max: number,
+  line: number,
+  add: (code: string, message: string, line?: number) => void
+) {
+  const epsilon = 1e-9;
+  if (value < min - epsilon || value > max + epsilon) {
+    const cardinalNote = value < min ? " Use a non-cardinal diagonal with both components moving." : "";
+    add("RANGE_INVALID", `${command}() resolves to ${value.toFixed(3)} m/s ${axis} speed; required range is ${min} to ${max} m/s.${cardinalNote}`, line);
+  }
 }
 
 export function checkAgentechSoftware(code: string): SoftwareCheckReport {
@@ -101,17 +121,23 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
         }
       });
     }
-    if (command === "diagonal") {
+    if (command === "diagonal" || command === "squat_diagonal") {
       const provided = Object.keys(values).sort();
-      const profiles = [
-        [],
-        ["duration_s", "x_m", "y_m"],
-        ["angle_deg", "duration_s", "speed_mps"]
-      ].map((profile) => [...profile].sort());
+      const profiles = (command === "squat_diagonal"
+        ? [["angle_deg", "duration_s", "speed_mps"]]
+        : [[], ["duration_s", "x_m", "y_m"], ["angle_deg", "duration_s", "speed_mps"]]
+      ).map((profile) => [...profile].sort());
       const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
-      if (!validProfile) add("PROFILE_MIXED", `diagonal() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
+      if (!validProfile) add("PROFILE_MIXED", `${command}() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
       if ((typeof values.x_m === "number" && values.x_m === 0) || (typeof values.y_m === "number" && values.y_m === 0)) {
-        add("RANGE_INVALID", "diagonal() x_m and y_m must both be nonzero.", line);
+        add("RANGE_INVALID", `${command}() x_m and y_m must both be nonzero.`, line);
+      }
+      if (command === "squat_diagonal" && validProfile) {
+        if (typeof values.angle_deg === "number" && typeof values.speed_mps === "number" && values.speed_mps > 0) {
+          const angleRad = values.angle_deg * Math.PI / 180;
+          checkSquatDiagonalComponent(command, "forward", Math.abs(Math.cos(angleRad) * values.speed_mps), 0.05, 3, line, add);
+          checkSquatDiagonalComponent(command, "lateral", Math.abs(Math.sin(angleRad) * values.speed_mps), 0.1, 1, line, add);
+        }
       }
     }
     if (command === "yaw") {

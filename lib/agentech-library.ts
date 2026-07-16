@@ -18,15 +18,19 @@ export type AgentechFunction = {
   profiles?: { name: string; syntax: string; number?: number; note?: string; noteLabel?: string; status?: CapabilityStatus }[];
   verification?: string;
   platformNote?: string;
+  platformNoteLabel?: string;
   status?: CapabilityStatus;
 };
 
 const p = (name: string, type: string, description: string, defaultValue?: string, status: CapabilityStatus = "available"): AgentechParam =>
   ({ name, type, description, defaultValue, status });
 
+const squatPreparationNote = "Before using this movement, make sure the dog is in squat mode by running Agentech.squat().";
+const squatDistanceNote = "Distance traveled is not guaranteed. Squat movement is open loop, so acceleration, stabilization, and stopping can change the actual distance.";
+
 export const agentechFunctions: AgentechFunction[] = [
   {
-    name: "forward", category: "Movement", signature: "Agentech.forward(speed_mps=1.0, duration_s=1.0)",
+    name: "forward", category: "Movement", signature: "Agentech.forward()",
     summary: "Move forward using one positive speed-magnitude profile and a controlled stop.",
     example: "Agentech.forward(speed_mps=1.0, duration_s=1.0)",
     profiles: [
@@ -48,7 +52,7 @@ export const agentechFunctions: AgentechFunction[] = [
     ]
   },
   {
-    name: "backward", category: "Movement", signature: "Agentech.backward(speed_mps=1.0, duration_s=1.0)", summary: "Move backward using one positive speed-magnitude profile; direction is applied internally.", example: "Agentech.backward(speed_mps=1.0, duration_s=1.0)",
+    name: "backward", category: "Movement", signature: "Agentech.backward()", summary: "Move backward using one positive speed-magnitude profile; direction is applied internally.", example: "Agentech.backward(speed_mps=1.0, duration_s=1.0)",
     profiles: [
       { name: "Default: 1 m/s for 1 second", syntax: "Agentech.backward()" },
       { name: "Direct speed", syntax: "Agentech.backward(speed_mps=0.4, duration_s=1.0)", note: "Distance is an estimate, not a guarantee: the robot needs time to accelerate to the requested speed, so the actual distance traveled may differ from the value you calculate." },
@@ -83,6 +87,64 @@ export const agentechFunctions: AgentechFunction[] = [
       p("speed_mps", "float [0.05, 3.0] m/s", "Combined diagonal speed. Enter a value from 0.05 through 3.0 m/s, inclusive.", "0.5"),
       p("duration_s", "float (0, 10]", "How long to apply the diagonal velocity command.", "2.0")
     ]
+  },
+  {
+    name: "squat_forward", category: "Movement", signature: "Agentech.squat_forward()",
+    summary: "Walk forward in the latched low-gait squat stance, then stop and remain squatted.",
+    example: "Agentech.squat_forward(speed_mps=0.5, duration_s=2.0)",
+    profiles: [
+      { name: "Speed + time", syntax: "Agentech.squat_forward(speed_mps=0.5, duration_s=2.0)", noteLabel: "Distance note", note: squatDistanceNote }
+    ],
+    params: [
+      p("speed_mps", "float [0.05, 3.00] m/s", "Required positive forward speed magnitude. Negative values and values outside the inclusive range are rejected."),
+      p("duration_s", "float (0, 10] seconds", "Required time for the low-gait forward command.")
+    ],
+    platformNote: squatPreparationNote,
+    platformNoteLabel: "Before movement"
+  },
+  {
+    name: "squat_backward", category: "Movement", signature: "Agentech.squat_backward()",
+    summary: "Walk backward in the latched low-gait squat stance, then stop and remain squatted.",
+    example: "Agentech.squat_backward(speed_mps=0.5, duration_s=2.0)",
+    profiles: [
+      { name: "Speed + time", syntax: "Agentech.squat_backward(speed_mps=0.5, duration_s=2.0)", noteLabel: "Distance note", note: squatDistanceNote }
+    ],
+    params: [
+      p("speed_mps", "float [0.05, 3.00] m/s", "Required positive backward speed magnitude; the method applies the backward direction internally. Negative values and values outside the inclusive range are rejected."),
+      p("duration_s", "float (0, 10] seconds", "Required time for the low-gait backward command.")
+    ],
+    platformNote: squatPreparationNote,
+    platformNoteLabel: "Before movement"
+  },
+  {
+    name: "squat_lateral", category: "Movement", signature: "Agentech.squat_lateral()",
+    summary: "Walk left or right in the latched low-gait squat stance, then stop and remain squatted.",
+    example: "Agentech.squat_lateral(direction=\"left\", speed_mps=0.5, duration_s=2.0)\nAgentech.squat_lateral(direction=\"right\", speed_mps=0.5, duration_s=2.0)",
+    profiles: [
+      { name: "Direction + speed + time", syntax: "Agentech.squat_lateral(direction=\"left\", speed_mps=0.5, duration_s=2.0)", noteLabel: "Distance note", note: squatDistanceNote }
+    ],
+    params: [
+      p("direction", "enum {left, right}", "Required low-gait lateral direction. Use a positive speed magnitude; do not encode direction in the speed."),
+      p("speed_mps", "float [0.10, 1.00] m/s", "Required positive lateral speed magnitude in the inclusive supported range."),
+      p("duration_s", "float (0, 10] seconds", "Required time for the low-gait lateral command.")
+    ],
+    platformNote: squatPreparationNote,
+    platformNoteLabel: "Before movement"
+  },
+  {
+    name: "squat_diagonal", category: "Movement", signature: "Agentech.squat_diagonal()",
+    summary: "Move diagonally in the latched low-gait squat stance using an angle, speed, and duration, then remain squatted.",
+    example: "Agentech.squat_diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)",
+    profiles: [
+      { name: "Angle + speed + time", syntax: "Agentech.squat_diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)", noteLabel: "Distance and angle note", note: `${squatDistanceNote} Both resolved components must be nonzero and within their limits, so cardinal angles are rejected. Positive angles point right; negative angles point left.` }
+    ],
+    params: [
+      p("angle_deg", "float [-180, 180], non-cardinal", "Required direction measured from forward. Positive points right and negative points left; cardinal angles are invalid because both components must move."),
+      p("speed_mps", "float > 0, component-limited", "Required positive combined diagonal speed. The resolved forward magnitude must be 0.05-3.0 m/s and the resolved lateral magnitude must be 0.1-1.0 m/s."),
+      p("duration_s", "float (0, 10] seconds", "Required time for the low-gait diagonal command.")
+    ],
+    platformNote: squatPreparationNote,
+    platformNoteLabel: "Before movement"
   },
   {
     name: "turn", category: "Movement", signature: "Agentech.turn()", summary: "Turn using signed angles or rates. Direction note: all negative values turn left, and all positive values turn right. The default is +45 degrees (right).", example: "Agentech.turn()",
@@ -130,11 +192,11 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [p("time", "float > 0 (no maximum)", "How long to hold the current four-foot planted posture. Time must be greater than 0 and has no maximum.")]
   },
   {
-    name: "backflip", category: "Movement", signature: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)", summary: "Run the official standard backflip preset without automatic retry.", example: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)",
+    name: "backflip", category: "Movement", signature: "Agentech.backflip()", summary: "Run the official standard backflip preset without automatic retry.", example: "Agentech.backflip(variant=\"standard\", stabilize_s=5.0)",
     params: [p("variant", "standard", "Only the official standard preset is available.", "standard"), p("stabilize_s", "float 0..10", "Post-action stabilization window.", "5.0"), p("SafetyGate", "system behavior", "Formal battery, posture, and readiness thresholds are being implemented.", undefined, "development")]
   },
   {
-    name: "jump", category: "Movement", signature: "Agentech.jump(variant=\"standard\", stabilize_s=5.0)", summary: "Run the official standard jump preset.", example: "Agentech.jump(variant=\"standard\", stabilize_s=5.0)",
+    name: "jump", category: "Movement", signature: "Agentech.jump()", summary: "Run the official standard jump preset.", example: "Agentech.jump(variant=\"standard\", stabilize_s=5.0)",
     params: [p("variant", "standard", "Only the standard jump exists.", "standard"), p("stabilize_s", "float 0..10", "Post-jump stabilization window.", "5.0"), p("height_level", "1 | 2 | 3", "The audited backend has no low, medium, or high jump presets.", undefined, "unsupported"), p("SafetyGate", "system behavior", "Formal safety thresholds are under development.", undefined, "development")]
   },
   {
@@ -142,7 +204,7 @@ export const agentechFunctions: AgentechFunction[] = [
     params: []
   },
   {
-    name: "squat", category: "Posture", signature: "Agentech.squat()", summary: "Lower the dog into a half-height standing stance so it is ready to crawl forward.", example: "Agentech.squat()",
+    name: "squat", category: "Posture", signature: "Agentech.squat()", summary: "Put the Aegis dog into its squat stance and keep it ready for squat movement commands.", example: "Agentech.squat()",
     params: []
   },
   {

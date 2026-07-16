@@ -92,28 +92,28 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
   while ((match = pattern.exec(code)) !== null) {
     const command = match[1];
     const args = match[2];
-    if (command === "forward") {
-      const distance = linearDistance(args, 1.0);
+    if (command === "forward" || command === "squat_forward") {
+      const distance = linearDistance(args, command === "squat_forward" ? 0.5 : 1.0, command === "squat_forward" ? 2.0 : 1.0);
       x += Math.cos(headingRad) * distance;
       y += Math.sin(headingRad) * distance;
       samplePosition();
-    } else if (command === "backward") {
-      const distance = linearDistance(args, 1.0);
+    } else if (command === "backward" || command === "squat_backward") {
+      const distance = linearDistance(args, command === "squat_backward" ? 0.5 : 1.0, command === "squat_backward" ? 2.0 : 1.0);
       x -= Math.cos(headingRad) * distance;
       y -= Math.sin(headingRad) * distance;
       samplePosition();
-    } else if (command === "lateral" || command === "lateral_left" || command === "lateral_right") {
+    } else if (command === "lateral" || command === "lateral_left" || command === "lateral_right" || command === "squat_lateral") {
       const distance = linearDistance(args, 0.5, 2.0);
       const side = command === "lateral_right" || stringArg(args, "direction") === "right" ? -1 : 1;
       x += Math.cos(headingRad + side * Math.PI / 2) * distance;
       y += Math.sin(headingRad + side * Math.PI / 2) * distance;
       samplePosition();
-    } else if (command === "diagonal") {
+    } else if (command === "diagonal" || command === "squat_diagonal") {
       const coordinateX = numberArg(args, "x_m");
       const coordinateY = numberArg(args, "y_m");
       let rightDistance: number;
       let forwardDistance: number;
-      if (coordinateX !== null && coordinateY !== null) {
+      if (command === "diagonal" && coordinateX !== null && coordinateY !== null) {
         rightDistance = coordinateX;
         forwardDistance = coordinateY;
       } else {
