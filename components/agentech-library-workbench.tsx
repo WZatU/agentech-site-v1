@@ -1130,18 +1130,22 @@ function FocusedBrowseFunctionsSection() {
       items: selectedFunctions.filter((item) => item.category === category)
     }))
     .filter((group) => group.items.length > 0);
-  const safetyLimits = selectedRobot === "navi"
-    ? naviSafetyLimits.map((label) => ({ label }))
+  const temporaryBoundaryLimit = {
+    label: "Boundary: 2 m x 2 m safety box",
+    detail: "Crossing this temporary boundary fails the Hardware Check.",
+    temporary: true
+  };
+  const safetyLimits: { label: string; detail?: string; temporary?: boolean }[] = selectedRobot === "navi"
+    ? [
+        ...naviSafetyLimits.map((label) => ({ label })),
+        temporaryBoundaryLimit
+      ]
     : [
         { label: "Dry-run before hardware" },
         { label: "10s max per linear motion" },
         { label: "Speed caps enforced" },
         { label: "Emergency stop available" },
-        {
-          label: "Boundary: 2 m x 2 m safety box",
-          detail: "Crossing this temporary boundary fails the Hardware Check.",
-          temporary: true
-        }
+        temporaryBoundaryLimit
       ];
   const tutorialCards = [
     {

@@ -476,10 +476,8 @@ Agentech.use("navi", host="192.168.4.65")`;
 
 export const naviSafetyLimits = [
   "Motion is dry-run unless dry_run=False is selected",
-  "Lateral +/-0.67 m/s; turn rate +/-6.3 rad/s",
   "Motion and open-loop turns are limited to 10 seconds",
   "Timed poses and gestures accept any positive finite duration and return to standing",
-  "Hip shake may slip or fail on low-traction floors",
   "Damping lowers Navi into its relaxed charging or shutdown posture",
   "Keep the physical controller stop available",
   "Charge Navi before athletic or dance testing",
