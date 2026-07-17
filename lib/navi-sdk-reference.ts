@@ -55,7 +55,7 @@ export const naviFunctions: AgentechFunction[] = [
     name: "forward",
     category: "Movement",
     signature: "Agentech.forward()",
-    summary: "Move forward using Navi's 1.0 m/s default and the shared Aegis parameter profiles, while enforcing Navi's +1.34 m/s body-X limit.",
+    summary: "Move forward using one positive speed-magnitude profile and a controlled stop.",
     example: "Agentech.forward(speed_mps=0.5, duration_s=1.0)",
     verification: "Live verified 2026-07-16 through Navi's 1.34 m/s limit with controller error=0 and warning=0",
     platformNote: "Navi has no dependable global X/Y odometry, so distance mode is open loop.",
@@ -83,7 +83,7 @@ export const naviFunctions: AgentechFunction[] = [
     name: "backward",
     category: "Movement",
     signature: "Agentech.backward()",
-    summary: "Move backward using Navi's 0.5 m/s default and the shared Aegis parameter profiles, while enforcing Navi's 0.67 m/s reverse limit.",
+    summary: "Move backward using one positive speed-magnitude profile; direction is applied internally.",
     example: "Agentech.backward(speed_mps=0.5, duration_s=1.0)",
     verification: "Live verified 2026-07-16 through Navi's 0.67 m/s reverse limit with controller error=0 and warning=0",
     platformNote: "Public speeds are positive magnitudes; the adapter applies negative body-X internally.",
@@ -113,7 +113,8 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.lateral_left() / Agentech.lateral_right()",
     summary: "Step left or right using speed/time or distance/speed profiles.",
     example: "Agentech.lateral_left(speed_mps=0.5, duration_s=1.0)\nAgentech.lateral_right(distance_m=0.2, speed_mps=0.4)",
-    verification: `${motionVerification}; both directions tested through 0.65 m/s`,
+    verification: `${motionVerification}; both directions physically tested at 0.67 m/s for 2.0 seconds`,
+    platformNote: "Controlled cleanup sends repeated zero velocity only. It does not call damping or recovery stand, so Navi remains upright in move-ready mode.",
     profiles: [
       { name: "Default: 0.5 m/s for 2 seconds", syntax: "Agentech.lateral_left()\nAgentech.lateral_right()" },
       { name: "Distance + speed", syntax: "Agentech.lateral_right(distance_m=0.2, speed_mps=0.4)", note: "Duration is derived as distance / speed and must not exceed 10 seconds." },
@@ -128,6 +129,28 @@ export const naviFunctions: AgentechFunction[] = [
       p("speed", "legacy float alias", "Alias for speed_mps."),
       p("seconds", "legacy float alias", "Alias for duration_s."),
       naviConnection
+    ]
+  },
+  {
+    name: "diagonal",
+    category: "Movement",
+    signature: "Agentech.diagonal()",
+    summary: "Move diagonally with the same X/Y or angle, combined-speed, and duration profiles as Aegis.",
+    example: "# Coordinate + duration\nAgentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)\n\n# Angle + combined speed + duration\nAgentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)",
+    verification: "Adapter implemented from FF's simultaneous forward/lateral velocity command; physical Navi verification pending.",
+    platformNote: "The public profiles are identical to Aegis. Navi converts angle and combined speed into forward and lateral velocity components internally. Its X/Y profile is open loop because Navi has no dependable global position feedback. Cleanup sends zero velocity only without damping.",
+    status: "development",
+    profiles: [
+      { name: "Default: forward-right at 45 degrees, 0.5 m/s for 2 seconds", syntax: "Agentech.diagonal()", noteLabel: "Navi limits", note: "The resolved forward and lateral components must each remain inside Navi's controller limits." },
+      { name: "X/Y coordinates + time", syntax: "Agentech.diagonal(x_m=x, y_m=x, duration_s=x)", noteLabel: "Open-loop position", note: "Navi divides X and Y by the requested time to obtain lateral and forward speeds. The endpoint is estimated, not measured." },
+      { name: "Angle + combined speed + time", syntax: "Agentech.diagonal(angle_deg=x, speed_mps=x, duration_s=x)", noteLabel: "Resolved components", note: "The combined speed is the hypotenuse. Navi resolves it with sine and cosine, then verifies both components against its controller limits." }
+    ],
+    params: [
+      p("x_m", "float (nonzero)", "Requested open-loop right/left displacement. Positive is right; negative is left."),
+      p("y_m", "float (nonzero)", "Requested open-loop forward/backward displacement. Positive is forward; negative is backward."),
+      p("angle_deg", "float [-180, 180], non-cardinal", "Direction measured from forward. Positive points right and negative points left.", "45"),
+      p("speed_mps", "float > 0, component-limited", "Combined diagonal speed. The resolved forward and lateral components must remain inside Navi's limits.", "0.5"),
+      p("duration_s", "float (0, 10] seconds", "How long to apply the diagonal velocity command.", "2.0")
     ]
   },
   {
@@ -226,7 +249,7 @@ export const naviFunctions: AgentechFunction[] = [
     name: "kick",
     category: "Athletics",
     signature: "Agentech.kick()",
-    summary: "Navi performs its kicking gesture, then returns to standing. The active leg and exact motion will be confirmed after charging.",
+    summary: "Navi performs a dynamic kicking sequence, regains a balanced four-foot stance, and returns to standing.",
     example: "Agentech.kick()",
     platformNote: athleticsCarpetNote,
     params: []
@@ -280,7 +303,7 @@ export const naviFunctions: AgentechFunction[] = [
     ],
     params: [p("duration_s", "float > 0 (no maximum)", "Any positive number of seconds to shake the rear hips before returning to standing.", "3.0")]
   },
-  namedExtendedAction("wave_hand", "Navi lifts its right front foot, waves it, then returns to standing."),
+  namedExtendedAction("wave_hand", "Navi raises its right front leg, swings it from side to side in a clear waving gesture, then returns to standing."),
   namedExtendedAction("bow", "Navi keeps its rear feet in place, bends both front legs slightly, and lowers the front of its body toward the floor."),
   namedExtendedAction("wag_rear", "Navi swings only the rear end of its body from side to side; this robot has no physical tail."),
   namedExtendedAction("bark", "Navi keeps all four feet planted and moves its body forward in a bark-like thrust; this motion produces no sound."),
@@ -289,11 +312,48 @@ export const naviFunctions: AgentechFunction[] = [
   namedExtendedAction("confused", "Navi briefly dips the left side of its body, then levels itself again in a small one-sided shrug."),
   namedExtendedAction("show_affection", "Navi rocks its body from side to side by alternately dipping its left and right sides several times, creating a gentle repeated shrugging motion."),
   namedExtendedAction("draw_heart", "Navi lifts its left front leg, traces a heart-shaped path through the air, then returns the leg to its standing position."),
+  namedExtendedAction("cute", "Navi performs a compact, playful side-to-side body shimmy, then settles back into its normal stance."),
+  namedExtendedAction("ask_for_play", "Navi lowers its forequarters into a playful bow, sways its upper body from side to side, then returns to standing."),
+  namedExtendedAction("enjoy_touch", "Navi gently dips its forequarters, follows with a small front-foot lift, then returns to its normal stance."),
+  namedExtendedAction("sniff_left", "Navi lowers its forequarters toward the left-front side, briefly holds the floor-level sniffing pose, then returns to standing."),
+  namedExtendedAction("sniff_right", "Navi mirrors the sniffing pose toward the right-front side, briefly holds near the floor, then returns to standing."),
+  namedExtendedAction("sniff_ahead", "Navi flexes both front legs to lower its forequarters close to the floor, briefly pauses in a forward sniffing gesture, then rises back to standing."),
+  namedExtendedAction("front_stretch", "Navi keeps its hindquarters raised, extends both front legs forward, and lowers its chest toward the floor in a deep forward stretch before returning to standing."),
+  namedExtendedAction("full_body_stretch", "Navi begins with a rear-body stretch, transitions into its deep forward stretch, then returns to a normal four-foot stance."),
+  {
+    name: "push_up",
+    category: "Actions",
+    signature: "Agentech.push_up()",
+    summary: "Navi lowers into a push-up stance, completes the requested number of controlled vertical repetitions, then recovers to standing.",
+    example: "Agentech.push_up(count=3)",
+    verification: "Five repetitions were recorded during the physical motion review",
+    profiles: [
+      { name: "Default: 3 repetitions", syntax: "Agentech.push_up()" },
+      { name: "Repetition count", syntax: "Agentech.push_up(count=x)" }
+    ],
+    params: [
+      p("count", "int > 0", "Number of push-up repetitions to complete before returning to standing.", "3")
+    ]
+  },
+  namedExtendedAction("look_around", "Navi keeps its feet planted, varies its body height by extending and flexing its legs, then twists left and right in a panoramic inspection without walking."),
+  namedExtendedAction("think", "Navi flexes its front legs into a lowered pause, then bends the rear legs before smoothly returning to its normal stance."),
+  {
+    name: "observe",
+    category: "Actions",
+    signature: "Agentech.observe()",
+    summary: "Navi begins a planted observation sweep by twisting left; the expected opposite-side completion may be interrupted by foot slip.",
+    example: "Agentech.observe()",
+    verification: "Physically observed on carpet; the leftward sweep executed, but slipping interrupted the complete routine",
+    platformNote: "Use a firm, level, high-traction surface. The expected rightward sweep remains unconfirmed because the carpet test did not finish cleanly.",
+    params: []
+  },
+  namedExtendedAction("yawn", "Navi gently extends its whole body, subtly lengthening its stance and torso before relaxing back to standing. It resembles a mild stretch but uses a smaller range than full_body_stretch()."),
+  namedExtendedAction("clap_hand", "Navi raises a front leg and reaches it forward in a short presenting gesture before returning to standing."),
   {
     name: "dance",
     category: "Actions",
     signature: "Agentech.dance()",
-    summary: "Navi performs the selected whole-body dance, then returns to standing. Each style's physical choreography will be documented after charging.",
+    summary: "Navi performs the selected coordinated whole-body dance, then returns to standing.",
     example: "Agentech.dance(style=\"shoulder\")",
     profiles: [
       { name: "Beat dance", syntax: "Agentech.dance(style=\"beats\")" },

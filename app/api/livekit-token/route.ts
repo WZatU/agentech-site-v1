@@ -10,7 +10,7 @@ import { supabaseRequest } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
-const activeSessionStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
+const activeSessionStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
 
 function normalizeStatus(status: string) {
   return status.replace(/ /g, "_").toLowerCase();

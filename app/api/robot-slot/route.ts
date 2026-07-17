@@ -122,11 +122,12 @@ function roundUpToSlot(date: Date) {
   return rounded;
 }
 
-function normalizeRobotSlotStart(requestedStart: Date, timeZone: string) {
-  const minimumStart = roundUpToSlot(new Date(Date.now() + minimumLeadTimeMs));
+function normalizeRobotSlotStart(requestedStart: Date, timeZone: string, unlimitedHours = false) {
+  const minimumLeadTime = unlimitedHours ? 0 : minimumLeadTimeMs;
+  const minimumStart = roundUpToSlot(new Date(Date.now() + minimumLeadTime));
   const normalized = roundUpToSlot(requestedStart.getTime() < minimumStart.getTime() ? minimumStart : requestedStart);
 
-  if (isWithinRobotHours(normalized, timeZone)) {
+  if (unlimitedHours || isWithinRobotHours(normalized, timeZone)) {
     return normalized;
   }
 
@@ -221,7 +222,7 @@ export async function GET(request: Request) {
   }
 
   const sessions = await getRobotSessionsInWindow(start.toISOString(), end.toISOString());
-  const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
+  const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
   const bookedSlots = sessions
     .filter((session) => activeStatuses.has(session.session_status.replace(/ /g, "_").toLowerCase()))
     .map((session) => ({
@@ -267,9 +268,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a valid robot slot time." }, { status: 400 });
   }
 
-  const scheduledStart = normalizeRobotSlotStart(requestedScheduledStart, timeZone);
+  const internalCompanyAccount = isAgentechCompanyEmail(email);
+  const scheduledStart = normalizeRobotSlotStart(requestedScheduledStart, timeZone, internalCompanyAccount);
 
-  if (!isWithinRobotHours(scheduledStart, timeZone)) {
+  if (!internalCompanyAccount && !isWithinRobotHours(scheduledStart, timeZone)) {
     return NextResponse.json({ error: "Robot slots must start between 9:00 AM and 5:00 PM." }, { status: 400 });
   }
 
@@ -289,7 +291,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Account not found." }, { status: 404 });
   }
 
-  const internalCompanyAccount = isAgentechCompanyEmail(email);
   if (!isValidRobotViewingDuration(durationMinutes, internalCompanyAccount)) {
     return NextResponse.json(
       {
@@ -330,7 +331,7 @@ export async function POST(request: Request) {
     : presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
   const scheduledEnd = addMinutes(scheduledStart, durationMinutes);
   const scheduledEndParts = getTimeParts(scheduledEnd, timeZone);
-  if (scheduledEndParts.hour * 60 + scheduledEndParts.minute > 17 * 60) {
+  if (!internalCompanyAccount && scheduledEndParts.hour * 60 + scheduledEndParts.minute > 17 * 60) {
     return NextResponse.json({ error: "Choose a start time that keeps the full viewing session within robot hours." }, { status: 400 });
   }
 

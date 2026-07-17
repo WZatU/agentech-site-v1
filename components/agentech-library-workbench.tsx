@@ -1134,11 +1134,12 @@ print(Agentech.battery())`
 
 function FocusedBrowseFunctionsSection() {
   const [selectedRobot, setSelectedRobot] = useState<"aegis" | "navi">("aegis");
+  const publicNaviPlatformNotes = new Set(["jump", "jump_forward", "observe"]);
   const selectedFunctions = selectedRobot === "navi"
     ? naviFunctions.map((item) => ({
         ...item,
         verification: undefined,
-        platformNote: undefined,
+        platformNote: publicNaviPlatformNotes.has(item.name) ? item.platformNote : undefined,
         profiles: item.profiles?.filter((profile) => profile.name !== "Legacy aliases"),
         params: item.params.filter((param) => !["**connect_kwargs", "speed", "seconds", "stop", "operation"].includes(param.name))
       }))
@@ -1216,7 +1217,7 @@ function FocusedBrowseFunctionsSection() {
               <div className="mt-4 flex flex-wrap gap-2 text-xs">
                 <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">{selectedFunctions.length} reference cards</span>
                 {selectedRobot === "navi" ? (
-                  <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Tested on Navi hardware</span>
+                  <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Navi-specific API</span>
                 ) : null}
               </div>
             </div>
@@ -1301,7 +1302,7 @@ function FocusedBrowseFunctionsSection() {
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Jumps, flips, and kicks that move Navi&apos;s whole body.</p>
                   ) : null}
                   {group.category === "Actions" ? (
-                    <p className="mt-2 text-sm leading-6 text-[#526174]">These gesture descriptions were physically observed on Navi. Timed poses return to standing automatically.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Expressive gestures and coordinated body motions. Timed actions return to standing automatically.</p>
                   ) : null}
                   {group.category === "Configuration" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Walking, floor-grip, jump, and collision-protection settings supported by Navi.</p>
@@ -1319,12 +1320,12 @@ function FocusedBrowseFunctionsSection() {
               <div className="divide-y divide-[#dce7f2]">
                 {group.items.map((item) => (
                   <details key={item.name} className="group min-w-0 bg-white">
-                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 lg:grid-cols-[41%_minmax(0,1fr)_260px]">
+                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_260px]">
                       <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">
                         {selectedRobot === "navi" ? profileSyntaxWithPlaceholders(item.signature) : item.signature}
                       </p>
                       <p className="min-w-0 text-sm leading-6 text-[#111d35]">{item.summary}</p>
-                      <div className="flex flex-wrap items-center gap-2 justify-self-start lg:justify-self-end">
+                      <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
                         {item.status === "development" || item.params.some((param) => param.status === "development") ? (
                           <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under development</span>
                         ) : null}
@@ -1684,6 +1685,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
   const [softwareReviewStatus, setSoftwareReviewStatus] = useState<"locked" | "pending" | "passed" | "failed" | "error">("locked");
   const [submissionQuery, setSubmissionQuery] = useState({ ready: false, id: "" });
+  const [reviewResetKey, setReviewResetKey] = useState(0);
   const [hardwareResult, setHardwareResult] = useState<HardwareResult | null>(null);
   const initialPreview = previewAssetForCode(starterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
@@ -1923,6 +1925,22 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setApprovedCodeFile(null);
     window.sessionStorage.removeItem("agentech-latest-physical-review");
     resetPreview(normalizedCode, preferredCommand);
+  }
+
+  function checkAnotherCode() {
+    const nextCode = "from agentech import Agentech\n\n";
+    setUploadedFileName("");
+    setUploadedOriginalCode("");
+    setReviewInputError("");
+    setSubmissionQuery({ ready: false, id: "" });
+    setIsLoadingReviewGate(false);
+    setReviewResetKey((current) => current + 1);
+    window.sessionStorage.removeItem("agentech-latest-physical-review");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("submissionId");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    updateCode(nextCode);
+    setRequestStatus("Ready for another code submission. Upload a new file or paste code, then run Hardware Safety.");
   }
 
   async function loadUploadedCodeFile(file: File | null) {
@@ -2396,6 +2414,16 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7d8b9c]">Or upload a file</span>
                   <span className="h-px flex-1 bg-[#dce7f2]" />
                 </div>
+                {(physicalSubmissionId || hardwareResult || softwareReviewStatus !== "locked" || softwarePassed) ? (
+                  <button
+                    type="button"
+                    onClick={checkAnotherCode}
+                    disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
+                    className="w-full border border-[#526174] bg-white px-4 py-3 text-sm font-semibold text-[#23304a] transition hover:border-[#2f70c8] hover:bg-[#eaf3ff] hover:text-[#194f92] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Check Another Code
+                  </button>
+                ) : null}
                 <label
                   onDragEnter={(event) => {
                     event.preventDefault();
@@ -2425,6 +2453,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     {isDraggingCodeFile ? "Drop the file here" : "Drag a .py or .txt file here, or choose a file"}
                   </span>
                   <input
+                    key={reviewResetKey}
                     type="file"
                     accept=".py,.txt"
                     disabled={softwarePassed}
