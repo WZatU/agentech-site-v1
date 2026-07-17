@@ -1,4 +1,5 @@
 import { DataPacket_Kind, RoomServiceClient } from "livekit-server-sdk";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getAccountRecord, spendAccountCredits } from "@/lib/account-records";
 import { isAgentechCompanyEmail } from "@/lib/company-accounts";
@@ -28,8 +29,18 @@ const localCaptureStore = globalThis as typeof globalThis & {
 
 function authorized(request: Request) {
   const secret = process.env.ROBOT_RUNNER_SECRET;
-  const expected = secret || (process.env.NODE_ENV !== "production" ? "agentech-local-runner" : "");
-  return Boolean(expected) && request.headers.get("authorization") === `Bearer ${expected}`;
+  const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const derived = serviceRole
+    ? createHmac("sha256", serviceRole).update("agentech-capture-upload-v1").digest("hex")
+    : "";
+  const expected = [secret, derived, process.env.NODE_ENV !== "production" ? "agentech-local-runner" : ""]
+    .filter((value): value is string => Boolean(value));
+  const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  return expected.some((value) => {
+    const expectedBuffer = Buffer.from(value);
+    const providedBuffer = Buffer.from(provided);
+    return expectedBuffer.length === providedBuffer.length && timingSafeEqual(expectedBuffer, providedBuffer);
+  });
 }
 
 export async function GET() {
