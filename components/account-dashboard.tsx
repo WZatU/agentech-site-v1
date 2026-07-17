@@ -898,14 +898,14 @@ function roundUpToRobotSlot(date: Date) {
   return rounded;
 }
 
-function getDefaultRobotSlotValue() {
+function getDefaultRobotSlotValue(unlimitedHours = false) {
   const date = roundUpToRobotSlot(new Date(Date.now() + robotSlotPrepMinutes * 60 * 1000));
 
-  if (date.getHours() < 9) {
+  if (!unlimitedHours && date.getHours() < 9) {
     date.setHours(9, 0, 0, 0);
   }
 
-  if (date.getHours() >= 17) {
+  if (!unlimitedHours && date.getHours() >= 17) {
     date.setDate(date.getDate() + 1);
     date.setHours(9, 0, 0, 0);
   }
@@ -928,7 +928,7 @@ function formatRobotSlotLabel(value: string) {
   });
 }
 
-function generateRobotSlotCandidates(durationMinutes: number) {
+function generateRobotSlotCandidates(durationMinutes: number, unlimitedHours = false) {
   const slots: RobotSlotOption[] = [];
   const minimumStart = roundUpToRobotSlot(new Date(Date.now() + robotSlotPrepMinutes * 60 * 1000)).getTime();
   const today = new Date();
@@ -938,7 +938,9 @@ function generateRobotSlotCandidates(durationMinutes: number) {
     const day = new Date(today);
     day.setDate(today.getDate() + dayOffset);
 
-    for (let hour = 9; hour < 17; hour += 1) {
+    const firstHour = unlimitedHours ? 0 : 9;
+    const lastHour = unlimitedHours ? 24 : 17;
+    for (let hour = firstHour; hour < lastHour; hour += 1) {
       for (let minute = 0; minute < 60; minute += robotSlotGridMinutes) {
         const slot = new Date(day);
         slot.setHours(hour, minute, 0, 0);
@@ -948,7 +950,7 @@ function generateRobotSlotCandidates(durationMinutes: number) {
           continue;
         }
 
-        if (slotEnd > new Date(slot).setHours(17, 0, 0, 0)) {
+        if (!unlimitedHours && slotEnd > new Date(slot).setHours(17, 0, 0, 0)) {
           continue;
         }
 
@@ -1183,7 +1185,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
 
     let cancelled = false;
     const durationMinutes = Number(robotSlotDurationMinutes) || 5;
-    const candidates = generateRobotSlotCandidates(durationMinutes);
+    const candidates = generateRobotSlotCandidates(durationMinutes, isAgentechCompanyEmail(email));
     if (!candidates.length) {
       setRobotSlotOptions([]);
       return;
@@ -1619,7 +1621,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
     }
 
     setRobotSlotNotes("");
-    setRobotSlotStart(getDefaultRobotSlotValue());
+    setRobotSlotStart(getDefaultRobotSlotValue(isAgentechCompanyEmail(email)));
     const creditMessage = isAgentechCompanyEmail(email)
       ? "No credits charged for this @agent-tech.ai account."
       : `${(result?.creditsCharged ?? 0).toLocaleString()} credits charged.`;

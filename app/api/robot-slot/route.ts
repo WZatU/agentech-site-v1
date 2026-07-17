@@ -269,7 +269,7 @@ export async function POST(request: Request) {
 
   const scheduledStart = normalizeRobotSlotStart(requestedScheduledStart, timeZone);
 
-  if (!isWithinRobotHours(scheduledStart, timeZone)) {
+  if (!isAgentechCompanyEmail(email) && !isWithinRobotHours(scheduledStart, timeZone)) {
     return NextResponse.json({ error: "Robot slots must start between 9:00 AM and 5:00 PM." }, { status: 400 });
   }
 
@@ -330,7 +330,7 @@ export async function POST(request: Request) {
     : presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
   const scheduledEnd = addMinutes(scheduledStart, durationMinutes);
   const scheduledEndParts = getTimeParts(scheduledEnd, timeZone);
-  if (scheduledEndParts.hour * 60 + scheduledEndParts.minute > 17 * 60) {
+  if (!internalCompanyAccount && scheduledEndParts.hour * 60 + scheduledEndParts.minute > 17 * 60) {
     return NextResponse.json({ error: "Choose a start time that keeps the full viewing session within robot hours." }, { status: 400 });
   }
 
