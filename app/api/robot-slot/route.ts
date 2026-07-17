@@ -222,7 +222,7 @@ export async function GET(request: Request) {
   }
 
   const sessions = await getRobotSessionsInWindow(start.toISOString(), end.toISOString());
-  const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
+  const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
   const bookedSlots = sessions
     .filter((session) => activeStatuses.has(session.session_status.replace(/ /g, "_").toLowerCase()))
     .map((session) => ({
