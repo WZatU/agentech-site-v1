@@ -1684,6 +1684,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
   const [softwareReviewStatus, setSoftwareReviewStatus] = useState<"locked" | "pending" | "passed" | "failed" | "error">("locked");
   const [submissionQuery, setSubmissionQuery] = useState({ ready: false, id: "" });
+  const [reviewResetKey, setReviewResetKey] = useState(0);
   const [hardwareResult, setHardwareResult] = useState<HardwareResult | null>(null);
   const initialPreview = previewAssetForCode(starterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
@@ -1930,7 +1931,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setUploadedFileName("");
     setUploadedOriginalCode("");
     setReviewInputError("");
-    setSubmissionQuery({ ready: true, id: "" });
+    setSubmissionQuery({ ready: false, id: "" });
+    setIsLoadingReviewGate(false);
+    setReviewResetKey((current) => current + 1);
     window.sessionStorage.removeItem("agentech-latest-physical-review");
     const url = new URL(window.location.href);
     url.searchParams.delete("submissionId");
@@ -2449,6 +2452,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     {isDraggingCodeFile ? "Drop the file here" : "Drag a .py or .txt file here, or choose a file"}
                   </span>
                   <input
+                    key={reviewResetKey}
                     type="file"
                     accept=".py,.txt"
                     disabled={softwarePassed}
