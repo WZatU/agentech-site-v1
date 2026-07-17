@@ -1925,6 +1925,20 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     resetPreview(normalizedCode, preferredCommand);
   }
 
+  function checkAnotherCode() {
+    const nextCode = "from agentech import Agentech\n\n";
+    setUploadedFileName("");
+    setUploadedOriginalCode("");
+    setReviewInputError("");
+    setSubmissionQuery({ ready: true, id: "" });
+    window.sessionStorage.removeItem("agentech-latest-physical-review");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("submissionId");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    updateCode(nextCode);
+    setRequestStatus("Ready for another code submission. Upload a new file or paste code, then run Hardware Safety.");
+  }
+
   async function loadUploadedCodeFile(file: File | null) {
     if (softwarePassed) {
       return;
@@ -2396,6 +2410,16 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7d8b9c]">Or upload a file</span>
                   <span className="h-px flex-1 bg-[#dce7f2]" />
                 </div>
+                {(physicalSubmissionId || hardwareResult || softwareReviewStatus !== "locked" || softwarePassed) ? (
+                  <button
+                    type="button"
+                    onClick={checkAnotherCode}
+                    disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
+                    className="w-full border border-[#526174] bg-white px-4 py-3 text-sm font-semibold text-[#23304a] transition hover:border-[#2f70c8] hover:bg-[#eaf3ff] hover:text-[#194f92] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Check Another Code
+                  </button>
+                ) : null}
                 <label
                   onDragEnter={(event) => {
                     event.preventDefault();
