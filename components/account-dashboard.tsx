@@ -899,7 +899,8 @@ function roundUpToRobotSlot(date: Date) {
 }
 
 function getDefaultRobotSlotValue(unlimitedHours = false) {
-  const date = roundUpToRobotSlot(new Date(Date.now() + robotSlotPrepMinutes * 60 * 1000));
+  const prepMinutes = unlimitedHours ? 0 : robotSlotPrepMinutes;
+  const date = roundUpToRobotSlot(new Date(Date.now() + prepMinutes * 60 * 1000));
 
   if (!unlimitedHours && date.getHours() < 9) {
     date.setHours(9, 0, 0, 0);
@@ -930,7 +931,8 @@ function formatRobotSlotLabel(value: string) {
 
 function generateRobotSlotCandidates(durationMinutes: number, unlimitedHours = false) {
   const slots: RobotSlotOption[] = [];
-  const minimumStart = roundUpToRobotSlot(new Date(Date.now() + robotSlotPrepMinutes * 60 * 1000)).getTime();
+  const prepMinutes = unlimitedHours ? 0 : robotSlotPrepMinutes;
+  const minimumStart = roundUpToRobotSlot(new Date(Date.now() + prepMinutes * 60 * 1000)).getTime();
   const today = new Date();
   const durationMs = durationMinutes * 60 * 1000;
 
@@ -3176,7 +3178,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                   ))
                 ) : (
                   <p className="text-sm leading-6 text-slate-600">
-                    No robot viewing slots requested yet. The first available request is the next 5-minute slot after a 2-minute prep buffer.
+                    No robot viewing slots requested yet. Company accounts can use the next 5-minute slot; other accounts include a 2-minute prep buffer.
                   </p>
                 )}
               </div>
