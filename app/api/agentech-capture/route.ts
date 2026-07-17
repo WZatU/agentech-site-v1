@@ -103,7 +103,9 @@ function authorized(request: Request) {
     : "";
   const expected = [secret, derived, process.env.NODE_ENV !== "production" ? "agentech-local-runner" : ""]
     .filter((value): value is string => Boolean(value));
-  const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  const provided = request.headers.get("x-robot-runner-secret")
+    ?? request.headers.get("authorization")?.replace(/^Bearer\s+/i, "")
+    ?? "";
   return expected.some((value) => {
     const expectedBuffer = Buffer.from(value);
     const providedBuffer = Buffer.from(provided);
