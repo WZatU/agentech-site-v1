@@ -116,6 +116,14 @@ export async function POST(request: Request) {
     encoded.slice(index * base64ChunkSize, (index + 1) * base64ChunkSize)
   );
   const client = new RoomServiceClient(livekitUrl, apiKey, apiSecret);
+  try {
+    await client.createRoom({ name: roomName, emptyTimeout: 10 * 60 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+    if (!message.includes("already exists")) {
+      throw error;
+    }
+  }
 
   for (const [index, data] of chunks.entries()) {
     const packet = new TextEncoder().encode(JSON.stringify({
