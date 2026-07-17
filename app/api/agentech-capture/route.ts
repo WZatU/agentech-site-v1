@@ -1,9 +1,10 @@
 import { DataPacket_Kind, RoomServiceClient } from "livekit-server-sdk";
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { NextResponse } from "next/server";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { NextRequest, NextResponse } from "next/server";
 import { getAccountRecord, spendAccountCredits } from "@/lib/account-records";
 import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { getServerAccountEmail } from "@/lib/server-account-session";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
 const captureTopic = "agentech.capture-image";
 const maxImageBytes = 8 * 1024 * 1024;
 const base64ChunkSize = 10_000;
+const captureBucket = "robot-captures";
 const configuredDisplayCaptureCredits = Number(process.env.AGENTECH_CAPTURE_DISPLAY_CREDITS || 10);
 const displayCaptureCredits = Number.isFinite(configuredDisplayCaptureCredits)
   ? Math.max(1, Math.floor(configuredDisplayCaptureCredits))
@@ -26,6 +28,72 @@ const localCaptureStore = globalThis as typeof globalThis & {
   agentechLatestCapture?: LocalCapture;
   agentechCaptureHistory?: LocalCapture[];
 };
+
+type StoredCaptureObject = {
+  name: string;
+  created_at?: string;
+  metadata?: { mimetype?: string };
+};
+
+function storageConfig() {
+  const url = process.env.SUPABASE_URL?.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("Supabase storage is not configured.");
+  return { url, key };
+}
+
+function accountCapturePrefix(email: string) {
+  return createHash("sha256").update(normalizeEmail(email)).digest("hex");
+}
+
+function captureExtensionForMime(mimeType: string) {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  return "jpg";
+}
+
+async function uploadStoredCapture(path: string, image: Buffer, mimeType: string) {
+  const { url, key } = storageConfig();
+  const response = await fetch(`${url}/storage/v1/object/${captureBucket}/${path}`, {
+    method: "POST",
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": mimeType, "x-upsert": "false" },
+    body: image,
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(await response.text() || "Capture storage upload failed.");
+}
+
+async function listStoredCaptures(email: string) {
+  const { url, key } = storageConfig();
+  const prefix = accountCapturePrefix(email);
+  const response = await fetch(`${url}/storage/v1/object/list/${captureBucket}`, {
+    method: "POST",
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ prefix, limit: 100, offset: 0, sortBy: { column: "created_at", order: "asc" } }),
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(await response.text() || "Capture storage listing failed.");
+  const objects = await response.json() as StoredCaptureObject[];
+  return objects.map((item) => {
+    const captureId = item.name.replace(/\.[^.]+$/, "").split("_").pop() || item.name;
+    const path = `${prefix}/${item.name}`;
+    return {
+      captureId,
+      createdAt: item.created_at || new Date(0).toISOString(),
+      dataUrl: `/api/agentech-capture?file=${encodeURIComponent(path)}`
+    };
+  });
+}
+
+async function readStoredCapture(path: string) {
+  const { url, key } = storageConfig();
+  const response = await fetch(`${url}/storage/v1/object/authenticated/${captureBucket}/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+    cache: "no-store"
+  });
+  if (!response.ok) return null;
+  return { bytes: await response.arrayBuffer(), mimeType: response.headers.get("content-type") || "image/jpeg" };
+}
 
 function authorized(request: Request) {
   const secret = process.env.ROBOT_RUNNER_SECRET;
@@ -43,13 +111,27 @@ function authorized(request: Request) {
   });
 }
 
-export async function GET() {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Local capture polling is disabled." }, { status: 404 });
+export async function GET(request: NextRequest) {
+  const email = await getServerAccountEmail(request, { allowLegacyCookie: true });
+  if (!isValidEmail(email)) {
+    return NextResponse.json({ error: "Sign in to view saved robot captures." }, { status: 401 });
   }
+  const file = new URL(request.url).searchParams.get("file");
+  if (file) {
+    const prefix = `${accountCapturePrefix(email)}/`;
+    if (!file.startsWith(prefix) || file.includes("..")) {
+      return NextResponse.json({ error: "Capture not found." }, { status: 404 });
+    }
+    const stored = await readStoredCapture(file);
+    if (!stored) return NextResponse.json({ error: "Capture not found." }, { status: 404 });
+    return new NextResponse(stored.bytes, {
+      headers: { "Content-Type": stored.mimeType, "Cache-Control": "private, max-age=3600" }
+    });
+  }
+  const captures = await listStoredCaptures(email);
   return NextResponse.json({
-    capture: localCaptureStore.agentechLatestCapture ?? null,
-    captures: localCaptureStore.agentechCaptureHistory ?? []
+    capture: captures.at(-1) ?? localCaptureStore.agentechLatestCapture ?? null,
+    captures: captures.length ? captures : localCaptureStore.agentechCaptureHistory ?? []
   });
 }
 
@@ -90,6 +172,8 @@ export async function POST(request: Request) {
   const captureId = crypto.randomUUID();
   const createdAt = new Date().toISOString();
   const encoded = image.toString("base64");
+  const storedPath = `${accountCapturePrefix(accountEmail)}/${createdAt.replace(/[:.]/g, "-")}_${captureId}.${captureExtensionForMime(mimeType)}`;
+  await uploadStoredCapture(storedPath, image, mimeType);
   if (process.env.NODE_ENV !== "production") {
     const capture = {
       captureId,

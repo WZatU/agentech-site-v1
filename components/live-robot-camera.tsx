@@ -50,9 +50,6 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   }, []);
 
   useEffect(() => {
-    if (livekitUrl) {
-      return;
-    }
     let active = true;
     async function readLocalCapture() {
       try {
@@ -73,7 +70,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       }
     }
     void readLocalCapture();
-    const timer = window.setInterval(() => void readLocalCapture(), 750);
+    const timer = window.setInterval(() => void readLocalCapture(), livekitUrl ? 5000 : 750);
     return () => {
       active = false;
       window.clearInterval(timer);
@@ -143,10 +140,17 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
             if (!chunk.captureId || !Number.isInteger(chunk.index) || !Number.isInteger(chunk.total) || chunk.total < 1) {
               return;
             }
-            const chunks = captureChunks.get(chunk.captureId) ?? new Array<string | undefined>(chunk.total);
+            if (chunk.index < 0 || chunk.index >= chunk.total) {
+              return;
+            }
+            const chunks = captureChunks.get(chunk.captureId) ?? Array.from<string | undefined>({ length: chunk.total });
+            if (chunks.length !== chunk.total) {
+              return;
+            }
             chunks[chunk.index] = chunk.data;
             captureChunks.set(chunk.captureId, chunks);
-            if (chunks.every((part) => typeof part === "string")) {
+            const receivedCount = chunks.reduce((count, part) => count + (typeof part === "string" ? 1 : 0), 0);
+            if (receivedCount === chunk.total) {
               receiveCapture({
                 captureId: chunk.captureId,
                 createdAt: chunk.createdAt,
