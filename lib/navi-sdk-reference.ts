@@ -1,4 +1,9 @@
 import type { AgentechFunction, AgentechParam, CapabilityStatus } from "@/lib/agentech-library";
+import { naviMotionMedia, type NaviReferenceMedia } from "@/lib/navi-motion-media";
+
+export type NaviFunction = AgentechFunction & {
+  media?: NaviReferenceMedia[];
+};
 
 const p = (
   name: string,
@@ -49,8 +54,25 @@ const namedCoreAction = (
   params: []
 });
 
+const parameterizedAction = (
+  name: string,
+  signature: string,
+  summary: string,
+  example: string,
+  params: AgentechParam[],
+  profiles?: AgentechFunction["profiles"]
+): AgentechFunction => ({
+  name,
+  category: "Actions",
+  signature,
+  summary,
+  example,
+  params,
+  profiles
+});
+
 const motionVerification = "Live verified 2026-07-15 with controller error=0 and warning=0";
-export const naviFunctions: AgentechFunction[] = [
+const naviFunctionDefinitions: AgentechFunction[] = [
   {
     name: "forward",
     category: "Movement",
@@ -190,7 +212,7 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.crawl()",
     summary: "Run Navi's composed crawl behavior.",
     example: "Agentech.crawl()",
-    verification: "Live verified 2026-07-15 after correcting the vendor behavior argument contract",
+    verification: "Live verified 2026-07-15 after correcting the behavior argument handling",
     platformNote: "Navi supports crawl. The footed Aegis implementation currently raises NotImplementedError.",
     params: []
   },
@@ -306,19 +328,19 @@ export const naviFunctions: AgentechFunction[] = [
   namedExtendedAction("wave_hand", "Navi raises its right front leg, swings it from side to side in a clear waving gesture, then returns to standing."),
   namedExtendedAction("bow", "Navi keeps its rear feet in place, bends both front legs slightly, and lowers the front of its body toward the floor."),
   namedExtendedAction("wag_rear", "Navi swings only the rear end of its body from side to side; this robot has no physical tail."),
-  namedExtendedAction("bark", "Navi keeps all four feet planted and moves its body forward in a bark-like thrust; this motion produces no sound."),
-  namedExtendedAction("nod_head", "Navi keeps its feet in place, bends both front legs slightly to lower the front body, then raises it back up in a nod."),
-  namedExtendedAction("shake_head", "Navi twists the front of its body left and right in a head-shaking gesture."),
-  namedExtendedAction("confused", "Navi briefly dips the left side of its body, then levels itself again in a small one-sided shrug."),
-  namedExtendedAction("show_affection", "Navi rocks its body from side to side by alternately dipping its left and right sides several times, creating a gentle repeated shrugging motion."),
+  parameterizedAction("bark", "Agentech.bark(count=x)", "Navi performs one or two silent bark-like body thrusts while keeping all four feet planted.", "Agentech.bark(count=2)", [p("count", "int {1, 2}", "Number of bark gestures.", "1")]),
+  parameterizedAction("nod_head", "Agentech.nod_head(count=x)", "Navi lowers and raises its forebody in one or two deliberate nods.", "Agentech.nod_head(count=2)", [p("count", "int {1, 2}", "Number of nods.", "1")]),
+  parameterizedAction("shake_head", "Agentech.shake_head(count=x)", "Navi twists its forebody left and right once or repeats the no-like gesture.", "Agentech.shake_head(count=2)", [p("count", "int {1, 2}", "Number of head-shake sequences.", "1")]),
+  parameterizedAction("confused", "Agentech.confused(style=x)", "Choose a single questioning shrug or a longer repeated puzzled reaction.", "Agentech.confused(style=\"repeated\")", [p("style", '"single" | "repeated"', "Select the compact or repeated puzzled routine.", '"single"')]),
+  parameterizedAction("show_affection", "Agentech.show_affection(style=x)", "Choose a gentle affectionate body rock or a longer seven-second sequence.", "Agentech.show_affection(style=\"extended\")", [p("style", '"gentle" | "extended"', "Select the short or extended affectionate routine.", '"gentle"')]),
   namedExtendedAction("draw_heart", "Navi lifts its left front leg, traces a heart-shaped path through the air, then returns the leg to its standing position."),
-  namedExtendedAction("cute", "Navi performs a compact, playful side-to-side body shimmy, then settles back into its normal stance."),
+  parameterizedAction("cute", "Agentech.cute(style=x)", "Choose a compact playful shimmy or a longer low-body pose sequence.", "Agentech.cute(style=\"pose\")", [p("style", '"shimmy" | "pose"', "Select the playful routine.", '"shimmy"')]),
   namedExtendedAction("ask_for_play", "Navi lowers its forequarters into a playful bow, sways its upper body from side to side, then returns to standing."),
-  namedExtendedAction("enjoy_touch", "Navi gently dips its forequarters, follows with a small front-foot lift, then returns to its normal stance."),
-  namedExtendedAction("sniff_left", "Navi lowers its forequarters toward the left-front side, briefly holds the floor-level sniffing pose, then returns to standing."),
-  namedExtendedAction("sniff_right", "Navi mirrors the sniffing pose toward the right-front side, briefly holds near the floor, then returns to standing."),
-  namedExtendedAction("sniff_ahead", "Navi flexes both front legs to lower its forequarters close to the floor, briefly pauses in a forward sniffing gesture, then rises back to standing."),
-  namedExtendedAction("front_stretch", "Navi keeps its hindquarters raised, extends both front legs forward, and lowers its chest toward the floor in a deep forward stretch before returning to standing."),
+  parameterizedAction("enjoy_touch", "Agentech.enjoy_touch(style=x)", "Choose a gentle, happy, or strongly delighted touch-response sequence.", "Agentech.enjoy_touch(style=\"happy\")", [p("style", '"gentle" | "happy" | "delighted"', "Select the intensity and length of the touch response.", '"gentle"')]),
+  parameterizedAction("sniff_left", "Agentech.sniff_left(speed=x)", "Navi lowers its left-front side toward the floor using the normal or slow sniffing sequence.", "Agentech.sniff_left(speed=\"slow\")", [p("speed", '"normal" | "slow"', "Select the standard or slower left sniff.", '"normal"')]),
+  parameterizedAction("sniff_right", "Agentech.sniff_right(speed=x)", "Navi mirrors the floor-level sniff toward the right using the normal or slow sequence.", "Agentech.sniff_right(speed=\"slow\")", [p("speed", '"normal" | "slow"', "Select the standard or slower right sniff.", '"normal"')]),
+  parameterizedAction("sniff_ahead", "Agentech.sniff_ahead(style=x)", "Navi lowers both front legs into a standard or deeper forward sniffing pose.", "Agentech.sniff_ahead(style=\"deep\")", [p("style", '"standard" | "deep"', "Select the normal or deeper forward sniff.", '"standard"')]),
+  parameterizedAction("front_stretch", "Agentech.front_stretch(style=x)", "Navi extends both front legs and lowers its chest through a full or compact front stretch.", "Agentech.front_stretch(style=\"compact\")", [p("style", '"standard" | "compact"', "Select the full-range or compact stretch.", '"standard"')]),
   namedExtendedAction("full_body_stretch", "Navi begins with a rear-body stretch, transitions into its deep forward stretch, then returns to a normal four-foot stance."),
   {
     name: "push_up",
@@ -335,8 +357,8 @@ export const naviFunctions: AgentechFunction[] = [
       p("count", "int > 0", "Number of push-up repetitions to complete before returning to standing.", "3")
     ]
   },
-  namedExtendedAction("look_around", "Navi keeps its feet planted, varies its body height by extending and flexing its legs, then twists left and right in a panoramic inspection without walking."),
-  namedExtendedAction("think", "Navi flexes its front legs into a lowered pause, then bends the rear legs before smoothly returning to its normal stance."),
+  parameterizedAction("look_around", "Agentech.look_around(style=x)", "Navi performs one of six planted-foot surroundings scans, from brief side glances to broad low or high sweeps.", "Agentech.look_around(style=\"high\")", [p("style", '"panoramic" | "left" | "right" | "low" | "quick" | "high"', "Select the scan path and range.", '"panoramic"')]),
+  parameterizedAction("think", "Agentech.think(style=x)", "Choose the standard, long, or short thinking gesture.", "Agentech.think(style=\"long\")", [p("style", '"standard" | "long" | "short"', "Select the thinking routine length and motion pattern.", '"standard"')]),
   {
     name: "observe",
     category: "Actions",
@@ -348,7 +370,7 @@ export const naviFunctions: AgentechFunction[] = [
     params: []
   },
   namedExtendedAction("yawn", "Navi gently extends its whole body, subtly lengthening its stance and torso before relaxing back to standing. It resembles a mild stretch but uses a smaller range than full_body_stretch()."),
-  namedExtendedAction("clap_hand", "Navi raises a front leg and reaches it forward in a short presenting gesture before returning to standing."),
+  namedExtendedAction("clap_hand", "Navi raises a front leg and reaches it upward and forward in a short presenting gesture before returning to standing."),
   {
     name: "dance",
     category: "Actions",
@@ -358,12 +380,66 @@ export const naviFunctions: AgentechFunction[] = [
     profiles: [
       { name: "Beat dance", syntax: "Agentech.dance(style=\"beats\")" },
       { name: "Shoulder dance", syntax: "Agentech.dance(style=\"shoulder\")" },
-      { name: "Lion dance", syntax: "Agentech.dance(style=\"lion\")" }
+      { name: "Lion dance", syntax: "Agentech.dance(style=\"lion\")" },
+      { name: "Dance in place", syntax: "Agentech.dance(style=\"in_place\")" },
+      { name: "Four-count dance", syntax: "Agentech.dance(style=\"four_count\")" },
+      { name: "Nine-count dance", syntax: "Agentech.dance(style=\"nine_count\")" },
+      { name: "Four-beat dance", syntax: "Agentech.dance(style=\"four_beat\")" }
     ],
     params: [
-      p("style", '"beats" | "shoulder" | "lion"', "Choose Navi's dance choreography.", '"beats"')
+      p("style", '"beats" | "shoulder" | "lion" | "in_place" | "four_count" | "nine_count" | "four_beat"', "Choose Navi's dance choreography.", '"beats"')
     ]
   },
+  namedExtendedAction("eager", "Navi lowers and stretches forward through an animated sequence of eager body shifts before returning to standing."),
+  namedExtendedAction("rub_eyes", "Navi lowers its forebody and moves a raised front leg near its face in a rubbing-like gesture."),
+  parameterizedAction("point_to_sky", "Agentech.point_to_sky(direction=x)", "Navi balances low and raises the selected front leg into an upward pointing pose.", "Agentech.point_to_sky(direction=\"right\")", [p("direction", '"left" | "right"', "Choose which front leg points upward.", '"left"')]),
+  namedExtendedAction("wait_for_praise", "Navi settles low, raises a front leg, and holds an expectant pose before recovering."),
+  parameterizedAction("lucky_cat", "Agentech.lucky_cat(style=x)", "Choose a full, quick, or brief beckoning-paw routine.", "Agentech.lucky_cat(style=\"quick\")", [p("style", '"full" | "quick" | "brief"', "Select the length and motion range of the beckoning gesture.", '"full"')]),
+  namedExtendedAction("dramatic_listen", "Navi freezes, leans, and reacts through an exaggerated listening pose."),
+  namedExtendedAction("jingle", "Navi combines quick low body bounces with alternating playful forebody accents."),
+  namedExtendedAction("flex_muscles", "Navi braces low and alternates widened foreleg poses like a flexing display."),
+  namedExtendedAction("good_night_wave", "Navi raises one front leg high and makes a gentle farewell wave before lowering it."),
+  namedExtendedAction("cry", "Navi droops through repeated low, uneven forebody movements that suggest sadness."),
+  namedExtendedAction("encourage", "Navi raises a front leg and punctuates several upbeat forward body accents."),
+  namedExtendedAction("playful_greeting", "Navi combines a low bow, body sway, and lively recovery in a welcoming sequence."),
+  namedExtendedAction("nod_with_beats", "Navi performs several compact forebody nods in a quick, regular rhythm."),
+  namedExtendedAction("head_up_down", "Navi alternates a pronounced forebody lift and drop before leveling out."),
+  namedExtendedAction("push_ahead", "Navi drives its torso forward over planted feet in one short, forceful push."),
+  namedExtendedAction("brace", "Navi lowers and stiffens its stance briefly as if bracing against a forward force."),
+  namedExtendedAction("shake_hand_quick", "Navi raises its right front leg for a short handshake presentation and returns immediately."),
+  namedExtendedAction("pee_quick", "Navi briefly raises its right rear leg and resets in a one-shot balance gesture."),
+  namedExtendedAction("sway_front_back", "Navi rocks its torso forward and backward over planted feet, then returns to center."),
+  namedExtendedAction("step_idle", "Navi makes a small in-place weight shift and foot adjustment without traveling away."),
+  namedExtendedAction("rear_stretch", "Navi extends its hind legs and lengthens the rear body before returning to neutral."),
+  parameterizedAction("rear_puff", "Agentech.rear_puff(style=x)", "Choose the short or long comic rear-body lift-and-pulse routine.", "Agentech.rear_puff(style=\"long\")", [p("style", '"short" | "long"', "Select the brief or extended rear-body routine.", '"short"')]),
+  parameterizedAction("chat", "Agentech.chat(style=x)", "Choose one of five conversational body-motion patterns, from a brief reply to a longer animated exchange.", "Agentech.chat(style=\"animated\")", [p("style", '"animated" | "gentle" | "brief" | "five_second" | "talking"', "Select the conversational rhythm and length.", '"animated"')]),
+  parameterizedAction("cooking", "Agentech.cooking(recover=x)", "Navi sweeps a raised front leg right and left in a stirring-like motion, optionally including the full recovery sequence.", "Agentech.cooking(recover=True)", [p("recover", "bool", "When true, use the longer routine with its complete controlled reset.", "True")]),
+  parameterizedAction("eat", "Agentech.eat(swallow=x)", "Navi lowers toward an imaginary bowl and performs an eating sequence, optionally adding the swallow-like finish.", "Agentech.eat(swallow=True)", [p("swallow", "bool", "Include the longer finishing motion after eating.", "True")]),
+  parameterizedAction("excited", "Agentech.excited(style=x)", "Choose a quick energetic bounce or a fuller excited body routine.", "Agentech.excited(style=\"full\")", [p("style", '"full" | "quick"', "Select the full or compact excitement sequence.", '"full"')]),
+  namedExtendedAction("shake_self", "Navi rapidly oscillates its torso and shoulders from side to side like shaking off water."),
+  parameterizedAction("explore_road", "Agentech.explore_road(style=x)", "Navi inspects the path with either left-right body turns or side-to-side tilts.", "Agentech.explore_road(style=\"turn\")", [p("style", '"turn" | "tilt"', "Choose the turning or tilting scan.", '"turn"')]),
+  parameterizedAction("search_environment", "Agentech.search_environment(style=x)", "Navi searches the nearby environment using a broad body turn or a compact side tilt.", "Agentech.search_environment(style=\"tilt\")", [p("style", '"turn" | "tilt"', "Choose the turning or tilting search pattern.", '"turn"')]),
+  namedExtendedAction("search_tag", "Navi makes a short directed dip and turn as if checking for a nearby marker."),
+  namedExtendedAction("body_tag_search", "Navi shifts and lowers its torso through a compact body-centered search pattern."),
+  parameterizedAction("listen", "Agentech.listen(direction=x)", "Navi tilts attentively toward the left, right, or checks both sides in sequence.", "Agentech.listen(direction=\"both\")", [p("direction", '"left" | "right" | "both"', "Choose the listening direction.", '"both"')]),
+  parameterizedAction("toss", "Agentech.toss(direction=x)", "Navi dips and snaps its forebody upward in a centered, left, or right tossing-like motion.", "Agentech.toss(direction=\"left\")", [p("direction", '"center" | "left" | "right"', "Choose the toss orientation.", '"center"')]),
+  namedExtendedAction("explore_new_home", "Navi lowers into a cautious forward-looking pose and makes a compact exploratory shift."),
+  namedExtendedAction("bored_half_sit", "Navi sinks into a loose half-seated slump and then rises again."),
+  namedExtendedAction("rest", "Navi briefly settles into a low relaxed posture before returning to standing."),
+  namedExtendedAction("sniff_up", "Navi lifts and angles its forebody upward through repeated air-sniffing motions."),
+  parameterizedAction("act_shy", "Agentech.act_shy(side=x)", "Navi curls into a soft asymmetric lowered pose with a left or right emphasis.", "Agentech.act_shy(side=\"right\")", [p("side", '"left" | "right"', "Choose the side emphasized by the shy pose.", '"left"')]),
+  namedExtendedAction("look_down", "Navi folds its forequarters into a low downward-looking pose, pauses, and rises."),
+  parameterizedAction("snuggle", "Agentech.snuggle(style=x)", "Choose a compact low-to-high snuggle rise or a softer downward curl.", "Agentech.snuggle(style=\"curl\")", [p("style", '"rise" | "curl"', "Select the rising or curling snuggle motion.", '"rise"')]),
+  namedExtendedAction("be_sleepy", "Navi performs a long drowsy routine with repeated droops, low pauses, and partial waking motions."),
+  parameterizedAction("brush_teeth", "Agentech.brush_teeth(direction=x, phase=x)", "Navi repeats raised-front-leg brushing motions on the selected side; the right side also has a start-only phase.", "Agentech.brush_teeth(direction=\"left\", phase=\"full\")", [p("direction", '"left" | "right"', "Choose the brushing side.", '"right"'), p("phase", '"full" | "start"', "Choose the complete routine or the right-side starting phase. The start phase is unavailable on the left.", '"full"')]),
+  namedExtendedAction("toilet_pose", "Navi lowers its hindquarters into a brief toileting-like squat and then returns to standing."),
+  namedExtendedAction("fast_rotate", "Navi rapidly turns through a long energetic sequence. Carpet can introduce slip and path drift."),
+  namedExtendedAction("swim", "Navi lowers its body and cycles its legs in broad paddling-like motions before recovery."),
+  namedExtendedAction("joy_walk", "Navi performs a buoyant low walk with exaggerated rhythmic steps and body bounce."),
+  namedExtendedAction("duck_walk", "Navi travels in a low crouch using short alternating steps."),
+  parameterizedAction("step", "Agentech.step(direction=x)", "Navi takes one compact preset step forward or backward and settles.", "Agentech.step(direction=\"forward\")", [p("direction", '"forward" | "backward"', "Choose the direction of the single preset step.", '"forward"')]),
+  parameterizedAction("turn_around", "Agentech.turn_around(direction=x)", "Navi performs a preset 180-degree turn toward the selected side.", "Agentech.turn_around(direction=\"left\")", [p("direction", '"left" | "right"', "Choose the half-turn direction.", '"right"')]),
+  namedExtendedAction("nod_off", "Navi performs a long sleep sequence with repeated low droops and small waking motions."),
   {
     name: "stand",
     category: "Posture",
@@ -494,6 +570,14 @@ export const naviFunctions: AgentechFunction[] = [
     params: [p("time", "float > 0 (no maximum)", "Any positive number of seconds to hold the at-ease stance before returning to regular standing mode.", "30.0")]
   },
   {
+    name: "stand_at_attention",
+    category: "Posture",
+    signature: "Agentech.stand_at_attention()",
+    summary: "Navi draws its feet into a centered, aligned stance and briefly holds an alert posture before relaxing.",
+    example: "Agentech.stand_at_attention()",
+    params: []
+  },
+  {
     name: "recovery_stand",
     category: "Posture",
     signature: "Agentech.recovery_stand(direction=x)",
@@ -510,7 +594,9 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.set_gait(gait_id=x)",
     summary: "Choose one of Navi's installed walking patterns.",
     example: "Agentech.set_gait(gait_id=3)",
-    params: [p("gait_id", "int [0, 15]", "Select one of the 16 gait presets installed on this Navi.", "3")]
+    status: "development",
+    platformNote: "The SDK enforces the robot-advertised range, but the physical behavior of each gait preset still requires isolated validation.",
+    params: [p("gait_id", "int [0, 15]", "Select one of the 16 gait presets installed on this Navi.", "3", "development")]
   },
   {
     name: "set_foot_height",
@@ -518,7 +604,9 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.set_foot_height(height_m=x)",
     summary: "Set Navi's foot lift height in meters.",
     example: "Agentech.set_foot_height(height_m=0.08)",
-    params: [p("height_m", "float [0.001, 0.4] meters", "Set how high Navi lifts each foot while walking.", "0.03")]
+    status: "development",
+    platformNote: "The transport and range guard are implemented; safe useful values across all gaits still require physical validation.",
+    params: [p("height_m", "float [0.001, 0.4] meters", "Set how high Navi lifts each foot while walking.", "0.03", "development")]
   },
   {
     name: "set_collision_protect",
@@ -526,7 +614,9 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.set_collision_protect(enabled=x)",
     summary: "Enable or disable Navi's collision-protection setting.",
     example: "Agentech.set_collision_protect(enabled=True)",
-    params: [p("enabled", "bool", "True keeps collision protection enabled; false disables it.", "True")]
+    status: "development",
+    platformNote: "The command contract is implemented, but live collision-response behavior has not been deliberately exercised.",
+    params: [p("enabled", "bool", "True keeps collision protection enabled; false disables it.", "True", "development")]
   },
   {
     name: "set_friction",
@@ -534,7 +624,9 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.set_friction(friction=x)",
     summary: "Tell Navi how much grip to expect from the floor surface.",
     example: "Agentech.set_friction(friction=0.5)",
-    params: [p("friction", "float [0.01, 1.0]", "Use a lower value for slippery floors and a higher value for grippy floors.", "0.4")]
+    status: "development",
+    platformNote: "The full robot-advertised range is guarded in software; surface-specific tuning is not yet physically calibrated.",
+    params: [p("friction", "float [0.01, 1.0]", "Use a lower value for slippery floors and a higher value for grippy floors.", "0.4", "development")]
   },
   {
     name: "set_jump_distance",
@@ -542,7 +634,9 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.set_jump_distance(distance_m=x)",
     summary: "Set how far Navi travels during the next forward jump.",
     example: "Agentech.set_jump_distance(distance_m=0.3)",
-    params: [p("distance_m", "float [0, 1.0] meters", "Forward travel requested by Agentech.jump_forward().", "0.5")]
+    status: "development",
+    platformNote: "The setting is published with audited bounds, but distance accuracy and landing behavior remain open-loop and uncalibrated.",
+    params: [p("distance_m", "float [0, 1.0] meters", "Forward travel requested by Agentech.jump_forward().", "0.5", "development")]
   },
   {
     name: "set_jump_angle",
@@ -550,7 +644,9 @@ export const naviFunctions: AgentechFunction[] = [
     signature: "Agentech.set_jump_angle(angle_rad=x)",
     summary: "Set how far Navi rotates during the next round jump.",
     example: "Agentech.set_jump_angle(angle_rad=0.2)",
-    params: [p("angle_rad", "float [-3.14, 3.14] radians", "Positive and negative values choose opposite rotation directions for Agentech.jump_round().", "0.0")]
+    status: "development",
+    platformNote: "The command and bounds are implemented, but requested rotation versus observed rotation has not been physically calibrated.",
+    params: [p("angle_rad", "float [-3.14, 3.14] radians", "Positive and negative values choose opposite rotation directions for Agentech.jump_round().", "0.0", "development")]
   },
   {
     name: "stop",
@@ -625,6 +721,11 @@ export const naviFunctions: AgentechFunction[] = [
     params: []
   }
 ];
+
+export const naviFunctions: NaviFunction[] = naviFunctionDefinitions.map((item) => ({
+  ...item,
+  media: naviMotionMedia[item.name]
+}));
 
 export const naviStarterCode = `from agentech import Agentech
 Agentech.use("navi", host="192.168.4.65")`;

@@ -1134,7 +1134,17 @@ print(Agentech.battery())`
 
 function FocusedBrowseFunctionsSection() {
   const [selectedRobot, setSelectedRobot] = useState<"aegis" | "navi">("aegis");
-  const publicNaviPlatformNotes = new Set(["jump", "jump_forward", "observe"]);
+  const publicNaviPlatformNotes = new Set([
+    "jump",
+    "jump_forward",
+    "observe",
+    "set_gait",
+    "set_foot_height",
+    "set_collision_protect",
+    "set_friction",
+    "set_jump_distance",
+    "set_jump_angle"
+  ]);
   const selectedFunctions = selectedRobot === "navi"
     ? naviFunctions.map((item) => ({
         ...item,
@@ -1143,7 +1153,7 @@ function FocusedBrowseFunctionsSection() {
         profiles: item.profiles?.filter((profile) => profile.name !== "Legacy aliases"),
         params: item.params.filter((param) => !["**connect_kwargs", "speed", "seconds", "stop", "operation"].includes(param.name))
       }))
-    : agentechFunctions;
+    : agentechFunctions.map((item) => ({ ...item, media: undefined }));
   const selectedStarterCode = selectedRobot === "navi" ? naviStarterCode : starterCode;
   const selectedRobotLabel = selectedRobot === "navi" ? "Navi" : "Aegis";
   const referenceCategories: AgentechFunction["category"][] = selectedRobot === "navi"
@@ -1305,7 +1315,7 @@ function FocusedBrowseFunctionsSection() {
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Expressive gestures and coordinated body motions. Timed actions return to standing automatically.</p>
                   ) : null}
                   {group.category === "Configuration" ? (
-                    <p className="mt-2 text-sm leading-6 text-[#526174]">Walking, floor-grip, jump, and collision-protection settings supported by Navi.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Range-checked gait, foot, floor-grip, jump, and collision settings. Physical calibration remains under development.</p>
                   ) : null}
                   {group.category === "Safety" && selectedRobot === "navi" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Stop active movement or lower Navi into its relaxed damping posture for charging.</p>
@@ -1417,7 +1427,26 @@ function FocusedBrowseFunctionsSection() {
                       {commandsWithoutReferencePreview.has(item.name) ? null : (
                         <div className="min-w-0 bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}</p>
-                          {selectedRobot === "navi" ? (
+                          {selectedRobot === "navi" && item.media?.length ? (
+                            <div className="grid gap-4 xl:grid-cols-2">
+                              {item.media.map((media) => (
+                                <figure key={media.src} className="border border-[#dce7f2] bg-[#f8fbff] p-3">
+                                  <video
+                                    controls
+                                    playsInline
+                                    preload="none"
+                                    src={media.src}
+                                    aria-label={`${media.label} on Navi`}
+                                    className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
+                                  />
+                                  <figcaption className="mt-3">
+                                    <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#006a5c]">{media.label}</p>
+                                    <p className="mt-1 text-xs leading-5 text-[#526174]">{media.description}</p>
+                                  </figcaption>
+                                </figure>
+                              ))}
+                            </div>
+                          ) : selectedRobot === "navi" ? (
                             <Image
                               src="/assets/robotics/ff-navi-white.jpg"
                               alt={`FF Navi robot for Agentech.${item.name}`}

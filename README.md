@@ -524,7 +524,7 @@ The page is organized into five workflows:
 | Workflow | Route | Purpose |
 | --- | --- | --- |
 | Start Coding | `/agentech-products/eaic-hub/start-coding` | Guided SDK install, import, first script, beginner recipes, and starter safety rules |
-| View SDK | `/agentech-products/eaic-hub/view-sdk` | Category-based SDK reference for Movement, Posture, Safety, and Sensing commands |
+| View SDK | `/agentech-products/eaic-hub/view-sdk` | Robot-selectable SDK reference for Movement, Athletics, Actions, Posture, Configuration, Safety, and Sensing commands |
 | Physical Hardware Check | `/agentech-products/eaic-hub/physical-hardware-check` | Step 3 upload/paste review that checks robot-body limits before software review |
 | Software Check | `/agentech-products/eaic-hub/software-check` | Step 4 GPT review that stays locked until the same file passes Step 3 |
 | Live Stream | `/agentech-products/eaic-hub/watch-live-run` | Step 5 focused LiveKit camera view for supervised robot sessions |
@@ -535,7 +535,10 @@ Library behavior:
 - The landing page shows only the five workflow cards. Old eight-step URLs redirect into the new workflows.
 - `View SDK` is grouped by command category. Each category starts collapsed behind a `View functions` control.
 - Closed SDK rows stay compact, for example `Agentech.forward(parameters)`.
-- Individual function details open only on demand and include definition, parameters, example code, and the approved GIF preview.
+- Individual function details open only on demand and include definition, parameter profiles, example code, and approved reference media.
+- Navi exposes all 128 reviewed action recordings through 80 clean `Agentech` action wrappers and parameter variants. The reference also includes 5 movement recordings and 7 athletics recordings.
+- Navi reference rows never expose vendor action IDs or internal state controls. Multiple recordings for one clean function appear as explicit choices such as direction, style, count, speed, phase, or recovery behavior.
+- Navi configuration cards remain visible but are marked `Under development`: message contracts and range guards are implemented, while gait, foot-height, friction, collision, jump-distance, and jump-angle behavior still needs isolated physical calibration.
 - Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
 - `Physical Hardware Check` and `Software Check` use one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
 - `Software Check` must remain locked until Supabase says the account/submission passed Step 3 Physical Hardware Check.
