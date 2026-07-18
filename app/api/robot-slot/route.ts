@@ -7,8 +7,8 @@ import {
   findRobotSessionConflict,
   getAccessProfiles,
   getAccountRecord,
+  getCodeSubmissionRecord,
   getRobotSessionsInWindow,
-  hasPassedDeveloperCodeReview,
   spendAccountCredits
 } from "@/lib/account-records";
 import { accountSessionCookieName } from "@/lib/account-session";
@@ -123,8 +123,7 @@ function roundUpToSlot(date: Date) {
 }
 
 function normalizeRobotSlotStart(requestedStart: Date, timeZone: string, unlimitedHours = false) {
-  const minimumLeadTime = unlimitedHours ? 0 : minimumLeadTimeMs;
-  const minimumStart = roundUpToSlot(new Date(Date.now() + minimumLeadTime));
+  const minimumStart = roundUpToSlot(new Date(Date.now() + minimumLeadTimeMs));
   const normalized = roundUpToSlot(requestedStart.getTime() < minimumStart.getTime() ? minimumStart : requestedStart);
 
   if (unlimitedHours || isWithinRobotHours(normalized, timeZone)) {
@@ -319,9 +318,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That profile does not belong to this account." }, { status: 403 });
   }
 
-  if (requestedRunType === "custom_code" && !internalCompanyAccount && !(await hasPassedDeveloperCodeReview(email))) {
+  const codeSubmission = requestedRunType === "custom_code" && account.developer_latest_code_submission_id
+    ? await getCodeSubmissionRecord(account.developer_latest_code_submission_id, email)
+    : null;
+
+  if (
+    requestedRunType === "custom_code"
+    && (
+      !codeSubmission
+      || codeSubmission.physical_safety_status !== "passed"
+      || codeSubmission.ai_security_status !== "passed"
+    )
+  ) {
     return NextResponse.json(
-      { error: "Custom live-code testing unlocks only after the physical safety gate and AI security scan both pass." },
+      { error: "Custom live-code testing requires a saved code file whose physical safety gate and AI security scan both passed." },
       { status: 403 }
     );
   }
@@ -363,6 +373,7 @@ export async function POST(request: Request) {
       approvedRunType: requestedRunType === "custom_code" ? "custom_code" : "preset_demo",
       presetDemo,
       benchmarkStatus: requestedRunType === "custom_code" ? "passed" : "not_started",
+      codeSubmissionId: codeSubmission?.id ?? null,
       price: creditsRequired / 100,
       notes: clean(payload?.notes) || null
     });

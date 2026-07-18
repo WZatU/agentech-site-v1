@@ -1,43 +1,45 @@
+import { execFileSync } from "node:child_process";
+import { createHash, createHmac } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import OBSWebSocket from "obs-websocket-js";
 
-const requiredEnv = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
-for (const key of requiredEnv) {
-  if (!process.env[key]) {
-    throw new Error(`${key} is required.`);
-  }
+for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER"]) {
+  if (!process.env[key]) throw new Error(`${key} is required.`);
 }
 
+const here = dirname(fileURLToPath(import.meta.url));
+const runtimeDir = join(here, "..", ".robot-stream-runtime");
+const stateFile = join(runtimeDir, "state.json");
+const compiler = join(here, "compile-robot-plan.py");
+const trustedRunner = join(here, "trusted-robot-runner.py");
+const captureUploadUrl = process.env.AGENTECH_CAPTURE_UPLOAD_URL || "https://www.agent-tech.ai/api/agentech-capture";
 const supabaseUrl = process.env.SUPABASE_URL.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const obsUrl = process.env.OBS_WEBSOCKET_URL || "ws://127.0.0.1:4455";
-const obsPassword = process.env.OBS_WEBSOCKET_PASSWORD || undefined;
+const robot = `${process.env.ROBOT_SSH_USER}@${process.env.ROBOT_HOST}`;
+const remoteDir = process.env.ROBOT_REMOTE_DIR || "/home/firefly/agentech-stream";
+const robotPython = process.env.ROBOT_PYTHON || "python3";
+const localPython = process.env.ROBOT_LOCAL_PYTHON || "python";
+const sshKey = process.env.ROBOT_SSH_KEY;
 const pollMs = Number(process.env.ROBOT_STREAM_POLL_MS || 5000);
 const prepMs = Number(process.env.ROBOT_STREAM_PREP_SECONDS || 120) * 1000;
-const operatingStartHour = Number(process.env.ROBOT_STREAM_START_HOUR || 8);
-const operatingEndHour = Number(process.env.ROBOT_STREAM_END_HOUR || 22);
-const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending"]);
+const obsUrl = process.env.OBS_WEBSOCKET_URL || "ws://127.0.0.1:4455";
+const obsPassword = process.env.OBS_WEBSOCKET_PASSWORD || undefined;
+const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
+const claimableStatuses = ["requested", "confirmed", "approved", "scheduled", "pending"];
 
-let obs = null;
-let streamingForSessionId = null;
+mkdirSync(runtimeDir, { recursive: true });
+let state = { sessions: {} };
+try { state = JSON.parse(readFileSync(stateFile, "utf8")); } catch {}
+let obs;
 
-function iso(date) {
-  return date.toISOString();
-}
+function saveState() { writeFileSync(stateFile, JSON.stringify(state, null, 2)); }
+function normalized(value) { return String(value || "").replaceAll(" ", "_").toLowerCase(); }
+function sshArgs() { return [...(sshKey ? ["-i", sshKey] : []), "-o", "BatchMode=yes", "-o", "ConnectTimeout=8"]; }
+function run(program, args, options = {}) { return execFileSync(program, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...options }); }
 
-function normalizeStatus(status) {
-  return String(status || "").replace(/ /g, "_").toLowerCase();
-}
-
-function localHourValue(date = new Date()) {
-  return date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
-}
-
-function isWithinOperatingWindow(date = new Date()) {
-  const hour = localHourValue(date);
-  return hour >= operatingStartHour && hour < operatingEndHour;
-}
-
-async function supabaseRequest(table, query, options = {}) {
+async function request(table, query, options = {}) {
   const response = await fetch(`${supabaseUrl}/rest/v1/${table}?${query}`, {
     method: options.method || "GET",
     headers: {
@@ -48,93 +50,216 @@ async function supabaseRequest(table, query, options = {}) {
     },
     body: options.body === undefined ? undefined : JSON.stringify(options.body)
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Supabase ${table} request failed.`);
-  }
-
-  if (response.status === 204) {
-    return null;
-  }
-
+  if (!response.ok) throw new Error(await response.text());
+  if (response.status === 204) return null;
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 }
 
-async function findDueSession() {
+async function dueSessions() {
   const now = new Date();
-  const startWindowEnd = new Date(now.getTime() + prepMs);
-  const query = [
-    `scheduled_start=lte.${encodeURIComponent(iso(startWindowEnd))}`,
-    `scheduled_end=gte.${encodeURIComponent(iso(now))}`,
-    "select=id,email,profile_username,session_title,scheduled_start,scheduled_end,session_status",
-    "order=scheduled_start.asc",
-    "limit=1"
-  ].join("&");
-  const sessions = await supabaseRequest("agentech_robot_sessions", query);
-  return (sessions || []).find((session) => activeStatuses.has(normalizeStatus(session.session_status))) || null;
+  const end = new Date(now.getTime() + prepMs);
+  const select = "id,email,session_title,scheduled_start,scheduled_end,session_status,approved_run_type,code_submission_id,created_at";
+  const query = `scheduled_start=lte.${encodeURIComponent(end.toISOString())}&scheduled_end=gte.${encodeURIComponent(now.toISOString())}&approved_run_type=eq.custom_code&select=${select}&order=scheduled_start.asc`;
+  return (await request("agentech_robot_sessions", query)).filter((item) => activeStatuses.has(normalized(item.session_status)));
 }
 
-async function connectObs() {
-  if (obs) {
-    return obs;
+async function reviewedSubmission(session) {
+  if (session.approved_run_type !== "custom_code") throw new Error("session is not approved for custom code");
+  if (!session.code_submission_id) {
+    // Compatibility for website deployments created before booking-time pinning:
+    // choose only the newest fully reviewed submission that already existed when the booking was made.
+    const cutoff = encodeURIComponent(session.created_at);
+    const fallbackQuery = `email=eq.${encodeURIComponent(session.email)}&created_at=lte.${cutoff}&physical_safety_status=eq.passed&ai_security_status=eq.passed&select=id,code&order=created_at.desc&limit=1`;
+    const candidates = await request("agentech_code_submissions", fallbackQuery);
+    if (candidates.length !== 1) throw new Error("custom session has no eligible reviewed submission to pin");
+    const updated = await request(
+      "agentech_robot_sessions",
+      `id=eq.${encodeURIComponent(session.id)}&code_submission_id=is.null`,
+      { method: "PATCH", body: { code_submission_id: candidates[0].id } }
+    );
+    if (!updated?.length) throw new Error("unable to atomically pin reviewed submission");
+    session.code_submission_id = candidates[0].id;
+    console.log(`[robot-stream] pinned reviewed submission ${candidates[0].id} to legacy booking ${session.id}.`);
   }
-
-  obs = new OBSWebSocket();
-  obs.on("ConnectionClosed", () => {
-    obs = null;
-    streamingForSessionId = null;
-  });
-  await obs.connect(obsUrl, obsPassword);
-  return obs;
+  const query = `id=eq.${encodeURIComponent(session.code_submission_id)}&email=eq.${encodeURIComponent(session.email)}&physical_safety_status=eq.passed&ai_security_status=eq.passed&select=id,code&limit=1`;
+  const rows = await request("agentech_code_submissions", query);
+  if (rows.length !== 1) throw new Error("pinned submission no longer passes both reviews");
+  return rows[0];
 }
 
-async function getStreamActive(client) {
-  const status = await client.call("GetStreamStatus");
-  return Boolean(status.outputActive);
+async function startObs() {
+  if (!obs) { obs = new OBSWebSocket(); await obs.connect(obsUrl, obsPassword); }
+  const status = await obs.call("GetStreamStatus");
+  if (!status.outputActive) await obs.call("StartStream");
 }
 
-async function startStream(session) {
-  const client = await connectObs();
-  if (!(await getStreamActive(client))) {
-    await client.call("StartStream");
-    console.log(`[robot-stream] started OBS stream for session ${session.id}: ${session.session_title}`);
+async function stopObs() {
+  if (!obs) return;
+  const status = await obs.call("GetStreamStatus");
+  if (status.outputActive) await obs.call("StopStream");
+}
+
+function stage(session, submission) {
+  const prefix = `session-${session.id}`;
+  const sourcePath = join(runtimeDir, `${prefix}.reviewed.py`);
+  const planPath = join(runtimeDir, `${prefix}.plan.json`);
+  writeFileSync(sourcePath, submission.code, { encoding: "utf8", flag: "wx" });
+  run(localPython, [compiler, sourcePath, submission.id, planPath]);
+  const plan = JSON.parse(readFileSync(planPath, "utf8"));
+  if (plan.source_sha256 !== createHash("sha256").update(submission.code).digest("hex")) throw new Error("compiled plan source hash mismatch");
+  run("ssh", [...sshArgs(), robot, "mkdir", "-p", remoteDir]);
+  run("scp", [...sshArgs(), planPath, trustedRunner, `${robot}:${remoteDir}/`]);
+  let captureIndex = 0;
+  const remoteCaptures = [];
+  for (const command of plan.commands) {
+    if (command.name !== "capture_image") continue;
+    captureIndex += 1;
+    if (command.args?.mode === "display") {
+      remoteCaptures.push(`${remoteDir}/${prefix}.plan-capture-${captureIndex}.jpg`);
+    }
   }
-  streamingForSessionId = session.id;
+  state.sessions[session.id] = {
+    status: "staged",
+    remotePlan: `${remoteDir}/${prefix}.plan.json`,
+    remoteCaptures,
+    publishedCaptures: [],
+    accountEmail: session.email,
+    end: session.scheduled_end
+  };
+  saveState();
+  console.log(`[robot-stream] Code X compiled and staged ${plan.commands.length} commands for session ${session.id}.`);
 }
 
-async function stopStream() {
-  const client = await connectObs();
-  if (await getStreamActive(client)) {
-    await client.call("StopStream");
-    console.log("[robot-stream] stopped OBS stream; no active robot session is due.");
+async function claimSession(session) {
+  const statuses = claimableStatuses.join(",");
+  const claimed = await request(
+    "agentech_robot_sessions",
+    `id=eq.${encodeURIComponent(session.id)}&session_status=in.(${statuses})&select=id`,
+    { method: "PATCH", body: { session_status: "running" } }
+  );
+  return claimed?.length === 1;
+}
+
+async function launch(session) {
+  const item = state.sessions[session.id];
+  if (!(await claimSession(session))) {
+    item.status = "skipped";
+    saveState();
+    console.log(`[robot-stream] session ${session.id} was claimed by another gateway; skipping.`);
+    return;
   }
-  streamingForSessionId = null;
+  const remoteRunner = `${remoteDir}/trusted-robot-runner.py`;
+  const remoteLog = `${remoteDir}/session-${session.id}.log`;
+  const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}' > '${remoteLog}' 2>&1 & echo $!`;
+  item.pid = run("ssh", [...sshArgs(), robot, command]).trim();
+  item.status = "running";
+  saveState();
+  console.log(`[robot-stream] trusted runner started for session ${session.id}; PID ${item.pid}.`);
+}
+
+function stopSession(id) {
+  const item = state.sessions[id];
+  if (item?.pid && item.status === "running") {
+    try { run("ssh", [...sshArgs(), robot, "kill", item.pid], { stdio: "ignore" }); } catch {}
+  }
+  item.status = "finished";
+  saveState();
+}
+
+function processRunning(pid) {
+  try {
+    run("ssh", [...sshArgs(), robot, "kill", "-0", String(pid)], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function publishCaptures(id, item) {
+  const remoteCaptures = item.remoteCaptures ?? (item.remoteCapture ? [item.remoteCapture] : []);
+  item.publishedCaptures ??= [];
+  const token = process.env.ROBOT_RUNNER_SECRET || createHmac("sha256", supabaseKey)
+    .update("agentech-capture-upload-v1")
+    .digest("hex");
+  for (const [index, remoteCapture] of remoteCaptures.entries()) {
+    if (item.publishedCaptures.includes(remoteCapture)) continue;
+    const localCapture = join(runtimeDir, `session-${id}.capture-${index + 1}.jpg`);
+    run("scp", [...sshArgs(), `${robot}:${remoteCapture}`, localCapture]);
+    const response = await fetch(captureUploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-robot-runner-secret": token,
+        "Content-Type": "image/jpeg",
+        "x-agentech-account-email": item.accountEmail
+      },
+      body: readFileSync(localCapture)
+    });
+    if (!response.ok) throw new Error(`capture upload failed: ${await response.text()}`);
+    const result = await response.json();
+    item.publishedCaptures.push(remoteCapture);
+    item.captureIds ??= [];
+    item.captureIds.push(result.captureId);
+    saveState();
+    console.log(`[robot-stream] published display capture ${result.captureId} (${index + 1}/${remoteCaptures.length}) for session ${id}.`);
+  }
 }
 
 async function tick() {
-  if (!isWithinOperatingWindow()) {
-    await stopStream();
-    console.log(`[robot-stream] outside operating window ${operatingStartHour}:00-${operatingEndHour}:00; exiting.`);
-    process.exit(0);
+  const now = Date.now();
+  const sessions = await dueSessions();
+  for (const session of sessions) {
+    if (!state.sessions[session.id]) {
+      const submission = await reviewedSubmission(session);
+      stage(session, submission);
+      await startObs();
+    }
+    if (state.sessions[session.id].status === "staged" && now >= Date.parse(session.scheduled_start)) await launch(session);
   }
-
-  const dueSession = await findDueSession();
-  if (dueSession) {
-    await startStream(dueSession);
-    return;
+  for (const [id, item] of Object.entries(state.sessions)) {
+    if (item.status === "running" && !processRunning(item.pid)) {
+      item.status = "publishing";
+      saveState();
+      try {
+        await publishCaptures(id, item);
+        item.status = "completed";
+        saveState();
+      } catch (error) {
+        item.status = "failed";
+        item.error = error.message;
+        saveState();
+        try {
+          await request(
+            "agentech_robot_sessions",
+            `id=eq.${encodeURIComponent(id)}`,
+            { method: "PATCH", body: { session_status: "failed" } }
+          );
+        } catch (statusError) {
+          console.error(`[robot-stream] unable to publish failed status for session ${id}:`, statusError.message);
+        }
+        console.error(`[robot-stream] session ${id} failed after runner exit:`, error.message);
+      }
+    }
+    if (["running", "completed"].includes(item.status) && now >= Date.parse(item.end)) stopSession(id);
   }
-
-  await stopStream();
+  const active = Object.values(state.sessions).some((item) => ["staged", "running"].includes(item.status));
+  if (!active) await stopObs();
 }
 
-console.log("[robot-stream] bridge running.");
-console.log(`[robot-stream] OBS: ${obsUrl}`);
-console.log(`[robot-stream] Poll: ${pollMs}ms, prep: ${prepMs / 1000}s`);
-console.log(`[robot-stream] Operating window: ${operatingStartHour}:00-${operatingEndHour}:00 local time`);
+console.log(`[robot-stream] Standalone trusted command gateway running for ${robot}; customer source is never sent to the robot.`);
+let tickInProgress = false;
+async function guardedTick() {
+  if (tickInProgress) return;
+  tickInProgress = true;
+  try {
+    await tick();
+  } catch (error) {
+    console.error("[robot-stream] tick failed:", error.message);
+  } finally {
+    tickInProgress = false;
+  }
+}
 
-await tick().catch((error) => console.error("[robot-stream] tick failed:", error.message));
-setInterval(() => {
-  tick().catch((error) => console.error("[robot-stream] tick failed:", error.message));
-}, pollMs);
+await guardedTick();
+setInterval(() => void guardedTick(), pollMs);

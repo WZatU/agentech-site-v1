@@ -147,6 +147,7 @@ export type RobotSessionRecord = {
   approved_run_type: string | null;
   preset_demo: string | null;
   benchmark_status: string | null;
+  code_submission_id: string | null;
   price: number | null;
   invoice_number: string | null;
   notes: string | null;
@@ -969,29 +970,54 @@ export async function createRobotSession(input: {
   approvedRunType: "preset_demo" | "custom_code";
   presetDemo: string;
   benchmarkStatus: "not_started" | "pending" | "passed" | "failed";
+  codeSubmissionId?: string | null;
   price?: number | null;
   notes?: string | null;
 }) {
-  const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-    method: "POST",
-    body: {
-      email: input.email,
-      access_profile_id: input.accessProfileId,
-      profile_username: input.profileUsername,
-      profile_type: input.profileType,
-      session_title: input.sessionTitle,
-      robot_model: input.robotModel,
-      scheduled_start: input.scheduledStart,
-      scheduled_end: input.scheduledEnd,
-      session_status: "requested",
-      requested_run_type: input.requestedRunType,
-      approved_run_type: input.approvedRunType,
-      preset_demo: input.presetDemo,
-      benchmark_status: input.benchmarkStatus,
-      price: input.price ?? null,
-      notes: input.notes || null
+  const marker = input.codeSubmissionId ? `[[agentech_code_submission:${input.codeSubmissionId}]]` : "";
+  const notes = [input.notes?.trim(), marker].filter(Boolean).join("\n") || null;
+  const baseBody = {
+    email: input.email,
+    access_profile_id: input.accessProfileId,
+    profile_username: input.profileUsername,
+    profile_type: input.profileType,
+    session_title: input.sessionTitle,
+    robot_model: input.robotModel,
+    scheduled_start: input.scheduledStart,
+    scheduled_end: input.scheduledEnd,
+    session_status: "requested",
+    requested_run_type: input.requestedRunType,
+    approved_run_type: input.approvedRunType,
+    preset_demo: input.presetDemo,
+    benchmark_status: input.benchmarkStatus,
+    price: input.price ?? null,
+    notes
+  };
+  let rows: RobotSessionRecord[];
+
+  try {
+    rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      method: "POST",
+      body: {
+        ...baseBody,
+        code_submission_id: input.codeSubmissionId ?? null
+      }
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!/could not find.*code_submission_id.*column|column.*code_submission_id.*does not exist/i.test(message)) {
+      throw error;
     }
-  });
+
+    // Keep bookings working while the additive schema migration is rolling out.
+    // The private marker pins the same immutable submission for the local bridge.
+    rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      method: "POST",
+      body: baseBody
+    }).catch(() => {
+      throw error;
+    });
+  }
 
   return rows[0] ?? null;
 }

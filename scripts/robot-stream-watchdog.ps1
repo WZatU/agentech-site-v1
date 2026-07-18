@@ -9,7 +9,7 @@ $stderrLog = Join-Path $logDir "robot-stream-bridge.err.log"
 
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
-foreach ($key in @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "OBS_WEBSOCKET_URL")) {
+foreach ($key in @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_RUNNER_SECRET", "OBS_WEBSOCKET_URL", "OBS_WEBSOCKET_PASSWORD", "ROBOT_HOST", "ROBOT_SSH_USER", "ROBOT_SSH_KEY", "ROBOT_REMOTE_DIR", "ROBOT_PYTHON", "ROBOT_LOCAL_PYTHON", "ROBOT_STREAM_START_HOUR", "ROBOT_STREAM_END_HOUR", "ROBOT_STREAM_PREP_SECONDS", "ROBOT_STREAM_POLL_MS")) {
   if (-not [Environment]::GetEnvironmentVariable($key, "Process")) {
     $userValue = [Environment]::GetEnvironmentVariable($key, "User")
     if ($userValue) {
@@ -18,16 +18,7 @@ foreach ($key in @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "OBS_WEBSOCKET_U
   }
 }
 
-foreach ($key in @("OBS_WEBSOCKET_PASSWORD", "ROBOT_STREAM_START_HOUR", "ROBOT_STREAM_END_HOUR")) {
-  if (-not [Environment]::GetEnvironmentVariable($key, "Process")) {
-    $userValue = [Environment]::GetEnvironmentVariable($key, "User")
-    if ($userValue) {
-      [Environment]::SetEnvironmentVariable($key, $userValue, "Process")
-    }
-  }
-}
-
-$missing = @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "OBS_WEBSOCKET_URL") | Where-Object {
+$missing = @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER") | Where-Object {
   -not [Environment]::GetEnvironmentVariable($_, "Process")
 }
 
@@ -38,11 +29,11 @@ if ($missing.Count -gt 0) {
 
 $startHourRaw = [Environment]::GetEnvironmentVariable("ROBOT_STREAM_START_HOUR", "Process")
 if (-not $startHourRaw) {
-  $startHourRaw = "8"
+  $startHourRaw = "0"
 }
 $endHourRaw = [Environment]::GetEnvironmentVariable("ROBOT_STREAM_END_HOUR", "Process")
 if (-not $endHourRaw) {
-  $endHourRaw = "22"
+  $endHourRaw = "24"
 }
 $startHour = [double]$startHourRaw
 $endHour = [double]$endHourRaw
@@ -65,7 +56,11 @@ if ($existing) {
   exit 0
 }
 
-$node = (Get-Command node.exe -ErrorAction Stop).Source
+$nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+$node = if ($nodeCommand) { $nodeCommand.Source } else { "C:\Users\victo\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" }
+if (-not (Test-Path -LiteralPath $node)) {
+  throw "Node.js executable was not found."
+}
 
 Start-Process `
   -FilePath $node `

@@ -115,6 +115,19 @@ LIVEKIT_API_SECRET=
 LIVEKIT_ROOM_NAME=
 ROBOT_RUNNER_SECRET=
 AGENTECH_CAPTURE_DISPLAY_CREDITS=10
+ROBOT_STREAM_START_HOUR=8
+ROBOT_STREAM_END_HOUR=22
+ROBOT_STREAM_PREP_SECONDS=120
+ROBOT_STREAM_POLL_MS=5000
+AGENTECH_CAPTURE_UPLOAD_URL=https://www.agent-tech.ai/api/agentech-capture
+ROBOT_HOST=
+ROBOT_SSH_USER=firefly
+ROBOT_SSH_KEY=
+ROBOT_REMOTE_DIR=/home/firefly/agentech-stream
+ROBOT_PYTHON=python3
+ROBOT_LOCAL_PYTHON=python
+OBS_WEBSOCKET_URL=
+OBS_WEBSOCKET_PASSWORD=
 
 RESEND_API_KEY=
 APPLICATION_FROM_EMAIL=
@@ -535,9 +548,9 @@ Library behavior:
 - The landing page shows only the five workflow cards. Old eight-step URLs redirect into the new workflows.
 - `View SDK` is grouped by command category. Each category starts collapsed behind a `View functions` control.
 - Closed SDK rows stay compact, for example `Agentech.forward(parameters)`.
-- Individual function details open only on demand and include definition, parameter profiles, example code, and approved reference media.
-- Navi exposes all 128 reviewed action recordings through 80 clean `Agentech` action wrappers and parameter variants. The reference also includes 5 movement recordings and 7 athletics recordings.
-- Navi reference rows never expose vendor action IDs or internal state controls. Multiple recordings for one clean function appear as explicit choices such as direction, style, count, speed, phase, or recovery behavior.
+- Individual function details open only on demand and include definition, parameter profiles, example code, and the approved reference image.
+- Navi exposes 128 reviewed action variants through 80 clean `Agentech` action wrappers and parameter choices.
+- Navi reference rows never expose vendor action IDs or internal state controls. Related variants appear as explicit choices such as direction, style, count, speed, phase, or recovery behavior.
 - Navi configuration cards remain visible but are marked `Under development`: message contracts and range guards are implemented, while gait, foot-height, friction, collision, jump-distance, and jump-angle behavior still needs isolated physical calibration.
 - Safety limits are visible inside `View SDK`; do not bury dry-run, speed-cap, duration, or emergency-stop guidance.
 - `Physical Hardware Check` and `Software Check` use one uploaded/pasted `.py` file for the whole review pipeline. Users should not submit a separate file for the software check.
@@ -786,21 +799,27 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 - Share the direct URL only with collaborators who are helping build, teach, review, or test the Agentech robot dog workflow.
 - The page may show the public beginner API, for example `Agentech.forward(speed=0.3, seconds=1)`.
 - Do not expose FF SDK internals, robot hotspot details, SSH credentials, service-role keys, LiveKit API secrets, or private robot-control code in client-rendered code or public docs.
-- Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have an active scheduled robot slot. Non-internal users also need account credits; `@agent-tech.ai` accounts can test without credit restrictions and without the two custom-code review gates, but still must book a time and duration.
+- Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have an active scheduled robot slot. Non-internal users also need account credits; `@agent-tech.ai` accounts can test without credit charges, but every custom-code run must still pass both review gates and book a time and duration.
 - Robot session booking is handled through `/account` and `/api/robot-slot`; booked slots are disabled in the UI and rejected by the API if they overlap an active session.
 
 ### Local Robot-Camera Operations
 
 - The OBS/LiveKit stream bridge is intended to run on the Windows computer connected to the Logitech camera and OBS.
 - The bridge polls Supabase for upcoming `agentech_robot_sessions`, starts OBS streaming shortly before a scheduled session, and stops when no active session is due.
+- For a custom-code booking, the website pins the exact reviewed `agentech_code_submissions` record to the session. During the preparation window, the standalone gateway rechecks both review gates, atomically claims the booking, parses the submitted Python without executing it, and compiles supported literal SDK calls into an inert JSON plan.
+- The gateway transfers only the trusted plan and `trusted-robot-runner.py` to the robot. Raw customer Python is never sent to the robot or executed on the gateway computer.
+- Each `capture_image(mode="display")` call creates one numbered capture. The gateway retrieves each requested capture and uploads it through the authenticated robot-capture endpoint for the matching website account.
+- Keep the robot host, SSH user, SSH key, local Python, and remote directory in private user-level environment variables on the gateway computer. Do not print service credentials, runner secrets, SSH keys, or OBS passwords.
 - The bridge should run only between 8:00 AM and 10:00 PM local time. The computer power schedule scripts also wake the machine at 8:00 AM and sleep it at 10:00 PM.
-- Keep `.robot-stream-logs/`, `tmp/`, and `output/` local. Do not commit generated logs, rendered screenshots, or private runtime artifacts.
+- Keep `.robot-stream-logs/`, `.robot-stream-runtime/`, `tmp/`, and `output/` local. Do not commit generated logs, compiled plans, captures, rendered screenshots, or private runtime artifacts.
 
 Useful local scripts:
 
 | Script | Purpose |
 | --- | --- |
 | `scripts/install-robot-stream-watchdog.ps1` | Install the hidden Windows watchdog that keeps the OBS bridge running |
+| `scripts/compile-robot-plan.py` | Parse reviewed Python into a deterministic, inert command plan without executing customer source |
+| `scripts/trusted-robot-runner.py` | Execute only allowlisted commands from the inert plan on the robot |
 | `scripts/uninstall-robot-stream-watchdog.ps1` | Remove the OBS bridge watchdog task |
 | `scripts/install-computer-power-schedule.ps1` | Wake computer at 8:00 AM and sleep at 10:00 PM every day |
 | `scripts/uninstall-computer-power-schedule.ps1` | Remove the computer wake/sleep tasks |

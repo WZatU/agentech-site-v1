@@ -577,6 +577,7 @@ create table if not exists public.agentech_robot_sessions (
   approved_run_type text not null default 'preset_demo' check (approved_run_type in ('preset_demo', 'custom_code')),
   preset_demo text,
   benchmark_status text not null default 'not_started' check (benchmark_status in ('not_started', 'pending', 'passed', 'failed')),
+  code_submission_id text references public.agentech_code_submissions(id) on delete restrict,
   price numeric(10,2) not null default 0,
   invoice_number text references public.agentech_billing_invoices(invoice_number) on delete set null,
   notes text,
@@ -591,12 +592,17 @@ alter table public.agentech_robot_sessions add column if not exists requested_ru
 alter table public.agentech_robot_sessions add column if not exists approved_run_type text not null default 'preset_demo';
 alter table public.agentech_robot_sessions add column if not exists preset_demo text;
 alter table public.agentech_robot_sessions add column if not exists benchmark_status text not null default 'not_started';
+alter table public.agentech_robot_sessions add column if not exists code_submission_id text references public.agentech_code_submissions(id) on delete restrict;
 
 create index if not exists agentech_robot_sessions_email_created_idx
 on public.agentech_robot_sessions (email, created_at desc);
 
 create index if not exists agentech_robot_sessions_profile_scheduled_idx
 on public.agentech_robot_sessions (access_profile_id, scheduled_start desc);
+
+create index if not exists agentech_robot_sessions_code_submission_idx
+on public.agentech_robot_sessions (code_submission_id)
+where code_submission_id is not null;
 
 create table if not exists public.agentech_admin_users (
   email text primary key,
@@ -606,7 +612,9 @@ create table if not exists public.agentech_admin_users (
 );
 
 insert into public.agentech_admin_users (email, role, active)
-values ('info@agent-tech.ai', 'owner', true)
+values
+  ('info@agent-tech.ai', 'owner', true),
+  ('wesleyfan2015@gmail.com', 'owner', true)
 on conflict (email) do update
 set
   role = excluded.role,

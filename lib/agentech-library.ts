@@ -74,11 +74,11 @@ export const agentechFunctions: AgentechFunction[] = [
     params: [p("speed_mps", "float [0.10, 1.0] m/s", "Positive lateral speed in meters per second. The supported range is 0.10 m/s through 1.0 m/s, inclusive.", "0.5"), p("duration_s", "float (0, 10] seconds", "How long to apply the lateral movement command.", "2.0"), p("distance_m", "float [0, 2] meters", "Requested open-loop lateral travel distance, including 0 and 2 meters. A value of 0 is accepted and produces no lateral movement.")]
   },
   {
-    name: "diagonal", category: "Movement", signature: "Agentech.diagonal()", summary: "Move diagonally with public X/Y coordinates or an angle, speed, and duration. Positive X is right, positive Y is forward, and positive angles point right.", example: "# Coordinate + duration\nAgentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)\n\n# Angle + speed + duration\nAgentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)",
+    name: "diagonal", category: "Movement", signature: "Agentech.diagonal()", summary: "Move diagonally with public X/Y coordinates or an angle, combined diagonal speed, and duration. The combined speed is the hypotenuse of the resolved X/Y velocity components.", example: "# Coordinate + duration\nAgentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)\n\n# Angle + combined speed + duration\nAgentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)",
     profiles: [
       { name: "Default: forward-right at 45 degrees, 0.5 m/s for 2 seconds", syntax: "Agentech.diagonal()", noteLabel: "Distance note", note: "The theoretical path is 1 meter. Diagonal movement is open loop, so acceleration, stopping, and wheel slip can change the actual distance." },
       { name: "X/Y coordinates + time", syntax: "Agentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)", noteLabel: "Coordinate note", note: "Positive X moves right and negative X moves left. Positive Y moves forward and negative Y moves backward. Both X and Y must be nonzero." },
-      { name: "Angle + speed + time", syntax: "Agentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)", noteLabel: "Angle note", note: "0 degrees is forward. Positive angles point right and negative angles point left. Use forward, backward, or lateral for cardinal directions." }
+      { name: "Angle + combined speed + time", syntax: "Agentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)", noteLabel: "Angle note", note: "The speed is the hypotenuse of the forward and lateral velocity components. 0 degrees is forward. Positive angles point right and negative angles point left. Use forward, backward, or lateral for cardinal directions." }
     ],
     params: [
       p("x_m", "float (nonzero)", "Open-loop right/left displacement. Positive is right; negative is left."),

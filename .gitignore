@@ -16,3 +16,6 @@ data/preorder-invoices.json
 teaching-materials/
 agentech_submissions/
 review_submissions/
+.robot-stream-logs/
+.robot-stream-jobs/
+.robot-stream-runtime/

@@ -1,9 +1,6 @@
 import type { AgentechFunction, AgentechParam, CapabilityStatus } from "@/lib/agentech-library";
-import { naviMotionMedia, type NaviReferenceMedia } from "@/lib/navi-motion-media";
 
-export type NaviFunction = AgentechFunction & {
-  media?: NaviReferenceMedia[];
-};
+export type NaviFunction = AgentechFunction;
 
 const p = (
   name: string,
@@ -722,10 +719,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
   }
 ];
 
-export const naviFunctions: NaviFunction[] = naviFunctionDefinitions.map((item) => ({
-  ...item,
-  media: naviMotionMedia[item.name]
-}));
+export const naviFunctions: NaviFunction[] = naviFunctionDefinitions;
 
 export const naviStarterCode = `from agentech import Agentech
 Agentech.use("navi", host="192.168.4.65")`;

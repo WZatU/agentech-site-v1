@@ -879,7 +879,7 @@ Live camera -> Website viewer -> Student watches the run`;
 
 const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
-  "view-sdk": "Choose Aegis or Navi, then browse exact functions, parameters, limits, examples, and reference media.",
+  "view-sdk": "Choose Aegis or Navi, then browse exact functions, parameters, limits, examples, and reference images.",
   "physical-hardware-check": "Upload or paste one Python file, then run the physical hardware check before any software review.",
   "software-check": "Upload, paste, or type one file. Pass Hardware Safety first, then run Software Security on the exact same code.",
   "watch-live-run": "Live Stream opens only during an approved scheduled robot slot after the required checks pass."
@@ -1153,7 +1153,7 @@ function FocusedBrowseFunctionsSection() {
         profiles: item.profiles?.filter((profile) => profile.name !== "Legacy aliases"),
         params: item.params.filter((param) => !["**connect_kwargs", "speed", "seconds", "stop", "operation"].includes(param.name))
       }))
-    : agentechFunctions.map((item) => ({ ...item, media: undefined }));
+    : agentechFunctions;
   const selectedStarterCode = selectedRobot === "navi" ? naviStarterCode : starterCode;
   const selectedRobotLabel = selectedRobot === "navi" ? "Navi" : "Aegis";
   const referenceCategories: AgentechFunction["category"][] = selectedRobot === "navi"
@@ -1189,7 +1189,7 @@ function FocusedBrowseFunctionsSection() {
     },
     {
       title: "Open details",
-      body: `Details reveal definitions, parameter meanings, examples, and ${selectedRobot === "navi" ? "Navi reference media" : "GIF previews"}.`
+      body: `Details reveal definitions, parameter meanings, examples, and ${selectedRobot === "navi" ? "the Navi reference image" : "GIF previews"}.`
     },
     {
       title: "Copy into Hardware Check",
@@ -1427,26 +1427,7 @@ function FocusedBrowseFunctionsSection() {
                       {commandsWithoutReferencePreview.has(item.name) ? null : (
                         <div className="min-w-0 bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}</p>
-                          {selectedRobot === "navi" && item.media?.length ? (
-                            <div className="grid gap-4 xl:grid-cols-2">
-                              {item.media.map((media) => (
-                                <figure key={media.src} className="border border-[#dce7f2] bg-[#f8fbff] p-3">
-                                  <video
-                                    controls
-                                    playsInline
-                                    preload="none"
-                                    src={media.src}
-                                    aria-label={`${media.label} on Navi`}
-                                    className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
-                                  />
-                                  <figcaption className="mt-3">
-                                    <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#006a5c]">{media.label}</p>
-                                    <p className="mt-1 text-xs leading-5 text-[#526174]">{media.description}</p>
-                                  </figcaption>
-                                </figure>
-                              ))}
-                            </div>
-                          ) : selectedRobot === "navi" ? (
+                          {selectedRobot === "navi" ? (
                             <Image
                               src="/assets/robotics/ff-navi-white.jpg"
                               alt={`FF Navi robot for Agentech.${item.name}`}
