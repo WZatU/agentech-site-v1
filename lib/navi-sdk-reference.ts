@@ -68,6 +68,49 @@ const parameterizedAction = (
   profiles
 });
 
+const internalNaviParamNames = new Set(["**connect_kwargs"]);
+
+function completeParameterProfiles(item: AgentechFunction): AgentechFunction {
+  const publicParams = item.params.filter((param) => !internalNaviParamNames.has(param.name));
+  if (!publicParams.length || item.profiles?.length) return item;
+
+  const allOptional = publicParams.every((param) => param.defaultValue !== undefined);
+  const profiles: NonNullable<AgentechFunction["profiles"]> = [];
+  if (allOptional) {
+    profiles.push({ name: "Default", syntax: `Agentech.${item.name}()` });
+  }
+  profiles.push({
+    name: allOptional ? "Configured options" : "Required parameters",
+    syntax: item.signature
+  });
+  return { ...item, profiles };
+}
+
+function validateNaviReference(items: AgentechFunction[]) {
+  const names = new Set<string>();
+  for (const item of items) {
+    if (names.has(item.name)) throw new Error(`Duplicate Navi SDK reference: ${item.name}`);
+    names.add(item.name);
+
+    const publicParams = item.params.filter((param) => !internalNaviParamNames.has(param.name));
+    const paramNames = new Set<string>();
+    for (const param of publicParams) {
+      if (paramNames.has(param.name)) {
+        throw new Error(`Duplicate Navi parameter: ${item.name}.${param.name}`);
+      }
+      paramNames.add(param.name);
+    }
+    for (const match of item.signature.matchAll(/\b([A-Za-z_]\w*)\s*=/g)) {
+      if (!paramNames.has(match[1])) {
+        throw new Error(`Undocumented Navi signature parameter: ${item.name}.${match[1]}`);
+      }
+    }
+    if (publicParams.length && !item.profiles?.length) {
+      throw new Error(`Missing Navi parameter profiles: ${item.name}`);
+    }
+  }
+}
+
 const motionVerification = "Live verified 2026-07-15 with controller error=0 and warning=0";
 const naviFunctionDefinitions: AgentechFunction[] = [
   {
@@ -169,7 +212,8 @@ const naviFunctionDefinitions: AgentechFunction[] = [
       p("y_m", "float (nonzero)", "Requested open-loop forward/backward displacement. Positive is forward; negative is backward."),
       p("angle_deg", "float [-180, 180], non-cardinal", "Direction measured from forward. Positive points right and negative points left.", "45"),
       p("speed_mps", "float > 0, component-limited", "Combined diagonal speed. The resolved forward and lateral components must remain inside Navi's limits.", "0.5"),
-      p("duration_s", "float (0, 10] seconds", "How long to apply the diagonal velocity command.", "2.0")
+      p("duration_s", "float (0, 10] seconds", "How long to apply the diagonal velocity command.", "2.0"),
+      controlledStop
     ]
   },
   {
@@ -593,7 +637,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     example: "Agentech.set_gait(gait_id=3)",
     status: "development",
     platformNote: "The SDK enforces the robot-advertised range, but the physical behavior of each gait preset still requires isolated validation.",
-    params: [p("gait_id", "int [0, 15]", "Select one of the 16 gait presets installed on this Navi.", "3", "development")]
+    params: [p("gait_id", "int [0, 15]", "Select one of the 16 gait presets installed on this Navi.", undefined, "development")]
   },
   {
     name: "set_foot_height",
@@ -603,7 +647,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     example: "Agentech.set_foot_height(height_m=0.08)",
     status: "development",
     platformNote: "The transport and range guard are implemented; safe useful values across all gaits still require physical validation.",
-    params: [p("height_m", "float [0.001, 0.4] meters", "Set how high Navi lifts each foot while walking.", "0.03", "development")]
+    params: [p("height_m", "float [0.001, 0.4] meters", "Set how high Navi lifts each foot while walking.", undefined, "development")]
   },
   {
     name: "set_collision_protect",
@@ -613,7 +657,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     example: "Agentech.set_collision_protect(enabled=True)",
     status: "development",
     platformNote: "The command contract is implemented, but live collision-response behavior has not been deliberately exercised.",
-    params: [p("enabled", "bool", "True keeps collision protection enabled; false disables it.", "True", "development")]
+    params: [p("enabled", "bool", "True keeps collision protection enabled; false disables it.", undefined, "development")]
   },
   {
     name: "set_friction",
@@ -623,7 +667,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     example: "Agentech.set_friction(friction=0.5)",
     status: "development",
     platformNote: "The full robot-advertised range is guarded in software; surface-specific tuning is not yet physically calibrated.",
-    params: [p("friction", "float [0.01, 1.0]", "Use a lower value for slippery floors and a higher value for grippy floors.", "0.4", "development")]
+    params: [p("friction", "float [0.01, 1.0]", "Use a lower value for slippery floors and a higher value for grippy floors.", undefined, "development")]
   },
   {
     name: "set_jump_distance",
@@ -633,7 +677,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     example: "Agentech.set_jump_distance(distance_m=0.3)",
     status: "development",
     platformNote: "The setting is published with audited bounds, but distance accuracy and landing behavior remain open-loop and uncalibrated.",
-    params: [p("distance_m", "float [0, 1.0] meters", "Forward travel requested by Agentech.jump_forward().", "0.5", "development")]
+    params: [p("distance_m", "float [0, 1.0] meters", "Forward travel requested by Agentech.jump_forward().", undefined, "development")]
   },
   {
     name: "set_jump_angle",
@@ -643,7 +687,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     example: "Agentech.set_jump_angle(angle_rad=0.2)",
     status: "development",
     platformNote: "The command and bounds are implemented, but requested rotation versus observed rotation has not been physically calibrated.",
-    params: [p("angle_rad", "float [-3.14, 3.14] radians", "Positive and negative values choose opposite rotation directions for Agentech.jump_round().", "0.0", "development")]
+    params: [p("angle_rad", "float [-3.14, 3.14] radians", "Positive and negative values choose opposite rotation directions for Agentech.jump_round().", undefined, "development")]
   },
   {
     name: "stop",
@@ -719,7 +763,8 @@ const naviFunctionDefinitions: AgentechFunction[] = [
   }
 ];
 
-export const naviFunctions: NaviFunction[] = naviFunctionDefinitions;
+export const naviFunctions: NaviFunction[] = naviFunctionDefinitions.map(completeParameterProfiles);
+validateNaviReference(naviFunctions);
 
 export const naviStarterCode = `from agentech import Agentech
 Agentech.use("navi", host="192.168.4.65")`;

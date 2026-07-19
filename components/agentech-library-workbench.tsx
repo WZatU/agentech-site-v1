@@ -134,6 +134,10 @@ function profileSyntaxWithPlaceholders(syntax: string) {
   );
 }
 
+function compactFunctionSignature(signature: string) {
+  return signature.replace(/\([^)]*\)/g, "()");
+}
+
 function resolvePreviewCommand(command: string, args = "") {
   if (command === "u_turn") return "turn_left";
   if (command === "yaw") {
@@ -1150,8 +1154,7 @@ function FocusedBrowseFunctionsSection() {
         ...item,
         verification: undefined,
         platformNote: publicNaviPlatformNotes.has(item.name) ? item.platformNote : undefined,
-        profiles: item.profiles?.filter((profile) => profile.name !== "Legacy aliases"),
-        params: item.params.filter((param) => !["**connect_kwargs", "speed", "seconds", "stop", "operation"].includes(param.name))
+        params: item.params.filter((param) => param.name !== "**connect_kwargs")
       }))
     : agentechFunctions;
   const selectedStarterCode = selectedRobot === "navi" ? naviStarterCode : starterCode;
@@ -1332,7 +1335,7 @@ function FocusedBrowseFunctionsSection() {
                   <details key={item.name} className="group min-w-0 bg-white">
                     <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_260px]">
                       <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">
-                        {selectedRobot === "navi" ? profileSyntaxWithPlaceholders(item.signature) : item.signature}
+                        {compactFunctionSignature(item.signature)}
                       </p>
                       <p className="min-w-0 text-sm leading-6 text-[#111d35]">{item.summary}</p>
                       <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
