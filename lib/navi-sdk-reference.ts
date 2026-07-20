@@ -221,8 +221,8 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     signature: "Agentech.turn()",
     summary: "Turn with signed angle, rate, percentage, level, timed, or fixed-shortcut profiles.",
     example: "Agentech.turn(angle_deg=-45, turn_rate_rad_s=0.5)",
-    verification: `${motionVerification}; tested through 2.5 rad/s in both directions`,
-    platformNote: "Positive public values turn right; negative values turn left. Navi heading execution is open loop.",
+    verification: `${motionVerification}; yaw-feedback controller verified in hardware-free wraparound and fail-safe tests; physical angle calibration pending`,
+    platformNote: "Positive public values turn right and negative values turn left. The requested angle is the target: live body-yaw feedback varies speed and completion time, requires five consecutive readings within 1 degree, and corrects again if settling drifts outside that window. Explicit rate-plus-time turns remain open loop.",
     profiles: [
       { name: "Default angle", syntax: "Agentech.turn()  # right 45 degrees at 2 rad/s" },
       { name: "Angle + optional rate", syntax: "Agentech.turn(angle_deg=-45, turn_rate_rad_s=0.5)" },
@@ -241,7 +241,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
       p("turn_rate_deg_s", "0 or magnitude [1.145916, 171.887339]", "Degree-rate form of turn_rate_rad_s."),
       p("rate_percentage", "int [-100, 100]", "Rounded to the nearest signed 5%. Zero is a no-op."),
       p("turn_level", "int [-511, 511]", "Signed 512-level rate scale. Zero is a no-op."),
-      p("duration_s", "float (0, 10] s on Navi", "Required for timed turns. Navi rejects open-loop execution longer than 10 seconds."),
+      p("duration_s", "float (0, 10] s on Navi", "Required for explicit rate-plus-time turns, which remain open loop. Angle targets do not use this as their stopping measurement."),
       controlledStop,
       naviConnection
     ]
@@ -739,7 +739,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     summary: "Read body position, orientation, linear and angular velocity, and acceleration.",
     example: "body = Agentech.body_status()",
     verification: "Read-only live verified 2026-07-15",
-    platformNote: "The body x/y fields are not dependable global odometry for distance-target stopping.",
+    platformNote: "This controller-fused body-state stream provides roll, pitch, yaw, angular rates, and acceleration for feedback control. It is not a separately exposed raw IMU packet, and body x/y are not dependable global odometry.",
     params: []
   },
   {
@@ -770,7 +770,7 @@ Agentech.use("navi", host="192.168.4.65")`;
 
 export const naviSafetyLimits = [
   "Motion is dry-run unless dry_run=False is selected",
-  "Motion and open-loop turns are limited to 10 seconds",
+  "Angle turns use yaw feedback; timed motion and rate-plus-time turns are limited to 10 seconds",
   "Timed poses and gestures accept any positive finite duration and return to standing",
   "Damping lowers Navi into its relaxed charging or shutdown posture",
   "Keep the physical controller stop available",
