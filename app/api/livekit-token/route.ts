@@ -3,34 +3,13 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { accountSessionCookieName } from "@/lib/account-session";
 import { getAccountRecord } from "@/lib/account-records";
+import { getActiveRobotViewingSession } from "@/lib/agentech-live-session";
 import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
-import { supabaseRequest } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
-const activeSessionStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
-
-function normalizeStatus(status: string) {
-  return status.replace(/ /g, "_").toLowerCase();
-}
-
-async function hasActiveViewingSession(email: string) {
-  const nowIso = new Date().toISOString();
-  const sessions = await supabaseRequest<Array<{ id: number; session_status: string }>>("agentech_robot_sessions", {
-    query: [
-      `email=eq.${encodeURIComponent(email)}`,
-      `scheduled_start=lte.${encodeURIComponent(nowIso)}`,
-      `scheduled_end=gte.${encodeURIComponent(nowIso)}`,
-      "select=id,session_status",
-      "order=scheduled_start.asc",
-      "limit=5"
-    ].join("&")
-  }).catch(() => []);
-
-  return sessions.some((session) => activeSessionStatuses.has(normalizeStatus(session.session_status)));
-}
 
 export async function GET(request: Request) {
   const apiKey = process.env.LIVEKIT_API_KEY;
@@ -55,7 +34,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Live robot viewing requires account credits." }, { status: 402 });
   }
 
-  if (!(await hasActiveViewingSession(email))) {
+  const activeSession = await getActiveRobotViewingSession(email);
+  if (!activeSession) {
     return NextResponse.json(
       { error: "Schedule a robot viewing time before opening the live camera." },
       { status: 403 }
@@ -80,5 +60,10 @@ export async function GET(request: Request) {
     canPublishData: false
   });
 
-  return NextResponse.json({ token: await token.toJwt(), roomName });
+  return NextResponse.json({
+    token: await token.toJwt(),
+    roomName,
+    sessionId: activeSession.id,
+    robotModel: activeSession.robotModel
+  });
 }

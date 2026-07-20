@@ -2,6 +2,7 @@
 
 import { Room, RoomEvent, Track, type RemoteTrack } from "livekit-client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { normalizeAgentechRobotModel, type AgentechRobotModel } from "@/lib/agentech-robot-model";
 
 type LiveRobotCameraProps = {
   roomName: string;
@@ -28,6 +29,8 @@ type DisplayCapture = {
 function captureExtension(dataUrl: string) {
   if (dataUrl.startsWith("data:image/png")) return "png";
   if (dataUrl.startsWith("data:image/webp")) return "webp";
+  const storedExtension = decodeURIComponent(dataUrl).match(/\.(png|webp|jpe?g)(?:$|[&#])/i)?.[1]?.toLowerCase();
+  if (storedExtension === "png" || storedExtension === "webp") return storedExtension;
   return "jpg";
 }
 
@@ -39,7 +42,11 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   const [captureUrl, setCaptureUrl] = useState("");
   const [captureTime, setCaptureTime] = useState("");
   const [captureHistory, setCaptureHistory] = useState<DisplayCapture[]>([]);
+  const [hasActiveSession, setHasActiveSession] = useState(false);
+  const [activeRobotModel, setActiveRobotModel] = useState<AgentechRobotModel | null>(null);
   const localCaptureIdRef = useRef("");
+  const isNaviSession = hasActiveSession && activeRobotModel === "Navi";
+  const showLiveCapturePreview = hasActiveSession && activeRobotModel === "Aegies";
 
   const receiveCapture = useCallback((capture: DisplayCapture) => {
     setCaptureUrl(capture.dataUrl);
@@ -78,6 +85,36 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   }, [receiveCapture]);
 
   useEffect(() => {
+    let active = true;
+
+    async function readActiveSession() {
+      try {
+        const response = await fetch("/api/agentech-live-session", { cache: "no-store" });
+        const payload = (await response.json()) as {
+          active?: boolean;
+          session?: { robotModel?: string } | null;
+        };
+        if (!active) return;
+        const model = normalizeAgentechRobotModel(payload.session?.robotModel);
+        setHasActiveSession(response.ok && payload.active === true && Boolean(model));
+        setActiveRobotModel(model);
+      } catch {
+        if (active) {
+          setHasActiveSession(false);
+          setActiveRobotModel(null);
+        }
+      }
+    }
+
+    void readActiveSession();
+    const timer = window.setInterval(() => void readActiveSession(), 5000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!livekitUrl || !isViewing) {
       return;
     }
@@ -106,10 +143,15 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       try {
         setStatus("Connecting to live robot camera...");
         const response = await fetch(`/api/livekit-token?room=${encodeURIComponent(roomName)}`, { cache: "no-store" });
-        const payload = (await response.json()) as { token?: string; error?: string };
+        const payload = (await response.json()) as { token?: string; error?: string; robotModel?: string };
 
         if (!response.ok || !payload.token) {
           throw new Error(payload.error || "Could not create LiveKit viewer token.");
+        }
+        const sessionModel = normalizeAgentechRobotModel(payload.robotModel);
+        if (sessionModel) {
+          setHasActiveSession(true);
+          setActiveRobotModel(sessionModel);
         }
 
         const room = new Room({
@@ -263,7 +305,20 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
 
   return (
     <div ref={containerRef}>
-    <div className="grid gap-3 lg:grid-cols-2">
+    <div className={`mb-3 border px-4 py-3 text-sm leading-6 ${
+      isNaviSession
+        ? "border-[#31506a] bg-[#101d2e] text-[#dbeafe]"
+        : showLiveCapturePreview
+          ? "border-[#31583a] bg-[#102015] text-[#dfffe0]"
+          : "border-[#2a3440] bg-[#0d1117] text-[#aeb8c2]"
+    }`}>
+      {isNaviSession
+        ? "Navi live session: live video only. Navi does not support Agentech.capture_image(), so no capture preview is shown."
+        : showLiveCapturePreview
+          ? "Aegies live session: display-mode captures appear beside the live stream and remain saved in the archive below."
+          : "No active robot session. Saved Aegies captures remain available in the archive below."}
+    </div>
+    <div className={showLiveCapturePreview ? "grid gap-3 lg:grid-cols-2" : "grid gap-3"}>
       <div className="relative aspect-video min-h-64 w-full bg-black">
         <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
       {status === "Live robot camera connected." ? null : (
@@ -289,6 +344,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
         </button>
         ) : null}
       </div>
+      {showLiveCapturePreview ? (
       <div className="relative aspect-video min-h-64 overflow-hidden border border-[#2a3440] bg-[#080b0f]">
         {captureUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -309,13 +365,14 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           </div>
         ) : null}
       </div>
+      ) : null}
     </div>
     {captureHistory.length ? (
       <section className="mt-3 border border-[#2a3440] bg-[#080b0f] p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">Download Captures</p>
-            <p className="mt-1 text-xs text-[#aeb8c2]">The preview shows only the latest image. Every displayed capture remains downloadable below.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">Saved Aegies Captures</p>
+            <p className="mt-1 text-xs text-[#aeb8c2]">These images stay available after an Aegies stream ends and remain downloadable during Navi sessions.</p>
           </div>
           <span className="text-xs text-[#aeb8c2]">{captureHistory.length} image{captureHistory.length === 1 ? "" : "s"}</span>
         </div>

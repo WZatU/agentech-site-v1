@@ -971,7 +971,7 @@ function FocusedLiveRunSection() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce7f2] px-4 py-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Stream Camera</p>
-              <p className="mt-1 text-xs leading-5 text-[#526174]">Live video and code-runner image results appear together.</p>
+              <p className="mt-1 text-xs leading-5 text-[#526174]">Live video appears here. Saved Aegies captures remain available for download.</p>
             </div>
             <div className="flex items-center gap-3">
               <Link
@@ -984,7 +984,7 @@ function FocusedLiveRunSection() {
             </div>
           </div>
           <div className="border-b border-[#dce7f2] bg-[#f5fbff] px-4 py-3 text-sm leading-6 text-[#23304a]">
-            Use <span className="font-mono">mode=&quot;internal&quot;</span> for code-only vision or the paid <span className="font-mono">mode=&quot;display&quot;</span> option to show the returned frame beside the stream. Neither option opens a local viewer.
+            Aegies supports paid display captures and a persistent download archive. Navi sessions show live video only because the Navi SDK has no image-capture command.
           </div>
           <div className="bg-[#0d1117] p-4">
             <LiveRobotCamera roomName={process.env.NEXT_PUBLIC_LIVEKIT_ROOM_NAME || "aegis-lab-1"} />
