@@ -13,6 +13,8 @@ if sdk_root:
 from navi_gateway_spec import validate_navi_command  # noqa: E402
 
 MAX_COMMANDS = 200
+RECOVERABLE_TURN_COMMANDS = frozenset({"turn", "turn_left", "turn_right", "u_turn"})
+TURN_TIMEOUT_PREFIX = "Navi yaw-feedback turn timed out at "
 
 
 def configure_navi():
@@ -40,15 +42,41 @@ def load_plan(path: str) -> list[dict]:
     return commands
 
 
+def is_recoverable_turn_timeout(name: str, error: BaseException) -> bool:
+    return (
+        name in RECOVERABLE_TURN_COMMANDS
+        and isinstance(error, TimeoutError)
+        and str(error).startswith(TURN_TIMEOUT_PREFIX)
+    )
+
+
 def execute(path: str) -> None:
     commands = load_plan(path)
     agentech = configure_navi()
+    recoverable_timeouts = 0
     try:
         for index, command in enumerate(commands, start=1):
             name = command["name"]
             arguments = command["args"]
             print(f"[navi-runner] {index}/{len(commands)} Agentech.{name}({arguments})", flush=True)
-            getattr(agentech, name)(**arguments)
+            try:
+                getattr(agentech, name)(**arguments)
+            except TimeoutError as error:
+                if not is_recoverable_turn_timeout(name, error):
+                    raise
+                print(
+                    f"[navi-runner] recoverable {name} timeout: {error}; "
+                    "sending a safety stop, then continuing",
+                    flush=True,
+                )
+                agentech.stop()
+                recoverable_timeouts += 1
+        if recoverable_timeouts:
+            print(
+                f"[navi-runner] completed {len(commands)} commands with "
+                f"{recoverable_timeouts} recoverable turn timeout(s)",
+                flush=True,
+            )
     finally:
         agentech.stop()
 
