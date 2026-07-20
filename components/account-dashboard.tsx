@@ -131,6 +131,7 @@ type DashboardData = {
     approved_run_type: string | null;
     preset_demo: string | null;
     benchmark_status: string | null;
+    code_submission_id: string | null;
     created_at: string;
   }>;
   codeSubmissions?: DashboardCodeSubmission[];
@@ -382,19 +383,6 @@ const studentGradeOptions = [
   "Grade 10",
   "Grade 11",
   "Grade 12"
-];
-
-const robotPresetOptions = [
-  {
-    value: "starter_demo",
-    label: "Starter demo",
-    description: "Stand up, five forward steps, left/right, look up/down, and backflip."
-  },
-  { value: "stand_up", label: "Stand up", description: "Preset stand-up movement." },
-  { value: "five_forward", label: "Five forward", description: "Preset five-step forward movement." },
-  { value: "left_right", label: "Left/right", description: "Preset side movement." },
-  { value: "look_up_down", label: "Look up/down", description: "Preset head movement." },
-  { value: "backflip", label: "Backflip", description: "Preset backflip demo." }
 ];
 
 const creditRechargeOptions = [1000, 2500, 5000, 10000];
@@ -694,15 +682,16 @@ function buildPreviewDashboardData(profileType: AccessProfileType): DashboardDat
         id: 880,
         profile_username: primaryProfile.username,
         profile_type: profileType,
-        session_title: profileType === "developer" ? "Robot request submitted" : `${formatProfileType(profileType)} robot viewing`,
+        session_title: profileType === "developer" ? `Approved custom code live test for @${primaryProfile.username}` : `${formatProfileType(profileType)} robot viewing`,
         robot_model: "Aegis Robot Dog",
         scheduled_start: yesterday.toISOString(),
         scheduled_end: now.toISOString(),
         session_status: "requested",
-        requested_run_type: "preset_demo",
-        approved_run_type: "preset_demo",
-        preset_demo: "starter_demo",
-        benchmark_status: "not_started",
+        requested_run_type: profileType === "developer" ? "custom_code" : "preset_demo",
+        approved_run_type: profileType === "developer" ? "custom_code" : "preset_demo",
+        preset_demo: profileType === "developer" ? "Approved custom code live test" : "starter_demo",
+        benchmark_status: profileType === "developer" ? "passed" : "not_started",
+        code_submission_id: profileType === "developer" ? "agentech-preview-approved" : null,
         created_at: now.toISOString()
       }
     ],
@@ -1012,8 +1001,6 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
   const [robotSlotStart, setRobotSlotStart] = useState(getDefaultRobotSlotValue);
   const [robotSlotDurationMinutes, setRobotSlotDurationMinutes] = useState("5");
   const [robotSlotModel, setRobotSlotModel] = useState("Aegies");
-  const [robotSlotPreset, setRobotSlotPreset] = useState("starter_demo");
-  const [robotSlotRunType, setRobotSlotRunType] = useState<"preset_demo" | "custom_code">("preset_demo");
   const [robotSlotNotes, setRobotSlotNotes] = useState("");
   const [robotSlotMessage, setRobotSlotMessage] = useState("");
   const [robotSlotOptions, setRobotSlotOptions] = useState<RobotSlotOption[]>([]);
@@ -1605,9 +1592,8 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
         scheduledStart: Number.isNaN(scheduledDate.getTime()) ? robotSlotStart : scheduledDate.toISOString(),
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         durationMinutes: robotSlotDurationMinutes,
-        robotModel: robotSlotModel,
-        presetDemo: robotSlotRunType === "custom_code" ? "approved_custom_code" : robotSlotPreset,
-        requestedRunType: robotSlotRunType,
+        robotModel: latestApprovedRobotModel ?? robotSlotModel,
+        requestedRunType: "custom_code",
         notes: robotSlotNotes
       })
     });
@@ -1690,10 +1676,10 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
   const latestApprovedCodeSubmission = (data.codeSubmissions ?? []).find((submission) => submission.id === data.account?.developer_latest_code_submission_id);
   const latestApprovedRobotModel = normalizeAgentechRobotModel(latestApprovedCodeSubmission?.robot_model);
+  const codeSubmissionById = new Map((data.codeSubmissions ?? []).map((submission) => [submission.id, submission]));
   const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed" && latestApprovedCodeSubmission?.physical_safety_status === "passed" && latestApprovedCodeSubmission.ai_security_status === "passed";
-  const customCodeModelMismatch = robotSlotRunType === "custom_code" && latestApprovedRobotModel !== normalizeAgentechRobotModel(robotSlotModel);
   const internalCreditBypass = isInternalCompanyAccount;
-  const customCodeLocked = robotSlotRunType === "custom_code" && (!developerCodeReviewPassed || customCodeModelMismatch);
+  const customCodeLocked = !developerCodeReviewPassed;
   const robotSlotCreditLocked = !internalCreditBypass && creditBalance < robotSlotCreditCost;
   const robotSlotUnavailable = loadingRobotSlots || !robotSlotDurationValid || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
   const selectedDashboardProfile = data.accessProfiles?.find((profile) => profile.id === selectedDashboardProfileId) ?? null;
@@ -2992,9 +2978,9 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2f70c8]">Robot Slot</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Request Robot Viewing</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Schedule Approved Robot Code</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Viewing costs {robotViewingCreditsPerMinute} credits per minute. External accounts choose {externalRobotViewingMinimumMinutes}-{externalRobotViewingMaximumMinutes} minutes; @agent-tech.ai accounts are not charged. Every custom-code session requires both review gates to pass.
+                Sessions cost {robotViewingCreditsPerMinute} credits per minute. External accounts choose {externalRobotViewingMinimumMinutes}-{externalRobotViewingMaximumMinutes} minutes; @agent-tech.ai accounts are not charged. Only customer-approved code that passed both review gates can be scheduled.
               </p>
             </div>
             <div className={`rounded-2xl px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
@@ -3025,26 +3011,17 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                     ))}
                   </select>
                 </label>
-                <label className="block">
+                <div className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Run Type</span>
-                  <select
-                    value={robotSlotRunType}
-                    onChange={(event) => {
-                      const nextRunType = event.target.value === "custom_code" ? "custom_code" : "preset_demo";
-                      setRobotSlotRunType(nextRunType);
-                      if (nextRunType === "custom_code" && latestApprovedRobotModel) setRobotSlotModel(latestApprovedRobotModel);
-                    }}
-                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                  >
-                    <option value="preset_demo">Preset viewing demo</option>
-                    <option value="custom_code">Approved custom code live test</option>
-                  </select>
+                  <div className="mt-2 w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+                    Approved custom code live test
+                  </div>
                   <span className="mt-2 block text-sm text-slate-600">
                     {developerCodeReviewPassed
-                      ? "Custom code can be scheduled from the latest approved submission."
-                      : "Custom code requires a passed physical safety gate and AI security scan."}
+                      ? "This session will use your latest approved submission."
+                      : "Scheduling requires a passed physical safety gate and AI security scan."}
                   </span>
-                </label>
+                </div>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Start Time</span>
                   <select
@@ -3084,9 +3061,9 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Robot Model</span>
                   <select
-                    value={robotSlotModel}
+                    value={latestApprovedRobotModel ?? robotSlotModel}
                     onChange={(event) => setRobotSlotModel(event.target.value)}
-                    disabled={robotSlotRunType === "custom_code" && Boolean(latestApprovedRobotModel)}
+                    disabled={Boolean(latestApprovedRobotModel)}
                     className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
                   >
                     {robotModelOptions.map((model) => (
@@ -3096,36 +3073,16 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                     ))}
                   </select>
                   <span className="mt-2 block text-sm text-slate-600">
-                    {robotSlotRunType === "custom_code" && latestApprovedRobotModel
+                    {latestApprovedRobotModel
                       ? `Locked to the ${latestApprovedRobotModel} model used by the latest approved code check.`
-                      : "Choose the robot that will run this session."}
+                      : "Submit and approve code for Aegies or Navi before scheduling."}
                   </span>
                 </label>
-                {robotSlotRunType === "preset_demo" ? (
-                <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Preset Demo</span>
-                  <select
-                    value={robotSlotPreset}
-                    onChange={(event) => setRobotSlotPreset(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
-                  >
-                    {robotPresetOptions.map((preset) => (
-                      <option key={preset.value} value={preset.value}>
-                        {preset.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="mt-2 block text-sm text-slate-600">
-                    {robotPresetOptions.find((preset) => preset.value === robotSlotPreset)?.description}
-                  </span>
-                </label>
-                ) : (
-                  <p className={`rounded-xl border px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
-                    {developerCodeReviewPassed
-                      ? "This slot will use the latest Supabase-approved custom code package."
-                      : "Custom live-code testing is locked until the AI security scan passes."}
-                  </p>
-                )}
+                <p className={`rounded-xl border px-4 py-3 text-sm font-semibold ${developerCodeReviewPassed ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+                  {developerCodeReviewPassed
+                    ? "This slot will use the latest Supabase-approved custom code package."
+                    : "Custom live-code testing is locked until both approval checks pass."}
+                </p>
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Notes</span>
                   <textarea
@@ -3162,8 +3119,14 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
               <h3 className="text-lg font-semibold text-slate-950">Requested Robot Slots</h3>
               <div className="mt-4 space-y-3">
                 {hasRobotSessions ? (
-                  data.robotSessions?.map((session) => (
-                    <div key={session.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                  data.robotSessions?.map((session) => {
+                    const linkedSubmission = session.code_submission_id
+                      ? codeSubmissionById.get(session.code_submission_id)
+                      : undefined;
+                    const isCustomCodeSession = (session.approved_run_type || session.requested_run_type) === "custom_code";
+
+                    return (
+                      <div key={session.id} className="rounded-xl border border-slate-200 bg-white p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-slate-950">{session.session_title}</p>
@@ -3178,8 +3141,30 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                           <p className="mt-1 text-xs text-slate-500">Run: {formatInvoiceStatus(session.approved_run_type || "preset_demo")}</p>
                         </div>
                       </div>
-                    </div>
-                  ))
+                      {isCustomCodeSession ? (
+                        <details className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                          <summary className="cursor-pointer select-none px-4 py-3 text-sm font-semibold text-[#2f70c8]">
+                            View submitted code
+                          </summary>
+                          <div className="border-t border-slate-200 p-4">
+                            {linkedSubmission ? (
+                              <>
+                                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                                  {getCodeSubmissionFileName(linkedSubmission)} - {normalizeAgentechRobotModel(linkedSubmission.robot_model) || linkedSubmission.robot_model}
+                                </p>
+                                <pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
+                                  <code>{linkedSubmission.code}</code>
+                                </pre>
+                              </>
+                            ) : (
+                              <p className="text-sm text-slate-600">The exact approved source is unavailable for this historical session.</p>
+                            )}
+                          </div>
+                        </details>
+                      ) : null}
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-sm leading-6 text-slate-600">
                     No robot viewing slots requested yet. The first available request is the next 5-minute slot after a 2-minute prep buffer.

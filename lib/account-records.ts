@@ -890,11 +890,11 @@ export async function getAiRoboticsClubApplications(accountEmail: string) {
 export async function getRobotSessions(accountEmail: string) {
   try {
     return await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
+      query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
     });
   } catch {
     try {
-      const rows = await supabaseRequest<Array<Omit<RobotSessionRecord, "access_profile_id" | "profile_username" | "profile_type" | "requested_run_type" | "approved_run_type" | "preset_demo" | "benchmark_status">>>("agentech_robot_sessions", {
+      const rows = await supabaseRequest<Array<Omit<RobotSessionRecord, "access_profile_id" | "profile_username" | "profile_type" | "requested_run_type" | "approved_run_type" | "preset_demo" | "benchmark_status" | "code_submission_id">>>("agentech_robot_sessions", {
         query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,session_title,robot_model,scheduled_start,scheduled_end,session_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
       });
 
@@ -906,7 +906,8 @@ export async function getRobotSessions(accountEmail: string) {
         requested_run_type: null,
         approved_run_type: null,
         preset_demo: null,
-        benchmark_status: null
+        benchmark_status: null,
+        code_submission_id: null
       }));
     } catch {
       return [];
@@ -917,7 +918,7 @@ export async function getRobotSessions(accountEmail: string) {
 export async function getRobotSessionsInWindow(startIso: string, endIso: string) {
   try {
     return await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      query: `scheduled_start=gte.${encodeURIComponent(startIso)}&scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
+      query: `scheduled_start=gte.${encodeURIComponent(startIso)}&scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
     });
   } catch {
     return [];
@@ -933,7 +934,7 @@ export async function findRobotSessionConflict(startIso: string, endIso: string)
   let sessions: RobotSessionRecord[] = [];
   try {
     sessions = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      query: `scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
+      query: `scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
     });
   } catch {
     sessions = [];

@@ -30,7 +30,6 @@ type RobotSlotPayload = {
   scheduledStart?: string;
   timeZone?: string;
   robotModel?: string;
-  presetDemo?: string;
   requestedRunType?: string;
   durationMinutes?: number | string;
   notes?: string;
@@ -40,15 +39,7 @@ const slotIntervalMinutes = 5;
 const minimumLeadTimeMs = 2 * 60 * 1000;
 const defaultTimeZone = "America/Los_Angeles";
 
-const presetDemos = new Map([
-  ["starter_demo", "Starter demo: stand up, five forward steps, left/right, look up/down, backflip"],
-  ["stand_up", "Stand up"],
-  ["five_forward", "Five forward steps"],
-  ["left_right", "Left/right movement"],
-  ["look_up_down", "Look up/down"],
-  ["backflip", "Backflip"],
-  ["approved_custom_code", "Approved custom code live test"]
-]);
+const approvedCustomCodeLabel = "Approved custom code live test";
 
 function clean(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -181,9 +172,7 @@ async function sendRobotSlotConfirmation(input: {
     `Time: ${scheduledWindow}`,
     `Demo: ${input.presetDemo}`,
     "",
-    input.presetDemo === "Approved custom code live test"
-      ? "This slot is for a supervised live test of code that passed Agentech physical safety and AI software security review."
-      : "This slot is for a supervised preset viewing session.",
+    "This slot is for a supervised live test of code that passed Agentech physical safety and AI software security review.",
     "",
     "Agentech"
   ].join("\n");
@@ -198,7 +187,7 @@ async function sendRobotSlotConfirmation(input: {
         <tr><td style="padding: 8px 0; color: #6b7280;">Time</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(scheduledWindow)}</td></tr>
         <tr><td style="padding: 8px 0; color: #6b7280;">Demo</td><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(input.presetDemo)}</td></tr>
       </table>
-      <p>${input.presetDemo === "Approved custom code live test" ? "This slot is for a supervised live test of code that passed Agentech physical safety and AI software security review." : "This slot is for a supervised preset viewing session."}</p>
+      <p>This slot is for a supervised live test of code that passed Agentech physical safety and AI software security review.</p>
       <p style="margin-top: 24px;">Agentech</p>
     </div>
   `;
@@ -242,10 +231,9 @@ export async function POST(request: Request) {
   const scheduledStartRaw = clean(payload?.scheduledStart);
   const requestedScheduledStart = new Date(scheduledStartRaw);
   const timeZone = validTimeZone(clean(payload?.timeZone));
-  const requestedRunType = clean(payload?.requestedRunType) || "preset_demo";
+  const requestedRunType = clean(payload?.requestedRunType) || "custom_code";
   const durationMinutes = getDurationMinutes(payload?.durationMinutes);
   const robotModel = normalizeAgentechRobotModel(payload?.robotModel ?? "Aegies");
-  const presetDemoKey = presetDemos.has(clean(payload?.presetDemo)) ? clean(payload?.presetDemo) : "starter_demo";
 
   if (!isValidEmail(signedInEmail)) {
     return NextResponse.json({ error: "Sign in before scheduling a robot viewing session." }, { status: 401 });
@@ -282,9 +270,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Robot slots must start on a 5-minute boundary." }, { status: 400 });
   }
 
-  if (requestedRunType !== "preset_demo" && requestedRunType !== "custom_code") {
+  if (requestedRunType !== "custom_code") {
     return NextResponse.json(
-      { error: "Choose preset viewing or an approved custom-code live test." },
+      { error: "Only customer-approved custom code can be scheduled for a robot session." },
       { status: 400 }
     );
   }
@@ -322,33 +310,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That profile does not belong to this account." }, { status: 403 });
   }
 
-  const codeSubmission = requestedRunType === "custom_code" && account.developer_latest_code_submission_id
+  const codeSubmission = account.developer_latest_code_submission_id
     ? await getCodeSubmissionRecord(account.developer_latest_code_submission_id, email)
     : null;
 
   if (
-    requestedRunType === "custom_code"
-    && (
-      !codeSubmission
-      || codeSubmission.physical_safety_status !== "passed"
-      || codeSubmission.ai_security_status !== "passed"
-    )
+    !codeSubmission
+    || codeSubmission.physical_safety_status !== "passed"
+    || codeSubmission.ai_security_status !== "passed"
   ) {
     return NextResponse.json(
       { error: "Custom live-code testing requires a saved code file whose physical safety gate and AI security scan both passed." },
       { status: 403 }
     );
   }
-  if (requestedRunType === "custom_code" && normalizeAgentechRobotModel(codeSubmission?.robot_model) !== robotModel) {
+  if (normalizeAgentechRobotModel(codeSubmission.robot_model) !== robotModel) {
     return NextResponse.json(
-      { error: `Your latest approved code was checked for ${normalizeAgentechRobotModel(codeSubmission?.robot_model) ?? "a different robot"}. Select that model or submit and approve new ${robotModel} code.` },
+      { error: `Your latest approved code was checked for ${normalizeAgentechRobotModel(codeSubmission.robot_model) ?? "a different robot"}. Select that model or submit and approve new ${robotModel} code.` },
       { status: 409 }
     );
   }
 
-  const presetDemo = requestedRunType === "custom_code"
-    ? presetDemos.get("approved_custom_code") ?? "Approved custom code live test"
-    : presetDemos.get(presetDemoKey) ?? presetDemos.get("starter_demo") ?? "Preset robot demo";
+  const presetDemo = approvedCustomCodeLabel;
   const scheduledEnd = addMinutes(scheduledStart, durationMinutes);
   const scheduledEndParts = getTimeParts(scheduledEnd, timeZone);
   if (!internalCompanyAccount && scheduledEndParts.hour * 60 + scheduledEndParts.minute > 17 * 60) {
@@ -379,11 +362,11 @@ export async function POST(request: Request) {
       robotModel,
       scheduledStart: scheduledStart.toISOString(),
       scheduledEnd: scheduledEnd.toISOString(),
-      requestedRunType: requestedRunType as "preset_demo" | "custom_code",
-      approvedRunType: requestedRunType === "custom_code" ? "custom_code" : "preset_demo",
+      requestedRunType: "custom_code",
+      approvedRunType: "custom_code",
       presetDemo,
-      benchmarkStatus: requestedRunType === "custom_code" ? "passed" : "not_started",
-      codeSubmissionId: codeSubmission?.id ?? null,
+      benchmarkStatus: "passed",
+      codeSubmissionId: codeSubmission.id,
       price: creditsRequired / 100,
       notes: clean(payload?.notes) || null
     });
