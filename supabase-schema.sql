@@ -604,6 +604,15 @@ create index if not exists agentech_robot_sessions_code_submission_idx
 on public.agentech_robot_sessions (code_submission_id)
 where code_submission_id is not null;
 
+create or replace view public.agentech_robot_sessions_pacific
+with (security_invoker = true)
+as
+select
+  to_char(s.scheduled_start at time zone 'America/Los_Angeles', 'YYYY-MM-DD HH12:MI AM') || ' Pacific' as scheduled_start_pacific,
+  to_char(s.scheduled_end at time zone 'America/Los_Angeles', 'YYYY-MM-DD HH12:MI AM') || ' Pacific' as scheduled_end_pacific,
+  s.*
+from public.agentech_robot_sessions as s;
+
 create table if not exists public.agentech_admin_users (
   email text primary key,
   role text not null default 'admin',
