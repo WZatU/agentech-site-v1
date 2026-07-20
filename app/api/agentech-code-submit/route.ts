@@ -15,6 +15,7 @@ import {
 import { runAgentechAiCodeReview } from "@/lib/agentech-ai-review";
 import { evaluateAgentechMovementSafety } from "@/lib/agentech-motion-safety";
 import { getAiReviewCreditCost } from "@/lib/agentech-review-pricing";
+import { normalizeAgentechRobotModel } from "@/lib/agentech-robot-model";
 import { validateAgentechCode } from "@/lib/agentech-validation";
 import { getSoftwareCheckCreditPolicy, isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail } from "@/lib/prototype-auth";
@@ -196,7 +197,7 @@ export async function POST(request: NextRequest) {
     const isLocalPreview = process.env.NODE_ENV !== "production";
     const email = isValidEmail(submittedEmail) ? submittedEmail : isLocalPreview ? "developer.preview@agentech.local" : submittedEmail;
     const developerName = cleanText(payload.developerName, isLocalPreview ? "Local preview" : "Agentech developer") || "Agentech developer";
-    const robotModel = cleanText(payload.robotModel, "Aegies");
+    const robotModel = normalizeAgentechRobotModel(payload.robotModel ?? "Aegies");
     const runMode = cleanText(payload.runMode, "Software check");
     const code = cleanText(payload.code);
     const uploadedFileName = cleanText(payload.uploadedFileName);
@@ -204,6 +205,10 @@ export async function POST(request: NextRequest) {
     const submissionId = cleanText(payload.submissionId);
     const commands = extractCommands(code);
     const { internalCompanyAccount: internalAccount } = getSoftwareCheckCreditPolicy(email);
+
+    if (!robotModel) {
+      return NextResponse.json({ error: "Choose Aegies or Navi before running the hardware check.", errorCode: "INVALID_ROBOT_MODEL" }, { status: 400 });
+    }
 
     if (!isAllowedRunMode(runMode)) {
       return NextResponse.json({ error: "Choose a valid review mode.", errorCode: "INVALID_RUN_MODE" }, { status: 400 });
@@ -226,14 +231,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validationErrors = validateAgentechCode(code);
+    const validationErrors = validateAgentechCode(code, robotModel);
     if (validationErrors.length) {
       return NextResponse.json(
         { error: validationErrors.join(" "), errorCode: "CODE_VALIDATION_FAILED" },
         { status: 400 }
       );
     }
-    const movementSafety = evaluateAgentechMovementSafety(code);
+    const movementSafety = evaluateAgentechMovementSafety(code, robotModel);
 
     if (isLocalPreview) {
       if (reviewStage === "physical") {
@@ -418,6 +423,10 @@ export async function POST(request: NextRequest) {
 
     if (submission.physical_safety_status !== "passed") {
       return NextResponse.json({ error: "Software Check unlocks only after Step 3 Physical Hardware Check passes." }, { status: 403 });
+    }
+
+    if (normalizeAgentechRobotModel(submission.robot_model) !== robotModel) {
+      return NextResponse.json({ error: "The selected robot model changed after the hardware check. Run the hardware check again for this robot." }, { status: 409 });
     }
 
     if (submission.ai_security_status !== "locked" || submission.ai_security_reviewed_at) {

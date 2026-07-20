@@ -1,6 +1,6 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createHash, createHmac } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import OBSWebSocket from "obs-websocket-js";
@@ -14,6 +14,7 @@ const runtimeDir = join(here, "..", ".robot-stream-runtime");
 const stateFile = join(runtimeDir, "state.json");
 const compiler = join(here, "compile-robot-plan.py");
 const trustedRunner = join(here, "trusted-robot-runner.py");
+const trustedNaviRunner = join(here, "trusted-navi-runner.py");
 const captureUploadUrl = process.env.AGENTECH_CAPTURE_UPLOAD_URL || "https://www.agent-tech.ai/api/agentech-capture";
 const supabaseUrl = process.env.SUPABASE_URL.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -21,6 +22,9 @@ const robot = `${process.env.ROBOT_SSH_USER}@${process.env.ROBOT_HOST}`;
 const remoteDir = process.env.ROBOT_REMOTE_DIR || "/home/firefly/agentech-stream";
 const robotPython = process.env.ROBOT_PYTHON || "python3";
 const localPython = process.env.ROBOT_LOCAL_PYTHON || "python";
+const naviHost = process.env.AGENTECH_NAVI_HOST || "192.168.4.65";
+const naviPort = process.env.AGENTECH_NAVI_PORT || "9090";
+const agentechSdkRoot = process.env.AGENTECH_SDK_ROOT || "";
 const sshKey = process.env.ROBOT_SSH_KEY;
 const pollMs = Number(process.env.ROBOT_STREAM_POLL_MS || 5000);
 const prepMs = Number(process.env.ROBOT_STREAM_PREP_SECONDS || 120) * 1000;
@@ -36,6 +40,15 @@ let obs;
 
 function saveState() { writeFileSync(stateFile, JSON.stringify(state, null, 2)); }
 function normalized(value) { return String(value || "").replaceAll(" ", "_").toLowerCase(); }
+function robotModel(value) {
+  const model = normalized(value);
+  if (model === "aegis" || model === "aegies" || !model) return "aegis";
+  if (model === "navi") return "navi";
+  throw new Error(`unsupported robot model: ${value}`);
+}
+function naviEnvironment() {
+  return { ...process.env, AGENTECH_NAVI_HOST: naviHost, AGENTECH_NAVI_PORT: naviPort, AGENTECH_SDK_ROOT: agentechSdkRoot };
+}
 function sshArgs() { return [...(sshKey ? ["-i", sshKey] : []), "-o", "BatchMode=yes", "-o", "ConnectTimeout=8"]; }
 function run(program, args, options = {}) { return execFileSync(program, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...options }); }
 
@@ -59,7 +72,7 @@ async function request(table, query, options = {}) {
 async function dueSessions() {
   const now = new Date();
   const end = new Date(now.getTime() + prepMs);
-  const select = "id,email,session_title,scheduled_start,scheduled_end,session_status,approved_run_type,code_submission_id,created_at";
+  const select = "id,email,session_title,robot_model,scheduled_start,scheduled_end,session_status,approved_run_type,code_submission_id,created_at";
   const query = `scheduled_start=lte.${encodeURIComponent(end.toISOString())}&scheduled_end=gte.${encodeURIComponent(now.toISOString())}&approved_run_type=eq.custom_code&select=${select}&order=scheduled_start.asc`;
   return (await request("agentech_robot_sessions", query)).filter((item) => activeStatuses.has(normalized(item.session_status)));
 }
@@ -70,7 +83,7 @@ async function reviewedSubmission(session) {
     // Compatibility for website deployments created before booking-time pinning:
     // choose only the newest fully reviewed submission that already existed when the booking was made.
     const cutoff = encodeURIComponent(session.created_at);
-    const fallbackQuery = `email=eq.${encodeURIComponent(session.email)}&created_at=lte.${cutoff}&physical_safety_status=eq.passed&ai_security_status=eq.passed&select=id,code&order=created_at.desc&limit=1`;
+    const fallbackQuery = `email=eq.${encodeURIComponent(session.email)}&created_at=lte.${cutoff}&physical_safety_status=eq.passed&ai_security_status=eq.passed&select=id,code,robot_model&order=created_at.desc&limit=1`;
     const candidates = await request("agentech_code_submissions", fallbackQuery);
     if (candidates.length !== 1) throw new Error("custom session has no eligible reviewed submission to pin");
     const updated = await request(
@@ -82,9 +95,10 @@ async function reviewedSubmission(session) {
     session.code_submission_id = candidates[0].id;
     console.log(`[robot-stream] pinned reviewed submission ${candidates[0].id} to legacy booking ${session.id}.`);
   }
-  const query = `id=eq.${encodeURIComponent(session.code_submission_id)}&email=eq.${encodeURIComponent(session.email)}&physical_safety_status=eq.passed&ai_security_status=eq.passed&select=id,code&limit=1`;
+  const query = `id=eq.${encodeURIComponent(session.code_submission_id)}&email=eq.${encodeURIComponent(session.email)}&physical_safety_status=eq.passed&ai_security_status=eq.passed&select=id,code,robot_model&limit=1`;
   const rows = await request("agentech_code_submissions", query);
   if (rows.length !== 1) throw new Error("pinned submission no longer passes both reviews");
+  if (robotModel(rows[0].robot_model) !== robotModel(session.robot_model)) throw new Error("session robot model does not match its reviewed submission");
   return rows[0];
 }
 
@@ -102,33 +116,39 @@ async function stopObs() {
 
 function stage(session, submission) {
   const prefix = `session-${session.id}`;
+  const selectedModel = robotModel(session.robot_model);
   const sourcePath = join(runtimeDir, `${prefix}.reviewed.py`);
   const planPath = join(runtimeDir, `${prefix}.plan.json`);
   writeFileSync(sourcePath, submission.code, { encoding: "utf8", flag: "wx" });
-  run(localPython, [compiler, sourcePath, submission.id, planPath]);
+  if (selectedModel === "navi") run(localPython, [compiler, sourcePath, submission.id, "navi", planPath]);
+  else run(localPython, [compiler, sourcePath, submission.id, planPath]);
   const plan = JSON.parse(readFileSync(planPath, "utf8"));
   if (plan.source_sha256 !== createHash("sha256").update(submission.code).digest("hex")) throw new Error("compiled plan source hash mismatch");
-  run("ssh", [...sshArgs(), robot, "mkdir", "-p", remoteDir]);
-  run("scp", [...sshArgs(), planPath, trustedRunner, `${robot}:${remoteDir}/`]);
   let captureIndex = 0;
   const remoteCaptures = [];
-  for (const command of plan.commands) {
-    if (command.name !== "capture_image") continue;
-    captureIndex += 1;
-    if (command.args?.mode === "display") {
-      remoteCaptures.push(`${remoteDir}/${prefix}.plan-capture-${captureIndex}.jpg`);
+  if (selectedModel === "aegis") {
+    run("ssh", [...sshArgs(), robot, "mkdir", "-p", remoteDir]);
+    run("scp", [...sshArgs(), planPath, trustedRunner, `${robot}:${remoteDir}/`]);
+    for (const command of plan.commands) {
+      if (command.name !== "capture_image") continue;
+      captureIndex += 1;
+      if (command.args?.mode === "display") {
+        remoteCaptures.push(`${remoteDir}/${prefix}.plan-capture-${captureIndex}.jpg`);
+      }
     }
   }
   state.sessions[session.id] = {
     status: "staged",
-    remotePlan: `${remoteDir}/${prefix}.plan.json`,
+    executionModel: selectedModel,
+    localPlan: planPath,
+    remotePlan: selectedModel === "aegis" ? `${remoteDir}/${prefix}.plan.json` : null,
     remoteCaptures,
     publishedCaptures: [],
     accountEmail: session.email,
     end: session.scheduled_end
   };
   saveState();
-  console.log(`[robot-stream] Code X compiled and staged ${plan.commands.length} commands for session ${session.id}.`);
+  console.log(`[robot-stream] Code X compiled and staged ${plan.commands.length} ${selectedModel} commands for session ${session.id}.`);
 }
 
 async function claimSession(session) {
@@ -149,6 +169,27 @@ async function launch(session) {
     console.log(`[robot-stream] session ${session.id} was claimed by another gateway; skipping.`);
     return;
   }
+  if (item.executionModel === "navi") {
+    const localLog = join(runtimeDir, `session-${session.id}.navi.log`);
+    const logFd = openSync(localLog, "a");
+    try {
+      const child = spawn(localPython, [trustedNaviRunner, item.localPlan], {
+        detached: true,
+        windowsHide: true,
+        stdio: ["ignore", logFd, logFd],
+        env: naviEnvironment()
+      });
+      child.unref();
+      item.pid = String(child.pid);
+      item.localLog = localLog;
+    } finally {
+      closeSync(logFd);
+    }
+    item.status = "running";
+    saveState();
+    console.log(`[robot-stream] trusted Navi SDK runner started for session ${session.id}; PID ${item.pid}.`);
+    return;
+  }
   const remoteRunner = `${remoteDir}/trusted-robot-runner.py`;
   const remoteLog = `${remoteDir}/session-${session.id}.log`;
   const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}' > '${remoteLog}' 2>&1 & echo $!`;
@@ -161,15 +202,28 @@ async function launch(session) {
 function stopSession(id) {
   const item = state.sessions[id];
   if (item?.pid && item.status === "running") {
-    try { run("ssh", [...sshArgs(), robot, "kill", item.pid], { stdio: "ignore" }); } catch {}
+    if (item.executionModel === "navi") {
+      try { process.kill(Number(item.pid)); } catch {}
+      try { run(localPython, [trustedNaviRunner, "--stop"], { stdio: "ignore", env: naviEnvironment() }); } catch {}
+    } else {
+      try { run("ssh", [...sshArgs(), robot, "kill", item.pid], { stdio: "ignore" }); } catch {}
+    }
   }
   item.status = "finished";
   saveState();
 }
 
-function processRunning(pid) {
+function processRunning(item) {
+  if (item.executionModel === "navi") {
+    try {
+      process.kill(Number(item.pid), 0);
+      return true;
+    } catch {
+      return false;
+    }
+  }
   try {
-    run("ssh", [...sshArgs(), robot, "kill", "-0", String(pid)], { stdio: "ignore" });
+    run("ssh", [...sshArgs(), robot, "kill", "-0", String(item.pid)], { stdio: "ignore" });
     return true;
   } catch {
     return false;
@@ -218,7 +272,7 @@ async function tick() {
     if (state.sessions[session.id].status === "staged" && now >= Date.parse(session.scheduled_start)) await launch(session);
   }
   for (const [id, item] of Object.entries(state.sessions)) {
-    if (item.status === "running" && !processRunning(item.pid)) {
+    if (item.status === "running" && !processRunning(item)) {
       item.status = "publishing";
       saveState();
       try {
@@ -247,7 +301,7 @@ async function tick() {
   if (!active) await stopObs();
 }
 
-console.log(`[robot-stream] Standalone trusted command gateway running for ${robot}; customer source is never sent to the robot.`);
+console.log(`[robot-stream] Standalone trusted command gateway running for Aegies ${robot} and Navi ${naviHost}:${naviPort}; customer source is never sent to the robot. Navi receives only exact SDK calls from an inert plan.`);
 let tickInProgress = false;
 async function guardedTick() {
   if (tickInProgress) return;

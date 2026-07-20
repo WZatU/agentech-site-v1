@@ -8,6 +8,7 @@ import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
 import { eaicHubPath, getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
+import { normalizeAgentechRobotModel, robotModelOptions, type AgentechRobotModel } from "@/lib/agentech-robot-model";
 import { LiveRobotCamera } from "@/components/live-robot-camera";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
@@ -332,7 +333,7 @@ function approvedDownloadFileName(fileName: string) {
   return `${baseName || "agentech_submission"}-approved.py`;
 }
 
-function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReason = "", movementSafety = defaultMovementSafety(status, failureReason)): HardwareChecklistItem[] {
+function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReason = "", movementSafety = defaultMovementSafety(status, failureReason), robotModel: AgentechRobotModel = "Aegies"): HardwareChecklistItem[] {
   const failDetail = failureReason || "Fix the checklist items before simulation can run.";
   const blocked = status === "FAIL";
   return [
@@ -367,9 +368,15 @@ function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReas
       detail: !blocked ? "Uploaded code can be treated as a real-robot command package without exposing translated code." : "Translation stays blocked until the uploaded code passes validation."
     },
     {
-      name: "MuJoCo simulation check",
+      name: robotModel === "Navi" ? "Navi SDK compatibility check" : "MuJoCo simulation check",
       status: blocked ? "FAIL" : "PASS",
-      detail: !blocked ? "Approved command sequence is ready for the simulation/result view." : "Simulation blocked because validation failed."
+      detail: !blocked
+        ? robotModel === "Navi"
+          ? "Every command and named parameter matches the latest reviewed Navi SDK surface."
+          : "Approved command sequence is ready for the simulation/result view."
+        : robotModel === "Navi"
+          ? "Navi execution is blocked because SDK validation failed."
+          : "Simulation blocked because validation failed."
     }
   ];
 }
@@ -447,14 +454,29 @@ battery = Agentech.battery()`
   }
 };
 
-function commandPlan(code: string) {
+const naviFixedTurnCommands = ["turn_left", "turn_right", "u_turn"];
+const naviHardwareCommands = new Set([
+  ...naviFunctions
+    .filter((item) => item.status !== "development" && item.status !== "unsupported")
+    .flatMap((item) => item.name === "lateral" ? ["lateral_left", "lateral_right"] : [item.name]),
+  ...naviFixedTurnCommands
+]);
+const naviMotionCommands = new Set([
+  ...naviFunctions
+    .filter((item) => item.status !== "development" && item.status !== "unsupported" && ["Movement", "Athletics", "Actions", "Posture"].includes(item.category))
+    .flatMap((item) => item.name === "lateral" ? ["lateral_left", "lateral_right"] : [item.name]),
+  ...naviFixedTurnCommands
+]);
+
+function commandPlan(code: string, robotModel: AgentechRobotModel = "Aegies") {
   const trace: string[] = [];
   const lines = code.split(/\r?\n/);
-  const supportedCommands = new Set([
+  const aegisCommands = new Set([
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
     "battery", "get_body_state", "imu", "capture_image"
   ]);
+  const supportedCommands = robotModel === "Navi" ? naviHardwareCommands : aegisCommands;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -473,7 +495,7 @@ function commandPlan(code: string) {
     motionCount: trace.filter((line) => {
       const match = line.match(/^([a-zA-Z_][\w]*)\s*\((.*)\)$/);
       const command = match?.[1] ?? "";
-      return motionCommands.has(command);
+      return robotModel === "Navi" ? naviMotionCommands.has(command) : motionCommands.has(command);
     }).length
   };
 }
@@ -1464,6 +1486,7 @@ function FocusedBrowseFunctionsSection() {
 function HardwareResultPanel({ result }: { result: HardwareResult }) {
   const passed = result.status === "PASS";
   const warning = result.status === "WARNING";
+  const isNavi = normalizeAgentechRobotModel(result.robotModel) === "Navi";
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const activeClip = result.simulationClips[Math.min(activeClipIndex, Math.max(result.simulationClips.length - 1, 0))];
 
@@ -1529,11 +1552,35 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">MuJoCo Simulation Video</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{isNavi ? "Navi SDK Hardware Preview" : "MuJoCo Simulation Video"}</p>
             <p className="mt-2 text-sm leading-6 text-[#334155]">
-              The app reads the uploaded Agentech commands and shows what the code does on the selected robot.
+              {isNavi
+                ? "The app validates the uploaded commands against the latest reviewed Navi SDK. Navi execution uses the exact SDK calls after scheduling."
+                : "The app reads the uploaded Agentech commands and shows what the code does on the selected robot."}
             </p>
-            {passed && activeClip ? (
+            {passed && isNavi ? (
+              <div className="mt-4">
+                <div className="border border-[#dce7f2] bg-white p-4">
+                  <Image
+                    src="/assets/robotics/ff-navi-white.jpg"
+                    alt="FF Navi robot"
+                    width={1200}
+                    height={675}
+                    className="aspect-video w-full object-contain"
+                  />
+                </div>
+                <div className="border-x border-b border-[#dce7f2] bg-[#f8fbff] px-3 py-3">
+                  <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#005bd6]">Validated for Navi</p>
+                  <div className="mt-3 grid gap-2">
+                    {result.motionPlan.map((line, index) => (
+                      <p key={`${line}-${index}`} className="border border-[#dce7f2] bg-white px-3 py-2 font-mono text-xs text-[#334155]">
+                        {index + 1}. {line}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : passed && activeClip ? (
               <div className="mt-4">
                 <div className="border border-[#dce7f2] bg-black">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1573,7 +1620,7 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
               <div className="mt-4 grid min-h-72 place-items-center border border-[#f1b4ad] bg-[#fff4f2] text-center text-[#b42318]">
                 <div className="p-6">
                   <div className="text-[118px] font-extrabold leading-none">X</div>
-                  <p className="mt-2 text-base font-bold">Simulation blocked because validation failed.</p>
+                  <p className="mt-2 text-base font-bold">{isNavi ? "Navi execution blocked because validation failed." : "Simulation blocked because validation failed."}</p>
                   <p className="mt-2 text-sm leading-6 text-[#7f1d1d]">{result.simulationError}</p>
                 </div>
               </div>
@@ -1685,7 +1732,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [reviewInputError, setReviewInputError] = useState("");
   const [isDraggingCodeFile, setIsDraggingCodeFile] = useState(false);
   const developerName = "Agentech developer";
-  const robotModel = "Aegies";
+  const [robotModel, setRobotModel] = useState<AgentechRobotModel>("Aegies");
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedOriginalCode, setUploadedOriginalCode] = useState("");
   const [approvedCodeFile, setApprovedCodeFile] = useState<ApprovedCodeFile | null>(null);
@@ -1717,8 +1764,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   );
 
   const activeFunction = agentechFunctions.find((item) => item.name === activeName) ?? agentechFunctions[0];
-  const plan = useMemo(() => commandPlan(code), [code]);
-  const previewPlan = useMemo(() => commandPlan(prepareMuJoCoCode(code)), [code]);
+  const plan = useMemo(() => commandPlan(code, robotModel), [code, robotModel]);
+  const previewPlan = useMemo(() => commandPlan(prepareMuJoCoCode(code), robotModel), [code, robotModel]);
   const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
   const previewFrameCount = renderedFrames.length || simFrames.length;
   const selectedTask = task ? getAgentechLibraryTask(task) : undefined;
@@ -1831,9 +1878,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           return;
         }
 
+        const restoredRobotModel = normalizeAgentechRobotModel(latestSubmission.robotModel) ?? "Aegies";
         const restoredCode = ensureRequiredStand(latestSubmission.code);
-        const restoredPlan = commandPlan(restoredCode);
-        const movementSafety = evaluateAgentechMovementSafety(restoredCode);
+        const restoredPlan = commandPlan(restoredCode, restoredRobotModel);
+        const movementSafety = evaluateAgentechMovementSafety(restoredCode, restoredRobotModel);
+        setRobotModel(restoredRobotModel);
         setCode(restoredCode);
         setUploadedFileName(latestSubmission.uploadedFileName ?? "");
         const cachedSubmissionMatches = cachedSubmission?.id === latestSubmission.id;
@@ -1861,12 +1910,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         setHardwareResult({
           status: "PASS",
           resultId: latestSubmission.id,
-          robotModel: latestSubmission.robotModel || robotModel,
+          robotModel: restoredRobotModel,
           fileName: latestSubmission.uploadedFileName || "pasted code",
           commandCount: restoredPlan.trace.length,
-          checklist: buildHardwareChecklist("PASS", "", movementSafety),
+          checklist: buildHardwareChecklist("PASS", "", movementSafety, restoredRobotModel),
           motionPlan: restoredPlan.trace,
-          simulationClips: simulationClipsForMotionPlan(restoredPlan.trace),
+          simulationClips: restoredRobotModel === "Navi" ? [] : simulationClipsForMotionPlan(restoredPlan.trace),
           simulationError: "",
           finalHint: "The saved Physical Hardware Check passed. This submission is ready for Software Check.",
           movementSafety
@@ -1912,10 +1961,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     return () => window.clearInterval(interval);
   }, [renderedFrames]);
 
-  function resetPreview(nextCode = code, preferredCommand?: string) {
+  function resetPreview(nextCode = code, preferredCommand?: string, selectedModel: AgentechRobotModel = robotModel) {
     const nextPreview = previewAssetForCode(nextCode, preferredCommand);
     setPreviewStatus(
-      useRealMuJoCoPreview ? "Local simulator preview ready. Run your code to render the real Aegis model." : "Official GIF preview ready. Run your code to play a matching clip."
+      selectedModel === "Navi"
+        ? "Navi SDK compatibility mode selected. Hardware review uses the latest Navi command and parameter contract."
+        : useRealMuJoCoPreview
+          ? "Local simulator preview ready. Run your code to render the real Aegis model."
+          : "Official GIF preview ready. Run your code to play a matching clip."
     );
     setPreviewGif(nextPreview.gif);
     setPreviewCommand(nextPreview.command);
@@ -1924,10 +1977,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setSimFrameIndex(0);
   }
 
-  function updateCode(nextCode: string, preferredCommand?: string) {
+  function updateCode(nextCode: string, preferredCommand?: string, selectedModel: AgentechRobotModel = robotModel) {
     const normalizedCode = ensureRequiredStand(nextCode);
     setCode(normalizedCode);
-    if (commandPlan(normalizedCode).trace.length) {
+    if (commandPlan(normalizedCode, selectedModel).trace.length) {
       setReviewInputError("");
     }
     setPhysicalSubmissionId("");
@@ -1937,7 +1990,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     setHardwareResult(null);
     setApprovedCodeFile(null);
     window.sessionStorage.removeItem("agentech-latest-physical-review");
-    resetPreview(normalizedCode, preferredCommand);
+    resetPreview(normalizedCode, preferredCommand, selectedModel);
+  }
+
+  function changeRobotModel(value: string) {
+    const nextModel = normalizeAgentechRobotModel(value);
+    if (!nextModel || nextModel === robotModel) return;
+    setRobotModel(nextModel);
+    updateCode(code, undefined, nextModel);
+    setRequestStatus(`Selected ${nextModel}. Run Hardware Safety again so this code is checked against the ${nextModel} SDK.`);
   }
 
   function checkAnotherCode() {
@@ -2024,6 +2085,13 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   async function runPreviewSimulation() {
     const runnableCode = prepareMuJoCoCode(code);
     setIsSimulating(true);
+    if (robotModel === "Navi") {
+      setRenderedFrames([]);
+      setSimFrameIndex(0);
+      setPreviewStatus("Navi selected: the hardware check validates exact Navi SDK commands. No Aegies MuJoCo or GIF preview is substituted.");
+      setIsSimulating(false);
+      return;
+    }
     const primary = detectPrimaryPreviewCommand(runnableCode);
     setPreviewCommand(primary);
     setPreviewGif(localPreviewAssets[primary] ?? localPreviewFallback);
@@ -2078,7 +2146,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     if (reviewCode !== code) {
       setCode(reviewCode);
     }
-    const reviewPlan = commandPlan(reviewCode);
+    const reviewPlan = commandPlan(reviewCode, robotModel);
     if (!reviewCode.trim() || !reviewPlan.trace.length) {
       const message = "Type or paste code containing at least one supported Agentech command, or upload a .py file.";
       setPhysicalSubmissionId("");
@@ -2091,7 +2159,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       return;
     }
 
-    const movementSafety = evaluateAgentechMovementSafety(reviewCode);
+    const movementSafety = evaluateAgentechMovementSafety(reviewCode, robotModel);
     setReviewInputError("");
     setIsRunningPhysicalCheck(true);
     setPhysicalSubmissionId("");
@@ -2109,7 +2177,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           robotModel,
           fileName: uploadedFileName || "pasted code",
           commandCount: reviewPlan.motionCount,
-          checklist: buildHardwareChecklist(movementSafety.level, movementSafety.detail, movementSafety),
+          checklist: buildHardwareChecklist(movementSafety.level, movementSafety.detail, movementSafety, robotModel),
           motionPlan: reviewPlan.trace,
           simulationClips: [],
           simulationError: movementSafety.detail,
@@ -2155,7 +2223,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           robotModel,
           fileName: uploadedFileName || "pasted code",
           commandCount: reviewPlan.motionCount,
-          checklist: buildHardwareChecklist(blockedSafety.level, message, blockedSafety),
+          checklist: buildHardwareChecklist(blockedSafety.level, message, blockedSafety, robotModel),
           motionPlan: reviewPlan.trace,
           simulationClips: [],
           simulationError: message,
@@ -2185,10 +2253,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         robotModel,
         fileName: uploadedFileName || "pasted code",
         commandCount: Number(payload.commandCount ?? reviewPlan.trace.length),
-        checklist: buildHardwareChecklist("PASS", "", movementSafety),
+        checklist: buildHardwareChecklist("PASS", "", movementSafety, robotModel),
         movementSafety,
         motionPlan: reviewPlan.trace,
-        simulationClips: simulationClipsForMotionPlan(reviewPlan.trace),
+        simulationClips: robotModel === "Navi" ? [] : simulationClipsForMotionPlan(reviewPlan.trace),
         simulationError: "",
         finalHint: "All checks passed. This result is ready to submit for further review."
       });
@@ -2239,7 +2307,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
     const reviewCode = overrides?.reviewCode ?? approvedCodeFile?.code ?? ensureRequiredStand(code);
     const reviewFileName = overrides?.approvedFile.sourceFileName ?? approvedCodeFile?.sourceFileName ?? uploadedFileName;
-    const reviewPlan = commandPlan(reviewCode);
+    const reviewPlan = commandPlan(reviewCode, robotModel);
     setIsRunningSoftwareCheck(true);
     setSoftwareReviewStatus("pending");
     setCanScheduleRobotSlot(false);
@@ -2413,9 +2481,20 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               <p className="mt-2 text-xs leading-5 text-[#526174]">{focusedReviewCopy}</p>
               <div className="mt-4 space-y-4">
                 <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</p>
-                  <p className="mt-2 text-sm font-semibold text-[#07142e]">{robotModel}</p>
-                  <p className="mt-1 text-xs leading-5 text-[#526174]">Aegies is the enabled robot model for this hardware check.</p>
+                  <label className="block">
+                    <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</span>
+                    <select
+                      value={robotModel}
+                      onChange={(event) => changeRobotModel(event.target.value)}
+                      disabled={softwarePassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                      className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm font-semibold text-[#07142e] outline-none focus:border-[#008a7a] disabled:cursor-not-allowed disabled:bg-[#edf2f7]"
+                    >
+                      {robotModelOptions.map((model) => <option key={model} value={model}>{model}</option>)}
+                    </select>
+                  </label>
+                  <p className="mt-2 text-xs leading-5 text-[#526174]">
+                    {robotModel === "Navi" ? "Checks this submission against the latest Navi SDK." : "Checks this submission against the Aegies SDK."}
+                  </p>
                 </div>
                 <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
                   <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Test type</p>
@@ -2768,7 +2847,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   <p className="font-mono text-xs text-[#7f8c99]">{renderedFrames.length ? "real rendered frames" : "approved GIF asset"}</p>
                 </div>
                 <div className="relative mx-auto aspect-[4/3] max-h-[54vh] w-full overflow-hidden border border-[#2a3440] bg-black sm:aspect-[13/9]">
-                  {renderedFrame ? (
+                  {robotModel === "Navi" ? (
+                    <Image
+                      src="/assets/robotics/ff-navi-white.jpg"
+                      alt="FF Navi SDK hardware reference"
+                      width={1200}
+                      height={675}
+                      className="h-full w-full bg-white object-contain"
+                    />
+                  ) : renderedFrame ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={renderedFrame}
@@ -2805,7 +2892,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isSimulating}
                   className="mt-4 w-full border border-[#93c5fd] bg-[#101d2e] px-3 py-2 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f]"
                 >
-                  {isSimulating ? "Preparing preview..." : "Run Preview"}
+                  {isSimulating ? "Preparing preview..." : robotModel === "Navi" ? "Show Navi Hardware Check" : "Run Preview"}
                 </button>
                 <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{previewStatus}</p>
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
@@ -2934,9 +3021,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
           <div className="hidden space-y-4 p-4 lg:block">
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot model</p>
-              <p className="mt-2 text-sm font-semibold text-white">{robotModel}</p>
-              <p className="mt-1 text-xs leading-5 text-[#7f8c99]">Aegies is the enabled robot model for this hardware check.</p>
+              <label className="block">
+                <span className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Robot model</span>
+                <select
+                  value={robotModel}
+                  onChange={(event) => changeRobotModel(event.target.value)}
+                  disabled={softwarePassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
+                  className="mt-2 w-full border border-[#2a3440] bg-[#11151b] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-[#8fdc8f] disabled:cursor-not-allowed disabled:text-[#687583]"
+                >
+                  {robotModelOptions.map((model) => <option key={model} value={model}>{model}</option>)}
+                </select>
+              </label>
+              <p className="mt-2 text-xs leading-5 text-[#7f8c99]">{robotModel === "Navi" ? "Latest Navi SDK hardware rules are enabled." : "Aegies hardware rules are enabled."}</p>
             </div>
             <div className="border border-[#2a3440] bg-[#0d1117] p-3">
               <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Test type</p>

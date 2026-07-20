@@ -199,9 +199,8 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     signature: "Agentech.diagonal()",
     summary: "Move diagonally with the same X/Y or angle, combined-speed, and duration profiles as Aegis.",
     example: "# Coordinate + duration\nAgentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)\n\n# Angle + combined speed + duration\nAgentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)",
-    verification: "Adapter implemented from FF's simultaneous forward/lateral velocity command; physical Navi verification pending.",
+    verification: "Implemented in the latest Navi SDK; movement recordings cover backward, both lateral directions, and two diagonal directions.",
     platformNote: "The public profiles are identical to Aegis. Navi converts angle and combined speed into forward and lateral velocity components internally. Its X/Y profile is open loop because Navi has no dependable global position feedback. Cleanup sends zero velocity only without damping.",
-    status: "development",
     profiles: [
       { name: "Default: forward-right at 45 degrees, 0.5 m/s for 2 seconds", syntax: "Agentech.diagonal()", noteLabel: "Navi limits", note: "The resolved forward and lateral components must each remain inside Navi's controller limits." },
       { name: "X/Y coordinates + time", syntax: "Agentech.diagonal(x_m=x, y_m=x, duration_s=x)", noteLabel: "Open-loop position", note: "Navi divides X and Y by the requested time to obtain lateral and forward speeds. The endpoint is estimated, not measured." },

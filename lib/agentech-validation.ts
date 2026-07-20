@@ -1,3 +1,6 @@
+import { normalizeAgentechRobotModel, type AgentechRobotModel } from "@/lib/agentech-robot-model";
+import { naviFunctions } from "@/lib/navi-sdk-reference";
+
 export type CheckFinding = { code: string; message: string; line?: number };
 export type CheckItem = { name: string; status: "PASS" | "FAIL"; detail: string };
 export type SoftwareCheckReport = { status: "PASS" | "FAIL"; commands: string[]; findings: CheckFinding[]; checklist: CheckItem[] };
@@ -43,6 +46,73 @@ export const agentechSdkSpec: Record<string, Spec> = {
   capture_image: { allowed: ["mode"], rules: { mode: pick("internal", "display") } }
 };
 
+const blockedNaviHardwareCommands = new Set([
+  "backflip",
+  "recovery_stand",
+  "set_gait",
+  "set_foot_height",
+  "set_collision_protect",
+  "set_friction",
+  "set_jump_distance",
+  "set_jump_angle"
+]);
+
+function naviRule(type: string): Rule {
+  const choices = [...type.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+  if (choices.length) return pick(...choices);
+  if (/\bbool\b/i.test(type)) return { type: "boolean" };
+  if (/\bstr(?:ing)?\b/i.test(type)) return { type: "string" };
+
+  const range = type.match(/([[(])\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*([\])])/);
+  const integerType = /\bint\b/i.test(type);
+  if (range) {
+    return integerType
+      ? integer(Number(range[2]), Number(range[3]))
+      : num(Number(range[2]), Number(range[3]), range[1] === "(");
+  }
+  if (/>\s*0/.test(type) || /positive/i.test(type)) return integerType ? integer(1, Number.MAX_SAFE_INTEGER) : positiveNumber();
+  return integerType ? integer(Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) : { type: "number" };
+}
+
+function buildNaviSdkSpec(): Record<string, Spec> {
+  const specs: Record<string, Spec> = {};
+  for (const item of naviFunctions) {
+    if (item.status === "development" || item.status === "unsupported" || blockedNaviHardwareCommands.has(item.name)) continue;
+    const names = item.name === "lateral" ? ["lateral_left", "lateral_right"] : [item.name];
+    const params = item.params.filter((param) => param.name !== "**connect_kwargs" && param.status !== "development" && param.status !== "unsupported");
+    for (const name of names) {
+      specs[name] = {
+        allowed: params.map((param) => param.name),
+        rules: Object.fromEntries(params.map((param) => [param.name, naviRule(param.type)]))
+      };
+    }
+  }
+
+  const linearSelectors = ["speed_mps", "speed_percent", "speed_level", "distance_m", "speed"];
+  for (const name of ["forward", "backward"] as const) {
+    if (specs[name]) specs[name].selectors = linearSelectors;
+  }
+  for (const name of ["lateral_left", "lateral_right"] as const) {
+    if (specs[name]) specs[name].selectors = ["distance_m", "duration_s", "seconds"];
+  }
+  for (const name of ["turn_left", "turn_right", "u_turn"] as const) {
+    specs[name] = { allowed: [], rules: {} };
+  }
+  if (specs.turn) {
+    specs.turn.rules.turn_rate_rad_s = num(-3, 3);
+    specs.turn.rules.turn_rate_deg_s = num(-171.887339, 171.887339);
+    specs.turn.rules.rate_percentage = integer(-100, 100);
+    specs.turn.rules.turn_level = integer(-511, 511);
+  }
+  for (const name of ["bark", "nod_head", "shake_head"] as const) {
+    if (specs[name]) specs[name].rules.count = pick(1, 2);
+  }
+  if (specs.push_up) specs.push_up.rules.count = integer(1, Number.MAX_SAFE_INTEGER);
+  return specs;
+}
+
+export const naviSdkSpec: Record<string, Spec> = buildNaviSdkSpec();
+
 function valueOf(raw: string): unknown {
   const v = raw.trim();
   if (/^-?\d+(?:\.\d+)?$/.test(v)) return Number(v);
@@ -83,7 +153,9 @@ function checkSquatDiagonalComponent(
   }
 }
 
-export function checkAgentechSoftware(code: string): SoftwareCheckReport {
+export function checkAgentechSoftware(code: string, robotModel: AgentechRobotModel | string = "Aegies"): SoftwareCheckReport {
+  const selectedRobotModel = normalizeAgentechRobotModel(robotModel) ?? "Aegies";
+  const selectedSdkSpec = selectedRobotModel === "Navi" ? naviSdkSpec : agentechSdkSpec;
   const findings: CheckFinding[] = []; const commands: string[] = []; const add = (code: string, message: string, line?: number) => findings.push({ code, message, line });
   const blockedImports = ["os", "sys", "subprocess", "socket", "serial", "mujoco", "unitree", "agibot", "ff_sdk", "mc_sdk_zsl_1_py"];
   const blockedCalls = ["eval", "exec", "open", "compile", "__import__", "input", "globals", "locals", "vars"];
@@ -95,15 +167,25 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
   });
   const pattern = /(?:Agentech|agentech\.Agentech|dog)\.(\w+)\s*\(([^)]*)\)/g; let match: RegExpExecArray | null;
   while ((match = pattern.exec(code))) {
-    const command = match[1]; const raw = match[2]; const line = code.slice(0, match.index).split(/\r?\n/).length; commands.push(command); const spec = agentechSdkSpec[command];
-    if (!spec) { add("UNAPPROVED_SDK_CALL", `${command}() is not in the approved L0.5 SDK.`, line); continue; }
+    const command = match[1]; const raw = match[2]; const line = code.slice(0, match.index).split(/\r?\n/).length; commands.push(command); const spec = selectedSdkSpec[command];
+    if (!spec) { add("UNAPPROVED_SDK_CALL", `${command}() is not approved for the selected ${selectedRobotModel} SDK.`, line); continue; }
     const values: Record<string, unknown> = {};
     argsOf(raw).forEach((arg) => { const eq = arg.indexOf("="); if (eq < 0) return add("POSITIONAL_PARAMETER_BLOCKED", `${command}() must use named parameters.`, line); const name = arg.slice(0, eq).trim(); if (!spec.allowed.includes(name)) return add("UNKNOWN_PARAMETER", `${command}() does not support '${name}'.`, line); values[name] = valueOf(arg.slice(eq + 1)); });
     (spec.required ?? []).forEach((name) => { if (!(name in values)) add("REQUIRED_PARAMETER", `${command}() requires '${name}'.`, line); });
     let selectors = (spec.selectors ?? []).filter((name) => name in values); if (["forward", "backward", "lateral", "lateral_left", "lateral_right"].includes(command) && selectors.includes("distance_m") && selectors.includes("speed_mps")) selectors = selectors.filter((name) => name !== "speed_mps");
     if (selectors.length > 1) add("PROFILE_MIXED", `${command}() mixes profiles: ${selectors.join(", ")}.`, line);
     if (command === "turn") {
-      const provided = Object.keys(values).sort();
+      const provided = Object.keys(values).filter((name) => name !== "stop").sort();
+      if (selectedRobotModel === "Navi") {
+        const angleSelectors = ["angle_deg", "angle_rad", "distance_deg", "distance_rad"].filter((name) => name in values);
+        const rateSelectors = ["turn_rate_rad_s", "turn_rate_deg_s", "rate_percentage", "turn_level"].filter((name) => name in values);
+        const timedOnly = angleSelectors.length === 0 && rateSelectors.length === 1 && "duration_s" in values;
+        const targetMode = angleSelectors.length === 1 && rateSelectors.length <= 1 && !("duration_s" in values);
+        const defaultMode = provided.length === 0;
+        if (!defaultMode && !timedOnly && !targetMode) {
+          add("PROFILE_MIXED", `turn() parameters do not match one Navi SDK profile: ${provided.join(", ") || "default"}.`, line);
+        }
+      } else {
       const profiles = [
         [],
         ["angle_rad"],
@@ -117,6 +199,7 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
       ].map((profile) => [...profile].sort());
       const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
       if (!validProfile) add("PROFILE_MIXED", `turn() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
+      }
 
       const signedPairs = [["angle_rad", "turn_rate_rad_s"], ["angle_deg", "turn_rate_deg_s"]] as const;
       signedPairs.forEach(([angleName, rateName]) => {
@@ -128,7 +211,7 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
       });
     }
     if (command === "diagonal" || command === "squat_diagonal") {
-      const provided = Object.keys(values).sort();
+      const provided = Object.keys(values).filter((name) => name !== "stop").sort();
       const profiles = (command === "squat_diagonal"
         ? [["angle_deg", "duration_s", "speed_mps"]]
         : [[], ["duration_s", "x_m", "y_m"], ["angle_deg", "duration_s", "speed_mps"]]
@@ -182,7 +265,7 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
   const has = (...codes: string[]) => findings.some((f) => codes.some((c) => f.code.includes(c)));
   const checklist: CheckItem[] = [
     { name: "Software safety", status: has("IMPORT", "UNSAFE", "PRIVATE", "DIRECT") ? "FAIL" : "PASS", detail: "Variables, helper functions, if, for, and while are allowed. Unsafe system and direct robot control are blocked." },
-    { name: "SDK commands", status: has("UNAPPROVED", "COMMAND_MISSING") ? "FAIL" : "PASS", detail: `${commands.length} command${commands.length === 1 ? "" : "s"} detected against the L0.5 contract.` },
+    { name: "SDK commands", status: has("UNAPPROVED", "COMMAND_MISSING") ? "FAIL" : "PASS", detail: `${commands.length} command${commands.length === 1 ? "" : "s"} detected against the ${selectedRobotModel} SDK contract.` },
     { name: "Named parameters", status: has("POSITIONAL", "UNKNOWN", "REQUIRED") ? "FAIL" : "PASS", detail: "Calls use supported named parameters and required fields." },
     { name: "Parameter safety", status: has("TYPE", "RANGE", "CHOICE", "PROFILE", "SIGN") ? "FAIL" : "PASS", detail: "Types, ranges, choices, signs, and profiles match the SDK cards." },
     { name: "Benchmark readiness", status: findings.length ? "FAIL" : "PASS", detail: findings.length ? "Fix findings before simulation and robot review." : "Ready for simulation and real-robot translation checks." }
@@ -190,4 +273,4 @@ export function checkAgentechSoftware(code: string): SoftwareCheckReport {
   return { status: findings.length ? "FAIL" : "PASS", commands, findings, checklist };
 }
 
-export function validateAgentechCode(code: string) { return checkAgentechSoftware(code).findings.map((f) => `${f.line ? `Line ${f.line}: ` : ""}${f.message}`); }
+export function validateAgentechCode(code: string, robotModel: AgentechRobotModel | string = "Aegies") { return checkAgentechSoftware(code, robotModel).findings.map((f) => `${f.line ? `Line ${f.line}: ` : ""}${f.message}`); }

@@ -12,6 +12,7 @@ import {
   spendAccountCredits
 } from "@/lib/account-records";
 import { accountSessionCookieName } from "@/lib/account-session";
+import { normalizeAgentechRobotModel } from "@/lib/agentech-robot-model";
 import { isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { sendEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
@@ -39,7 +40,6 @@ const slotIntervalMinutes = 5;
 const minimumLeadTimeMs = 2 * 60 * 1000;
 const defaultTimeZone = "America/Los_Angeles";
 
-const robotModels = new Set(["Aegies"]);
 const presetDemos = new Map([
   ["starter_demo", "Starter demo: stand up, five forward steps, left/right, look up/down, backflip"],
   ["stand_up", "Stand up"],
@@ -244,7 +244,7 @@ export async function POST(request: Request) {
   const timeZone = validTimeZone(clean(payload?.timeZone));
   const requestedRunType = clean(payload?.requestedRunType) || "preset_demo";
   const durationMinutes = getDurationMinutes(payload?.durationMinutes);
-  const robotModel = robotModels.has(clean(payload?.robotModel)) ? clean(payload?.robotModel) : "Aegies";
+  const robotModel = normalizeAgentechRobotModel(payload?.robotModel ?? "Aegies");
   const presetDemoKey = presetDemos.has(clean(payload?.presetDemo)) ? clean(payload?.presetDemo) : "starter_demo";
 
   if (!isValidEmail(signedInEmail)) {
@@ -261,6 +261,10 @@ export async function POST(request: Request) {
 
   if (!profileId) {
     return NextResponse.json({ error: "Choose the profile that will use this robot slot." }, { status: 400 });
+  }
+
+  if (!robotModel) {
+    return NextResponse.json({ error: "Choose Aegies or Navi for this robot slot." }, { status: 400 });
   }
 
   if (Number.isNaN(requestedScheduledStart.getTime())) {
@@ -333,6 +337,12 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Custom live-code testing requires a saved code file whose physical safety gate and AI security scan both passed." },
       { status: 403 }
+    );
+  }
+  if (requestedRunType === "custom_code" && normalizeAgentechRobotModel(codeSubmission?.robot_model) !== robotModel) {
+    return NextResponse.json(
+      { error: `Your latest approved code was checked for ${normalizeAgentechRobotModel(codeSubmission?.robot_model) ?? "a different robot"}. Select that model or submit and approve new ${robotModel} code.` },
+      { status: 409 }
     );
   }
 

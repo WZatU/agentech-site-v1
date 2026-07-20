@@ -10,14 +10,18 @@ import test from "node:test";
 const scriptsDir = fileURLToPath(new URL(".", import.meta.url));
 const compiler = join(scriptsDir, "compile-robot-plan.py");
 const bridge = join(scriptsDir, "robot-stream-bridge.mjs");
+const naviRunner = join(scriptsDir, "trusted-navi-runner.py");
 const python = process.env.ROBOT_LOCAL_PYTHON || (process.platform === "win32" ? "python" : "python3");
 
-function compile(source) {
+function compile(source, robotModel) {
   const directory = mkdtempSync(join(tmpdir(), "agentech-plan-"));
   const sourcePath = join(directory, "reviewed.py");
   const planPath = join(directory, "plan.json");
   writeFileSync(sourcePath, source, "utf8");
-  execFileSync(python, [compiler, sourcePath, "submission-test", planPath]);
+  const args = [compiler, sourcePath, "submission-test"];
+  if (robotModel) args.push(robotModel);
+  args.push(planPath);
+  execFileSync(python, args);
   return JSON.parse(readFileSync(planPath, "utf8"));
 }
 
@@ -37,6 +41,32 @@ test("compiler turns literal Agentech calls into an inert plan", () => {
   assert.equal("source" in plan, false);
 });
 
+test("compiler creates a model-bound Navi plan from exact SDK calls", () => {
+  const source = [
+    "from agentech import Agentech",
+    "Agentech.stand()",
+    "Agentech.forward(speed_mps=0.5, duration_s=1.0)",
+    "Agentech.wave_hand()"
+  ].join("\n");
+  const plan = compile(source, "Navi");
+
+  assert.equal(plan.version, 2);
+  assert.equal(plan.robot_model, "navi");
+  assert.deepEqual(plan.commands.map(({ name }) => name), ["stand", "forward", "wave_hand"]);
+  execFileSync(python, [naviRunner, "--validate", writePlan(plan)]);
+});
+
+function writePlan(plan) {
+  const directory = mkdtempSync(join(tmpdir(), "agentech-navi-plan-"));
+  const planPath = join(directory, "plan.json");
+  writeFileSync(planPath, JSON.stringify(plan), "utf8");
+  return planPath;
+}
+
+test("Navi compiler rejects Aegies-only capture commands", () => {
+  assert.throws(() => compile("from agentech import Agentech\nAgentech.capture_image(mode=\"display\")\n", "Navi"));
+});
+
 test("compiler rejects loops and nonliteral customer execution", () => {
   const directory = mkdtempSync(join(tmpdir(), "agentech-plan-reject-"));
   const sourcePath = join(directory, "reviewed.py");
@@ -53,4 +83,6 @@ test("gateway transfers only the plan and trusted runner", () => {
   assert.doesNotMatch(source, /run\("scp", \[\.\.\.sshArgs\(\), sourcePath,/);
   assert.match(source, /customer source is never sent to the robot/);
   assert.match(source, /async function claimSession/);
+  assert.match(source, /spawn\(localPython, \[trustedNaviRunner, item\.localPlan\]/);
+  assert.match(source, /session robot model does not match its reviewed submission/);
 });

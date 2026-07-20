@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { isAgentechCompanyEmail, isAgentechGatewayOwnerEmail } from "@/lib/company-accounts";
 import { getEaicHubTaskPath } from "@/lib/eaic-hub";
+import { normalizeAgentechRobotModel, robotModelOptions } from "@/lib/agentech-robot-model";
 import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 import {
@@ -382,8 +383,6 @@ const studentGradeOptions = [
   "Grade 11",
   "Grade 12"
 ];
-
-const robotModelOptions = ["Aegies"];
 
 const robotPresetOptions = [
   {
@@ -1689,9 +1688,12 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
   const robotSlotDurationValid = isValidRobotViewingDuration(selectedRobotSlotDuration, isInternalCompanyAccount);
   const robotSlotCreditCost = isInternalCompanyAccount || !robotSlotDurationValid ? 0 : getRobotViewingCreditCost(selectedRobotSlotDuration);
   const selectedRobotSlot = robotSlotOptions.find((slot) => slot.value === robotSlotStart);
-  const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed";
+  const latestApprovedCodeSubmission = (data.codeSubmissions ?? []).find((submission) => submission.id === data.account?.developer_latest_code_submission_id);
+  const latestApprovedRobotModel = normalizeAgentechRobotModel(latestApprovedCodeSubmission?.robot_model);
+  const developerCodeReviewPassed = data.account?.developer_physical_safety_status === "passed" && data.account?.developer_ai_security_status === "passed" && latestApprovedCodeSubmission?.physical_safety_status === "passed" && latestApprovedCodeSubmission.ai_security_status === "passed";
+  const customCodeModelMismatch = robotSlotRunType === "custom_code" && latestApprovedRobotModel !== normalizeAgentechRobotModel(robotSlotModel);
   const internalCreditBypass = isInternalCompanyAccount;
-  const customCodeLocked = robotSlotRunType === "custom_code" && !developerCodeReviewPassed;
+  const customCodeLocked = robotSlotRunType === "custom_code" && (!developerCodeReviewPassed || customCodeModelMismatch);
   const robotSlotCreditLocked = !internalCreditBypass && creditBalance < robotSlotCreditCost;
   const robotSlotUnavailable = loadingRobotSlots || !robotSlotDurationValid || !selectedRobotSlot || selectedRobotSlot.disabled || robotSlotCreditLocked || customCodeLocked;
   const selectedDashboardProfile = data.accessProfiles?.find((profile) => profile.id === selectedDashboardProfileId) ?? null;
@@ -3027,7 +3029,11 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Run Type</span>
                   <select
                     value={robotSlotRunType}
-                    onChange={(event) => setRobotSlotRunType(event.target.value === "custom_code" ? "custom_code" : "preset_demo")}
+                    onChange={(event) => {
+                      const nextRunType = event.target.value === "custom_code" ? "custom_code" : "preset_demo";
+                      setRobotSlotRunType(nextRunType);
+                      if (nextRunType === "custom_code" && latestApprovedRobotModel) setRobotSlotModel(latestApprovedRobotModel);
+                    }}
                     className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
                   >
                     <option value="preset_demo">Preset viewing demo</option>
@@ -3080,6 +3086,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                   <select
                     value={robotSlotModel}
                     onChange={(event) => setRobotSlotModel(event.target.value)}
+                    disabled={robotSlotRunType === "custom_code" && Boolean(latestApprovedRobotModel)}
                     className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none focus:border-[#2f70c8] focus:ring-4 focus:ring-[#dbeafe]"
                   >
                     {robotModelOptions.map((model) => (
@@ -3088,6 +3095,11 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                       </option>
                     ))}
                   </select>
+                  <span className="mt-2 block text-sm text-slate-600">
+                    {robotSlotRunType === "custom_code" && latestApprovedRobotModel
+                      ? `Locked to the ${latestApprovedRobotModel} model used by the latest approved code check.`
+                      : "Choose the robot that will run this session."}
+                  </span>
                 </label>
                 {robotSlotRunType === "preset_demo" ? (
                 <label className="block">

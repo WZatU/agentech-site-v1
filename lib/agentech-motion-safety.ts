@@ -1,3 +1,5 @@
+import { normalizeAgentechRobotModel, type AgentechRobotModel } from "@/lib/agentech-robot-model";
+
 export type AgentechMovementSafetyLevel = "PASS" | "WARNING" | "FAIL";
 
 export type AgentechMovementSafety = {
@@ -38,11 +40,12 @@ function linearDistance(args: string, defaultSpeed: number, defaultDuration = 1)
   const level = numberArg(args, "speed_level");
   const pace = stringArg(args, "pace");
   const speed = numberArg(args, "speed_mps")
+    ?? numberArg(args, "speed")
     ?? (percent !== null ? 3 * percent / 100 : null)
     ?? (level !== null ? 3 * level / 511 : null)
     ?? (pace === "slow" ? 0.2 : pace === "fast" ? 0.8 : pace === "normal" ? 0.4 : null)
     ?? defaultSpeed;
-  const duration = numberArg(args, "duration_s") ?? defaultDuration;
+  const duration = numberArg(args, "duration_s") ?? numberArg(args, "seconds") ?? defaultDuration;
   return speed * duration;
 }
 
@@ -71,7 +74,8 @@ function formatMeters(value: number) {
   return `${roundMeters(value).toFixed(3)}m`;
 }
 
-export function evaluateAgentechMovementSafety(code: string): AgentechMovementSafety {
+export function evaluateAgentechMovementSafety(code: string, robotModel: AgentechRobotModel | string = "Aegies"): AgentechMovementSafety {
+  const selectedRobotModel = normalizeAgentechRobotModel(robotModel) ?? "Aegies";
   const pattern = /(?:Agentech|dog)\.(\w+)\(([^)]*)\)/g;
   let match: RegExpExecArray | null;
   let x = 0;
@@ -98,7 +102,8 @@ export function evaluateAgentechMovementSafety(code: string): AgentechMovementSa
       y += Math.sin(headingRad) * distance;
       samplePosition();
     } else if (command === "backward" || command === "squat_backward") {
-      const distance = linearDistance(args, command === "squat_backward" ? 0.5 : 1.0, command === "squat_backward" ? 2.0 : 1.0);
+      const defaultBackwardSpeed = selectedRobotModel === "Navi" ? 0.5 : 1.0;
+      const distance = linearDistance(args, command === "squat_backward" ? 0.5 : defaultBackwardSpeed, command === "squat_backward" ? 2.0 : 1.0);
       x -= Math.cos(headingRad) * distance;
       y -= Math.sin(headingRad) * distance;
       samplePosition();
