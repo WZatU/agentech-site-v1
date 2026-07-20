@@ -4,6 +4,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $watchdogScript = Join-Path $scriptDir "robot-stream-watchdog.ps1"
 $hiddenWatchdogScript = Join-Path $scriptDir "robot-stream-watchdog-hidden.vbs"
 $taskName = "Agentech Robot Stream Bridge Watchdog"
+$recoveryTaskName = "Agentech Robot Stream Bridge Watchdog Recovery"
 
 foreach ($key in @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_RUNNER_SECRET", "OBS_WEBSOCKET_URL", "OBS_WEBSOCKET_PASSWORD", "ROBOT_HOST", "ROBOT_SSH_USER", "ROBOT_SSH_KEY", "ROBOT_REMOTE_DIR", "ROBOT_PYTHON", "ROBOT_LOCAL_PYTHON", "ROBOT_STREAM_START_HOUR", "ROBOT_STREAM_END_HOUR", "ROBOT_STREAM_PREP_SECONDS", "ROBOT_STREAM_POLL_MS")) {
   $value = [Environment]::GetEnvironmentVariable($key, "Process")
@@ -34,11 +35,12 @@ $action = New-ScheduledTaskAction `
   -Argument "//B //Nologo `"$hiddenWatchdogScript`""
 $trigger = New-ScheduledTaskTrigger -Daily -At 12:00AM
 $trigger.Repetition = New-ScheduledTaskTrigger -Once -At 12:00AM -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration (New-TimeSpan -Hours 24) | Select-Object -ExpandProperty Repetition
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive
 
 Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Host
+Unregister-ScheduledTask -TaskName $recoveryTaskName -Confirm:$false -ErrorAction SilentlyContinue
 Start-ScheduledTask -TaskName $taskName
 
 Write-Host "Installed and started: $taskName"
