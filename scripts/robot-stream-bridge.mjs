@@ -38,6 +38,24 @@ let state = { sessions: {} };
 try { state = JSON.parse(readFileSync(stateFile, "utf8")); } catch {}
 let obs;
 
+async function obsCall(requestType, requestData) {
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      if (!obs) {
+        obs = new OBSWebSocket();
+        await obs.connect(obsUrl, obsPassword);
+      }
+      return await obs.call(requestType, requestData);
+    } catch (error) {
+      lastError = error;
+      try { await obs?.disconnect(); } catch {}
+      obs = undefined;
+    }
+  }
+  throw lastError;
+}
+
 function saveState() { writeFileSync(stateFile, JSON.stringify(state, null, 2)); }
 function normalized(value) { return String(value || "").replaceAll(" ", "_").toLowerCase(); }
 function robotModel(value) {
@@ -103,15 +121,13 @@ async function reviewedSubmission(session) {
 }
 
 async function startObs() {
-  if (!obs) { obs = new OBSWebSocket(); await obs.connect(obsUrl, obsPassword); }
-  const status = await obs.call("GetStreamStatus");
-  if (!status.outputActive) await obs.call("StartStream");
+  const status = await obsCall("GetStreamStatus");
+  if (!status.outputActive) await obsCall("StartStream");
 }
 
 async function stopObs() {
-  if (!obs) return;
-  const status = await obs.call("GetStreamStatus");
-  if (status.outputActive) await obs.call("StopStream");
+  const status = await obsCall("GetStreamStatus");
+  if (status.outputActive) await obsCall("StopStream");
 }
 
 function stage(session, submission) {
