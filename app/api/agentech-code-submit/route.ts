@@ -32,6 +32,14 @@ type SubmissionPayload = {
   submissionId?: string;
 };
 
+const softwareReviewTestBypassEmails = new Set([
+  "victoria_c@agent-tech.ai"
+]);
+
+function shouldBypassPaidSoftwareReview(email: string) {
+  return softwareReviewTestBypassEmails.has(email.trim().toLowerCase());
+}
+
 function cleanText(value: unknown, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
 }
@@ -461,21 +469,24 @@ export async function POST(request: NextRequest) {
       creditsCharged: 0
     };
 
+    const bypassPaidSoftwareReview = shouldBypassPaidSoftwareReview(email);
     const creditCost = getAiReviewCreditCost();
-    const spendPreview = allocateCreditSpend(account, creditCost);
-    if (spendPreview.rechargeRequired && !internalAccount) {
-      await writeLocalSubmission(submission.id, record);
-      return NextResponse.json(
-        {
-          error: `Step 3 Physical Hardware Check passed, but Step 4 Software Check needs ${creditCost} account credit${creditCost === 1 ? "" : "s"}.`,
-          id: submission.id,
-          physicalSafetyStatus: "passed",
-          aiSecurityStatus: "locked",
-          creditsRequired: creditCost,
-          shortfall: spendPreview.shortfall
-        },
-        { status: 402 }
-      );
+    if (!bypassPaidSoftwareReview) {
+      const spendPreview = allocateCreditSpend(account, creditCost);
+      if (spendPreview.rechargeRequired && !internalAccount) {
+        await writeLocalSubmission(submission.id, record);
+        return NextResponse.json(
+          {
+            error: `Step 3 Physical Hardware Check passed, but Step 4 Software Check needs ${creditCost} account credit${creditCost === 1 ? "" : "s"}.`,
+            id: submission.id,
+            physicalSafetyStatus: "passed",
+            aiSecurityStatus: "locked",
+            creditsRequired: creditCost,
+            shortfall: spendPreview.shortfall
+          },
+          { status: 402 }
+        );
+      }
     }
 
     const claimedSubmission = await claimCodeSubmissionSoftwareReview(submission.id, email);
@@ -490,6 +501,54 @@ export async function POST(request: NextRequest) {
       submissionId: submission.id,
       aiSecurityStatus: "pending"
     });
+
+    if (bypassPaidSoftwareReview) {
+      const reviewedAt = new Date().toISOString();
+      const summary = "Internal test-account bypass: marked passed without running the paid AI software review.";
+      await updateCodeSubmissionRecord(submission.id, {
+        ai_security_status: "passed",
+        ai_security_model: "internal-test-bypass",
+        ai_security_summary: summary,
+        ai_security_findings: [],
+        ai_security_risk_level: "low",
+        ai_security_reviewed_at: reviewedAt,
+        credits_charged: 0
+      });
+      await markDeveloperReviewGateOnAccount({
+        email,
+        submissionId: submission.id,
+        aiSecurityStatus: "passed"
+      });
+      await writeLocalSubmission(submission.id, {
+        ...record,
+        aiSecurityStatus: "passed",
+        aiSecurityModel: "internal-test-bypass",
+        aiSecuritySummary: summary,
+        aiSecurityFindings: [],
+        aiSecurityRiskLevel: "low",
+        aiSecurityReviewedAt: reviewedAt,
+        creditsCharged: 0,
+        softwareReviewBypassed: true
+      });
+
+      return NextResponse.json({
+        id: submission.id,
+        submittedAt: submission.created_at,
+        commandCount: commands.length,
+        source: record.source,
+        uploadedFileName: record.uploadedFileName,
+        physicalSafetyStatus: "passed",
+        aiSecurityStatus: "passed",
+        riskLevel: "low",
+        summary,
+        findings: [],
+        creditsCharged: 0,
+        creditsBypassed: true,
+        softwareReviewBypassed: true,
+        internalAccount,
+        status: "approved_for_live_test"
+      });
+    }
 
     let aiResult: Awaited<ReturnType<typeof runAgentechAiCodeReview>>;
     try {
