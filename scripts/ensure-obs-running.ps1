@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $obsPath = "C:\Program Files\obs-studio\bin\64bit\obs64.exe"
 $obsWorkingDirectory = Split-Path -Parent $obsPath
+$safeModeMarker = Join-Path $env:APPDATA "obs-studio\safe_mode"
 $logDirectory = "C:\AgentechRobotGateway\.robot-stream-logs"
 $logPath = Join-Path $logDirectory "ensure-obs-running.log"
 
@@ -15,6 +16,11 @@ if (Get-Process -Name "obs64" -ErrorAction SilentlyContinue) {
 if (-not (Test-Path -LiteralPath $obsPath)) {
   Add-Content -LiteralPath $logPath -Value "[$(Get-Date -Format o)] OBS executable was not found at $obsPath."
   exit 1
+}
+
+if (Test-Path -LiteralPath $safeModeMarker) {
+  Remove-Item -LiteralPath $safeModeMarker -Force
+  Add-Content -LiteralPath $logPath -Value "[$(Get-Date -Format o)] Cleared the stale unclean-shutdown marker before launching OBS normally."
 }
 
 Start-Process `

@@ -1,0 +1,72 @@
+$ErrorActionPreference = "Stop"
+
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptDir
+$bridgeScript = Join-Path $scriptDir "robot-stream-bridge.mjs"
+$logDir = Join-Path $repoRoot ".robot-stream-logs"
+$stdoutLog = Join-Path $logDir "robot-stream-bridge.out.log"
+$stderrLog = Join-Path $logDir "robot-stream-bridge.err.log"
+$watchdogLog = Join-Path $logDir "robot-stream-watchdog.log"
+
+New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+
+foreach ($key in @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_RUNNER_SECRET", "OBS_WEBSOCKET_URL", "OBS_WEBSOCKET_PASSWORD", "ROBOT_HOST", "ROBOT_SSH_USER", "ROBOT_SSH_KEY", "ROBOT_REMOTE_DIR", "ROBOT_PYTHON", "ROBOT_LOCAL_PYTHON", "ROBOT_STREAM_START_HOUR", "ROBOT_STREAM_END_HOUR", "ROBOT_STREAM_PREP_SECONDS", "ROBOT_STREAM_POLL_MS")) {
+  if (-not [Environment]::GetEnvironmentVariable($key, "Process")) {
+    $userValue = [Environment]::GetEnvironmentVariable($key, "User")
+    if ($userValue) {
+      [Environment]::SetEnvironmentVariable($key, $userValue, "Process")
+    }
+  }
+}
+
+$missing = @("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER") | Where-Object {
+  -not [Environment]::GetEnvironmentVariable($_, "Process")
+}
+
+if ($missing.Count -gt 0) {
+  Add-Content -LiteralPath $stderrLog -Value "[$(Get-Date -Format o)] Missing environment variables: $($missing -join ', ')"
+  exit 1
+}
+
+$nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+$node = if ($nodeCommand) { $nodeCommand.Source } else { "C:\Users\victo\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" }
+if (-not (Test-Path -LiteralPath $node)) {
+  Add-Content -LiteralPath $stderrLog -Value "[$(Get-Date -Format o)] Node.js executable was not found."
+  exit 1
+}
+
+Add-Content -LiteralPath $watchdogLog -Value "[$(Get-Date -Format o)] Persistent hidden watchdog started."
+
+while ($true) {
+  try {
+    $startHourRaw = [Environment]::GetEnvironmentVariable("ROBOT_STREAM_START_HOUR", "Process")
+    $endHourRaw = [Environment]::GetEnvironmentVariable("ROBOT_STREAM_END_HOUR", "Process")
+    $startHour = if ($startHourRaw) { [double]$startHourRaw } else { 0.0 }
+    $endHour = if ($endHourRaw) { [double]$endHourRaw } else { 24.0 }
+    $now = Get-Date
+    $hourValue = $now.Hour + ($now.Minute / 60.0) + ($now.Second / 3600.0)
+    $insideOperatingWindow = ($hourValue -ge $startHour) -and ($hourValue -lt $endHour)
+
+    $bridge = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |
+      Where-Object { $_.CommandLine -and $_.CommandLine -like "*robot-stream-bridge.mjs*" } |
+      Select-Object -First 1
+
+    if ($insideOperatingWindow -and -not $bridge) {
+      Start-Process `
+        -FilePath $node `
+        -ArgumentList @("`"$bridgeScript`"") `
+        -WorkingDirectory $repoRoot `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutLog `
+        -RedirectStandardError $stderrLog
+      Add-Content -LiteralPath $watchdogLog -Value "[$($now.ToString('o'))] Robot stream bridge restarted."
+    } elseif (-not $insideOperatingWindow -and $bridge) {
+      Stop-Process -Id $bridge.ProcessId -Force
+      Add-Content -LiteralPath $watchdogLog -Value "[$($now.ToString('o'))] Robot stream bridge stopped outside operating window."
+    }
+  } catch {
+    Add-Content -LiteralPath $stderrLog -Value "[$(Get-Date -Format o)] Watchdog loop error: $($_.Exception.Message)"
+  }
+
+  Start-Sleep -Seconds 15
+}
