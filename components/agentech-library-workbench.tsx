@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk-reference";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
@@ -96,6 +96,9 @@ const localPreviewAssets: Record<string, string> = {
   battery: previewAsset("battery_status")
 };
 const commandsWithoutReferencePreview = new Set(["stay", "squat", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
+const naviSimulationAssets: Partial<Record<string, string>> = {
+  stand: "/assets/products/agentech-library/navi-simulations/stand/navi-stand-up.mp4?v=approved-20260720"
+};
 const localPreviewFallback = previewAsset("stand");
 const protectedStandLine = "Agentech.stand()";
 const commandsRequiringStand = new Set([
@@ -544,6 +547,58 @@ function CopyCodeButton({ value, className = "" }: { value: string; className?: 
         </svg>
       )}
     </button>
+  );
+}
+
+function NaviSimulationPreview({ command }: { command: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoSource = naviSimulationAssets[command];
+
+  if (!videoSource) {
+    return (
+      <Image
+        src="/assets/robotics/ff-navi-white.jpg"
+        alt={`FF Navi robot for Agentech.${command}`}
+        width={1200}
+        height={675}
+        className="aspect-video w-full border border-[#dce7f2] bg-white object-contain"
+      />
+    );
+  }
+
+  function replay() {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    video.currentTime = 0;
+    void video.play().catch(() => undefined);
+  }
+
+  return (
+    <div>
+      <video
+        ref={videoRef}
+        src={videoSource}
+        autoPlay
+        muted
+        playsInline
+        loop
+        preload="metadata"
+        aria-label={`Approved Navi MuJoCo simulation for Agentech.${command}`}
+        className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
+      />
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs leading-5 text-[#526174]">Approved Navi MuJoCo simulation</p>
+        <button
+          type="button"
+          onClick={replay}
+          className="border border-[#005bd6] bg-[#eef6ff] px-3 py-2 text-xs font-semibold text-[#0053bd] transition hover:bg-[#005bd6] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005bd6] focus-visible:ring-offset-2"
+        >
+          Replay simulation
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -1214,7 +1269,7 @@ function FocusedBrowseFunctionsSection() {
     },
     {
       title: "Open details",
-      body: `Details reveal definitions, parameter meanings, examples, and ${selectedRobot === "navi" ? "the Navi reference image" : "GIF previews"}.`
+      body: `Details reveal definitions, parameter meanings, examples, and ${selectedRobot === "navi" ? "approved simulations where available" : "GIF previews"}.`
     },
     {
       title: "Copy into Hardware Check",
@@ -1453,13 +1508,7 @@ function FocusedBrowseFunctionsSection() {
                         <div className="min-w-0 bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}</p>
                           {selectedRobot === "navi" ? (
-                            <Image
-                              src="/assets/robotics/ff-navi-white.jpg"
-                              alt={`FF Navi robot for Agentech.${item.name}`}
-                              width={1200}
-                              height={675}
-                              className="aspect-video w-full border border-[#dce7f2] bg-white object-contain"
-                            />
+                            <NaviSimulationPreview command={item.name} />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
