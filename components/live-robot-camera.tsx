@@ -135,6 +135,10 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
         clearTimeout(noVideoTimer);
         noVideoTimer = null;
       }
+      // Ask the browser to stay at the live edge instead of building a large
+      // jitter buffer. The publisher/ingress still determines most end-to-end
+      // latency, but this prevents avoidable client-side playout delay.
+      track.setPlayoutDelay(0);
       track.attach(videoElement);
       setStatus("Live robot camera connected.");
     }
