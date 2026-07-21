@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { keepsStreamActive, requiresEndLieDown } from "./robot-stream-session-policy.mjs";
 
 const scriptsDir = fileURLToPath(new URL(".", import.meta.url));
 const compiler = join(scriptsDir, "compile-robot-plan.py");
@@ -84,5 +85,32 @@ test("gateway transfers only the plan and trusted runner", () => {
   assert.match(source, /customer source is never sent to the robot/);
   assert.match(source, /async function claimSession/);
   assert.match(source, /spawn\(localPython, \[trustedNaviRunner, item\.localPlan\]/);
+  assert.match(source, /run\(localPython, \[trustedNaviRunner, "--lie-down"\]/);
+  assert.match(source, /if \(!active\) await stopObs\(\)/);
+  assert.doesNotMatch(source, /readFileSync\(item\.localPlan/);
   assert.match(source, /session robot model does not match its reviewed submission/);
+});
+
+test("session policy adds lie-down only when the final command needs it", () => {
+  assert.equal(requiresEndLieDown({ commands: [{ name: "stand" }] }, "navi"), true);
+  assert.equal(
+    requiresEndLieDown({ commands: [{ name: "lie_down" }, { name: "wave_hand" }] }, "navi"),
+    true,
+  );
+  assert.equal(requiresEndLieDown({ commands: [{ name: "lie_down" }] }, "navi"), false);
+  assert.equal(requiresEndLieDown({ commands: [{ name: "sit" }] }, "aegis"), false);
+  assert.equal(
+    keepsStreamActive(
+      { status: "completed", end: "2026-07-20T20:05:00Z" },
+      Date.parse("2026-07-20T20:04:59Z"),
+    ),
+    true,
+  );
+  assert.equal(
+    keepsStreamActive(
+      { status: "completed", end: "2026-07-20T20:05:00Z" },
+      Date.parse("2026-07-20T20:05:00Z"),
+    ),
+    false,
+  );
 });

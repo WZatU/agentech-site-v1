@@ -1,0 +1,18 @@
+export function endSessionPostureCommand(robotModel) {
+  if (robotModel === "navi") return "lie_down";
+  if (robotModel === "aegis") return "sit";
+  throw new Error(`unsupported robot model: ${robotModel}`);
+}
+
+export function requiresEndLieDown(plan, robotModel) {
+  if (!plan || !Array.isArray(plan.commands) || plan.commands.length === 0) {
+    throw new Error("compiled plan must contain commands");
+  }
+  const finalCommand = plan.commands[plan.commands.length - 1];
+  return finalCommand?.name !== endSessionPostureCommand(robotModel);
+}
+
+export function keepsStreamActive(item, nowMs) {
+  if (["staged", "running"].includes(item.status)) return true;
+  return item.status === "completed" && nowMs < Date.parse(item.end);
+}

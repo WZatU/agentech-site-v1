@@ -47,6 +47,14 @@ def write_plan(commands: list[str]) -> str:
 
 
 class TrustedNaviRunnerTests(unittest.TestCase):
+    def test_end_session_lie_down_uses_sdk_then_stops(self) -> None:
+        agentech = FakeAgentech()
+
+        with patch.object(runner, "configure_navi", return_value=agentech):
+            runner.end_session_lie_down()
+
+        self.assertEqual(agentech.calls, ["lie_down", "stop"])
+
     def test_yaw_turn_convergence_timeout_stops_then_continues(self) -> None:
         agentech = FakeAgentech({
             "u_turn": TimeoutError("Navi yaw-feedback turn timed out at 135.45 degrees")

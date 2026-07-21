@@ -81,7 +81,19 @@ def execute(path: str) -> None:
         agentech.stop()
 
 
+def end_session_lie_down() -> None:
+    agentech = configure_navi()
+    try:
+        print("[navi-runner] booked session ended; Agentech.lie_down({})", flush=True)
+        agentech.lie_down()
+    finally:
+        agentech.stop()
+
+
 def main() -> None:
+    if len(sys.argv) == 2 and sys.argv[1] == "--lie-down":
+        end_session_lie_down()
+        return
     if len(sys.argv) == 2 and sys.argv[1] == "--stop":
         agentech = configure_navi()
         agentech.stop()
@@ -91,7 +103,7 @@ def main() -> None:
         print(f"validated {len(commands)} Navi commands")
         return
     if len(sys.argv) != 2:
-        raise SystemExit("usage: trusted-navi-runner.py PLAN.json | --validate PLAN.json | --stop")
+        raise SystemExit("usage: trusted-navi-runner.py PLAN.json | --validate PLAN.json | --lie-down | --stop")
     execute(sys.argv[1])
 
 

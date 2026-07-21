@@ -18,9 +18,20 @@ ALLOWED = {
 }
 
 
+def end_session_lie_down() -> None:
+    try:
+        print("[robot-runner] booked session ended; Agentech.sit({})", flush=True)
+        Agentech.sit(host="127.0.0.1")
+    finally:
+        Agentech.stop(host="127.0.0.1")
+
+
 def main() -> None:
+    if len(sys.argv) == 2 and sys.argv[1] == "--lie-down":
+        end_session_lie_down()
+        return
     if len(sys.argv) != 2:
-        raise SystemExit("usage: trusted-robot-runner.py PLAN.json")
+        raise SystemExit("usage: trusted-robot-runner.py PLAN.json | --lie-down")
     plan = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     if plan.get("version") != 1 or not isinstance(plan.get("commands"), list):
         raise ValueError("unsupported command plan")
