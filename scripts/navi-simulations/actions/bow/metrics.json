@@ -1,0 +1,8 @@
+{
+  "command": "bow",
+  "max_abs_roll_deg": 0.07061551171118292,
+  "max_abs_pitch_deg": 10.202239376666961,
+  "minimum_body_height_m": 0.24143377842244795,
+  "max_root_displacement_m": 0.02171902737861099,
+  "root_position_assistance": false
+}

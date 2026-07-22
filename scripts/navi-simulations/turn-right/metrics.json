@@ -1,0 +1,9 @@
+{
+  "command": "turn_right",
+  "body_dx_m": 0.008413446406728486,
+  "body_dy_m": -0.015931009596137552,
+  "body_yaw_deg": -58.915246720073284,
+  "max_abs_roll_rad": 0.05410488459979059,
+  "max_abs_pitch_rad": 0.07347049994714987,
+  "root_position_assistance": false
+}

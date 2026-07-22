@@ -1,0 +1,9 @@
+{
+  "command": "wave_hand",
+  "max_abs_roll_deg": 6.910182419703638,
+  "max_abs_pitch_deg": 5.573025794793092,
+  "minimum_body_height_m": 0.2654385916150719,
+  "max_root_displacement_m": 0.04353310356910375,
+  "duration_s": 2.9299999999999997,
+  "root_position_assistance": false
+}

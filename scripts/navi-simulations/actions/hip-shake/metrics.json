@@ -1,0 +1,8 @@
+{
+  "command": "hip_shake",
+  "max_abs_roll_deg": 6.766203197209896,
+  "max_abs_pitch_deg": 2.524242084255209,
+  "minimum_body_height_m": 0.2703094614841557,
+  "max_root_displacement_m": 0.06071487906174646,
+  "root_position_assistance": false
+}

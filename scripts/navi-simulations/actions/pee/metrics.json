@@ -1,0 +1,8 @@
+{
+  "command": "pee",
+  "max_abs_roll_deg": 16.268914260377468,
+  "max_abs_pitch_deg": 11.699963091493089,
+  "minimum_body_height_m": 0.2551030152426125,
+  "max_root_displacement_m": 0.11083681147501886,
+  "root_position_assistance": false
+}

@@ -1,0 +1,8 @@
+{
+  "command": "show_affection",
+  "max_abs_roll_deg": 2.4414877087341806,
+  "max_abs_pitch_deg": 6.7711374084099,
+  "minimum_body_height_m": 0.25541522441337033,
+  "max_root_displacement_m": 0.029169258864950632,
+  "root_position_assistance": false
+}

@@ -1,0 +1,8 @@
+{
+  "command": "shake_hand",
+  "max_abs_roll_deg": 14.301238549297386,
+  "max_abs_pitch_deg": 11.343563342368828,
+  "minimum_body_height_m": 0.2573413675193369,
+  "max_root_displacement_m": 0.09588763438460716,
+  "root_position_assistance": false
+}

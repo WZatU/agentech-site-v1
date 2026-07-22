@@ -1,0 +1,8 @@
+{
+  "command": "bark",
+  "max_abs_roll_deg": 0.010633492039567495,
+  "max_abs_pitch_deg": 5.082843948910941,
+  "minimum_body_height_m": 0.2641772722783719,
+  "max_root_displacement_m": 0.015148631273803722,
+  "root_position_assistance": false
+}

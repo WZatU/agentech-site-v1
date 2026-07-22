@@ -1,0 +1,8 @@
+{
+  "command": "wag_rear",
+  "max_abs_roll_deg": 6.967511129028948,
+  "max_abs_pitch_deg": 3.4136268305657578,
+  "minimum_body_height_m": 0.27068854443979207,
+  "max_root_displacement_m": 0.044389511685406745,
+  "root_position_assistance": false
+}

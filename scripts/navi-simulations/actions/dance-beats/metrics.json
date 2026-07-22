@@ -1,0 +1,8 @@
+{
+  "command": "dance",
+  "max_abs_roll_deg": 10.168042980483163,
+  "max_abs_pitch_deg": 0.2947938842873273,
+  "minimum_body_height_m": 0.2706416615261517,
+  "max_root_displacement_m": 0.03433488837305946,
+  "root_position_assistance": false
+}

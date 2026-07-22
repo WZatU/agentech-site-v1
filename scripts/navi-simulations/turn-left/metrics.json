@@ -1,0 +1,9 @@
+{
+  "command": "turn_left",
+  "body_dx_m": 0.0067656019293529076,
+  "body_dy_m": 0.008920694945856653,
+  "body_yaw_deg": 56.538212396182914,
+  "max_abs_roll_rad": 0.05578129024970957,
+  "max_abs_pitch_rad": 0.07388184910761969,
+  "root_position_assistance": false
+}

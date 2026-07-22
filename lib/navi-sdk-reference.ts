@@ -224,10 +224,10 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     verification: `${motionVerification}; yaw-feedback controller verified in hardware-free wraparound and fail-safe tests; physical angle calibration pending`,
     platformNote: "Positive public values turn right and negative values turn left. The requested angle is the target: live body-yaw feedback varies speed and completion time, requires five consecutive readings within 1 degree, and corrects again if settling drifts outside that window. Explicit rate-plus-time turns remain open loop.",
     profiles: [
-      { name: "Default angle", syntax: "Agentech.turn()  # right 45 degrees at 2 rad/s" },
-      { name: "Angle + optional rate", syntax: "Agentech.turn(angle_deg=-45, turn_rate_rad_s=0.5)" },
-      { name: "Angular-distance alias", syntax: "Agentech.turn(distance_rad=1.0)" },
-      { name: "Signed rate + time", syntax: "Agentech.turn(turn_rate_rad_s=2.5, duration_s=0.15)" },
+      { name: "Default angle", syntax: "Agentech.turn()  # right 45 degrees at 2 rad/s", noteLabel: "Accuracy note", note: "Turn angle is not guaranteed." },
+      { name: "Angle + optional rate", syntax: "Agentech.turn(angle_deg=-45, turn_rate_rad_s=0.5)", noteLabel: "Accuracy note", note: "Turn angle is not guaranteed." },
+      { name: "Angular-distance alias", syntax: "Agentech.turn(distance_rad=1.0)", noteLabel: "Accuracy note", note: "Turn distance is not guaranteed." },
+      { name: "Signed rate + time", syntax: "Agentech.turn(turn_rate_rad_s=2.5, duration_s=0.15)", noteLabel: "Accuracy note", note: "The calculated turn distance and angle are not guaranteed." },
       { name: "Percentage + optional time", syntax: "Agentech.turn(rate_percentage=40, duration_s=0.25)" },
       { name: "Level + optional time", syntax: "Agentech.turn(turn_level=-200, duration_s=0.25)" },
       { name: "Fixed shortcuts", syntax: "Agentech.turn_right()\nAgentech.turn_left()\nAgentech.u_turn()" }
@@ -245,16 +245,6 @@ const naviFunctionDefinitions: AgentechFunction[] = [
       controlledStop,
       naviConnection
     ]
-  },
-  {
-    name: "crawl",
-    category: "Movement",
-    signature: "Agentech.crawl()",
-    summary: "Run Navi's composed crawl behavior.",
-    example: "Agentech.crawl()",
-    verification: "Live verified 2026-07-15 after correcting the behavior argument handling",
-    platformNote: "Navi supports crawl. The footed Aegis implementation currently raises NotImplementedError.",
-    params: []
   },
   {
     name: "jump",

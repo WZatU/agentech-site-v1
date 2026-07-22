@@ -1,0 +1,8 @@
+{
+  "command": "nod_head",
+  "max_abs_roll_deg": 0.017877474644648606,
+  "max_abs_pitch_deg": 7.240865307389355,
+  "minimum_body_height_m": 0.2620373631699918,
+  "max_root_displacement_m": 0.04576249298865616,
+  "root_position_assistance": false
+}

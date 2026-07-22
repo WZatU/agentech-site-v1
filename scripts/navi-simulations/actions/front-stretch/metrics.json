@@ -1,0 +1,8 @@
+{
+  "command": "front_stretch",
+  "max_abs_roll_deg": 0.10131134056737906,
+  "max_abs_pitch_deg": 9.151250060819594,
+  "minimum_body_height_m": 0.24165844380631604,
+  "max_root_displacement_m": 0.02059911998466033,
+  "root_position_assistance": false
+}

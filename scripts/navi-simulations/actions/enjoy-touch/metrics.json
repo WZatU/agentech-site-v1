@@ -1,0 +1,8 @@
+{
+  "command": "enjoy_touch",
+  "max_abs_roll_deg": 8.120298445829382,
+  "max_abs_pitch_deg": 0.07538615228935022,
+  "minimum_body_height_m": 0.2714382608176657,
+  "max_root_displacement_m": 0.025824939972983834,
+  "root_position_assistance": false
+}

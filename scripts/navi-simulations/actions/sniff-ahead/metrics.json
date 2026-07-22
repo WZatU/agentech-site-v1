@@ -1,0 +1,8 @@
+{
+  "command": "sniff_ahead",
+  "max_abs_roll_deg": 0.01648574181750987,
+  "max_abs_pitch_deg": 8.522219922499383,
+  "minimum_body_height_m": 0.24313036205925925,
+  "max_root_displacement_m": 0.007932938217537372,
+  "root_position_assistance": false
+}

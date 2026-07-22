@@ -1,0 +1,8 @@
+{
+  "command": "push_up",
+  "max_abs_roll_deg": 0.0151177150306264,
+  "max_abs_pitch_deg": 0.14213354852319918,
+  "minimum_body_height_m": 0.22023850883149482,
+  "max_root_displacement_m": 0.010583130574568871,
+  "root_position_assistance": false
+}

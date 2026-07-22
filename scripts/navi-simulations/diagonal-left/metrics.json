@@ -1,0 +1,10 @@
+{
+  "command": "diagonal_left",
+  "body_dx_m": 0.14512985231917258,
+  "body_dy_m": 0.08076344219760903,
+  "body_yaw_deg": -16.86930160278445,
+  "max_abs_roll_rad": 0.047852751036495576,
+  "max_abs_pitch_rad": 0.07308919730090058,
+  "minimum_body_height_m": 0.2627223066131576,
+  "root_position_assistance": false
+}

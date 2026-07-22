@@ -1,0 +1,8 @@
+{
+  "command": "ask_for_play",
+  "max_abs_roll_deg": 2.3697430515082947,
+  "max_abs_pitch_deg": 9.627289859004037,
+  "minimum_body_height_m": 0.24631085816928183,
+  "max_root_displacement_m": 0.010035917987843252,
+  "root_position_assistance": false
+}

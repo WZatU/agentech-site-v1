@@ -1,0 +1,9 @@
+{
+  "command": "lateral_right",
+  "body_dx_m": -0.054610854624832984,
+  "body_dy_m": -0.2135773746380515,
+  "body_yaw_deg": -6.685469162017037,
+  "max_abs_roll_rad": 0.0860040791276955,
+  "max_abs_pitch_rad": 0.09413925629158111,
+  "root_position_assistance": false
+}

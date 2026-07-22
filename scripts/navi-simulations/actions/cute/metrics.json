@@ -1,0 +1,8 @@
+{
+  "command": "cute",
+  "max_abs_roll_deg": 7.987898264349132,
+  "max_abs_pitch_deg": 0.0807973316518429,
+  "minimum_body_height_m": 0.2716630639036381,
+  "max_root_displacement_m": 0.018946967234243398,
+  "root_position_assistance": false
+}

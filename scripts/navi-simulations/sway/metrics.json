@@ -1,0 +1,14 @@
+{
+  "command": "sway",
+  "max_abs_roll_deg": 4.310641561154917,
+  "max_abs_pitch_deg": 0.2151488672955754,
+  "max_root_displacement_m": 0.019170009014004976,
+  "minimum_body_height_m": 0.13118509924568078,
+  "duration_s": 17.03,
+  "reference_motion_window_s": [
+    5.0,
+    8.75
+  ],
+  "root_position_assistance": false,
+  "feet_commanded_to_step": false
+}

@@ -1,0 +1,9 @@
+{
+  "command": "knock",
+  "max_abs_roll_deg": 7.164422191549842,
+  "max_abs_pitch_deg": 5.994993680970337,
+  "minimum_body_height_m": 0.2616733843182088,
+  "max_root_displacement_m": 0.057408399390004874,
+  "duration_s": 18.0,
+  "root_position_assistance": false
+}

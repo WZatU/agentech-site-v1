@@ -97,7 +97,60 @@ const localPreviewAssets: Record<string, string> = {
 };
 const commandsWithoutReferencePreview = new Set(["stay", "squat", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
 const naviSimulationAssets: Partial<Record<string, string>> = {
+  backward: "/assets/products/agentech-library/navi-simulations/backward/navi-walk-backward.mp4?v=local-approval-20260720",
+  forward: "/assets/products/agentech-library/navi-simulations/forward/navi-walk-forward.mp4?v=local-approval-20260720",
+  lateral_left: "/assets/products/agentech-library/navi-simulations/lateral-left/navi-lateral-left.mp4?v=local-approval-20260720d",
+  lateral_right: "/assets/products/agentech-library/navi-simulations/lateral-right/navi-lateral-right.mp4?v=local-approval-20260720",
+  diagonal_left: "/assets/products/agentech-library/navi-simulations/diagonal-left/navi-diagonal-left.mp4?v=local-approval-20260720",
+  diagonal_right: "/assets/products/agentech-library/navi-simulations/diagonal-right/navi-diagonal-right.mp4?v=local-approval-20260720",
+  turn_left: "/assets/products/agentech-library/navi-simulations/turn-left/navi-turn-left.mp4?v=local-approval-20260720",
+  turn_right: "/assets/products/agentech-library/navi-simulations/turn-right/navi-turn-right.mp4?v=local-approval-20260720",
+  sway: "/assets/products/agentech-library/navi-simulations/actions/sway/navi-sway-standing.mp4?v=20260720-1",
+  pee: "/assets/products/agentech-library/navi-simulations/actions/pee/navi-pee-back-left-v2.mp4?v=20260720-2",
+  knock: "/assets/products/agentech-library/navi-simulations/actions/knock/navi-knock-higher-v2.mp4?v=20260721-3",
+  shake_hand: "/assets/products/agentech-library/navi-simulations/actions/shake-hand/navi-shake-hand-one-second.mp4?v=20260721-4",
+  hip_shake: "/assets/products/agentech-library/navi-simulations/actions/hip-shake/navi-hip-shake-rear-down.mp4?v=20260721-2",
+  wave_hand: "/assets/products/agentech-library/navi-simulations/actions/wave-hand/navi-wave-hand-forward-up.mp4?v=20260721-5",
+  bow: "/assets/products/agentech-library/navi-simulations/actions/bow/navi-bow-90-return.mp4?v=20260721-2",
+  wag_rear: "/assets/products/agentech-library/navi-simulations/actions/wag-rear/navi-wag-rear-planted.mp4?v=20260721-2",
+  bark: "/assets/products/agentech-library/navi-simulations/actions/bark/navi-bark-subtle-reference.mp4?v=20260721-5",
+  nod_head: "/assets/products/agentech-library/navi-simulations/actions/nod-head/navi-nod-head-sequential.mp4?v=20260721-4",
+  shake_head: "/assets/products/agentech-library/navi-simulations/actions/shake-head/navi-shake-head-twist.mp4?v=20260721-1",
+  confused: "/assets/products/agentech-library/navi-simulations/actions/confused/navi-confused-asymmetric-legs.mp4?v=20260721-4",
+  show_affection: "/assets/products/agentech-library/navi-simulations/actions/show-affection/navi-show-affection-from-cute.mp4?v=20260721-4",
+  draw_heart: "/assets/products/agentech-library/navi-simulations/actions/draw-heart/navi-draw-heart-reference.mp4?v=20260721-3",
+  cute: "/assets/products/agentech-library/navi-simulations/actions/cute/navi-cute-reference.mp4?v=20260721-5",
+  ask_for_play: "/assets/products/agentech-library/navi-simulations/actions/ask-for-play/navi-ask-for-play-reference.mp4?v=20260721-4",
+  enjoy_touch: "/assets/products/agentech-library/navi-simulations/actions/enjoy-touch/navi-enjoy-touch-reference.mp4?v=20260721-5",
+  sniff_ahead: "/assets/products/agentech-library/navi-simulations/actions/sniff-ahead/navi-sniff-ahead.mp4?v=20260721-1",
+  sniff_left: "/assets/products/agentech-library/navi-simulations/actions/sniff-left/navi-sniff-left.mp4?v=20260721-1",
+  sniff_right: "/assets/products/agentech-library/navi-simulations/actions/sniff-right/navi-sniff-right.mp4?v=20260721-1",
+  front_stretch: "/assets/products/agentech-library/navi-simulations/actions/front-stretch/navi-front-stretch.mp4?v=20260721-2",
+  full_body_stretch: "/assets/products/agentech-library/navi-simulations/actions/full-body-stretch/navi-full-body-stretch.mp4?v=20260721-2",
+  kick: "/assets/products/agentech-library/navi-simulations/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
+  frontflip: "/assets/products/agentech-library/navi-simulations/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
+  jump_forward: "/assets/products/agentech-library/navi-simulations/athletics/jump-forward/navi-reference-jump-forward.mp4?v=20260721-2",
+  sideflip: "/assets/products/agentech-library/navi-simulations/athletics/sideflip-right/navi-reference-sideflip-right.mp4?v=20260721-2",
   stand: "/assets/products/agentech-library/navi-simulations/stand/navi-stand-up.mp4?v=approved-20260720"
+};
+const naviSimulationReplayStart: Partial<Record<string, number>> = {
+  bow: 0,
+  bark: 0,
+  hip_shake: 0,
+  nod_head: 0,
+  shake_head: 0,
+  confused: 0,
+  show_affection: 13.8,
+  draw_heart: 14.3,
+  cute: 0,
+  ask_for_play: 0,
+  enjoy_touch: 0,
+  knock: 14.5,
+  shake_hand: 2.65,
+  wave_hand: 0,
+  wag_rear: 0,
+  pee: 6.25,
+  sway: 4.9
 };
 const localPreviewFallback = previewAsset("stand");
 const protectedStandLine = "Agentech.stand()";
@@ -571,8 +624,18 @@ function NaviSimulationPreview({ command }: { command: string }) {
     if (!video) {
       return;
     }
-    video.currentTime = 0;
-    void video.play().catch(() => undefined);
+    const replayStart = naviSimulationReplayStart[command] ?? 0;
+    const playFromStart = () => {
+      video.currentTime = replayStart;
+      void video.play().catch(() => undefined);
+    };
+    video.pause();
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      playFromStart();
+      return;
+    }
+    video.addEventListener("loadedmetadata", playFromStart, { once: true });
+    video.load();
   }
 
   return (
@@ -1506,9 +1569,11 @@ function FocusedBrowseFunctionsSection() {
                       </div>
                       {commandsWithoutReferencePreview.has(item.name) ? null : (
                         <div className="min-w-0 bg-white p-4">
-                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">{item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}</p>
+                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">
+                            {selectedRobot === "navi" && item.name === "lateral" ? "lateral_left" : item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}
+                          </p>
                           {selectedRobot === "navi" ? (
-                            <NaviSimulationPreview command={item.name} />
+                            <NaviSimulationPreview command={resolvePreviewCommand(item.name)} />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img

@@ -1,0 +1,8 @@
+{
+  "command": "shake_head",
+  "max_abs_roll_deg": 1.3522417736477546,
+  "max_abs_pitch_deg": 0.4904270805319606,
+  "minimum_body_height_m": 0.27335053091076233,
+  "max_root_displacement_m": 0.05199969735909379,
+  "root_position_assistance": false
+}

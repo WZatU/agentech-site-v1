@@ -1,0 +1,8 @@
+{
+  "command": "draw_heart",
+  "max_abs_roll_deg": 14.888518727012586,
+  "max_abs_pitch_deg": 11.64401809912891,
+  "minimum_body_height_m": 0.2566863451782028,
+  "max_root_displacement_m": 0.09692482141159878,
+  "root_position_assistance": false
+}
