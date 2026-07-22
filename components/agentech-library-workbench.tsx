@@ -184,6 +184,7 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   diagonal_right: "/assets/products/agentech-library/navi-simulations/diagonal-right/navi-diagonal-right.mp4?v=local-approval-20260720",
   turn_left: "/assets/products/agentech-library/navi-simulations/turn-left/navi-turn-left.mp4?v=local-approval-20260720",
   turn_right: "/assets/products/agentech-library/navi-simulations/turn-right/navi-turn-right.mp4?v=local-approval-20260720",
+  return_to_home: "/assets/products/agentech-library/navi-simulations/return-to-home/navi-return-to-home.mp4?v=20260722-1",
   sway: "/assets/products/agentech-library/navi-simulations/actions/sway/navi-sway-standing.mp4?v=20260720-1",
   pee: "/assets/products/agentech-library/navi-simulations/actions/pee/navi-pee-back-left-v2.mp4?v=20260720-2",
   knock: "/assets/products/agentech-library/navi-simulations/actions/knock/navi-knock-higher-v2.mp4?v=20260721-3",
