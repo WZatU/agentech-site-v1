@@ -131,6 +131,13 @@ async function stopObs() {
   if (status.outputActive) await obsCall("StopStream");
 }
 
+async function stopObsVirtualCamera() {
+  const stream = await obsCall("GetStreamStatus");
+  if (stream.outputActive) return;
+  const camera = await obsCall("GetVirtualCamStatus");
+  if (camera.outputActive) await obsCall("StopVirtualCam");
+}
+
 function stage(session, submission) {
   const prefix = `session-${session.id}`;
   const selectedModel = robotModel(session.robot_model);
@@ -369,6 +376,7 @@ async function tick() {
   const active = Object.values(state.sessions).some((item) => keepsStreamActive(item, now));
   if (!active) await stopObs();
   for (const id of endingSessions) finishSessionCleanup(id, state.sessions[id]);
+  if (!active) await stopObsVirtualCamera();
 }
 
 console.log(`[robot-stream] Standalone trusted command gateway running for Aegies ${robot} and Navi ${naviHost}:${naviPort}; customer source is never sent to the robot. Navi receives only exact SDK calls from an inert plan.`);

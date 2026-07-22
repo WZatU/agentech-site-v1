@@ -105,6 +105,7 @@ test("gateway transfers only the plan and trusted runner", () => {
   assert.match(source, /"--return-home-and-damp"/);
   assert.match(source, /"--damp"/);
   assert.match(source, /if \(!active\) await stopObs\(\)/);
+  assert.match(source, /if \(!active\) await stopObsVirtualCamera\(\)/);
   assert.doesNotMatch(source, /readFileSync\(item\.localPlan/);
   assert.match(source, /session robot model does not match its reviewed submission/);
 });
