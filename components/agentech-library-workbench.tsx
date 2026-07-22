@@ -174,7 +174,7 @@ const localPreviewAssets: Record<string, string> = {
   emergency_stop: previewAsset("emergency_stop"),
   battery: previewAsset("battery_status")
 };
-const commandsWithoutReferencePreview = new Set(["stay", "squat", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
+const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
 const naviSimulationAssets: Partial<Record<string, string>> = {
   backward: "/assets/products/agentech-library/navi-simulations/backward/navi-walk-backward.mp4?v=local-approval-20260720",
   forward: "/assets/products/agentech-library/navi-simulations/forward/navi-walk-forward.mp4?v=local-approval-20260720",
@@ -206,8 +206,28 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   sniff_right: "/assets/products/agentech-library/navi-simulations/actions/sniff-right/navi-sniff-right.mp4?v=20260721-1",
   front_stretch: "/assets/products/agentech-library/navi-simulations/actions/front-stretch/navi-front-stretch.mp4?v=20260721-2",
   full_body_stretch: "/assets/products/agentech-library/navi-simulations/actions/full-body-stretch/navi-full-body-stretch.mp4?v=20260721-2",
+  look_around: "/assets/products/agentech-library/navi-simulations/actions/look-around/navi-look-around.mp4?v=20260721-1",
+  squat: "/assets/products/agentech-library/navi-simulations/posture/squat/navi-squat.mp4?v=20260721-1",
+  sit: "/assets/products/agentech-library/navi-simulations/posture/sit/navi-sit.mp4?v=20260721-1",
+  lie_down: "/assets/products/agentech-library/navi-simulations/posture/lie-down/navi-lie-down.mp4?v=20260721-1",
+  lie_on_elbows: "/assets/products/agentech-library/navi-simulations/posture/lie-on-elbows/navi-lie-on-elbows.mp4?v=20260721-1",
+  prostrate: "/assets/products/agentech-library/navi-simulations/posture/prostrate/navi-prostrate.mp4?v=20260721-1",
+  sphinx_lie: "/assets/products/agentech-library/navi-simulations/posture/sphinx-lie/navi-sphinx-lie.mp4?v=20260721-1",
+  sphinx_left_lie: "/assets/products/agentech-library/navi-simulations/posture/sphinx-left-lie/navi-sphinx-left-lie.mp4?v=20260721-1",
+  sphinx_right_lie: "/assets/products/agentech-library/navi-simulations/posture/sphinx-right-lie/navi-sphinx-right-lie.mp4?v=20260721-1",
+  stand_high: "/assets/products/agentech-library/navi-simulations/posture/stand-high/navi-stand-high.mp4?v=20260721-1",
+  stand_at_ease: "/assets/products/agentech-library/navi-simulations/posture/stand-at-ease/navi-stand-at-ease.mp4?v=20260721-1",
+  stand_at_attention: "/assets/products/agentech-library/navi-simulations/posture/stand-at-attention/navi-stand-at-attention.mp4?v=20260721-1",
+  rear_puff: "/assets/products/agentech-library/navi-simulations/actions/long-fart/navi-long-fart.mp4?v=20260721-1",
+  head_up_down: "/assets/products/agentech-library/navi-simulations/actions/head-up-down/navi-head-up-down.mp4?v=20260721-1",
+  look_down: "/assets/products/agentech-library/navi-simulations/actions/look-down/navi-look-down.mp4?v=20260721-1",
+  nod_with_beats: "/assets/products/agentech-library/navi-simulations/actions/nod-with-beats/navi-nod-with-beats.mp4?v=20260721-1",
+  eat: "/assets/products/agentech-library/navi-simulations/actions/eat/navi-eat.mp4?v=20260721-7",
+  excited: "/assets/products/agentech-library/navi-simulations/actions/excited/navi-excited.mp4?v=20260721-1",
+  nod_off: "/assets/products/agentech-library/navi-simulations/actions/nod-off/navi-nod-off.mp4?v=20260721-2",
   dance: "/assets/products/agentech-library/navi-simulations/actions/dance-shoulder/navi-dance-shoulder.mp4?v=20260721-2",
   dramatic_listen: "/assets/products/agentech-library/navi-simulations/actions/dramatic-listen/navi-dramatic-listen.mp4?v=20260721-2",
+  jump: "/assets/products/agentech-library/navi-simulations/athletics/jump/navi-reference-jump.mp4?v=20260721-2",
   kick: "/assets/products/agentech-library/navi-simulations/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
   frontflip: "/assets/products/agentech-library/navi-simulations/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
   jump_forward: "/assets/products/agentech-library/navi-simulations/athletics/jump-forward/navi-reference-jump-forward.mp4?v=20260721-2",

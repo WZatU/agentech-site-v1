@@ -1,0 +1,7 @@
+{
+  "command": "lie_down",
+  "duration_s": 4.2,
+  "persistent_pose": true,
+  "max_foot_target_error_m": 4.999909957773283e-07,
+  "minimum_root_height_m": 0.111256
+}

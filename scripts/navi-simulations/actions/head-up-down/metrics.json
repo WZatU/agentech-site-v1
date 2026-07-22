@@ -1,0 +1,8 @@
+{
+  "command": "head_up_down",
+  "duration_s": 6.8,
+  "source_video": "videos/actions/51_head_up_down.mp4",
+  "max_foot_target_error_m": 1.871036396844783e-06,
+  "max_abs_pitch_deg": 20.0,
+  "minimum_root_height_m": 0.250256
+}

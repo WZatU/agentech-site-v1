@@ -1,0 +1,11 @@
+{
+  "command": "eat",
+  "profile": "eating_only",
+  "duration_s": 5.7,
+  "source_video": "videos/actions/81_eating_only.mp4",
+  "raised_leg": "front_right",
+  "visible_upper_lower_leg_angle_deg": 50,
+  "upper_leg_raise_angle_deg": 60,
+  "pour_cycles": 3,
+  "max_support_foot_error_m": 1.939117408377724e-06
+}

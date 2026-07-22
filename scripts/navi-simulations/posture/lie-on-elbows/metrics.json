@@ -1,0 +1,7 @@
+{
+  "command": "lie_on_elbows",
+  "duration_s": 4.2,
+  "persistent_pose": false,
+  "max_foot_target_error_m": 1.911147055679185e-06,
+  "minimum_root_height_m": 0.131256
+}

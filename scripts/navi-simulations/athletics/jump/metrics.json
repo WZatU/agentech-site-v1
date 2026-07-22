@@ -1,0 +1,9 @@
+{
+  "command": "jump",
+  "duration_s": 3.8,
+  "reference_video": "videos/athletics/01_jump.mp4",
+  "flight_duration_s": 0.29,
+  "maximum_root_rise_m": 0.18062095389087068,
+  "landing_crouch_depth_m": 0.105,
+  "max_ground_contact_error_m": 1.9810699720401725e-06
+}

@@ -6,7 +6,7 @@ import imageio.v2 as imageio
 import mujoco
 import numpy as np
 
-DURATIONS={'wag_rear':1.87,'bark':1.80,'nod_head':2.17}
+DURATIONS={'wag_rear':1.87,'bark':1.80,'nod_head':2.17,'nod_with_beats':1.80}
 def smooth(v):v=max(0.,min(1.,v));return v*v*(3-2*v)
 def blend(t,a,b,x,y):return x+(y-x)*smooth((t-a)/(b-a))
 def window(t,a,b,c,d):
@@ -35,6 +35,10 @@ def motion(action,t):
   active=math.sin(math.pi*smooth((t-.16)/1.38))**2 if .16<=t<1.54 else 0.
   lateral=.0025*math.sin(2*math.pi*4*(t-.16)/1.38)*active
   return 0.,0.,0.,0.,lateral
+ if action=='nod_with_beats':
+  # The requested website preview is one compact planted nod only.
+  pitch=window(t,.25,.58,.76,1.28)*math.radians(9)
+  return 0.,pitch,-.008*window(t,.25,.58,.76,1.28),.010*window(t,.25,.58,.76,1.28),0.
  # Push forward, return fully, then perform one separate downward nod.
  if t<.12:x=0.
  elif t<.48:x=blend(t,.12,.48,0.,.025)
@@ -62,7 +66,7 @@ def main():
     desired_body=rot.T@(world_feet[leg]-root);reconstructed=root+rot@desired_body;max_foot_error=max(max_foot_error,float(np.linalg.norm(reconstructed-world_feet[leg])))
    r,p,_=quaternion_to_rpy(d.qpos[3:7]);mr=max(mr,abs(r));mp=max(mp,abs(p));mh=min(mh,float(d.qpos[2]));ren.update_scene(d,camera=cam);w.append_data(ren.render())
  finally:w.close();ren.close()
- metrics={'command':a.action,'duration_s':DURATIONS[a.action],'source_video':{'wag_rear':'08_wag_rear.mp4','bark':'09_bark.mp4','nod_head':'10_nod_head.mp4'}[a.action],'feet_world_targets_fixed':True,'max_commanded_foot_error_m':max_foot_error,'max_abs_roll_deg':math.degrees(mr),'max_abs_pitch_deg':math.degrees(mp),'minimum_body_height_m':mh,'root_xy_displacement_m':.025 if a.action=='nod_head' else .0025 if a.action=='bark' else 0.0}
+ metrics={'command':a.action,'duration_s':DURATIONS[a.action],'source_video':{'wag_rear':'08_wag_rear.mp4','bark':'09_bark.mp4','nod_head':'10_nod_head.mp4','nod_with_beats':'single_nod_requested'}[a.action],'feet_world_targets_fixed':True,'max_commanded_foot_error_m':max_foot_error,'max_abs_roll_deg':math.degrees(mr),'max_abs_pitch_deg':math.degrees(mp),'minimum_body_height_m':mh,'root_xy_displacement_m':.025 if a.action=='nod_head' else .010 if a.action=='nod_with_beats' else .0025 if a.action=='bark' else 0.0}
  if a.metrics:a.metrics.parent.mkdir(parents=True,exist_ok=True);a.metrics.write_text(json.dumps(metrics,indent=2)+'\n',encoding='utf-8')
  print(json.dumps(metrics));return 0
 if __name__=='__main__':raise SystemExit(main())

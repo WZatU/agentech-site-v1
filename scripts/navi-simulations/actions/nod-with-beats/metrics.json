@@ -1,0 +1,11 @@
+{
+  "command": "nod_with_beats",
+  "duration_s": 1.8,
+  "source_video": "single_nod_requested",
+  "feet_world_targets_fixed": true,
+  "max_commanded_foot_error_m": 6.206335383118183e-17,
+  "max_abs_roll_deg": 0.0,
+  "max_abs_pitch_deg": 9.0,
+  "minimum_body_height_m": 0.268256,
+  "root_xy_displacement_m": 0.01
+}

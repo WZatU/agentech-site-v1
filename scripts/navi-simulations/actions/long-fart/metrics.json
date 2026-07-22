@@ -1,0 +1,10 @@
+{
+  "command": "rear_puff",
+  "profile": "long_fart",
+  "duration_s": 6.2,
+  "source_video": "videos/actions/69_long_fart.mp4",
+  "visible_sequence": "hips_down_then_rear_shake_then_stand",
+  "max_foot_site_error_m": 1.4640054868713096e-06,
+  "max_abs_rear_yaw_deg": 9.914448613738111,
+  "minimum_root_height_m": 0.23240024429158948
+}

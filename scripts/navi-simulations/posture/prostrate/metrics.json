@@ -1,0 +1,7 @@
+{
+  "command": "prostrate",
+  "duration_s": 4.2,
+  "persistent_pose": false,
+  "max_foot_target_error_m": 8.05113461035287e-07,
+  "minimum_root_height_m": 0.10125600000000001
+}

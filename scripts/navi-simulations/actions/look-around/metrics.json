@@ -1,8 +1,9 @@
 {
   "command": "look_around",
-  "max_abs_roll_deg": 1.145100357837332,
-  "max_abs_pitch_deg": 1.6897489747588361,
-  "minimum_body_height_m": 0.24646527942189708,
-  "max_root_displacement_m": 0.03694718792893349,
-  "root_position_assistance": false
+  "duration_s": 4.6,
+  "visible_sequence": "head_down_hips_up_then_twist_left_then_twist_right_then_head_up_hips_down",
+  "ground_contact_targets_used": true,
+  "max_foot_site_error_m": 1.4391946991991892e-06,
+  "max_abs_pitch_deg": 18.000000000000007,
+  "max_abs_yaw_deg": 16.0
 }
