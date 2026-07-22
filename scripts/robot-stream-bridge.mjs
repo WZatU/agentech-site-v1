@@ -4,7 +4,7 @@ import { closeSync, mkdirSync, openSync, readFileSync, writeFileSync } from "nod
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import OBSWebSocket from "obs-websocket-js";
-import { keepsStreamActive, requiresEndLieDown } from "./robot-stream-session-policy.mjs";
+import { endSessionCleanupPolicy, keepsStreamActive } from "./robot-stream-session-policy.mjs";
 
 for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER"]) {
   if (!process.env[key]) throw new Error(`${key} is required.`);
@@ -141,7 +141,7 @@ function stage(session, submission) {
   else run(localPython, [compiler, sourcePath, submission.id, planPath]);
   const plan = JSON.parse(readFileSync(planPath, "utf8"));
   if (plan.source_sha256 !== createHash("sha256").update(submission.code).digest("hex")) throw new Error("compiled plan source hash mismatch");
-  const endLieDownRequired = requiresEndLieDown(plan, selectedModel);
+  const endCleanup = endSessionCleanupPolicy(plan, selectedModel);
   let captureIndex = 0;
   const remoteCaptures = [];
   if (selectedModel === "aegis") {
@@ -164,9 +164,10 @@ function stage(session, submission) {
     publishedCaptures: [],
     accountEmail: session.email,
     end: session.scheduled_end,
-    endLieDownRequired,
-    endLieDownStatus: endLieDownRequired ? "pending" : "not_required",
-    endLieDownAttempts: 0
+    endCleanupRequired: endCleanup.required,
+    endReturnHomeRequired: endCleanup.returnHomeRequired,
+    endCleanupStatus: endCleanup.required ? "pending" : "not_required",
+    endCleanupAttempts: 0
   };
   saveState();
   console.log(`[robot-stream] Code X compiled and staged ${plan.commands.length} ${selectedModel} commands for session ${session.id}.`);
@@ -251,33 +252,40 @@ function processRunning(item) {
   }
 }
 
-function endLieDownCanRun(item) {
-  if (item.endLieDownRequired !== true) return false;
-  if (item.endLieDownStatus === "completed") return false;
-  return Number(item.endLieDownAttempts || 0) < 3;
+function endCleanupCanRun(item) {
+  const required = item.endCleanupRequired ?? item.endLieDownRequired;
+  const status = item.endCleanupStatus ?? item.endLieDownStatus;
+  const attempts = item.endCleanupAttempts ?? item.endLieDownAttempts;
+  if (required !== true) return false;
+  if (status === "completed") return false;
+  return Number(attempts || 0) < 3;
 }
 
-function finishSessionLieDown(id, item) {
-  if (!endLieDownCanRun(item)) return;
-  item.endLieDownAttempts = Number(item.endLieDownAttempts || 0) + 1;
-  item.endLieDownStatus = "running";
-  delete item.endLieDownError;
+function finishSessionCleanup(id, item) {
+  if (!endCleanupCanRun(item)) return;
+  item.endCleanupAttempts = Number(item.endCleanupAttempts ?? item.endLieDownAttempts ?? 0) + 1;
+  item.endCleanupStatus = "running";
+  delete item.endCleanupError;
   saveState();
   try {
     if (item.executionModel === "navi") {
-      run(localPython, [trustedNaviRunner, "--lie-down"], { env: naviEnvironment() });
+      const mode = item.endReturnHomeRequired === false ? "--damp" : "--return-home-and-damp";
+      run(localPython, [trustedNaviRunner, mode], { env: naviEnvironment() });
     } else {
       const remoteRunner = `${remoteDir}/trusted-robot-runner.py`;
       const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK ${robotPython} '${remoteRunner}' --lie-down`;
       run("ssh", [...sshArgs(), robot, command]);
     }
-    item.endLieDownStatus = "completed";
-    console.log(`[robot-stream] session ${id} reached its booked end; automatic ${item.executionModel} lie-down completed.`);
+    item.endCleanupStatus = "completed";
+    const result = item.executionModel === "navi"
+      ? (item.endReturnHomeRequired === false ? "damping" : "return-to-home and damping")
+      : "lie-down";
+    console.log(`[robot-stream] session ${id} reached its booked end; automatic ${result} completed.`);
   } catch (error) {
-    item.endLieDownStatus = "failed";
-    item.endLieDownError = error.message;
+    item.endCleanupStatus = "failed";
+    item.endCleanupError = error.message;
     console.error(
-      `[robot-stream] session ${id} automatic lie-down attempt ${item.endLieDownAttempts}/3 failed:`,
+      `[robot-stream] session ${id} automatic cleanup attempt ${item.endCleanupAttempts}/3 failed:`,
       error.message,
     );
   }
@@ -354,13 +362,13 @@ async function tick() {
       stopSession(id);
       endingSessions.add(id);
     }
-    if (item.status === "finished" && now >= Date.parse(item.end) && endLieDownCanRun(item)) {
+    if (item.status === "finished" && now >= Date.parse(item.end) && endCleanupCanRun(item)) {
       endingSessions.add(id);
     }
   }
   const active = Object.values(state.sessions).some((item) => keepsStreamActive(item, now));
   if (!active) await stopObs();
-  for (const id of endingSessions) finishSessionLieDown(id, state.sessions[id]);
+  for (const id of endingSessions) finishSessionCleanup(id, state.sessions[id]);
 }
 
 console.log(`[robot-stream] Standalone trusted command gateway running for Aegies ${robot} and Navi ${naviHost}:${naviPort}; customer source is never sent to the robot. Navi receives only exact SDK calls from an inert plan.`);

@@ -19,6 +19,7 @@ import { normalizeAgentechRobotModel } from "@/lib/agentech-robot-model";
 import { validateAgentechCode } from "@/lib/agentech-validation";
 import { getSoftwareCheckCreditPolicy, isAgentechCompanyEmail } from "@/lib/company-accounts";
 import { isValidEmail } from "@/lib/prototype-auth";
+import { getReturnToHomeAccess, RETURN_TO_HOME_FEATURE_CODE } from "@/lib/premium-features";
 import { getServerAccountEmail } from "@/lib/server-account-session";
 
 type SubmissionPayload = {
@@ -212,6 +213,7 @@ export async function POST(request: NextRequest) {
     const reviewStage = cleanText(payload.reviewStage, "physical");
     const submissionId = cleanText(payload.submissionId);
     const commands = extractCommands(code);
+    const usesReturnToHome = commands.some((command) => command.startsWith("return_to_home("));
     const { internalCompanyAccount: internalAccount } = getSoftwareCheckCreditPolicy(email);
 
     if (!robotModel) {
@@ -245,6 +247,21 @@ export async function POST(request: NextRequest) {
         { error: validationErrors.join(" "), errorCode: "CODE_VALIDATION_FAILED" },
         { status: 400 }
       );
+    }
+
+    if (usesReturnToHome && !isLocalPreview) {
+      const premiumAccess = await getReturnToHomeAccess(email);
+      if (!premiumAccess.allowed) {
+        return NextResponse.json(
+          {
+            error: "Agentech.return_to_home() requires an active monthly subscription or a one-time feature unlock.",
+            errorCode: "PREMIUM_FEATURE_REQUIRED",
+            featureCode: RETURN_TO_HOME_FEATURE_CODE,
+            purchasePath: "/agentech-products/eaic-hub/agentech-library"
+          },
+          { status: 402 }
+        );
+      }
     }
     const movementSafety = evaluateAgentechMovementSafety(code, robotModel);
 

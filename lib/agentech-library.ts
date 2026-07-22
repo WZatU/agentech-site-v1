@@ -20,6 +20,13 @@ export type AgentechFunction = {
   platformNote?: string;
   platformNoteLabel?: string;
   status?: CapabilityStatus;
+  creditUsage?: "high";
+  access?: {
+    tier: "premium";
+    featureCode: string;
+    includedWithMonthlySubscription: boolean;
+    oneTimePurchase: boolean;
+  };
 };
 
 const p = (name: string, type: string, description: string, defaultValue?: string, status: CapabilityStatus = "available"): AgentechParam =>

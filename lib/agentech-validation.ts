@@ -104,6 +104,9 @@ function buildNaviSdkSpec(): Record<string, Spec> {
     specs.turn.rules.rate_percentage = integer(-100, 100);
     specs.turn.rules.turn_level = integer(-511, 511);
   }
+  if (specs.return_to_home) {
+    specs.return_to_home.rules.facing_angle_deg = pick(0, 90, 180, 270);
+  }
   for (const name of ["bark", "nod_head", "shake_head"] as const) {
     if (specs[name]) specs[name].rules.count = pick(1, 2);
   }

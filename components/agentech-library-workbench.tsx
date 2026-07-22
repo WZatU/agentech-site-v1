@@ -69,9 +69,88 @@ type CachedPhysicalReview = {
   physicalSafetyStatus: string;
   aiSecurityStatus: string;
 };
+type PremiumFeatureStatus = {
+  feature?: { name: string };
+  access?: { allowed: boolean; source: "subscription" | "purchase" | "internal" | "none" };
+  priceCents?: number | null;
+  error?: string;
+};
 const robotSchedulingPath = getEaicHubTaskPath("schedule-time");
 const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
 const previewAsset = (name: string) => `/assets/products/aegis-previews/${name}.gif?v=squat-half-height-20260715`;
+
+function PremiumFeaturePanel({ item }: { item: AgentechFunction }) {
+  const [status, setStatus] = useState<PremiumFeatureStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const access = item.access;
+
+  useEffect(() => {
+    if (!access) return;
+    let active = true;
+    fetch("/api/premium-features/return-to-home", { cache: "no-store" })
+      .then(async (response) => ({ response, payload: await response.json().catch(() => null) as PremiumFeatureStatus | null }))
+      .then(({ response, payload }) => {
+        if (!active) return;
+        setStatus(payload ?? { error: response.status === 401 ? "Sign in to check access." : "Unable to check access." });
+      })
+      .catch(() => active && setStatus({ error: "Unable to check access." }));
+    return () => { active = false; };
+  }, [access]);
+
+  if (!access) return null;
+
+  const purchase = async () => {
+    setBusy(true);
+    const response = await fetch("/api/premium-features/return-to-home", { method: "POST" });
+    const payload = await response.json().catch(() => null) as (PremiumFeatureStatus & { checkoutUrl?: string; alreadyEntitled?: boolean }) | null;
+    if (payload?.checkoutUrl) {
+      window.location.href = payload.checkoutUrl;
+      return;
+    }
+    if (payload?.alreadyEntitled) {
+      window.location.reload();
+      return;
+    }
+    setStatus(payload ?? { error: "Unable to start checkout." });
+    setBusy(false);
+  };
+
+  const price = typeof status?.priceCents === "number"
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(status.priceCents / 100)
+    : null;
+
+  return (
+    <div className="mt-3 border border-[#7c5ce7] bg-[#f5f1ff] p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5b35c8]">Premium function</p>
+          <p className="mt-1 text-xs leading-5 text-[#3c2875]">
+            Included with an active monthly subscription. Non-subscribers can purchase a lifetime unlock for this function only.
+          </p>
+          <p className="mt-2 text-xs font-semibold text-[#3c2875]">
+            {status?.access?.allowed
+              ? status.access.source === "subscription"
+                ? "Unlocked by monthly subscription"
+                : status.access.source === "purchase"
+                  ? "Lifetime feature unlocked"
+                  : "Internal access enabled"
+              : status?.error || (price ? `One-time unlock: ${price}` : "Checking access…")}
+          </p>
+        </div>
+        {!status?.access?.allowed ? (
+          <button
+            type="button"
+            disabled={busy || status?.priceCents == null}
+            onClick={purchase}
+            className="border border-[#5b35c8] bg-[#5b35c8] px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busy ? "Opening checkout…" : price ? `Unlock for ${price}` : "Price coming soon"}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 const localPreviewAssets: Record<string, string> = {
   forward: previewAsset("forward"),
   backward: previewAsset("backward"),
@@ -1522,6 +1601,9 @@ function FocusedBrowseFunctionsSection() {
                         {item.status === "development" || item.params.some((param) => param.status === "development") ? (
                           <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under development</span>
                         ) : null}
+                        {item.creditUsage === "high" ? (
+                          <span className="border border-[#d97706] bg-[#fff7e6] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9a4d00]">High credit usage</span>
+                        ) : null}
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
@@ -1541,6 +1623,7 @@ function FocusedBrowseFunctionsSection() {
                             <p className="mt-1 text-xs leading-5 text-[#704b00]">{item.platformNote}</p>
                           </div>
                         ) : null}
+                        {item.access?.tier === "premium" ? <PremiumFeaturePanel item={item} /> : null}
                         {item.profiles?.length ? (
                           <div className="mt-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">

@@ -33,6 +33,7 @@ README.md
 CONTRIBUTING.md
 docs/software-check-access-policy.md
 docs/dropbox-news-automation.md
+docs/navi-return-to-home-premium.md
 ```
 
 Current documentation structure:
@@ -61,6 +62,7 @@ Covered topics:
 - Environment variables and server-only secrets.
 - Local development, production build, preview server, and GitHub workflow.
 - Internal/external account identity, Software Check credit policy, persisted review gates, and admin visibility.
+- Navi Return to Home's fixed calibration, cardinal-heading API, premium access rules, and Stripe fulfillment path.
 - Hidden preorder, enroll, grade visibility, and QR route switch points.
 
 Next expansion targets:

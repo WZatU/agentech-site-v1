@@ -247,6 +247,32 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     ]
   },
   {
+    name: "return_to_home",
+    category: "Movement",
+    signature: "Agentech.return_to_home(facing_angle_deg=0)",
+    summary: "Return Navi to the fixed dual-camera home coordinates, then face one of four approved cardinal directions.",
+    example: "# Exact saved home heading\nAgentech.return_to_home()\n\n# Same fixed position, face right\nAgentech.return_to_home(facing_angle_deg=90)",
+    verification: "Dual-camera dry-run verified against OBS and Camo with sub-pixel position error and IMU-backed 360-degree heading.",
+    platformNote: "Premium Navi capability. The home X/Y coordinates are immutable. Only 0, 90, 180, and 270 degrees are accepted; positive values rotate clockwise from the saved default heading.",
+    platformNoteLabel: "Fixed home + premium access",
+    creditUsage: "high",
+    access: {
+      tier: "premium",
+      featureCode: "navi_return_to_home",
+      includedWithMonthlySubscription: true,
+      oneTimePurchase: true
+    },
+    profiles: [
+      { name: "Default saved heading", syntax: "Agentech.return_to_home()" },
+      { name: "Face right", syntax: "Agentech.return_to_home(facing_angle_deg=90)" },
+      { name: "Face backward", syntax: "Agentech.return_to_home(facing_angle_deg=180)" },
+      { name: "Face left", syntax: "Agentech.return_to_home(facing_angle_deg=270)" }
+    ],
+    params: [
+      p("facing_angle_deg", "0 | 90 | 180 | 270", "Final clockwise orientation relative to the immutable saved home heading.", "0")
+    ]
+  },
+  {
     name: "jump",
     category: "Athletics",
     signature: "Agentech.jump()",

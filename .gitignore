@@ -7,6 +7,9 @@ dist
 .DS_Store
 *.log
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
+tmp/
 .env
 .env.*
 !.env.example

@@ -12,6 +12,22 @@ export function requiresEndLieDown(plan, robotModel) {
   return finalCommand?.name !== endSessionPostureCommand(robotModel);
 }
 
+export function endSessionCleanupPolicy(plan, robotModel) {
+  if (!plan || !Array.isArray(plan.commands) || plan.commands.length === 0) {
+    throw new Error("compiled plan must contain commands");
+  }
+  if (robotModel === "navi") {
+    return {
+      required: true,
+      returnHomeRequired: !plan.commands.some((command) => command?.name === "return_to_home"),
+    };
+  }
+  if (robotModel === "aegis") {
+    return { required: requiresEndLieDown(plan, robotModel), returnHomeRequired: false };
+  }
+  throw new Error(`unsupported robot model: ${robotModel}`);
+}
+
 export function keepsStreamActive(item, nowMs) {
   if (["staged", "running"].includes(item.status)) return true;
   return item.status === "completed" && nowMs < Date.parse(item.end);

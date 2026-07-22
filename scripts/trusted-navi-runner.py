@@ -90,7 +90,25 @@ def end_session_lie_down() -> None:
         agentech.stop()
 
 
+def end_session_cleanup(*, return_home: bool) -> None:
+    agentech = configure_navi()
+    try:
+        if return_home:
+            print("[navi-runner] booked session ended; Agentech.return_to_home({})", flush=True)
+            agentech.return_to_home()
+        print("[navi-runner] booked session cleanup; Agentech.damping({})", flush=True)
+        agentech.damping()
+    finally:
+        agentech.stop()
+
+
 def main() -> None:
+    if len(sys.argv) == 2 and sys.argv[1] == "--return-home-and-damp":
+        end_session_cleanup(return_home=True)
+        return
+    if len(sys.argv) == 2 and sys.argv[1] == "--damp":
+        end_session_cleanup(return_home=False)
+        return
     if len(sys.argv) == 2 and sys.argv[1] == "--lie-down":
         end_session_lie_down()
         return
@@ -103,7 +121,10 @@ def main() -> None:
         print(f"validated {len(commands)} Navi commands")
         return
     if len(sys.argv) != 2:
-        raise SystemExit("usage: trusted-navi-runner.py PLAN.json | --validate PLAN.json | --lie-down | --stop")
+        raise SystemExit(
+            "usage: trusted-navi-runner.py PLAN.json | --validate PLAN.json | "
+            "--return-home-and-damp | --damp | --lie-down | --stop"
+        )
     execute(sys.argv[1])
 
 

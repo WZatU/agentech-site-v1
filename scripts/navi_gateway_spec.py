@@ -29,6 +29,7 @@ NAVI_PARAMETERIZED_COMMANDS = {
     "lateral_right": {"distance_m", "speed_mps", "duration_s", "stop", "speed", "seconds"},
     "diagonal": {"x_m", "y_m", "angle_deg", "speed_mps", "duration_s", "stop"},
     "turn": {"angle_deg", "angle_rad", "distance_deg", "distance_rad", "turn_rate_rad_s", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s", "stop"},
+    "return_to_home": {"facing_angle_deg"},
     "emergency_stop": {"reason"},
     "sideflip": {"direction"},
     "sway": {"duration_s"},
@@ -89,3 +90,5 @@ def validate_navi_command(name: object, arguments: object) -> None:
     unknown = set(arguments) - NAVI_COMMAND_PARAMETERS[name]
     if unknown:
         raise ValueError(f"Navi command {name} has unapproved arguments: {sorted(unknown)}")
+    if name == "return_to_home" and arguments.get("facing_angle_deg", 0) not in {0, 90, 180, 270}:
+        raise ValueError("Navi return_to_home facing_angle_deg must be 0, 90, 180, or 270")

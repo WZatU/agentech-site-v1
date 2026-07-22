@@ -47,13 +47,48 @@ def write_plan(commands: list[str]) -> str:
 
 
 class TrustedNaviRunnerTests(unittest.TestCase):
-    def test_end_session_lie_down_uses_sdk_then_stops(self) -> None:
+    def test_return_to_home_executes_as_a_premium_approved_command(self) -> None:
+        agentech = FakeAgentech()
+        directory = tempfile.mkdtemp(prefix="agentech-navi-runner-")
+        path = Path(directory, "plan.json")
+        path.write_text(
+            json.dumps({
+                "version": 2,
+                "robot_model": "navi",
+                "commands": [{"name": "return_to_home", "args": {"facing_angle_deg": 90}}],
+            }),
+            encoding="utf-8",
+        )
+
+        with patch.object(runner, "configure_navi", return_value=agentech):
+            runner.execute(str(path))
+
+        self.assertEqual(agentech.calls, ["return_to_home", "stop"])
+
+    def test_end_session_returns_home_then_damps_and_stops(self) -> None:
         agentech = FakeAgentech()
 
         with patch.object(runner, "configure_navi", return_value=agentech):
-            runner.end_session_lie_down()
+            runner.end_session_cleanup(return_home=True)
 
-        self.assertEqual(agentech.calls, ["lie_down", "stop"])
+        self.assertEqual(agentech.calls, ["return_to_home", "damping", "stop"])
+
+    def test_end_session_skips_duplicate_return_but_still_damps(self) -> None:
+        agentech = FakeAgentech()
+
+        with patch.object(runner, "configure_navi", return_value=agentech):
+            runner.end_session_cleanup(return_home=False)
+
+        self.assertEqual(agentech.calls, ["damping", "stop"])
+
+    def test_end_session_does_not_damp_before_return_home_finishes(self) -> None:
+        agentech = FakeAgentech({"return_to_home": RuntimeError("camera unavailable")})
+
+        with patch.object(runner, "configure_navi", return_value=agentech):
+            with self.assertRaisesRegex(RuntimeError, "camera unavailable"):
+                runner.end_session_cleanup(return_home=True)
+
+        self.assertEqual(agentech.calls, ["return_to_home", "stop"])
 
     def test_yaw_turn_convergence_timeout_stops_then_continues(self) -> None:
         agentech = FakeAgentech({

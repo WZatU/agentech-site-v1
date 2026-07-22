@@ -18,6 +18,7 @@
     "list:news": "node scripts/delete-news-entry.mjs --list",
     "robot:stream-bridge": "node scripts/robot-stream-bridge.mjs",
     "test:robot-stream-bridge": "node --test scripts/robot-stream-bridge.test.mjs",
+    "test:return-to-home-access": "node --test scripts/return-to-home-access-policy.test.mjs",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",

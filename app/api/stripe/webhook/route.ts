@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fulfillAccountCreditPayment } from "@/lib/account-records";
 import { markBillingInvoicePaid, verifyStripeSignature } from "@/lib/billing";
+import { fulfillFeaturePayment, RETURN_TO_HOME_FEATURE_CODE } from "@/lib/premium-features";
 
 type StripeCheckoutSession = {
   id?: string;
@@ -11,6 +12,7 @@ type StripeCheckoutSession = {
     email?: string;
     credits?: string;
     invoice_number?: string;
+    feature_code?: string;
   } | null;
   payment_status?: string | null;
 };
@@ -43,6 +45,20 @@ export async function POST(request: Request) {
 
     if (purpose === "account_credit_recharge" && session?.id && session.payment_status === "paid") {
       await fulfillAccountCreditPayment({
+        stripeSessionId: session.id,
+        paymentIntentId: session.payment_intent || null
+      });
+
+      return NextResponse.json({ received: true });
+    }
+
+    if (
+      purpose === "premium_feature_purchase" &&
+      session?.metadata?.feature_code === RETURN_TO_HOME_FEATURE_CODE &&
+      session?.id &&
+      session.payment_status === "paid"
+    ) {
+      await fulfillFeaturePayment({
         stripeSessionId: session.id,
         paymentIntentId: session.payment_intent || null
       });

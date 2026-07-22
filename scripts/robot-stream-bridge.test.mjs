@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { keepsStreamActive, requiresEndLieDown } from "./robot-stream-session-policy.mjs";
+import { endSessionCleanupPolicy, keepsStreamActive, requiresEndLieDown } from "./robot-stream-session-policy.mjs";
 
 const scriptsDir = fileURLToPath(new URL(".", import.meta.url));
 const compiler = join(scriptsDir, "compile-robot-plan.py");
@@ -68,6 +68,23 @@ test("Navi compiler rejects Aegies-only capture commands", () => {
   assert.throws(() => compile("from agentech import Agentech\nAgentech.capture_image(mode=\"display\")\n", "Navi"));
 });
 
+test("Navi compiler accepts only cardinal return-to-home headings", () => {
+  const source = [
+    "from agentech import Agentech",
+    "Agentech.return_to_home(facing_angle_deg=270)"
+  ].join("\n");
+  const plan = compile(source, "Navi");
+
+  assert.deepEqual(plan.commands, [
+    { name: "return_to_home", args: { facing_angle_deg: 270 }, line: 2 }
+  ]);
+  execFileSync(python, [naviRunner, "--validate", writePlan(plan)]);
+  assert.throws(() => compile(
+    "from agentech import Agentech\nAgentech.return_to_home(facing_angle_deg=45)\n",
+    "Navi"
+  ));
+});
+
 test("compiler rejects loops and nonliteral customer execution", () => {
   const directory = mkdtempSync(join(tmpdir(), "agentech-plan-reject-"));
   const sourcePath = join(directory, "reviewed.py");
@@ -85,13 +102,14 @@ test("gateway transfers only the plan and trusted runner", () => {
   assert.match(source, /customer source is never sent to the robot/);
   assert.match(source, /async function claimSession/);
   assert.match(source, /spawn\(localPython, \[trustedNaviRunner, item\.localPlan\]/);
-  assert.match(source, /run\(localPython, \[trustedNaviRunner, "--lie-down"\]/);
+  assert.match(source, /"--return-home-and-damp"/);
+  assert.match(source, /"--damp"/);
   assert.match(source, /if \(!active\) await stopObs\(\)/);
   assert.doesNotMatch(source, /readFileSync\(item\.localPlan/);
   assert.match(source, /session robot model does not match its reviewed submission/);
 });
 
-test("session policy adds lie-down only when the final command needs it", () => {
+test("session policy selects model-specific scheduled-end cleanup", () => {
   assert.equal(requiresEndLieDown({ commands: [{ name: "stand" }] }, "navi"), true);
   assert.equal(
     requiresEndLieDown({ commands: [{ name: "lie_down" }, { name: "wave_hand" }] }, "navi"),
@@ -99,6 +117,21 @@ test("session policy adds lie-down only when the final command needs it", () => 
   );
   assert.equal(requiresEndLieDown({ commands: [{ name: "lie_down" }] }, "navi"), false);
   assert.equal(requiresEndLieDown({ commands: [{ name: "sit" }] }, "aegis"), false);
+  assert.deepEqual(
+    endSessionCleanupPolicy({ commands: [{ name: "stand" }] }, "navi"),
+    { required: true, returnHomeRequired: true },
+  );
+  assert.deepEqual(
+    endSessionCleanupPolicy(
+      { commands: [{ name: "return_to_home" }, { name: "wave_hand" }] },
+      "navi",
+    ),
+    { required: true, returnHomeRequired: false },
+  );
+  assert.deepEqual(
+    endSessionCleanupPolicy({ commands: [{ name: "sit" }] }, "aegis"),
+    { required: false, returnHomeRequired: false },
+  );
   assert.equal(
     keepsStreamActive(
       { status: "completed", end: "2026-07-20T20:05:00Z" },

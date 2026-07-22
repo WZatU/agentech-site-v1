@@ -137,6 +137,10 @@ RESEND_REPLY_TO=
 DROPBOX_ACCESS_TOKEN=
 DROPBOX_NEWS_SHARED_LINK=
 
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+AGENTECH_RETURN_TO_HOME_PRICE_CENTS=
+
 OPENAI_API_KEY=
 OPENAI_CODE_REVIEW_MODEL=gpt-5.5
 AGENTECH_AI_REVIEW_CREDITS=50
@@ -144,6 +148,12 @@ AGENTECH_SUBMISSION_DIR=
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` must stay server-side only.
+
+`AGENTECH_RETURN_TO_HOME_PRICE_CENTS` is the positive integer USD-cent price
+for the one-time Navi Return to Home unlock. It has no default: checkout stays
+disabled until the business selects and configures the price. Active monthly
+subscriptions and lifetime feature entitlements are checked server-side before
+the website accepts physical code containing `Agentech.return_to_home()`.
 
 `OPENAI_API_KEY` must also stay server-side only. Never add a `NEXT_PUBLIC_OPENAI_API_KEY`. The code review route calls OpenAI from the server through `lib/agentech-ai-review.ts`, and the browser should never see the key.
 
@@ -809,7 +819,7 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 - For a custom-code booking, the website pins the exact reviewed `agentech_code_submissions` record to the session. During the preparation window, the standalone gateway rechecks both review gates, atomically claims the booking, parses the submitted Python without executing it, and compiles supported literal SDK calls into an inert JSON plan.
 - The gateway transfers only the trusted plan and `trusted-robot-runner.py` to the robot. Raw customer Python is never sent to the robot or executed on the gateway computer.
 - Each `capture_image(mode="display")` call creates one numbered capture. The gateway retrieves each requested capture and uploads it through the authenticated robot-capture endpoint for the matching website account.
-- OBS remains live for the full booked duration even when customer code finishes early. At the scheduled end, the bridge closes the stream, stops any remaining motion, and uses the trusted SDK runner to lie the dog down unless the submitted plan already ends in the model's lying posture (`lie_down()` for Navi or `sit()` for Aegis).
+- OBS remains live for the full booked duration even when customer code finishes early. At the scheduled end, the bridge closes the stream and stops any remaining motion. For Navi, it calls `return_to_home()` when the reviewed plan did not already contain that command, waits for the return to finish, and then always calls `damping()`. For Aegis, it preserves the existing automatic `sit()` cleanup unless the submitted plan already ends in `sit()`.
 - Keep the robot host, SSH user, SSH key, local Python, and remote directory in private user-level environment variables on the gateway computer. Do not print service credentials, runner secrets, SSH keys, or OBS passwords.
 - The bridge should run only between 8:00 AM and 10:00 PM local time. The computer power schedule scripts also wake the machine at 8:00 AM and sleep it at 10:00 PM.
 - Keep `.robot-stream-logs/`, `.robot-stream-runtime/`, `tmp/`, and `output/` local. Do not commit generated logs, compiled plans, captures, rendered screenshots, or private runtime artifacts.
