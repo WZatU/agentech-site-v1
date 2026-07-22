@@ -1,0 +1,8 @@
+{
+  "command": "dramatic_listen",
+  "duration_s": 4.2,
+  "visible_sequence": "fast_left_then_right_repeated_twice_then_stand",
+  "repeat_count": 2,
+  "ground_contact_targets_used": true,
+  "max_foot_site_error_m": 1.336440148354338e-06
+}

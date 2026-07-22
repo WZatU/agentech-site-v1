@@ -1,0 +1,10 @@
+{
+  "command": "dance",
+  "style": "shoulder",
+  "duration_s": 3.8,
+  "shoulder_lift_count": 3,
+  "front_legs_extend": true,
+  "body_pushes_forward_with_head_lift": true,
+  "ground_contact_targets_used": true,
+  "max_foot_site_error_m": 1.853990436630414e-06
+}

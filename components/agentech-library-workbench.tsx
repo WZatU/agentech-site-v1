@@ -127,6 +127,8 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   sniff_right: "/assets/products/agentech-library/navi-simulations/actions/sniff-right/navi-sniff-right.mp4?v=20260721-1",
   front_stretch: "/assets/products/agentech-library/navi-simulations/actions/front-stretch/navi-front-stretch.mp4?v=20260721-2",
   full_body_stretch: "/assets/products/agentech-library/navi-simulations/actions/full-body-stretch/navi-full-body-stretch.mp4?v=20260721-2",
+  dance: "/assets/products/agentech-library/navi-simulations/actions/dance-shoulder/navi-dance-shoulder.mp4?v=20260721-2",
+  dramatic_listen: "/assets/products/agentech-library/navi-simulations/actions/dramatic-listen/navi-dramatic-listen.mp4?v=20260721-2",
   kick: "/assets/products/agentech-library/navi-simulations/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
   frontflip: "/assets/products/agentech-library/navi-simulations/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
   jump_forward: "/assets/products/agentech-library/navi-simulations/athletics/jump-forward/navi-reference-jump-forward.mp4?v=20260721-2",
@@ -605,7 +607,47 @@ function CopyCodeButton({ value, className = "" }: { value: string; className?: 
 
 function NaviSimulationPreview({ command }: { command: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const autoPlayedSourceRef = useRef<string | null>(null);
   const videoSource = naviSimulationAssets[command];
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoSource) {
+      return;
+    }
+
+    if (autoPlayedSourceRef.current !== videoSource) {
+      autoPlayedSourceRef.current = null;
+    }
+
+    const playFromStart = () => {
+      const replayStart = naviSimulationReplayStart[command] ?? 0;
+      const startPlayback = () => {
+        video.pause();
+        video.currentTime = replayStart;
+        void video.play().catch(() => undefined);
+      };
+      if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        startPlayback();
+        return;
+      }
+      video.addEventListener("loadedmetadata", startPlayback, { once: true });
+      video.load();
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting || autoPlayedSourceRef.current === videoSource) {
+          return;
+        }
+        autoPlayedSourceRef.current = videoSource;
+        playFromStart();
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [command, videoSource]);
 
   if (!videoSource) {
     return (
@@ -643,10 +685,8 @@ function NaviSimulationPreview({ command }: { command: string }) {
       <video
         ref={videoRef}
         src={videoSource}
-        autoPlay
         muted
         playsInline
-        loop
         preload="metadata"
         aria-label={`Approved Navi MuJoCo simulation for Agentech.${command}`}
         className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"

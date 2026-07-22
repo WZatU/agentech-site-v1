@@ -468,7 +468,6 @@ const naviFunctionDefinitions: AgentechFunction[] = [
   namedExtendedAction("joy_walk", "Navi performs a buoyant low walk with exaggerated rhythmic steps and body bounce."),
   namedExtendedAction("duck_walk", "Navi travels in a low crouch using short alternating steps."),
   parameterizedAction("step", "Agentech.step(direction=x)", "Navi takes one compact preset step forward or backward and settles.", "Agentech.step(direction=\"forward\")", [p("direction", '"forward" | "backward"', "Choose the direction of the single preset step.", '"forward"')]),
-  parameterizedAction("turn_around", "Agentech.turn_around(direction=x)", "Navi performs a preset 180-degree turn toward the selected side.", "Agentech.turn_around(direction=\"left\")", [p("direction", '"left" | "right"', "Choose the half-turn direction.", '"right"')]),
   namedExtendedAction("nod_off", "Navi performs a long sleep sequence with repeated low droops and small waking motions."),
   {
     name: "stand",
