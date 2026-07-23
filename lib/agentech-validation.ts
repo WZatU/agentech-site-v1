@@ -110,7 +110,6 @@ function buildNaviSdkSpec(): Record<string, Spec> {
   for (const name of ["bark", "nod_head", "shake_head"] as const) {
     if (specs[name]) specs[name].rules.count = pick(1, 2);
   }
-  if (specs.push_up) specs.push_up.rules.count = integer(1, Number.MAX_SAFE_INTEGER);
   return specs;
 }
 

@@ -402,16 +402,14 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     name: "push_up",
     category: "Actions",
     signature: "Agentech.push_up()",
-    summary: "Navi lowers into a push-up stance, completes the requested number of controlled vertical repetitions, then recovers to standing.",
-    example: "Agentech.push_up(count=3)",
-    verification: "Five repetitions were recorded during the physical motion review",
+    summary: "Navi lowers into a push-up stance, completes its fixed five controlled vertical repetitions, then recovers to standing.",
+    example: "Agentech.push_up()",
+    verification: "The physical robot produced five repetitions when tested with attempted counts of both 1 and 3",
+    platformNote: "NAVI firmware ignores repetition-count inputs for this routine. The SDK therefore exposes push_up() without a count parameter and accurately documents the fixed five repetitions.",
     profiles: [
-      { name: "Default: 3 repetitions", syntax: "Agentech.push_up()" },
-      { name: "Repetition count", syntax: "Agentech.push_up(count=x)" }
+      { name: "Fixed: 5 repetitions", syntax: "Agentech.push_up()" }
     ],
-    params: [
-      p("count", "int > 0", "Number of push-up repetitions to complete before returning to standing.", "3")
-    ]
+    params: []
   },
   parameterizedAction("look_around", "Agentech.look_around(style=x)", "Navi performs one of six planted-foot surroundings scans, from brief side glances to broad low or high sweeps.", "Agentech.look_around(style=\"high\")", [p("style", '"panoramic" | "left" | "right" | "low" | "quick" | "high"', "Select the scan path and range.", '"panoramic"')]),
   parameterizedAction("think", "Agentech.think(style=x)", "Choose the standard, long, or short thinking gesture.", "Agentech.think(style=\"long\")", [p("style", '"standard" | "long" | "short"', "Select the thinking routine length and motion pattern.", '"standard"')]),
