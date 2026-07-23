@@ -17,9 +17,9 @@ const naviReferenceCategories: AgentechFunction["category"][] = [
   "Athletics",
   "Actions",
   "Posture",
-  "Configuration",
   "Safety",
-  "Sensing"
+  "Sensing",
+  "Configuration"
 ];
 type Category = (typeof categories)[number];
 type SimFrame = { x: number; y: number; z: number; yaw: number; pitch?: number };
@@ -175,6 +175,10 @@ const localPreviewAssets: Record<string, string> = {
   battery: previewAsset("battery_status")
 };
 const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
+function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: "aegis" | "navi") {
+  return commandsWithoutReferencePreview.has(item.name)
+    || (selectedRobot === "navi" && (item.category === "Sensing" || item.category === "Configuration"));
+}
 const naviSimulationAssets: Partial<Record<string, string>> = {
   backward: "/assets/products/agentech-library/navi-simulations/backward/navi-walk-backward.mp4?v=local-approval-20260720",
   forward: "/assets/products/agentech-library/navi-simulations/forward/navi-walk-forward.mp4?v=local-approval-20260720",
@@ -228,6 +232,21 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   nod_off: "/assets/products/agentech-library/navi-simulations/actions/nod-off/navi-nod-off.mp4?v=20260721-2",
   dance: "/assets/products/agentech-library/navi-simulations/actions/dance-shoulder/navi-dance-shoulder.mp4?v=20260721-2",
   dramatic_listen: "/assets/products/agentech-library/navi-simulations/actions/dramatic-listen/navi-dramatic-listen.mp4?v=20260721-2",
+  swim: "/assets/products/agentech-library/navi-simulations/actions/swim/navi-swim.mp4?v=20260722-4",
+  point_to_sky: "/assets/products/agentech-library/navi-simulations/actions/point-to-sky/navi-point-to-sky-left.mp4?v=20260722-2",
+  wait_for_praise: "/assets/products/agentech-library/navi-simulations/actions/wait-for-praise/navi-wait-for-praise-planted-feet.mp4?v=20260722-1",
+  lucky_cat: "/assets/products/agentech-library/navi-simulations/actions/lucky-cat/navi-lucky-cat-floor-safe.mp4?v=20260722-1",
+  jingle: "/assets/products/agentech-library/navi-simulations/actions/jingle/navi-jingle-fast-three-times.mp4?v=20260722-1",
+  flex_muscles: "/assets/products/agentech-library/navi-simulations/actions/flex-muscles/navi-flex-muscles-live-joints.mp4?v=20260722-1",
+  good_night_wave: "/assets/products/agentech-library/navi-simulations/actions/good-night-wave/navi-good-night-wave-front-camera.mp4?v=20260722-1",
+  cry: "/assets/products/agentech-library/navi-simulations/actions/cry/navi-cry-live-joints.mp4?v=20260722-2",
+  encourage: "/assets/products/agentech-library/navi-simulations/actions/encourage/navi-encourage-clean-return.mp4?v=20260722-1",
+    playful_greeting: "/assets/products/agentech-library/navi-simulations/actions/playful-greeting/navi-playful-greeting-shoulder-dips.webp?v=20260722-5",
+    push_ahead: "/assets/products/agentech-library/navi-simulations/actions/push-ahead/navi-push-ahead-knee-forward.webp?v=20260722-4",
+    brace: "/assets/products/agentech-library/navi-simulations/actions/brace/navi-brace-live-joints.mp4?v=20260722-2",
+    shake_hand_quick: "/assets/products/agentech-library/navi-simulations/actions/shake-hand-quick/navi-shake-hand-quick-live-joints.mp4?v=20260722-2",
+    pee_quick: "/assets/products/agentech-library/navi-simulations/actions/pee-quick/navi-pee-quick-live-joints.mp4?v=20260722-2",
+  emergency_stop: "/assets/products/agentech-library/navi-simulations/safety/emergency-stop/navi-emergency-stop.mp4?v=20260722-1",
   jump: "/assets/products/agentech-library/navi-simulations/athletics/jump/navi-reference-jump.mp4?v=20260721-2",
   kick: "/assets/products/agentech-library/navi-simulations/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
   frontflip: "/assets/products/agentech-library/navi-simulations/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
@@ -707,12 +726,16 @@ function CopyCodeButton({ value, className = "" }: { value: string; className?: 
 
 function NaviSimulationPreview({ command }: { command: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const animatedImageRef = useRef<HTMLDivElement>(null);
   const autoPlayedSourceRef = useRef<string | null>(null);
+  const [animatedImageVisible, setAnimatedImageVisible] = useState(false);
+  const [animatedImageRun, setAnimatedImageRun] = useState(0);
   const videoSource = naviSimulationAssets[command];
+  const isAnimatedImage = Boolean(videoSource?.includes(".webp"));
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !videoSource) {
+    if (!video || !videoSource || isAnimatedImage) {
       return;
     }
 
@@ -747,7 +770,27 @@ function NaviSimulationPreview({ command }: { command: string }) {
     );
     observer.observe(video);
     return () => observer.disconnect();
-  }, [command, videoSource]);
+  }, [command, isAnimatedImage, videoSource]);
+
+  useEffect(() => {
+    const container = animatedImageRef.current;
+    if (!container || !videoSource || !isAnimatedImage) {
+      return;
+    }
+    setAnimatedImageVisible(false);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
+          return;
+        }
+        setAnimatedImageVisible(true);
+        observer.disconnect();
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [isAnimatedImage, videoSource]);
 
   if (!videoSource) {
     return (
@@ -762,6 +805,11 @@ function NaviSimulationPreview({ command }: { command: string }) {
   }
 
   function replay() {
+    if (isAnimatedImage) {
+      setAnimatedImageVisible(true);
+      setAnimatedImageRun((run) => run + 1);
+      return;
+    }
     const video = videoRef.current;
     if (!video) {
       return;
@@ -782,15 +830,31 @@ function NaviSimulationPreview({ command }: { command: string }) {
 
   return (
     <div>
-      <video
-        ref={videoRef}
-        src={videoSource}
-        muted
-        playsInline
-        preload="metadata"
-        aria-label={`Approved Navi MuJoCo simulation for Agentech.${command}`}
-        className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
-      />
+      {isAnimatedImage ? (
+        <div ref={animatedImageRef} className="aspect-video w-full border border-[#dce7f2] bg-black">
+          {animatedImageVisible ? (
+            <Image
+              key={animatedImageRun}
+              src={`${videoSource}&replay=${animatedImageRun}`}
+              alt={`Approved Navi MuJoCo simulation for Agentech.${command}`}
+              width={640}
+              height={360}
+              unoptimized
+              className="aspect-video h-full w-full object-contain"
+            />
+          ) : null}
+        </div>
+      ) : (
+        <video
+          ref={videoRef}
+          src={videoSource}
+          muted
+          playsInline
+          preload="metadata"
+          aria-label={`Approved Navi MuJoCo simulation for Agentech.${command}`}
+          className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
+        />
+      )}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs leading-5 text-[#526174]">Approved Navi MuJoCo simulation</p>
         <button
@@ -1601,7 +1665,7 @@ function FocusedBrowseFunctionsSection() {
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Range-checked gait, foot, floor-grip, jump, and collision settings. Physical calibration remains under development.</p>
                   ) : null}
                   {group.category === "Safety" && selectedRobot === "navi" ? (
-                    <p className="mt-2 text-sm leading-6 text-[#526174]">Stop active movement or lower Navi into its relaxed damping posture for charging.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Stop active movement normally or trigger Navi&apos;s software emergency-stop posture.</p>
                   ) : null}
                 </div>
                 <div className="flex w-full shrink-0 items-center justify-between gap-3 sm:w-auto sm:justify-start">
@@ -1628,7 +1692,7 @@ function FocusedBrowseFunctionsSection() {
                         <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
                       </div>
                     </summary>
-                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${commandsWithoutReferencePreview.has(item.name) ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
+                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${shouldHideReferencePreview(item, selectedRobot) ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
                       <div className="min-w-0 bg-[#fbfdff] p-4">
                         <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
                         <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
@@ -1711,7 +1775,7 @@ function FocusedBrowseFunctionsSection() {
                           </>
                         )}
                       </div>
-                      {commandsWithoutReferencePreview.has(item.name) ? null : (
+                      {shouldHideReferencePreview(item, selectedRobot) ? null : (
                         <div className="min-w-0 bg-white p-4">
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">
                             {selectedRobot === "navi" && item.name === "lateral" ? "lateral_left" : item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}

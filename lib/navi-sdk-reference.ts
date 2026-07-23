@@ -449,7 +449,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
   namedExtendedAction("eager", "Navi lowers and stretches forward through an animated sequence of eager body shifts before returning to standing."),
   namedExtendedAction("rub_eyes", "Navi lowers its forebody and moves a raised front leg near its face in a rubbing-like gesture."),
   parameterizedAction("point_to_sky", "Agentech.point_to_sky(direction=x)", "Navi balances low and raises the selected front leg into an upward pointing pose.", "Agentech.point_to_sky(direction=\"right\")", [p("direction", '"left" | "right"', "Choose which front leg points upward.", '"left"')]),
-  namedExtendedAction("wait_for_praise", "Navi settles low, raises a front leg, and holds an expectant pose before recovering."),
+  namedExtendedAction("wait_for_praise", "Navi lengthens both front legs, lowers its rear body into an expectant pose, holds briefly, then recovers."),
   parameterizedAction("lucky_cat", "Agentech.lucky_cat(style=x)", "Choose a full, quick, or brief beckoning-paw routine.", "Agentech.lucky_cat(style=\"quick\")", [p("style", '"full" | "quick" | "brief"', "Select the length and motion range of the beckoning gesture.", '"full"')]),
   namedExtendedAction("dramatic_listen", "Navi freezes, leans, and reacts through an exaggerated listening pose."),
   namedExtendedAction("jingle", "Navi combines quick low body bounces with alternating playful forebody accents."),
@@ -722,14 +722,6 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     params: [p("reason", "str", "Reason recorded in the returned result.", "Agentech emergency stop"), naviConnection]
   },
   {
-    name: "damping",
-    category: "Safety",
-    signature: "Agentech.damping()",
-    summary: "Navi lowers its body to the ground into a relaxed damping posture for charging or shutdown.",
-    example: "Agentech.damping()",
-    params: []
-  },
-  {
     name: "get_status",
     category: "Sensing",
     signature: "Agentech.get_status()",
@@ -787,7 +779,6 @@ export const naviSafetyLimits = [
   "Motion is dry-run unless dry_run=False is selected",
   "Angle turns use yaw feedback; timed motion and rate-plus-time turns are limited to 10 seconds",
   "Timed poses and gestures accept any positive finite duration and return to standing",
-  "Damping lowers Navi into its relaxed charging or shutdown posture",
   "Keep the physical controller stop available",
   "Charge Navi before athletic or dance testing",
   "Backflip is not available on Navi and is blocked"
