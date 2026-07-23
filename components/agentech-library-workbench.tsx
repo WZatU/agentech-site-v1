@@ -234,6 +234,36 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   nod_off: "/assets/products/agentech-library/navi-simulations/actions/nod-off/navi-nod-off.mp4?v=20260721-2",
   dance: "/assets/products/agentech-library/navi-simulations/actions/dance-shoulder/navi-dance-shoulder.mp4?v=20260721-2",
   dramatic_listen: "/assets/products/agentech-library/navi-simulations/actions/dramatic-listen/navi-dramatic-listen.mp4?v=20260721-2",
+  act_shy: "/assets/products/agentech-library/navi-simulations/actions/act-shy/navi-reference-act-shy.gif?v=20260723-1",
+  be_sleepy: "/assets/products/agentech-library/navi-simulations/actions/be-sleepy/navi-reference-be-sleepy.gif?v=20260723-1",
+  body_tag_search: "/assets/products/agentech-library/navi-simulations/actions/body-tag-search/navi-reference-body-tag-search.gif?v=20260723-1",
+  bored_half_sit: "/assets/products/agentech-library/navi-simulations/actions/bored-half-sit/navi-reference-bored-half-sit.gif?v=20260723-1",
+  brush_teeth: "/assets/products/agentech-library/navi-simulations/actions/brush-teeth/navi-reference-brush-teeth.gif?v=20260723-1",
+  chat: "/assets/products/agentech-library/navi-simulations/actions/chat/navi-reference-chat.gif?v=20260723-1",
+  cooking: "/assets/products/agentech-library/navi-simulations/actions/cooking/navi-reference-cooking.gif?v=20260723-1",
+  duck_walk: "/assets/products/agentech-library/navi-simulations/actions/duck-walk/navi-reference-duck-walk.gif?v=20260723-1",
+  eager: "/assets/products/agentech-library/navi-simulations/actions/eager/navi-reference-eager.gif?v=20260723-1",
+  explore_new_home: "/assets/products/agentech-library/navi-simulations/actions/explore-new-home/navi-reference-explore-new-home.gif?v=20260723-1",
+  explore_road: "/assets/products/agentech-library/navi-simulations/actions/explore-road/navi-reference-explore-road.gif?v=20260723-1",
+  fast_rotate: "/assets/products/agentech-library/navi-simulations/actions/fast-rotate/navi-reference-fast-rotate.gif?v=20260723-1",
+  joy_walk: "/assets/products/agentech-library/navi-simulations/actions/joy-walk/navi-reference-joy-walk.gif?v=20260723-1",
+  listen: "/assets/products/agentech-library/navi-simulations/actions/listen/navi-reference-listen.gif?v=20260723-1",
+  observe: "/assets/products/agentech-library/navi-simulations/actions/observe/navi-reference-observe.gif?v=20260723-1",
+  push_up: "/assets/products/agentech-library/navi-simulations/actions/push-up/navi-reference-push-up.gif?v=20260723-1",
+  rear_stretch: "/assets/products/agentech-library/navi-simulations/actions/rear-stretch/navi-reference-rear-stretch.gif?v=20260723-1",
+  rest: "/assets/products/agentech-library/navi-simulations/actions/rest/navi-reference-rest.gif?v=20260723-1",
+  search_environment: "/assets/products/agentech-library/navi-simulations/actions/search-environment/navi-reference-search-environment.gif?v=20260723-1",
+  search_tag: "/assets/products/agentech-library/navi-simulations/actions/search-tag/navi-reference-search-tag.gif?v=20260723-1",
+  shake_self: "/assets/products/agentech-library/navi-simulations/actions/shake-self/navi-reference-shake-self.gif?v=20260723-1",
+  sniff_up: "/assets/products/agentech-library/navi-simulations/actions/sniff-up/navi-reference-sniff-up.gif?v=20260723-1",
+  snuggle: "/assets/products/agentech-library/navi-simulations/actions/snuggle/navi-reference-snuggle.gif?v=20260723-1",
+  step: "/assets/products/agentech-library/navi-simulations/actions/step/navi-reference-step.gif?v=20260723-1",
+  step_idle: "/assets/products/agentech-library/navi-simulations/actions/step-idle/navi-reference-step-idle.gif?v=20260723-1",
+  sway_front_back: "/assets/products/agentech-library/navi-simulations/actions/sway-front-back/navi-reference-sway-front-back.gif?v=20260723-1",
+  think: "/assets/products/agentech-library/navi-simulations/actions/think/navi-reference-think.gif?v=20260723-1",
+  toilet_pose: "/assets/products/agentech-library/navi-simulations/actions/toilet-pose/navi-reference-toilet-pose.gif?v=20260723-1",
+  toss: "/assets/products/agentech-library/navi-simulations/actions/toss/navi-reference-toss.gif?v=20260723-1",
+  yawn: "/assets/products/agentech-library/navi-simulations/actions/yawn/navi-reference-yawn.gif?v=20260723-1",
   swim: "/assets/products/agentech-library/navi-simulations/actions/swim/navi-swim.mp4?v=20260722-4",
   point_to_sky: "/assets/products/agentech-library/navi-simulations/actions/point-to-sky/navi-point-to-sky-left.mp4?v=20260722-2",
   wait_for_praise: "/assets/products/agentech-library/navi-simulations/actions/wait-for-praise/navi-wait-for-praise-planted-feet.mp4?v=20260722-1",
@@ -834,16 +864,21 @@ function NaviSimulationPreview({ command }: { command: string }) {
   return (
     <div>
       {isAnimatedImage ? (
-        <div ref={animatedImageRef} className="aspect-video w-full border border-[#dce7f2] bg-black">
+        <div
+          ref={animatedImageRef}
+          className={isGifImage ? "w-full" : "aspect-video w-full border border-[#dce7f2] bg-black"}
+        >
           {animatedImageVisible ? (
             <Image
               key={animatedImageRun}
               src={`${videoSource}&replay=${animatedImageRun}`}
               alt={`Approved Navi MuJoCo simulation for Agentech.${command}`}
-              width={640}
-              height={360}
+              width={isGifImage ? 720 : 640}
+              height={isGifImage ? 540 : 360}
               unoptimized
-              className={`aspect-video h-full w-full ${isGifImage ? "object-cover" : "object-contain"}`}
+              className={isGifImage
+                ? "h-auto w-full border border-[#dce7f2] object-contain"
+                : "aspect-video h-full w-full object-contain"}
             />
           ) : null}
         </div>
