@@ -177,7 +177,7 @@ const localPreviewAssets: Record<string, string> = {
 const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
 function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: "aegis" | "navi") {
   return commandsWithoutReferencePreview.has(item.name)
-    || (selectedRobot === "navi" && (item.name === "stop" || item.category === "Sensing" || item.category === "Configuration"));
+    || (selectedRobot === "navi" && (item.name === "stop" || item.name === "recovery_stand" || item.category === "Sensing" || item.category === "Configuration"));
 }
 const naviSimulationAssets: Partial<Record<string, string>> = {
   backward: "/assets/products/agentech-library/navi-simulations/backward/navi-walk-backward.mp4?v=local-approval-20260720",
