@@ -195,9 +195,11 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   shake_hand: "/assets/products/agentech-library/navi-simulations/actions/shake-hand/navi-shake-hand-one-second.mp4?v=20260721-4",
   hip_shake: "/assets/products/agentech-library/navi-simulations/actions/hip-shake/navi-hip-shake-rear-down.mp4?v=20260721-2",
   wave_hand: "/assets/products/agentech-library/navi-simulations/actions/wave-hand/navi-wave-hand-forward-up.mp4?v=20260721-5",
-  bow: "/assets/products/agentech-library/navi-simulations/actions/bow/navi-bow-90-return.mp4?v=20260721-2",
+  bow: "/assets/products/agentech-library/navi-simulations/actions/bow/navi-reference-bow.gif?v=20260723-1",
   wag_rear: "/assets/products/agentech-library/navi-simulations/actions/wag-rear/navi-wag-rear-planted.mp4?v=20260721-2",
-  bark: "/assets/products/agentech-library/navi-simulations/actions/bark/navi-bark-subtle-reference.mp4?v=20260721-5",
+  bark: "/assets/products/agentech-library/navi-simulations/actions/bark/navi-reference-bark.gif?v=20260723-1",
+  clap_hand: "/assets/products/agentech-library/navi-simulations/actions/clap-hand/navi-reference-clap-hand.gif?v=20260723-1",
+  rub_eyes: "/assets/products/agentech-library/navi-simulations/actions/rub-eyes/navi-reference-rub-eyes.gif?v=20260723-1",
   nod_head: "/assets/products/agentech-library/navi-simulations/actions/nod-head/navi-nod-head-sequential.mp4?v=20260721-4",
   shake_head: "/assets/products/agentech-library/navi-simulations/actions/shake-head/navi-shake-head-twist.mp4?v=20260721-1",
   confused: "/assets/products/agentech-library/navi-simulations/actions/confused/navi-confused-asymmetric-legs.mp4?v=20260721-4",
@@ -212,7 +214,7 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   front_stretch: "/assets/products/agentech-library/navi-simulations/actions/front-stretch/navi-front-stretch.mp4?v=20260721-2",
   full_body_stretch: "/assets/products/agentech-library/navi-simulations/actions/full-body-stretch/navi-full-body-stretch.mp4?v=20260721-2",
   look_around: "/assets/products/agentech-library/navi-simulations/actions/look-around/navi-look-around.mp4?v=20260721-1",
-  squat: "/assets/products/agentech-library/navi-simulations/posture/squat/navi-squat.mp4?v=20260721-1",
+  squat: "/assets/products/agentech-library/navi-simulations/posture/squat/navi-reference-squat.gif?v=20260723-1",
   sit: "/assets/products/agentech-library/navi-simulations/posture/sit/navi-sit.mp4?v=20260721-1",
   lie_down: "/assets/products/agentech-library/navi-simulations/posture/lie-down/navi-lie-down.mp4?v=20260721-1",
   lie_on_elbows: "/assets/products/agentech-library/navi-simulations/posture/lie-on-elbows/navi-lie-on-elbows.mp4?v=20260721-1",
@@ -731,7 +733,8 @@ function NaviSimulationPreview({ command }: { command: string }) {
   const [animatedImageVisible, setAnimatedImageVisible] = useState(false);
   const [animatedImageRun, setAnimatedImageRun] = useState(0);
   const videoSource = naviSimulationAssets[command];
-  const isAnimatedImage = Boolean(videoSource?.includes(".webp"));
+  const isGifImage = Boolean(videoSource && /\.gif(?:[?#]|$)/i.test(videoSource));
+  const isAnimatedImage = Boolean(videoSource && /\.(?:gif|webp)(?:[?#]|$)/i.test(videoSource));
 
   useEffect(() => {
     const video = videoRef.current;
@@ -840,7 +843,7 @@ function NaviSimulationPreview({ command }: { command: string }) {
               width={640}
               height={360}
               unoptimized
-              className="aspect-video h-full w-full object-contain"
+              className={`aspect-video h-full w-full ${isGifImage ? "object-cover" : "object-contain"}`}
             />
           ) : null}
         </div>
