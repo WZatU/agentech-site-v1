@@ -280,6 +280,7 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
     pee_quick: "/assets/products/agentech-library/navi-simulations/actions/pee-quick/navi-pee-quick-live-joints.mp4?v=20260722-2",
   emergency_stop: "/assets/products/agentech-library/navi-simulations/safety/emergency-stop/navi-emergency-stop.mp4?v=20260722-1",
   jump: "/assets/products/agentech-library/navi-simulations/athletics/jump/navi-reference-jump.mp4?v=20260721-2",
+  jump_round: "/assets/products/agentech-library/navi-simulations/athletics/jump-round/navi-reference-jump-round.gif?v=20260723-1",
   kick: "/assets/products/agentech-library/navi-simulations/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
   frontflip: "/assets/products/agentech-library/navi-simulations/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
   jump_forward: "/assets/products/agentech-library/navi-simulations/athletics/jump-forward/navi-reference-jump-forward.mp4?v=20260721-2",
