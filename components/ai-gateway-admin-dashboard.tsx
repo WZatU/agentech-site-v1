@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { clearAccountSession, getAccountSession } from "@/lib/account-session";
-import { AGENTECH_COMPANY_EMAIL_SUFFIX, isAgentechCompanyEmail, isAgentechGatewayOwnerEmail } from "@/lib/company-accounts";
+import {
+  AGENTECH_COMPANY_EMAIL_SUFFIX,
+  isAgentechCompanyEmail,
+  isAgentechGatewayOwnerEmail,
+  isAgentechPrimaryOwnerEmail
+} from "@/lib/company-accounts";
 
 type AdminAiCap = {
   user_id: string;
@@ -386,7 +391,11 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                 Last refresh: {lastRefreshedAt || "not loaded yet"}
               </p>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 md:w-[430px]">
+            <div
+              className={`mt-4 grid gap-3 sm:grid-cols-2 md:mt-0 ${
+                isAgentechPrimaryOwnerEmail(email) ? "md:w-[650px] md:grid-cols-3" : "md:w-[430px]"
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => void loadUsage({ announce: true })}
@@ -395,6 +404,14 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               >
                 {loading ? "Refreshing..." : "Refresh Usage"}
               </button>
+              {isAgentechPrimaryOwnerEmail(email) ? (
+                <Link
+                  href="/admin/master-robot"
+                  className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-slate-950 bg-slate-950 px-5 text-center text-[15px] font-black text-white shadow-[0_8px_18px_rgba(15,23,42,0.15)] transition hover:bg-slate-800"
+                >
+                  Master Reference
+                </Link>
+              ) : null}
               <button
                 type="button"
                 onClick={() => {

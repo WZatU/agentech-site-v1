@@ -21,6 +21,10 @@ export function isAgentechGatewayOwnerEmail(email: string | null | undefined) {
   return AGENTECH_GATEWAY_OWNER_EMAILS.includes(normalized as (typeof AGENTECH_GATEWAY_OWNER_EMAILS)[number]);
 }
 
+export function isAgentechPrimaryOwnerEmail(email: string | null | undefined) {
+  return normalizeCompanyEmail(email) === AGENTECH_GATEWAY_OWNER_EMAIL;
+}
+
 export function getSoftwareCheckCreditPolicy(email: string | null | undefined) {
   const internalCompanyAccount = isAgentechCompanyEmail(email);
 
