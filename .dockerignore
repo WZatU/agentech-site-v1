@@ -1,0 +1,4 @@
+*
+!Dockerfile.simulator
+!simulators/
+!simulators/**

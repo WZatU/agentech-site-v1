@@ -93,11 +93,13 @@ def end_session_lie_down() -> None:
 def end_session_cleanup(*, return_home: bool) -> None:
     agentech = configure_navi()
     try:
-        if return_home:
-            print("[navi-runner] booked session ended; Agentech.return_to_home({})", flush=True)
-            agentech.return_to_home()
-        print("[navi-runner] booked session cleanup; Agentech.damping({})", flush=True)
-        agentech.damping()
+        try:
+            if return_home:
+                print("[navi-runner] booked session ended; Agentech.return_to_home({})", flush=True)
+                agentech.return_to_home()
+        finally:
+            print("[navi-runner] booked session cleanup; Agentech.damping({})", flush=True)
+            agentech.damping()
     finally:
         agentech.stop()
 

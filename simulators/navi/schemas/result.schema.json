@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://navi.local/schemas/result.schema.json",
+  "title": "Navi MuJoCo SDK Translator Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool_version",
+    "run_id",
+    "method",
+    "backend_behavior_status",
+    "sdk_contract_status",
+    "ground_truth_status",
+    "evidence_status",
+    "status",
+    "execution",
+    "safety",
+    "limitations",
+    "artifacts",
+    "timestamp",
+    "seed",
+    "input_hash",
+    "config_hash",
+    "model_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "tool_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "run_id": {"type": "string", "minLength": 1},
+    "method": {"type": ["string", "null"]},
+    "methods": {"type": "array", "items": {"type": "string"}, "uniqueItems": false},
+    "backend_behavior_status": {
+      "enum": [
+        "PHYSICALLY_IMPLEMENTED", "SIMULATED", "APPROXIMATE",
+        "NO_MEANINGFUL_MOTION", "BLOCKED_BY_MODEL", "HARDWARE_ONLY",
+        "UNAVAILABLE", "UNSAFE_PROVEN", "FAILED", "MIXED", "NOT_APPLICABLE"
+      ]
+    },
+    "sdk_contract_status": {
+      "enum": [
+        "RESOLVED", "PARTIALLY_RESOLVED", "RETURN_UNRESOLVED",
+        "BLOCKING_UNRESOLVED", "ASYNC_UNRESOLVED", "MULTIPLE_UNRESOLVED",
+        "NOT_APPLICABLE", "MIXED"
+      ]
+    },
+    "ground_truth_status": {
+      "enum": [
+        "DIRECT_CONFIRMED", "LEGACY_CONFIRMED", "INFERRED", "AMBIGUOUS",
+        "CONFLICT", "UNMATCHED", "NOT_APPLICABLE", "MIXED"
+      ]
+    },
+    "evidence_status": {
+      "enum": [
+        "VERIFIED", "VERIFIED_WITH_LIMITATIONS", "INSUFFICIENT",
+        "CONTRADICTED", "MIXED", "NOT_APPLICABLE"
+      ]
+    },
+    "status": {"enum": ["passed", "failed"]},
+    "execution": {"type": "object"},
+    "safety": {"type": "object"},
+    "limitations": {"type": "array", "items": {"type": ["string", "object"]}},
+    "artifacts": {"type": "object", "additionalProperties": {"type": ["string", "null"]}},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "seed": {"type": "integer"},
+    "input_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "config_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

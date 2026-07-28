@@ -32,3 +32,14 @@ export function keepsStreamActive(item, nowMs) {
   if (["staged", "running"].includes(item.status)) return true;
   return item.status === "completed" && nowMs < Date.parse(item.end);
 }
+
+export function finalSessionDatabaseStatus(item) {
+  if (item?.status !== "finished") return null;
+  const required = item.endCleanupRequired ?? item.endLieDownRequired;
+  const cleanupStatus = item.endCleanupStatus ?? item.endLieDownStatus;
+  const attempts = Number(item.endCleanupAttempts ?? item.endLieDownAttempts ?? 0);
+  if (required !== true) return "completed";
+  if (cleanupStatus === "completed") return "completed";
+  if (cleanupStatus === "failed" && attempts >= 3) return "failed";
+  return null;
+}

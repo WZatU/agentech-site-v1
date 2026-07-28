@@ -107,9 +107,10 @@ function buildNaviSdkSpec(): Record<string, Spec> {
   if (specs.return_to_home) {
     specs.return_to_home.rules.facing_angle_deg = pick(0, 90, 180, 270);
   }
-  for (const name of ["bark", "nod_head", "shake_head"] as const) {
+  for (const name of ["nod_head", "shake_head"] as const) {
     if (specs[name]) specs[name].rules.count = pick(1, 2);
   }
+  if (specs.bark) specs.bark.rules.count = integer(1, Number.MAX_SAFE_INTEGER);
   return specs;
 }
 

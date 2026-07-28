@@ -1,0 +1,2358 @@
+{
+  "schema_version": "1.0-correction",
+  "source": "frozen_full_sdk_ground_truth_mapping_audit",
+  "policy": {
+    "direct_implementation_sources": [
+      "DIRECT_CONFIRMED",
+      "LEGACY_CONFIRMED"
+    ],
+    "inferred_is_auxiliary_only": true,
+    "ambiguous_conflict_unmatched_are_not_completion_proof": true,
+    "many_to_many_candidates_allowed": true
+  },
+  "counts": {
+    "DIRECT_CONFIRMED": 39,
+    "CONFLICT": 4,
+    "INFERRED": 28,
+    "LEGACY_CONFIRMED": 24,
+    "AMBIGUOUS": 28,
+    "UNMATCHED": 17
+  },
+  "implementation_usable_count": 63,
+  "records": [
+    {
+      "video_id": "videos/movements/01_backward.mp4",
+      "canonical_method": "backward",
+      "candidate_methods": [
+        "backward"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/movements/02_lateral_left.mp4",
+      "canonical_method": "lateral_left",
+      "candidate_methods": [
+        "lateral_left"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/movements/03_lateral_right.mp4",
+      "canonical_method": "lateral_right",
+      "candidate_methods": [
+        "lateral_right"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/movements/04_diagonal_left_backward.mp4",
+      "canonical_method": "diagonal",
+      "candidate_methods": [
+        "diagonal"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/movements/05_diagonal_right_forward.mp4",
+      "canonical_method": "diagonal",
+      "candidate_methods": [
+        "diagonal"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/01_jump.mp4",
+      "canonical_method": "jump",
+      "candidate_methods": [
+        "jump"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/02_jump_round.mp4",
+      "canonical_method": "jump_round",
+      "candidate_methods": [
+        "jump_round"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/03_jump_forward.mp4",
+      "canonical_method": "jump_forward",
+      "candidate_methods": [
+        "jump_forward"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/04_frontflip.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "frontflip"
+      ],
+      "mapping_status": "CONFLICT",
+      "confidence": 0.1,
+      "evidence": [
+        "audit_quality:CONFLICT",
+        "source:current_sdk_call",
+        "basis:current SDK call name is direct, but documented behavior conflicts"
+      ],
+      "conflict": "current SDK call name is direct, but documented behavior conflicts",
+      "implementation_usable": false,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/05_sideflip_left.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "sideflip"
+      ],
+      "mapping_status": "CONFLICT",
+      "confidence": 0.1,
+      "evidence": [
+        "audit_quality:CONFLICT",
+        "source:current_sdk_call",
+        "basis:current SDK call name is direct, but documented behavior conflicts"
+      ],
+      "conflict": "current SDK call name is direct, but documented behavior conflicts",
+      "implementation_usable": false,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/06_sideflip_right.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "sideflip"
+      ],
+      "mapping_status": "CONFLICT",
+      "confidence": 0.1,
+      "evidence": [
+        "audit_quality:CONFLICT",
+        "source:current_sdk_call",
+        "basis:current SDK call name is direct, but documented behavior conflicts"
+      ],
+      "conflict": "current SDK call name is direct, but documented behavior conflicts",
+      "implementation_usable": false,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/athletics/07_kick.mp4",
+      "canonical_method": "kick",
+      "candidate_methods": [
+        "kick"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/01_sway.mp4",
+      "canonical_method": "sway",
+      "candidate_methods": [
+        "sway"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/02_pee.mp4",
+      "canonical_method": "pee",
+      "candidate_methods": [
+        "pee"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/03_shake_hand.mp4",
+      "canonical_method": "shake_hand",
+      "candidate_methods": [
+        "shake_hand"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/04_knock.mp4",
+      "canonical_method": "knock",
+      "candidate_methods": [
+        "knock"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/05_hip_shake.mp4",
+      "canonical_method": "hip_shake",
+      "candidate_methods": [
+        "hip_shake"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/06_wave_hand.mp4",
+      "canonical_method": "wave_hand",
+      "candidate_methods": [
+        "wave_hand"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/07_bow.mp4",
+      "canonical_method": "bow",
+      "candidate_methods": [
+        "bow"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/08_wag_rear.mp4",
+      "canonical_method": "wag_rear",
+      "candidate_methods": [
+        "wag_rear"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/09_bark.mp4",
+      "canonical_method": "bark",
+      "candidate_methods": [
+        "bark"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/10_nod_head.mp4",
+      "canonical_method": "nod_head",
+      "candidate_methods": [
+        "nod_head"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/11_shake_head.mp4",
+      "canonical_method": "shake_head",
+      "candidate_methods": [
+        "shake_head"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/12_confused.mp4",
+      "canonical_method": "confused",
+      "candidate_methods": [
+        "confused"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/13_show_affection.mp4",
+      "canonical_method": "show_affection",
+      "candidate_methods": [
+        "show_affection"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/14_draw_heart.mp4",
+      "canonical_method": "draw_heart",
+      "candidate_methods": [
+        "draw_heart"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/15_dance_beats.mp4",
+      "canonical_method": "dance",
+      "candidate_methods": [
+        "dance"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/16_cute.mp4",
+      "canonical_method": "cute",
+      "candidate_methods": [
+        "cute"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/17_ask_for_play.mp4",
+      "canonical_method": "ask_for_play",
+      "candidate_methods": [
+        "ask_for_play"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/18_enjoy_being_touched.mp4",
+      "canonical_method": "enjoy_touch",
+      "candidate_methods": [
+        "enjoy_touch"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/19_sniff_left.mp4",
+      "canonical_method": "sniff_left",
+      "candidate_methods": [
+        "sniff_left"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/20_sniff_ahead.mp4",
+      "canonical_method": "sniff_ahead",
+      "candidate_methods": [
+        "sniff_ahead"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/21_front_stretch.mp4",
+      "canonical_method": "front_stretch",
+      "candidate_methods": [
+        "front_stretch"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/22_full_body_stretch.mp4",
+      "canonical_method": "full_body_stretch",
+      "candidate_methods": [
+        "full_body_stretch"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/23_push_up.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "push_up"
+      ],
+      "mapping_status": "CONFLICT",
+      "confidence": 0.1,
+      "evidence": [
+        "audit_quality:CONFLICT",
+        "source:current_sdk_call",
+        "basis:current SDK call name is direct, but documented behavior conflicts"
+      ],
+      "conflict": "current SDK call name is direct, but documented behavior conflicts",
+      "implementation_usable": false,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/24_look_around.mp4",
+      "canonical_method": "look_around",
+      "candidate_methods": [
+        "look_around"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/25_think.mp4",
+      "canonical_method": "think",
+      "candidate_methods": [
+        "think"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/26_observe.mp4",
+      "canonical_method": "observe",
+      "candidate_methods": [
+        "observe"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/27_yawn.mp4",
+      "canonical_method": "yawn",
+      "candidate_methods": [
+        "yawn"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/28_clap_hand.mp4",
+      "canonical_method": "clap_hand",
+      "candidate_methods": [
+        "clap_hand"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/29_sniff_right.mp4",
+      "canonical_method": "sniff_right",
+      "candidate_methods": [
+        "sniff_right"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/30_dance_shoulder.mp4",
+      "canonical_method": "dance",
+      "candidate_methods": [
+        "dance"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/31_dance_lion.mp4",
+      "canonical_method": "dance",
+      "candidate_methods": [
+        "dance"
+      ],
+      "mapping_status": "DIRECT_CONFIRMED",
+      "confidence": 0.95,
+      "evidence": [
+        "audit_quality:DIRECT_EXACT_NAME",
+        "source:current_sdk_call",
+        "basis:video page uses a current canonical SDK call"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": null
+    },
+    {
+      "video_id": "videos/actions/32_eager.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "eager"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "eager"
+    },
+    {
+      "video_id": "videos/actions/33_rub_eyes.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "rub_eyes"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "rub_eyes"
+    },
+    {
+      "video_id": "videos/actions/34_point_to_sky_left.mp4",
+      "canonical_method": "point_to_sky",
+      "candidate_methods": [
+        "point_to_sky"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "point_to_sky_left"
+    },
+    {
+      "video_id": "videos/actions/35_point_to_sky_right.mp4",
+      "canonical_method": "point_to_sky",
+      "candidate_methods": [
+        "point_to_sky"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "point_to_sky_right"
+    },
+    {
+      "video_id": "videos/actions/36_wait_for_praise.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "wait_for_praise"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "wait_for_praise"
+    },
+    {
+      "video_id": "videos/actions/37_lucky_cat_1.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "lucky_cat"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "lucky_cat_1"
+    },
+    {
+      "video_id": "videos/actions/38_lucky_cat_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "lucky_cat"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "lucky_cat_2"
+    },
+    {
+      "video_id": "videos/actions/39_lucky_cat_3.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "lucky_cat"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "lucky_cat_3"
+    },
+    {
+      "video_id": "videos/actions/40_drama_hearing.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "drama_hearing"
+    },
+    {
+      "video_id": "videos/actions/41_jingle.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "jingle"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "jingle"
+    },
+    {
+      "video_id": "videos/actions/42_flex_muscles.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "flex_muscles"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "flex_muscles"
+    },
+    {
+      "video_id": "videos/actions/43_touch_happy.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "touch_happy"
+    },
+    {
+      "video_id": "videos/actions/44_good_night_wave.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "good_night_wave"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "good_night_wave"
+    },
+    {
+      "video_id": "videos/actions/45_cry.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "cry"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "cry"
+    },
+    {
+      "video_id": "videos/actions/46_encourage.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "encourage"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "encourage"
+    },
+    {
+      "video_id": "videos/actions/47_opening_cute_dog.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "opening_cute_dog"
+    },
+    {
+      "video_id": "videos/actions/48_nod_head_twice.mp4",
+      "canonical_method": "nod_head",
+      "candidate_methods": [
+        "nod_head"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "nod_head_twice"
+    },
+    {
+      "video_id": "videos/actions/49_shake_head_twice.mp4",
+      "canonical_method": "shake_head",
+      "candidate_methods": [
+        "shake_head"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "shake_head_twice"
+    },
+    {
+      "video_id": "videos/actions/50_nod_with_beats.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "nod_with_beats"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "nod_with_beats"
+    },
+    {
+      "video_id": "videos/actions/51_head_up_down.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "head_up_down"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "head_up_down"
+    },
+    {
+      "video_id": "videos/actions/52_sniff_left_slow.mp4",
+      "canonical_method": "sniff_left",
+      "candidate_methods": [
+        "sniff_left"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "sniff_left_slow"
+    },
+    {
+      "video_id": "videos/actions/53_sniff_right_slow.mp4",
+      "canonical_method": "sniff_right",
+      "candidate_methods": [
+        "sniff_right"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "sniff_right_slow"
+    },
+    {
+      "video_id": "videos/actions/54_push_ahead.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "push_ahead"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "push_ahead"
+    },
+    {
+      "video_id": "videos/actions/55_stick.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "stick"
+    },
+    {
+      "video_id": "videos/actions/56_sniff_ahead_3.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "sniff_ahead"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "sniff_ahead_3"
+    },
+    {
+      "video_id": "videos/actions/57_shake_hand_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "shake_hand_2"
+    },
+    {
+      "video_id": "videos/actions/58_pee_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "pee_2"
+    },
+    {
+      "video_id": "videos/actions/59_look_around_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "look_around"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "look_around_2"
+    },
+    {
+      "video_id": "videos/actions/60_look_around_3.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "look_around"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "look_around_3"
+    },
+    {
+      "video_id": "videos/actions/61_look_around_5.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "look_around"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "look_around_5"
+    },
+    {
+      "video_id": "videos/actions/62_look_around_6.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "look_around"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "look_around_6"
+    },
+    {
+      "video_id": "videos/actions/63_affection_7s.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "affection_7s"
+    },
+    {
+      "video_id": "videos/actions/64_front_strech_without_modelscale.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "front_stretch"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "front_strech_without_modelscale"
+    },
+    {
+      "video_id": "videos/actions/65_sway_front_back.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "sway_front_back"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "sway_front_back"
+    },
+    {
+      "video_id": "videos/actions/66_step_idle.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "step_idle"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "step_idle"
+    },
+    {
+      "video_id": "videos/actions/67_stand_at_attention.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "stand_at_attention"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "stand_at_attention"
+    },
+    {
+      "video_id": "videos/actions/68_rear_strech.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "rear_strech"
+    },
+    {
+      "video_id": "videos/actions/69_long_fart.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "long_fart"
+    },
+    {
+      "video_id": "videos/actions/70_short_fart.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "short_fart"
+    },
+    {
+      "video_id": "videos/actions/71_chatting.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "chat"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "chatting"
+    },
+    {
+      "video_id": "videos/actions/72_chatting__1.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "chat"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "chatting__1"
+    },
+    {
+      "video_id": "videos/actions/73_chatting__2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "chat"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "chatting__2"
+    },
+    {
+      "video_id": "videos/actions/74_chatting_5s.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "chatting_5s"
+    },
+    {
+      "video_id": "videos/actions/75_thinking__1.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "think"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "thinking__1"
+    },
+    {
+      "video_id": "videos/actions/76_thinking__2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "think"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "thinking__2"
+    },
+    {
+      "video_id": "videos/actions/77_talking.mp4",
+      "canonical_method": "chat",
+      "candidate_methods": [
+        "chat"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "talking"
+    },
+    {
+      "video_id": "videos/actions/78_cooking_right_and_left.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "cooking_right_and_left"
+    },
+    {
+      "video_id": "videos/actions/79_cooking_right_and_left_with_recovery.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "cooking_right_and_left_with_recovery"
+    },
+    {
+      "video_id": "videos/actions/80_eating_swallow.mp4",
+      "canonical_method": "eat",
+      "candidate_methods": [
+        "eat"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "eating_swallow"
+    },
+    {
+      "video_id": "videos/actions/81_eating_only.mp4",
+      "canonical_method": "eat",
+      "candidate_methods": [
+        "eat"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "eating_only"
+    },
+    {
+      "video_id": "videos/actions/82_cute_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "cute"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "cute_2"
+    },
+    {
+      "video_id": "videos/actions/83_very_enjoy.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "very_enjoy"
+    },
+    {
+      "video_id": "videos/actions/84_excited_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "excited"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "excited_2"
+    },
+    {
+      "video_id": "videos/actions/85_confused_again.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "confused_again"
+    },
+    {
+      "video_id": "videos/actions/86_shake_self.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "shake_self"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "shake_self"
+    },
+    {
+      "video_id": "videos/actions/87_dance_in_place.mp4",
+      "canonical_method": "dance",
+      "candidate_methods": [
+        "dance"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "dance_in_place"
+    },
+    {
+      "video_id": "videos/actions/88_look_around_7.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "look_around"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "look_around_7"
+    },
+    {
+      "video_id": "videos/actions/89_explore_road_yaw.mp4",
+      "canonical_method": "explore_road",
+      "candidate_methods": [
+        "explore_road"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "explore_road_yaw"
+    },
+    {
+      "video_id": "videos/actions/90_explore_road_roll.mp4",
+      "canonical_method": "explore_road",
+      "candidate_methods": [
+        "explore_road"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "explore_road_roll"
+    },
+    {
+      "video_id": "videos/actions/91_search_env_yaw.mp4",
+      "canonical_method": "search_environment",
+      "candidate_methods": [
+        "search_environment"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "search_env_yaw"
+    },
+    {
+      "video_id": "videos/actions/92_search_env_roll.mp4",
+      "canonical_method": "search_environment",
+      "candidate_methods": [
+        "search_environment"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "search_env_roll"
+    },
+    {
+      "video_id": "videos/actions/93_search_tag.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "search_tag"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "search_tag"
+    },
+    {
+      "video_id": "videos/actions/94_body_tag_search.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "body_tag_search"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "body_tag_search"
+    },
+    {
+      "video_id": "videos/actions/95_listen_left.mp4",
+      "canonical_method": "listen",
+      "candidate_methods": [
+        "listen"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "listen_left"
+    },
+    {
+      "video_id": "videos/actions/96_listen_right.mp4",
+      "canonical_method": "listen",
+      "candidate_methods": [
+        "listen"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "listen_right"
+    },
+    {
+      "video_id": "videos/actions/97_listen_right_and_left.mp4",
+      "canonical_method": "listen",
+      "candidate_methods": [
+        "listen"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "listen_right_and_left"
+    },
+    {
+      "video_id": "videos/actions/98_tossing.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "tossing"
+    },
+    {
+      "video_id": "videos/actions/99_tossing_left.mp4",
+      "canonical_method": "toss",
+      "candidate_methods": [
+        "toss"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "tossing_left"
+    },
+    {
+      "video_id": "videos/actions/100_tossing_right.mp4",
+      "canonical_method": "toss",
+      "candidate_methods": [
+        "toss"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "tossing_right"
+    },
+    {
+      "video_id": "videos/actions/101_explore_new_home.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "explore_new_home"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "explore_new_home"
+    },
+    {
+      "video_id": "videos/actions/102_bored_half_sit.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "bored_half_sit"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "bored_half_sit"
+    },
+    {
+      "video_id": "videos/actions/103_rest.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "rest"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "rest"
+    },
+    {
+      "video_id": "videos/actions/104_sniff_up.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "sniff_up"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "sniff_up"
+    },
+    {
+      "video_id": "videos/actions/105_bark_bark.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "bark_bark"
+    },
+    {
+      "video_id": "videos/actions/106_coquetry_1.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "act_shy"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "coquetry_1"
+    },
+    {
+      "video_id": "videos/actions/107_coquetry_2.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "act_shy"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "coquetry_2"
+    },
+    {
+      "video_id": "videos/actions/108_look_down.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "look_down"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "look_down"
+    },
+    {
+      "video_id": "videos/actions/109_snuggle_x.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "snuggle"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "snuggle_x"
+    },
+    {
+      "video_id": "videos/actions/110_snuggle_y.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "snuggle"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "snuggle_y"
+    },
+    {
+      "video_id": "videos/actions/111_be_sleepy.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "be_sleepy"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "be_sleepy"
+    },
+    {
+      "video_id": "videos/actions/112_brush_teeth_right.mp4",
+      "canonical_method": "brush_teeth",
+      "candidate_methods": [
+        "brush_teeth"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "brush_teeth_right"
+    },
+    {
+      "video_id": "videos/actions/113_brush_teeth_left.mp4",
+      "canonical_method": "brush_teeth",
+      "candidate_methods": [
+        "brush_teeth"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "brush_teeth_left"
+    },
+    {
+      "video_id": "videos/actions/114_shit.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "shit"
+    },
+    {
+      "video_id": "videos/actions/115_fast_rotate.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "fast_rotate"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "fast_rotate"
+    },
+    {
+      "video_id": "videos/actions/116_swim.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "swim"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "swim"
+    },
+    {
+      "video_id": "videos/actions/117_joy_walk.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "joy_walk"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "joy_walk"
+    },
+    {
+      "video_id": "videos/actions/118_duck_walk.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "duck_walk"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "duck_walk"
+    },
+    {
+      "video_id": "videos/actions/119_step_forward.mp4",
+      "canonical_method": "step",
+      "candidate_methods": [
+        "step"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "step_forward"
+    },
+    {
+      "video_id": "videos/actions/120_step_back.mp4",
+      "canonical_method": "step",
+      "candidate_methods": [
+        "step"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "step_back"
+    },
+    {
+      "video_id": "videos/actions/121_rotate_180.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "rotate_180"
+    },
+    {
+      "video_id": "videos/actions/122_rotate__180.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "rotate__180"
+    },
+    {
+      "video_id": "videos/actions/123_nod_off.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "nod_off"
+      ],
+      "mapping_status": "INFERRED",
+      "confidence": 0.55,
+      "evidence": [
+        "audit_quality:SEMANTIC_INFERENCE",
+        "source:legacy_do_action_or_behavior",
+        "basis:legacy token mapped by naming/semantic rule, not explicit confirmation"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "nod_off"
+    },
+    {
+      "video_id": "videos/actions/124_dance_4x1500.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "dance_4x1500"
+    },
+    {
+      "video_id": "videos/actions/125_dance_9x1000.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "dance_9x1000"
+    },
+    {
+      "video_id": "videos/actions/126_dance_with_beatsx4.mp4",
+      "canonical_method": null,
+      "candidate_methods": [],
+      "mapping_status": "UNMATCHED",
+      "confidence": 0.0,
+      "evidence": [
+        "audit_quality:UNMATCHED",
+        "source:legacy_do_action_or_behavior",
+        "basis:no current canonical method"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "dance_with_beatsx4"
+    },
+    {
+      "video_id": "videos/actions/127_brush_teeth_right_start.mp4",
+      "canonical_method": "brush_teeth",
+      "candidate_methods": [
+        "brush_teeth"
+      ],
+      "mapping_status": "LEGACY_CONFIRMED",
+      "confidence": 0.85,
+      "evidence": [
+        "audit_quality:LEGACY_CONFIRMED",
+        "source:legacy_do_action_or_behavior",
+        "basis:explicit confirmed_legacy_mappings entry"
+      ],
+      "conflict": "",
+      "implementation_usable": true,
+      "legacy_token": "brush_teeth_right_start"
+    },
+    {
+      "video_id": "videos/actions/128_excited.mp4",
+      "canonical_method": null,
+      "candidate_methods": [
+        "excited"
+      ],
+      "mapping_status": "AMBIGUOUS",
+      "confidence": 0.3,
+      "evidence": [
+        "audit_quality:AMBIGUOUS",
+        "source:legacy_do_action_or_behavior",
+        "basis:token is in unresolved_legacy_mapping_groups"
+      ],
+      "conflict": "",
+      "implementation_usable": false,
+      "legacy_token": "excited"
+    }
+  ]
+}

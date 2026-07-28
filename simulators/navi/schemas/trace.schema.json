@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://navi.local/schemas/trace.schema.json",
+  "title": "Navi MuJoCo State Trace Row",
+  "type": "object",
+  "required": [
+    "simulation_time",
+    "base_position_x",
+    "base_position_y",
+    "base_position_z"
+  ],
+  "properties": {
+    "simulation_time": {"type": ["number", "string"]},
+    "base_position_x": {"type": ["number", "string"]},
+    "base_position_y": {"type": ["number", "string"]},
+    "base_position_z": {"type": ["number", "string"]}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,13 @@
+include VERSION
+include README.md
+include RELEASE_NOTES.md
+include scene.xml
+include robot.xml
+recursive-include config *.json
+recursive-include docs *.md *.csv
+recursive-include examples *.py *.md
+recursive-include meshes *.STL
+recursive-include schemas *.json
+recursive-include tests *.py *.json
+recursive-include tools *.py
+recursive-include urdf *.urdf

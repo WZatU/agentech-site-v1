@@ -1,0 +1,157 @@
+{
+  "source": "independent_audit_and_fixed_correction_acceptance_rules",
+  "four_axis_fields": [
+    "backend_behavior_status",
+    "sdk_contract_status",
+    "ground_truth_status",
+    "evidence_status"
+  ],
+  "former_implemented": {
+    "physical": [
+      "forward",
+      "backward",
+      "lateral_left",
+      "lateral_right",
+      "diagonal",
+      "turn",
+      "stand",
+      "stop"
+    ],
+    "simulated_queries": [
+      "get_status",
+      "body_status",
+      "joint_states"
+    ],
+    "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+    "legacy_physical_status": "APPROXIMATE",
+    "legacy_query_status": "SIMULATED"
+  },
+  "unsafe_reassessment": {
+    "jump_round": {
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "legacy_status": "BLOCKED_BY_UNRESOLVED_SPEC"
+    },
+    "frontflip": {
+      "disposition": "EXTERNALLY_RISKY_NOT_REPRODUCED",
+      "legacy_status": "FAILED"
+    },
+    "sideflip": {
+      "disposition": "EXTERNALLY_RISKY_NOT_REPRODUCED",
+      "legacy_status": "FAILED"
+    },
+    "set_friction": {
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "legacy_status": "BLOCKED_BY_UNRESOLVED_SPEC"
+    }
+  },
+  "static_semantics": {
+    "stand": {
+      "minimum_hold_s": 5.0,
+      "maximum_xy_drift_m": 0.03,
+      "maximum_abs_roll_pitch_rad": 0.15,
+      "required_contacts": 4
+    },
+    "stand_at_ease": {
+      "minimum_joint_target_rms_vs_stand_rad": 0.03,
+      "ground_truth_status": "AMBIGUOUS"
+    },
+    "stop": {
+      "maximum_final_linear_speed_mps": 0.08,
+      "maximum_stop_time_s": 1.5
+    },
+    "emergency_stop": {
+      "must_cancel_active_action": true,
+      "must_clear_pending_queue": true,
+      "must_lock_non_recovery_commands": true,
+      "requires_explicit_stand_recovery": true,
+      "hardware_power_cut_claimed": false
+    }
+  },
+  "lie_down": {
+    "target_backend_behavior_status": "APPROXIMATE",
+    "target_legacy_status": "APPROXIMATE",
+    "maximum_final_base_height_m": 0.22,
+    "minimum_joint_excursion_rad": 0.08,
+    "required_no_fall": true,
+    "contract_status": "MULTIPLE_UNRESOLVED"
+  },
+  "baseline_cross_artifact_inconsistencies": [
+    "recovery_stand",
+    "set_gait",
+    "set_foot_height",
+    "set_collision_protect",
+    "set_friction",
+    "set_jump_distance",
+    "set_jump_angle"
+  ],
+  "audit_problem_approximate_count": 52,
+  "corrected_problem_approximate_methods": [
+    "ask_for_play",
+    "bark",
+    "bow",
+    "brush_teeth",
+    "chat",
+    "clap_hand",
+    "confused",
+    "cute",
+    "dance",
+    "draw_heart",
+    "eat",
+    "enjoy_touch",
+    "front_stretch",
+    "full_body_stretch",
+    "knock",
+    "look_around",
+    "point_to_sky",
+    "show_affection",
+    "stand_at_attention",
+    "stand_at_ease",
+    "sway",
+    "think",
+    "toss",
+    "wag_rear",
+    "wave_hand",
+    "yawn"
+  ],
+  "retained_limitation_problem_approximate_methods": [
+    "act_shy",
+    "be_sleepy",
+    "bored_half_sit",
+    "brace",
+    "cooking",
+    "cry",
+    "eager",
+    "encourage",
+    "excited",
+    "flex_muscles",
+    "good_night_wave",
+    "jingle",
+    "joy_walk",
+    "lucky_cat",
+    "pee_quick",
+    "playful_greeting",
+    "push_ahead",
+    "rear_puff",
+    "rest",
+    "shake_hand_quick",
+    "shake_self",
+    "snuggle",
+    "step_idle",
+    "sway_front_back",
+    "toilet_pose",
+    "wait_for_praise"
+  ],
+  "post_correction_thresholds": {
+    "minimum_behavior_clusters": 60,
+    "minimum_singleton_behaviors": 50,
+    "maximum_duplicate_members": 30,
+    "expected_cross_artifact_inconsistencies": 0,
+    "expected_regenerated_videos": 27,
+    "expected_valid_corrected_videos": 27
+  },
+  "forbidden_implementation_patterns": [
+    "generic_success_fallback",
+    "silent_success",
+    "direct_qpos_qvel_action_injection"
+  ]
+}

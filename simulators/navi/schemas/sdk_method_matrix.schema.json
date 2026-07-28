@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://navi.local/schemas/sdk_method_matrix.schema.json",
+  "title": "Navi SDK Method Matrix Row",
+  "type": "object",
+  "required": [
+    "canonical_method", "category", "backend_status",
+    "backend_behavior_status", "sdk_contract_status",
+    "ground_truth_evidence_status", "evidence_status",
+    "physical_execution", "test_status", "result_path"
+  ],
+  "properties": {
+    "canonical_method": {"type": "string", "minLength": 1},
+    "category": {"type": "string", "minLength": 1},
+    "backend_status": {"type": "string", "minLength": 1},
+    "backend_behavior_status": {"type": "string", "minLength": 1},
+    "sdk_contract_status": {"type": "string", "minLength": 1},
+    "ground_truth_evidence_status": {"type": "string", "minLength": 1},
+    "evidence_status": {"type": "string", "minLength": 1},
+    "physical_execution": {"type": "string", "enum": ["true", "false"]},
+    "test_status": {"type": "string", "enum": ["PASS", "FAIL"]},
+    "result_path": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

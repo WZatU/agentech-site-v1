@@ -1,0 +1,125 @@
+<mujocoinclude>
+  <!-- Native Navi body tree. STL is visual-only; primitive geoms handle contact. -->
+  <body name="body" pos="0 0 0.276256" childclass="navi">
+    <freejoint name="root"/>
+    <inertial pos="-0.00091406 -0.001375573 -0.001298396475" mass="2.571164339"
+              fullinertia="0.0063721225 0.0191754101 0.0234706047 -0.0000632938 -0.0000089136 0.0000201465"/>
+    <geom name="body_visual" class="visual" type="mesh" mesh="base_link" material="body_material"/>
+    <geom name="body_collision" class="body_collision" type="box" size="0.10 0.095 0.0538"/>
+    <site name="imu_site" pos="0 0 0" size="0.006" rgba="1 0.2 0.1 1"/>
+
+    <body name="front_left_abad_link" pos="0.176 0.0525 0">
+      <joint name="front_left_abad_joint" class="abad_joint" axis="1 0 0" range="-1.134 1.134"/>
+      <inertial pos="-0.003189715443 -0.007298788247 0.000193611084" mass="0.447529613"
+                fullinertia="0.0003159129992 0.0003689957957 0.0003318882955 0.0000013074 0.0000012672 -0.0000029769"/>
+      <geom name="front_left_abad_visual" class="visual" type="mesh" mesh="abad_link" material="abad_material"/>
+      <geom name="front_left_abad_collision" class="limb_collision" type="cylinder" fromto="0 0.0135 0 0 0.0635 0" size="0.032"/>
+      <body name="front_left_hip_link" pos="0 0.077 0" quat="0.962425198 0 0.271546937 0">
+        <joint name="front_left_hip_joint" class="hip_joint" axis="0 -1 0" ref="-0.55" range="-3.141 2.792"/>
+        <!-- Invalid URDF hip inertia replaced by a positive box-equivalent
+             inertia derived from the hip STL bounds: simulation approximation. -->
+        <inertial pos="-0.002445772827 -0.018551827211 -0.022348070913" mass="0.526649872"
+                  diaginertia="0.001954009163 0.002178598212 0.000345729243"/>
+        <geom name="front_left_hip_visual" class="visual" type="mesh" mesh="hip_link" material="limb_material"/>
+        <geom name="front_left_hip_collision" class="limb_collision" type="capsule" fromto="0 0 -0.012 0 0 -0.135" size="0.018"/>
+        <body name="front_left_knee_link" pos="0 0 -0.15" quat="0.852524522 0 -0.522687229 0">
+          <joint name="front_left_knee_joint" class="knee_joint" axis="0 -1 0" ref="1.10" range="0.436 2.705"/>
+          <inertial pos="-0.00502217315 0.000001089006 -0.085942040257" mass="0.078504403"
+                    fullinertia="0.0003336986119 0.0003405454045 0.0000176299000 -0.000000001844 0.0000225373988 -0.000000004385"/>
+          <geom name="front_left_knee_visual" class="visual" type="mesh" mesh="knee_link" material="limb_material"/>
+          <geom name="front_left_knee_collision" class="limb_collision" type="capsule" fromto="0 0 -0.010 0 0 -0.140" size="0.015"/>
+          <body name="front_left_foot" pos="0 0 -0.15">
+            <inertial pos="0 0 0" mass="0.001" diaginertia="0.0000001681 0.0000001681 0.0000001681"/>
+            <geom name="front_left_foot_visual" class="visual" type="mesh" mesh="foot_link" material="foot_material"/>
+            <geom name="front_left_foot_contact" class="foot_collision" type="sphere" size="0.0205"/>
+            <site name="front_left_foot_site" size="0.004" rgba="0.2 1 0.2 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="front_right_abad_link" pos="0.176 -0.0525 0">
+      <joint name="front_right_abad_joint" class="abad_joint" axis="1 0 0" range="-1.134 1.134"/>
+      <inertial pos="-0.003189715443 0.007298788247 0.000193611084" mass="0.447529613"
+                fullinertia="0.0003159129992 0.0003689957957 0.0003318882955 -0.0000013074 0.0000012672 0.0000029769"/>
+      <geom name="front_right_abad_visual" class="visual" type="mesh" mesh="abad_link_mirror_y" material="abad_material"/>
+      <geom name="front_right_abad_collision" class="limb_collision" type="cylinder" fromto="0 -0.0135 0 0 -0.0635 0" size="0.032"/>
+      <body name="front_right_hip_link" pos="0 -0.077 0" quat="0.962425198 0 0.271546937 0">
+        <joint name="front_right_hip_joint" class="hip_joint" axis="0 -1 0" ref="-0.55" range="-3.141 2.792"/>
+        <inertial pos="-0.002445772827 0.018551827211 -0.022348070913" mass="0.526649872"
+                  diaginertia="0.001954009163 0.002178598212 0.000345729243"/>
+        <geom name="front_right_hip_visual" class="visual" type="mesh" mesh="hip_link_mirror_y" material="limb_material"/>
+        <geom name="front_right_hip_collision" class="limb_collision" type="capsule" fromto="0 0 -0.012 0 0 -0.135" size="0.018"/>
+        <body name="front_right_knee_link" pos="0 0 -0.15" quat="0.852524522 0 -0.522687229 0">
+          <joint name="front_right_knee_joint" class="knee_joint" axis="0 -1 0" ref="1.10" range="0.436 2.705"/>
+          <inertial pos="-0.00502217315 -0.000001089006 -0.085942040257" mass="0.078504403"
+                    fullinertia="0.0003336986119 0.0003405454045 0.0000176299000 0.000000001844 0.0000225373988 0.000000004385"/>
+          <geom name="front_right_knee_visual" class="visual" type="mesh" mesh="knee_link_mirror_y" material="limb_material"/>
+          <geom name="front_right_knee_collision" class="limb_collision" type="capsule" fromto="0 0 -0.010 0 0 -0.140" size="0.015"/>
+          <body name="front_right_foot" pos="0 0 -0.15">
+            <inertial pos="0 0 0" mass="0.001" diaginertia="0.0000001681 0.0000001681 0.0000001681"/>
+            <geom name="front_right_foot_visual" class="visual" type="mesh" mesh="foot_link" material="foot_material"/>
+            <geom name="front_right_foot_contact" class="foot_collision" type="sphere" size="0.0205"/>
+            <site name="front_right_foot_site" size="0.004" rgba="0.2 1 0.2 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="hind_left_abad_link" pos="-0.176 0.0525 0">
+      <joint name="hind_left_abad_joint" class="abad_joint" axis="1 0 0" range="-1.134 1.134"/>
+      <inertial pos="0.003189715443 -0.007298788247 0.000193611084" mass="0.447529613"
+                fullinertia="0.0003159129992 0.0003689957957 0.0003318882955 -0.0000013074 -0.0000012672 -0.0000029769"/>
+      <geom name="hind_left_abad_visual" class="visual" type="mesh" mesh="abad_link_mirror_x" material="abad_material"/>
+      <geom name="hind_left_abad_collision" class="limb_collision" type="cylinder" fromto="0 0.0135 0 0 0.0635 0" size="0.032"/>
+      <body name="hind_left_hip_link" pos="0 0.077 0" quat="0.962425198 0 0.271546937 0">
+        <joint name="hind_left_hip_joint" class="hip_joint" axis="0 -1 0" ref="-0.55" range="-3.141 2.792"/>
+        <inertial pos="-0.002445772827 -0.018551827211 -0.022348070913" mass="0.526649872"
+                  diaginertia="0.001954009163 0.002178598212 0.000345729243"/>
+        <geom name="hind_left_hip_visual" class="visual" type="mesh" mesh="hip_link" material="limb_material"/>
+        <geom name="hind_left_hip_collision" class="limb_collision" type="capsule" fromto="0 0 -0.012 0 0 -0.135" size="0.018"/>
+        <body name="hind_left_knee_link" pos="0 0 -0.15" quat="0.852524522 0 -0.522687229 0">
+          <joint name="hind_left_knee_joint" class="knee_joint" axis="0 -1 0" ref="1.10" range="0.436 2.705"/>
+          <inertial pos="-0.00502217315 0.000001089006 -0.085942040257" mass="0.078504403"
+                    fullinertia="0.0003336986119 0.0003405454045 0.0000176299000 -0.000000001844 0.0000225373988 -0.000000004385"/>
+          <geom name="hind_left_knee_visual" class="visual" type="mesh" mesh="knee_link" material="limb_material"/>
+          <geom name="hind_left_knee_collision" class="limb_collision" type="capsule" fromto="0 0 -0.010 0 0 -0.140" size="0.015"/>
+          <body name="hind_left_foot" pos="0 0 -0.15">
+            <inertial pos="0 0 0" mass="0.001" diaginertia="0.0000001681 0.0000001681 0.0000001681"/>
+            <geom name="hind_left_foot_visual" class="visual" type="mesh" mesh="foot_link" material="foot_material"/>
+            <geom name="hind_left_foot_contact" class="foot_collision" type="sphere" size="0.0205"/>
+            <site name="hind_left_foot_site" size="0.004" rgba="0.2 1 0.2 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="hind_right_abad_link" pos="-0.176 -0.0525 0">
+      <joint name="hind_right_abad_joint" class="abad_joint" axis="1 0 0" range="-1.134 1.134"/>
+      <inertial pos="0.003189715443 0.007298788247 0.000193611084" mass="0.447529613"
+                fullinertia="0.0003159129992 0.0003689957957 0.0003318882955 0.0000013074 -0.0000012672 0.0000029769"/>
+      <geom name="hind_right_abad_visual" class="visual" type="mesh" mesh="abad_link_mirror_xy" material="abad_material"/>
+      <geom name="hind_right_abad_collision" class="limb_collision" type="cylinder" fromto="0 -0.0135 0 0 -0.0635 0" size="0.032"/>
+      <body name="hind_right_hip_link" pos="0 -0.077 0" quat="0.962425198 0 0.271546937 0">
+        <joint name="hind_right_hip_joint" class="hip_joint" axis="0 -1 0" ref="-0.55" range="-3.141 2.792"/>
+        <inertial pos="-0.002445772827 0.018551827211 -0.022348070913" mass="0.526649872"
+                  diaginertia="0.001954009163 0.002178598212 0.000345729243"/>
+        <geom name="hind_right_hip_visual" class="visual" type="mesh" mesh="hip_link_mirror_y" material="limb_material"/>
+        <geom name="hind_right_hip_collision" class="limb_collision" type="capsule" fromto="0 0 -0.012 0 0 -0.135" size="0.018"/>
+        <body name="hind_right_knee_link" pos="0 0 -0.15" quat="0.852524522 0 -0.522687229 0">
+          <joint name="hind_right_knee_joint" class="knee_joint" axis="0 -1 0" ref="1.10" range="0.436 2.705"/>
+          <inertial pos="-0.00502217315 -0.000001089006 -0.085942040257" mass="0.078504403"
+                    fullinertia="0.0003336986119 0.0003405454045 0.0000176299000 0.000000001844 0.0000225373988 0.000000004385"/>
+          <geom name="hind_right_knee_visual" class="visual" type="mesh" mesh="knee_link_mirror_y" material="limb_material"/>
+          <geom name="hind_right_knee_collision" class="limb_collision" type="capsule" fromto="0 0 -0.010 0 0 -0.140" size="0.015"/>
+          <body name="hind_right_foot" pos="0 0 -0.15">
+            <inertial pos="0 0 0" mass="0.001" diaginertia="0.0000001681 0.0000001681 0.0000001681"/>
+            <geom name="hind_right_foot_visual" class="visual" type="mesh" mesh="foot_link" material="foot_material"/>
+            <geom name="hind_right_foot_contact" class="foot_collision" type="sphere" size="0.0205"/>
+            <site name="hind_right_foot_site" size="0.004" rgba="0.2 1 0.2 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </body>
+</mujocoinclude>

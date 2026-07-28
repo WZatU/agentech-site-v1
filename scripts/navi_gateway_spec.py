@@ -20,6 +20,7 @@ NAVI_SIMPLE_COMMANDS = {
     "shake_self", "sniff_up", "stand", "stand_at_attention", "stand_high",
     "step_idle", "stop", "sway_front_back", "swim", "toilet_pose", "turn_left",
     "turn_right", "u_turn", "wag_rear", "wait_for_praise", "wave_hand", "yawn",
+    "push_up",
 }
 
 NAVI_PARAMETERIZED_COMMANDS = {

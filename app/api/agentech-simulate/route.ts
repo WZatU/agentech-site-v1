@@ -3,13 +3,32 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { normalizeAgentechRobotModel, type AgentechRobotModel } from "@/lib/agentech-robot-model";
 import { validateAgentechCode } from "@/lib/agentech-validation";
 
-const aegisHeightRoot = path.resolve(process.cwd(), "..", "Aegies-Height");
+type LocalSimulator = {
+  root: string;
+  adapter: string;
+  timeoutMs: number;
+};
+
+const simulatorsRoot = path.resolve(process.cwd(), "simulators");
+const localSimulators: Record<AgentechRobotModel, LocalSimulator> = {
+  Aegies: {
+    root: path.join(simulatorsRoot, "aegis"),
+    adapter: "web_adapter.py",
+    timeoutMs: 20_000
+  },
+  Navi: {
+    root: path.join(simulatorsRoot, "navi"),
+    adapter: "web_adapter.py",
+    timeoutMs: 50_000
+  }
+};
 const simulationCache = new Map<string, { createdAt: number; payload: unknown }>();
 const cacheTtlMs = 5 * 60 * 1000;
-const simulationTimeoutMs = 20_000;
 const remoteSimulatorUrl = process.env.AGENTECH_SIMULATOR_URL;
+const simulatorPython = process.env.AGENTECH_SIMULATOR_PYTHON || "python";
 
 function numberArg(args: string, name: string) {
   const match = args.match(new RegExp(`${name}\\s*=\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)`));
@@ -76,18 +95,34 @@ function normalizeCanonicalTurnsForMuJoCo(code: string) {
     });
 }
 
-async function runRemoteSimulator(code: string) {
-  if (!remoteSimulatorUrl) {
+function remoteSimulatorEndpoint() {
+  if (!remoteSimulatorUrl) return null;
+  const endpoint = new URL(remoteSimulatorUrl);
+  if (endpoint.pathname === "/" || endpoint.pathname === "") {
+    endpoint.pathname = "/simulate";
+  }
+  return endpoint;
+}
+
+async function runRemoteSimulator(code: string, robotModel: AgentechRobotModel) {
+  const endpoint = remoteSimulatorEndpoint();
+  if (!endpoint) {
     return null;
   }
-  const response = await fetch(remoteSimulatorUrl, {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, max_render_frames: 32, render_width: 480, render_height: 320 })
+    body: JSON.stringify({
+      code,
+      robot_model: robotModel,
+      max_render_frames: 32,
+      render_width: 480,
+      render_height: 320
+    })
   });
   const payload = await response.json().catch(() => null);
   if (!response.ok || payload === null) {
-    const message = payload?.error ?? `Remote simulator failed with status ${response.status}.`;
+    const message = payload?.error ?? payload?.detail ?? `Remote simulator failed with status ${response.status}.`;
     throw new Error(message);
   }
   return payload;
@@ -96,27 +131,33 @@ async function runRemoteSimulator(code: string) {
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const code = typeof body?.code === "string" ? body.code : "";
+  const robotModel = normalizeAgentechRobotModel(body?.robotModel ?? body?.robot_model ?? "Aegies");
 
   if (!code.trim()) {
     return NextResponse.json({ error: "No Agentech code provided." }, { status: 400 });
   }
+  if (!robotModel) {
+    return NextResponse.json({ error: "Choose Aegies or Navi." }, { status: 400 });
+  }
 
-  const validationErrors = validateAgentechCode(code);
+  const validationErrors = validateAgentechCode(code, robotModel);
   if (validationErrors.length) {
     return NextResponse.json({ error: validationErrors.join(" ") }, { status: 400 });
   }
 
-  const simulatorCode = normalizeCanonicalTurnsForMuJoCo(code);
-  const cacheKey = crypto.createHash("sha1").update(`agentech-sim-v13:${simulatorCode}`).digest("hex");
+  const simulatorCode = robotModel === "Navi" ? code : normalizeCanonicalTurnsForMuJoCo(code);
+  const cacheKey = crypto
+    .createHash("sha1")
+    .update(`agentech-sim-v15:${robotModel}:${simulatorCode}`)
+    .digest("hex");
   const cached = simulationCache.get(cacheKey);
   if (cached && Date.now() - cached.createdAt < cacheTtlMs) {
     return NextResponse.json({ ...(cached.payload as object), cached: true });
   }
 
-  const simulatorScript = path.join(aegisHeightRoot, "scripts", "agentech_simulate_code.py");
-  if (!fs.existsSync(simulatorScript)) {
+  if (remoteSimulatorUrl) {
     try {
-      const payload = await runRemoteSimulator(simulatorCode);
+      const payload = await runRemoteSimulator(simulatorCode, robotModel);
       if (payload !== null) {
         simulationCache.set(cacheKey, { createdAt: Date.now(), payload });
         return NextResponse.json(payload);
@@ -127,18 +168,23 @@ export async function POST(request: Request) {
         { status: 502 }
       );
     }
+  }
+
+  const localSimulator = localSimulators[robotModel];
+  const simulatorRoot = localSimulator.root;
+  const simulatorScript = path.join(simulatorRoot, localSimulator.adapter);
+  if (!fs.existsSync(simulatorScript)) {
     return NextResponse.json(
       {
-        error:
-          "Real MuJoCo simulator backend is not configured. Set AGENTECH_SIMULATOR_URL for the official site, or run locally with the Aegies-Height simulator folder."
+        error: `${robotModel} MuJoCo runtime is missing from simulators/${robotModel === "Navi" ? "navi" : "aegis"}.`
       },
       { status: 503 }
     );
   }
 
   const result = await new Promise<{ status: number; stdout: string; stderr: string; timedOut?: boolean }>((resolve) => {
-    const child = spawn("python", ["scripts/agentech_simulate_code.py"], {
-      cwd: aegisHeightRoot,
+    const child = spawn(simulatorPython, [path.relative(simulatorRoot, simulatorScript)], {
+      cwd: simulatorRoot,
       stdio: ["pipe", "pipe", "pipe"]
     });
 
@@ -154,10 +200,10 @@ export async function POST(request: Request) {
       resolve({ status, stdout, stderr, timedOut });
     };
     const timeout = setTimeout(() => {
-      stderr += `Simulation timed out after ${simulationTimeoutMs / 1000}s.`;
+      stderr += `Simulation timed out after ${localSimulator.timeoutMs / 1000}s.`;
       child.kill("SIGKILL");
       finish(124, true);
-    }, simulationTimeoutMs);
+    }, localSimulator.timeoutMs);
 
     child.stdout.on("data", (chunk) => {
       stdout += chunk.toString();
@@ -172,7 +218,13 @@ export async function POST(request: Request) {
     child.on("close", (status) => {
       finish(status ?? 1);
     });
-    child.stdin.end(JSON.stringify({ code: simulatorCode, max_render_frames: 32, render_width: 480, render_height: 320 }));
+    child.stdin.end(JSON.stringify({
+      code: simulatorCode,
+      robot_model: robotModel,
+      max_render_frames: 32,
+      render_width: 480,
+      render_height: 320
+    }));
   });
 
   if (result.status !== 0) {

@@ -1,0 +1,303 @@
+{
+  "schema_version": "1.0.0-analysis",
+  "source": {
+    "name": "Navi View SDK",
+    "url": "https://www.agent-tech.ai/agentech-products/eaic-hub/view-sdk",
+    "inspected_at": "2026-07-27",
+    "authority": "current_ground_truth",
+    "reference_cards": 116
+  },
+  "setup": {
+    "package": "agentech",
+    "import": "from agentech import Agentech",
+    "activation": "Agentech.use(\"navi\", host=\"192.168.4.65\")",
+    "facade": "Agentech",
+    "instance_constructor": null
+  },
+  "global_contract": {
+    "timed_motion_max_s": 10.0,
+    "temporary_safety_box_m": [2.0, 2.0],
+    "physical_controller_stop_required": true,
+    "software_emergency_stop_is_physical_estop": false,
+    "dry_run_semantics": "Motion is described as dry-run unless dry_run=False is selected; argument placement and result schema are UNRESOLVED.",
+    "return_type_default": "UNRESOLVED",
+    "blocking_default": "UNRESOLVED",
+    "async_default": "UNRESOLVED",
+    "exceptions_default": "UNRESOLVED"
+  },
+  "aliases": {
+    "turn_right": {"canonical": "turn", "mapping": "UNRESOLVED_DEFAULT_ARGUMENTS"},
+    "turn_left": {"canonical": "turn", "mapping": "UNRESOLVED_DEFAULT_ARGUMENTS"},
+    "u_turn": {"canonical": "turn", "mapping": "UNRESOLVED_DEFAULT_ARGUMENTS"},
+    "speed": {"kind": "parameter_alias", "canonical": "speed_mps"},
+    "seconds": {"kind": "parameter_alias", "canonical": "duration_s"}
+  },
+  "blocked_names": {
+    "backflip": {
+      "status": "blocked",
+      "public_reference_card": false,
+      "actuation": false
+    },
+    "battery": {
+      "status": "source_conflict",
+      "canonical_candidate": "get_battery_status",
+      "decision": "unsupported_until_confirmed"
+    },
+    "do_action": {
+      "status": "legacy_video_only",
+      "decision": "not_public"
+    },
+    "do_behavior": {
+      "status": "legacy_video_only",
+      "decision": "not_public"
+    }
+  },
+  "definitions": {
+    "positive_duration_10": {"type": "number", "exclusive_minimum": 0, "maximum": 10, "unit": "s"},
+    "positive_routine_time": {"type": "number", "exclusive_minimum": 0, "finite": true, "unit": "s"},
+    "stop": {"type": "boolean", "default": true, "true_behavior": "12 repeated zero-velocity samples"},
+    "count_1_2": {"type": "integer", "enum": [1, 2], "default": 1}
+  },
+  "methods": {
+    "forward": {
+      "category": "movement",
+      "status": "available",
+      "default_call": {"speed_mps": 1.0, "duration_s": 1.0, "stop": true},
+      "profiles": ["speed_time", "distance_time", "speed_percent", "speed_level", "legacy_aliases"],
+      "parameters": {
+        "speed_mps": {"type": "number", "minimum": 0.05, "maximum": 1.34, "unit": "m/s"},
+        "duration_s": {"$ref": "positive_duration_10", "default": 1.0},
+        "distance_m": {"type": "number", "exclusive_minimum": 0, "maximum": 5.0, "unit": "m"},
+        "speed_percent": {"type": "integer", "minimum": 1, "maximum": 100, "round_to": 5},
+        "speed_level": {"type": "integer", "minimum": 0, "maximum": 511, "navi_resolved_speed_max_mps": 1.34},
+        "stop": {"$ref": "stop"},
+        "speed": {"alias_for": "speed_mps", "exclusive_with": "speed_mps"},
+        "seconds": {"alias_for": "duration_s", "exclusive_with": "duration_s"}
+      }
+    },
+    "backward": {
+      "category": "movement",
+      "status": "available",
+      "default_call": {"speed_mps": 0.5, "duration_s": 1.0, "stop": true},
+      "profiles": ["speed_time", "distance_time", "speed_percent", "speed_level", "legacy_aliases"],
+      "parameters": {
+        "speed_mps": {"type": "number", "minimum": 0.05, "maximum": 0.67, "unit": "m/s"},
+        "duration_s": {"$ref": "positive_duration_10", "default": 1.0},
+        "distance_m": {"type": "number", "exclusive_minimum": 0, "maximum": 3.0, "unit": "m"},
+        "speed_percent": {"type": "integer", "minimum": 1, "maximum": 100, "round_to": 5},
+        "speed_level": {"type": "integer", "minimum": 0, "maximum": 511, "navi_resolved_speed_max_mps": 0.67},
+        "stop": {"$ref": "stop"},
+        "speed": {"alias_for": "speed_mps", "exclusive_with": "speed_mps"},
+        "seconds": {"alias_for": "duration_s", "exclusive_with": "duration_s"}
+      }
+    },
+    "lateral_left": {
+      "category": "movement",
+      "status": "available",
+      "shared_reference_card": "lateral_left_right",
+      "direction": "body_left",
+      "default_call": {"speed_mps": 0.5, "duration_s": 2.0, "stop": true},
+      "profiles": ["speed_time", "distance_speed", "legacy_aliases"],
+      "parameters": {
+        "distance_m": {"type": "number", "exclusive_minimum": 0, "maximum": 10.0, "requires": "speed_mps", "forbids": "duration_s"},
+        "speed_mps": {"type": "number", "minimum": 0.1, "maximum": 0.67, "unit": "m/s"},
+        "duration_s": {"$ref": "positive_duration_10", "default": 2.0},
+        "stop": {"$ref": "stop"},
+        "speed": {"alias_for": "speed_mps", "exclusive_with": "speed_mps"},
+        "seconds": {"alias_for": "duration_s", "exclusive_with": "duration_s"}
+      }
+    },
+    "lateral_right": {
+      "category": "movement",
+      "status": "available",
+      "shared_reference_card": "lateral_left_right",
+      "direction": "body_right",
+      "default_call": {"speed_mps": 0.5, "duration_s": 2.0, "stop": true},
+      "profiles": ["speed_time", "distance_speed", "legacy_aliases"],
+      "parameters": {
+        "distance_m": {"type": "number", "exclusive_minimum": 0, "maximum": 10.0, "requires": "speed_mps", "forbids": "duration_s"},
+        "speed_mps": {"type": "number", "minimum": 0.1, "maximum": 0.67, "unit": "m/s"},
+        "duration_s": {"$ref": "positive_duration_10", "default": 2.0},
+        "stop": {"$ref": "stop"},
+        "speed": {"alias_for": "speed_mps", "exclusive_with": "speed_mps"},
+        "seconds": {"alias_for": "duration_s", "exclusive_with": "duration_s"}
+      }
+    },
+    "diagonal": {
+      "category": "movement",
+      "status": "available",
+      "profiles": ["endpoint_estimate", "angle_speed_time"],
+      "default_call": {"angle_deg": 45.0, "speed_mps": 0.5, "duration_s": 2.0, "stop": true},
+      "parameters": {
+        "x_m": {"type": "number", "nonzero": true, "sign": "positive_right_negative_left"},
+        "y_m": {"type": "number", "nonzero": true, "sign": "positive_forward_negative_backward"},
+        "angle_deg": {"type": "number", "minimum": -180, "maximum": 180, "non_cardinal": true, "default": 45, "sign": "positive_right_negative_left"},
+        "speed_mps": {"type": "number", "exclusive_minimum": 0, "component_limited": true, "default": 0.5},
+        "duration_s": {"$ref": "positive_duration_10", "default": 2.0},
+        "stop": {"$ref": "stop"}
+      },
+      "accuracy": "open_loop_estimated_endpoint"
+    },
+    "turn": {
+      "category": "movement",
+      "status": "available",
+      "profiles": ["angle_feedback", "signed_rate_time", "rate_percentage_time", "turn_level_time"],
+      "parameters": {
+        "angle_deg": {"type": "number", "finite": true, "nonzero": true, "sign": "positive_right_negative_left"},
+        "angle_rad": {"type": "number", "finite": true, "nonzero": true, "sign": "positive_right_negative_left"},
+        "distance_deg": {"alias_for": "angle_deg"},
+        "distance_rad": {"alias_for": "angle_rad"},
+        "rate_rad_s": {"type": "number", "zero_or_abs_range": [0.02, 3.0], "sign": "positive_right_negative_left"},
+        "rate_deg_s": {"type": "number", "zero_or_abs_range": [1.145916, 171.887339], "sign": "positive_right_negative_left"},
+        "rate_percentage": {"type": "integer", "minimum": -100, "maximum": 100, "round_to": 5, "zero_behavior": "no_op"},
+        "turn_level": {"type": "integer", "minimum": -511, "maximum": 511, "zero_behavior": "no_op"},
+        "duration_s": {"$ref": "positive_duration_10"},
+        "stop": {"$ref": "stop"}
+      },
+      "accuracy": "angle_or_distance_not_guaranteed"
+    },
+    "return_to_home": {
+      "category": "movement",
+      "status": "available",
+      "parameters": {
+        "facing_angle_deg": {"type": "integer", "enum": [0, 90, 180, 270], "default": 0}
+      },
+      "home": "immutable_dual_camera_coordinate_and_saved_heading",
+      "credit_usage": "high"
+    },
+
+    "jump": {"category": "athletics", "status": "available", "parameters": {}},
+    "jump_round": {"category": "athletics", "status": "available", "parameters": {}},
+    "jump_forward": {"category": "athletics", "status": "available", "parameters": {}},
+    "frontflip": {"category": "athletics", "status": "available", "parameters": {}, "video_conflict": "real_video_does_not_end_in_stable_four_foot_landing"},
+    "sideflip": {"category": "athletics", "status": "available", "parameters": {"direction": {"type": "string", "enum": ["left", "right"], "default": "left"}}},
+    "kick": {"category": "athletics", "status": "available", "parameters": {}},
+
+    "sway": {"category": "actions", "status": "available", "parameters": {"duration_s": {"$ref": "positive_routine_time", "default": 3}}},
+    "pee": {"category": "actions", "status": "available", "parameters": {"duration_s": {"$ref": "positive_routine_time", "default": 3}}},
+    "shake_hand": {"category": "actions", "status": "available", "parameters": {"duration_s": {"$ref": "positive_routine_time", "default": 3}}},
+    "knock": {"category": "actions", "status": "available", "parameters": {}},
+    "hip_shake": {"category": "actions", "status": "available", "parameters": {"duration_s": {"$ref": "positive_routine_time", "default": 3}}},
+    "wave_hand": {"category": "actions", "status": "available", "parameters": {}},
+    "bow": {"category": "actions", "status": "available", "parameters": {}},
+    "wag_rear": {"category": "actions", "status": "available", "parameters": {}},
+    "bark": {"category": "actions", "status": "available", "parameters": {"count": {"$ref": "count_1_2"}}},
+    "nod_head": {"category": "actions", "status": "available", "parameters": {"count": {"$ref": "count_1_2"}}},
+    "shake_head": {"category": "actions", "status": "available", "parameters": {"count": {"$ref": "count_1_2"}}},
+    "confused": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["single", "repeated"], "default": "single"}}},
+    "show_affection": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["gentle", "extended"], "default": "UNRESOLVED"}}},
+    "draw_heart": {"category": "actions", "status": "available", "parameters": {}},
+    "cute": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["shimmy", "pose"], "default": "UNRESOLVED"}}},
+    "ask_for_play": {"category": "actions", "status": "available", "parameters": {}},
+    "enjoy_touch": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["gentle", "happy", "delighted"], "default": "UNRESOLVED"}}},
+    "sniff_left": {"category": "actions", "status": "available", "parameters": {"speed": {"type": "string", "enum": ["normal", "slow"], "default": "UNRESOLVED"}}},
+    "sniff_right": {"category": "actions", "status": "available", "parameters": {"speed": {"type": "string", "enum": ["normal", "slow"], "default": "UNRESOLVED"}}},
+    "sniff_ahead": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["standard", "deep"], "default": "UNRESOLVED"}}},
+    "front_stretch": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["standard", "compact"], "default": "UNRESOLVED"}}},
+    "full_body_stretch": {"category": "actions", "status": "available", "parameters": {}},
+    "push_up": {"category": "actions", "status": "available", "parameters": {}, "legacy_video_conflict": "video_uses_count_3"},
+    "look_around": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["panoramic", "left", "right", "low", "quick", "high"], "default": "UNRESOLVED"}}},
+    "think": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["standard", "long", "short"], "default": "UNRESOLVED"}}},
+    "observe": {"category": "actions", "status": "available", "parameters": {}},
+    "yawn": {"category": "actions", "status": "available", "parameters": {}},
+    "clap_hand": {"category": "actions", "status": "available", "parameters": {}},
+    "dance": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["beats", "shoulder", "lion", "in_place", "four_count", "nine_count", "four_beat"], "default": "UNRESOLVED"}}},
+    "eager": {"category": "actions", "status": "available", "parameters": {}},
+    "rub_eyes": {"category": "actions", "status": "available", "parameters": {}},
+    "point_to_sky": {"category": "actions", "status": "available", "parameters": {"direction": {"type": "string", "enum": ["left", "right"], "default": "left"}}},
+    "wait_for_praise": {"category": "actions", "status": "available", "parameters": {}},
+    "lucky_cat": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["full", "quick", "brief"], "default": "UNRESOLVED"}}},
+    "dramatic_listen": {"category": "actions", "status": "available", "parameters": {}},
+    "jingle": {"category": "actions", "status": "available", "parameters": {}},
+    "flex_muscles": {"category": "actions", "status": "available", "parameters": {}},
+    "good_night_wave": {"category": "actions", "status": "available", "parameters": {}},
+    "cry": {"category": "actions", "status": "available", "parameters": {}},
+    "encourage": {"category": "actions", "status": "available", "parameters": {}},
+    "playful_greeting": {"category": "actions", "status": "available", "parameters": {}},
+    "nod_with_beats": {"category": "actions", "status": "available", "parameters": {}},
+    "head_up_down": {"category": "actions", "status": "available", "parameters": {}},
+    "push_ahead": {"category": "actions", "status": "available", "parameters": {}},
+    "brace": {"category": "actions", "status": "available", "parameters": {}},
+    "shake_hand_quick": {"category": "actions", "status": "available", "parameters": {}},
+    "pee_quick": {"category": "actions", "status": "available", "parameters": {}},
+    "sway_front_back": {"category": "actions", "status": "available", "parameters": {}},
+    "step_idle": {"category": "actions", "status": "available", "parameters": {}},
+    "rear_stretch": {"category": "actions", "status": "available", "parameters": {}},
+    "rear_puff": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["short", "long"], "default": "UNRESOLVED"}}},
+    "chat": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["animated", "gentle", "brief", "five_second", "talking"], "default": "UNRESOLVED"}}},
+    "cooking": {"category": "actions", "status": "available", "parameters": {"recover": {"type": "boolean", "default": true}}},
+    "eat": {"category": "actions", "status": "available", "parameters": {"swallow": {"type": "boolean", "default": true}}},
+    "excited": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["full", "quick"], "default": "UNRESOLVED"}}},
+    "shake_self": {"category": "actions", "status": "available", "parameters": {}},
+    "explore_road": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["turn", "tilt"], "default": "UNRESOLVED"}}},
+    "search_environment": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["turn", "tilt"], "default": "UNRESOLVED"}}},
+    "search_tag": {"category": "actions", "status": "available", "parameters": {}},
+    "body_tag_search": {"category": "actions", "status": "available", "parameters": {}},
+    "listen": {"category": "actions", "status": "available", "parameters": {"direction": {"type": "string", "enum": ["left", "right", "both"], "default": "both"}}},
+    "toss": {"category": "actions", "status": "available", "parameters": {"direction": {"type": "string", "enum": ["center", "left", "right"], "default": "UNRESOLVED"}}},
+    "explore_new_home": {"category": "actions", "status": "available", "parameters": {}},
+    "bored_half_sit": {"category": "actions", "status": "available", "parameters": {}},
+    "rest": {"category": "actions", "status": "available", "parameters": {}},
+    "sniff_up": {"category": "actions", "status": "available", "parameters": {}},
+    "act_shy": {"category": "actions", "status": "available", "parameters": {"side": {"type": "string", "enum": ["left", "right"], "default": "UNRESOLVED"}}},
+    "look_down": {"category": "actions", "status": "available", "parameters": {}},
+    "snuggle": {"category": "actions", "status": "available", "parameters": {"style": {"type": "string", "enum": ["rise", "curl"], "default": "UNRESOLVED"}}},
+    "be_sleepy": {"category": "actions", "status": "available", "parameters": {}},
+    "brush_teeth": {
+      "category": "actions",
+      "status": "available",
+      "parameters": {
+        "direction": {"type": "string", "enum": ["left", "right"], "default": "right"},
+        "phase": {"type": "string", "enum": ["full", "start"], "default": "full", "conditional_exclusion": {"direction": "left", "phase": "start"}}
+      }
+    },
+    "toilet_pose": {"category": "actions", "status": "available", "parameters": {}},
+    "fast_rotate": {"category": "actions", "status": "available", "parameters": {}},
+    "swim": {"category": "actions", "status": "available", "parameters": {}},
+    "joy_walk": {"category": "actions", "status": "available", "parameters": {}},
+    "duck_walk": {"category": "actions", "status": "available", "parameters": {}},
+    "step": {"category": "actions", "status": "available", "parameters": {"direction": {"type": "string", "enum": ["forward", "backward"], "default": "UNRESOLVED"}}},
+    "nod_off": {"category": "actions", "status": "available", "parameters": {}},
+
+    "stand": {"category": "posture", "status": "available", "parameters": {}, "end_state": "standing_regular"},
+    "squat": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "sit": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "lie_down": {"category": "posture", "status": "available", "parameters": {}, "end_state": "UNRESOLVED"},
+    "lie_on_elbows": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "prostrate": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "sphinx_lie": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "sphinx_left_lie": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "sphinx_right_lie": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}, "end_state": "standing_regular"},
+    "stand_high": {"category": "posture", "status": "available", "parameters": {}, "persistence": "until_changed", "forward_behavior": "lowers_to_walking_height"},
+    "stand_at_ease": {"category": "posture", "status": "available", "parameters": {"time": {"$ref": "positive_routine_time", "default": 30}}},
+    "stand_at_attention": {"category": "posture", "status": "available", "parameters": {}},
+    "recovery_stand": {
+      "category": "posture",
+      "status": "under_development",
+      "actuation": false,
+      "parameters": {"direction": {"type": "string", "enum": ["back", "front", "left", "right"], "default": "back"}}
+    },
+
+    "stop": {"category": "safety", "status": "available", "parameters": {}, "behavior": "stop_walking_and_turning_leave_current_posture"},
+    "emergency_stop": {
+      "category": "safety",
+      "status": "available",
+      "parameters": {"reason": {"type": "string", "default": "Agentech emergency stop"}},
+      "behavior": "best_effort_software_zero_velocity",
+      "physical_estop": false
+    },
+
+    "get_status": {"category": "sensing", "status": "available", "parameters": {}, "fields_described": ["connected", "ready", "healthy", "standing"], "return_schema": "UNRESOLVED"},
+    "get_battery_status": {"category": "sensing", "status": "available", "parameters": {}, "fields_described": ["percentage", "voltage", "current", "temperature", "present", "supply_status"], "return_schema": "UNRESOLVED"},
+    "body_status": {"category": "sensing", "status": "available", "parameters": {}, "fields_described": ["position", "orientation", "linear_velocity", "angular_velocity", "acceleration"], "return_schema": "UNRESOLVED"},
+    "joint_states": {"category": "sensing", "status": "available", "parameters": {}, "fields_described": ["12_joint_names", "positions", "velocities", "efforts"], "return_schema": "UNRESOLVED"},
+    "diagnose": {"category": "sensing", "status": "available", "parameters": {}, "fields_described": ["connection", "status", "battery", "health"], "read_only": true, "return_schema": "UNRESOLVED"},
+
+    "set_gait": {"category": "configuration", "status": "under_development", "actuation": false, "parameters": {"gait_id": {"type": "integer", "minimum": 0, "maximum": 15}}},
+    "set_foot_height": {"category": "configuration", "status": "under_development", "actuation": false, "parameters": {"height_m": {"type": "number", "minimum": 0.001, "maximum": 0.4, "unit": "m"}}},
+    "set_collision_protect": {"category": "configuration", "status": "under_development", "actuation": false, "parameters": {"enabled": {"type": "boolean"}}},
+    "set_friction": {"category": "configuration", "status": "under_development", "actuation": false, "parameters": {"friction": {"type": "number", "minimum": 0.01, "maximum": 1.0}}},
+    "set_jump_distance": {"category": "configuration", "status": "under_development", "actuation": false, "parameters": {"distance_m": {"type": "number", "minimum": 0, "maximum": 1.0, "unit": "m"}}},
+    "set_jump_angle": {"category": "configuration", "status": "under_development", "actuation": false, "parameters": {"angle_rad": {"type": "number", "minimum": -3.14, "maximum": 3.14, "unit": "rad"}}}
+  }
+}

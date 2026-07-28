@@ -384,7 +384,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
   namedExtendedAction("wave_hand", "Navi raises its right front leg, swings it from side to side in a clear waving gesture, then returns to standing."),
   namedExtendedAction("bow", "Navi keeps its rear feet in place, bends both front legs slightly, and lowers the front of its body toward the floor."),
   namedExtendedAction("wag_rear", "Navi swings only the rear end of its body from side to side; this robot has no physical tail."),
-  parameterizedAction("bark", "Agentech.bark(count=x)", "Navi performs one or two silent bark-like body thrusts while keeping all four feet planted.", "Agentech.bark(count=2)", [p("count", "int {1, 2}", "Number of bark gestures.", "1")]),
+  parameterizedAction("bark", "Agentech.bark(count=x)", "Navi performs the requested number of silent bark-like body thrusts continuously, then recovers to standing once after the final bark.", "Agentech.bark(count=10)", [p("count", "int > 0", "Any positive number of continuous bark gestures. Navi does not reset to standing between repetitions.", "1")]),
   parameterizedAction("nod_head", "Agentech.nod_head(count=x)", "Navi lowers and raises its forebody in one or two deliberate nods.", "Agentech.nod_head(count=2)", [p("count", "int {1, 2}", "Number of nods.", "1")]),
   parameterizedAction("shake_head", "Agentech.shake_head(count=x)", "Navi twists its forebody left and right once or repeats the no-like gesture.", "Agentech.shake_head(count=2)", [p("count", "int {1, 2}", "Number of head-shake sequences.", "1")]),
   parameterizedAction("confused", "Agentech.confused(style=x)", "Choose a single questioning shrug or a longer repeated puzzled reaction.", "Agentech.confused(style=\"repeated\")", [p("style", '"single" | "repeated"', "Select the compact or repeated puzzled routine.", '"single"')]),
@@ -445,7 +445,7 @@ const naviFunctionDefinitions: AgentechFunction[] = [
     ]
   },
   namedExtendedAction("eager", "Navi lowers and stretches forward through an animated sequence of eager body shifts before returning to standing."),
-  namedExtendedAction("rub_eyes", "Navi lowers its forebody and moves a raised front leg near its face in a rubbing-like gesture."),
+  namedExtendedAction("rub_eyes", "Navi lowers its forebody, moves a raised front leg near its face in a rubbing-like gesture, then runs the canonical standing recovery."),
   parameterizedAction("point_to_sky", "Agentech.point_to_sky(direction=x)", "Navi balances low and raises the selected front leg into an upward pointing pose.", "Agentech.point_to_sky(direction=\"right\")", [p("direction", '"left" | "right"', "Choose which front leg points upward.", '"left"')]),
   namedExtendedAction("wait_for_praise", "Navi lengthens both front legs, lowers its rear body into an expectant pose, holds briefly, then recovers."),
   parameterizedAction("lucky_cat", "Agentech.lucky_cat(style=x)", "Choose a full, quick, or brief beckoning-paw routine.", "Agentech.lucky_cat(style=\"quick\")", [p("style", '"full" | "quick" | "brief"', "Select the length and motion range of the beckoning gesture.", '"full"')]),

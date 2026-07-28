@@ -6,7 +6,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { endSessionCleanupPolicy, keepsStreamActive, requiresEndLieDown } from "./robot-stream-session-policy.mjs";
+import {
+  endSessionCleanupPolicy,
+  finalSessionDatabaseStatus,
+  keepsStreamActive,
+  requiresEndLieDown,
+} from "./robot-stream-session-policy.mjs";
 
 const scriptsDir = fileURLToPath(new URL(".", import.meta.url));
 const compiler = join(scriptsDir, "compile-robot-plan.py");
@@ -146,5 +151,40 @@ test("session policy selects model-specific scheduled-end cleanup", () => {
       Date.parse("2026-07-20T20:05:00Z"),
     ),
     false,
+  );
+});
+
+test("session policy publishes a final database status only after cleanup resolves", () => {
+  assert.equal(finalSessionDatabaseStatus({ status: "running" }), null);
+  assert.equal(
+    finalSessionDatabaseStatus({ status: "finished", endCleanupRequired: false }),
+    "completed",
+  );
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      endCleanupRequired: true,
+      endCleanupStatus: "completed",
+      endCleanupAttempts: 1,
+    }),
+    "completed",
+  );
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      endCleanupRequired: true,
+      endCleanupStatus: "failed",
+      endCleanupAttempts: 2,
+    }),
+    null,
+  );
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      endCleanupRequired: true,
+      endCleanupStatus: "failed",
+      endCleanupAttempts: 3,
+    }),
+    "failed",
   );
 });

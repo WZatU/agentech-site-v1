@@ -1,0 +1,4514 @@
+{
+  "schema_version": "2.0-four-axis-correction",
+  "canonical_method_count": 117,
+  "previously_implemented_count": 12,
+  "entries": [
+    {
+      "method": "forward",
+      "category": "movement",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::forward",
+        "dispatch::forward",
+        "contract::forward"
+      ],
+      "batch": "C",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "backward",
+      "category": "movement",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [
+        "videos/movements/01_backward.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::backward",
+        "dispatch::backward",
+        "contract::backward"
+      ],
+      "batch": "C",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "lateral_left",
+      "category": "movement",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [
+        "videos/movements/02_lateral_left.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::lateral_left",
+        "dispatch::lateral_left",
+        "contract::lateral_left"
+      ],
+      "batch": "C",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "lateral_right",
+      "category": "movement",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [
+        "videos/movements/03_lateral_right.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::lateral_right",
+        "dispatch::lateral_right",
+        "contract::lateral_right"
+      ],
+      "batch": "C",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "diagonal",
+      "category": "movement",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "body_velocity_composition",
+      "ground_truth": [
+        "videos/movements/04_diagonal_left_backward.mp4",
+        "videos/movements/05_diagonal_right_forward.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::diagonal",
+        "dispatch::diagonal",
+        "contract::diagonal"
+      ],
+      "batch": "C",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "turn",
+      "category": "movement",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::turn",
+        "dispatch::turn",
+        "contract::turn"
+      ],
+      "batch": "C",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "return_to_home",
+      "category": "movement",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires dual-camera localization and an immutable saved home coordinate/heading",
+      "implementation": "structured_model_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::return_to_home",
+        "dispatch::return_to_home",
+        "contract::return_to_home"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "dual_camera",
+        "saved_home_pose",
+        "localization"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "LOCOMOTING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "jump",
+      "category": "athletics",
+      "status": "APPROXIMATE",
+      "reason": "A torque-controlled feasibility trajectory is available; exact real-robot dynamics are unresolved",
+      "implementation": "athletic_joint_profile",
+      "ground_truth": [
+        "videos/athletics/01_jump.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::jump",
+        "dispatch::jump",
+        "contract::jump"
+      ],
+      "batch": "D",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ATHLETIC_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "jump_round",
+      "category": "athletics",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Unsafe claim is unproven in the current model; physical execution remains blocked by unresolved safe semantics",
+      "implementation": "structured_safety_rejection",
+      "ground_truth": [
+        "videos/athletics/02_jump_round.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "unsafe_claim_not_reproduced",
+        "safe_behavior_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::jump_round",
+        "dispatch::jump_round",
+        "contract::jump_round"
+      ],
+      "batch": "D",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ATHLETIC_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "INSUFFICIENT"
+    },
+    {
+      "method": "jump_forward",
+      "category": "athletics",
+      "status": "APPROXIMATE",
+      "reason": "A torque-controlled feasibility trajectory is available; exact real-robot dynamics are unresolved",
+      "implementation": "athletic_joint_profile",
+      "ground_truth": [
+        "videos/athletics/03_jump_forward.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::jump_forward",
+        "dispatch::jump_forward",
+        "contract::jump_forward"
+      ],
+      "batch": "D",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ATHLETIC_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "frontflip",
+      "category": "athletics",
+      "status": "FAILED",
+      "reason": "External Ground Truth indicates risk, but current-model danger was not reproduced and no safe full behavior implementation exists",
+      "implementation": "structured_safety_rejection",
+      "ground_truth": [
+        "videos/athletics/04_frontflip.mp4"
+      ],
+      "video_status": "CONFLICT",
+      "limitations": [
+        "sdk_stable_landing_conflicts_with_real_video_fall",
+        "externally_risky_not_reproduced_in_current_model",
+        "failed_to_implement_safely"
+      ],
+      "test_ids": [
+        "inventory::frontflip",
+        "dispatch::frontflip",
+        "contract::frontflip"
+      ],
+      "batch": "D",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ATHLETIC_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "CONFLICT",
+      "backend_behavior_status": "FAILED",
+      "evidence_status": "INSUFFICIENT"
+    },
+    {
+      "method": "sideflip",
+      "category": "athletics",
+      "status": "FAILED",
+      "reason": "External Ground Truth indicates risk, but current-model danger was not reproduced and no safe full behavior implementation exists",
+      "implementation": "structured_safety_rejection",
+      "ground_truth": [
+        "videos/athletics/05_sideflip_left.mp4",
+        "videos/athletics/06_sideflip_right.mp4"
+      ],
+      "video_status": "CONFLICT",
+      "limitations": [
+        "externally_risky_not_reproduced_in_current_model",
+        "failed_to_implement_safely"
+      ],
+      "test_ids": [
+        "inventory::sideflip",
+        "dispatch::sideflip",
+        "contract::sideflip"
+      ],
+      "batch": "D",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ATHLETIC_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "CONFLICT",
+      "backend_behavior_status": "FAILED",
+      "evidence_status": "INSUFFICIENT"
+    },
+    {
+      "method": "kick",
+      "category": "athletics",
+      "status": "APPROXIMATE",
+      "reason": "A torque-controlled feasibility trajectory is available; exact real-robot dynamics are unresolved",
+      "implementation": "athletic_joint_profile",
+      "ground_truth": [
+        "videos/athletics/07_kick.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::kick",
+        "dispatch::kick",
+        "contract::kick"
+      ],
+      "batch": "D",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ATHLETIC_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sway",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/01_sway.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::sway",
+        "dispatch::sway",
+        "contract::sway"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "pee",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/02_pee.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::pee",
+        "dispatch::pee",
+        "contract::pee"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "shake_hand",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/03_shake_hand.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::shake_hand",
+        "dispatch::shake_hand",
+        "contract::shake_hand"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "knock",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/04_knock.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::knock",
+        "dispatch::knock",
+        "contract::knock"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "hip_shake",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/05_hip_shake.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::hip_shake",
+        "dispatch::hip_shake",
+        "contract::hip_shake"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "wave_hand",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/06_wave_hand.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::wave_hand",
+        "dispatch::wave_hand",
+        "contract::wave_hand"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "bow",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/07_bow.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::bow",
+        "dispatch::bow",
+        "contract::bow"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "wag_rear",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/08_wag_rear.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::wag_rear",
+        "dispatch::wag_rear",
+        "contract::wag_rear"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "bark",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/09_bark.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::bark",
+        "dispatch::bark",
+        "contract::bark"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "nod_head",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/10_nod_head.mp4",
+        "videos/actions/48_nod_head_twice.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::nod_head",
+        "dispatch::nod_head",
+        "contract::nod_head"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "shake_head",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/11_shake_head.mp4",
+        "videos/actions/49_shake_head_twice.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::shake_head",
+        "dispatch::shake_head",
+        "contract::shake_head"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "confused",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/12_confused.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::confused",
+        "dispatch::confused",
+        "contract::confused"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "show_affection",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/13_show_affection.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::show_affection",
+        "dispatch::show_affection",
+        "contract::show_affection"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "draw_heart",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/14_draw_heart.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::draw_heart",
+        "dispatch::draw_heart",
+        "contract::draw_heart"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "cute",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/16_cute.mp4",
+        "videos/actions/82_cute_2.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::cute",
+        "dispatch::cute",
+        "contract::cute"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "ask_for_play",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/17_ask_for_play.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::ask_for_play",
+        "dispatch::ask_for_play",
+        "contract::ask_for_play"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "enjoy_touch",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/18_enjoy_being_touched.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::enjoy_touch",
+        "dispatch::enjoy_touch",
+        "contract::enjoy_touch"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sniff_left",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/19_sniff_left.mp4",
+        "videos/actions/52_sniff_left_slow.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::sniff_left",
+        "dispatch::sniff_left",
+        "contract::sniff_left"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "sniff_right",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/29_sniff_right.mp4",
+        "videos/actions/53_sniff_right_slow.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::sniff_right",
+        "dispatch::sniff_right",
+        "contract::sniff_right"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "sniff_ahead",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/20_sniff_ahead.mp4",
+        "videos/actions/56_sniff_ahead_3.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::sniff_ahead",
+        "dispatch::sniff_ahead",
+        "contract::sniff_ahead"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "front_stretch",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/21_front_stretch.mp4",
+        "videos/actions/64_front_strech_without_modelscale.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::front_stretch",
+        "dispatch::front_stretch",
+        "contract::front_stretch"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "full_body_stretch",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/22_full_body_stretch.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::full_body_stretch",
+        "dispatch::full_body_stretch",
+        "contract::full_body_stretch"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "push_up",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/23_push_up.mp4"
+      ],
+      "video_status": "CONFLICT",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::push_up",
+        "dispatch::push_up",
+        "contract::push_up"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "CONFLICT",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "look_around",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/24_look_around.mp4",
+        "videos/actions/59_look_around_2.mp4",
+        "videos/actions/60_look_around_3.mp4",
+        "videos/actions/61_look_around_5.mp4",
+        "videos/actions/62_look_around_6.mp4",
+        "videos/actions/88_look_around_7.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::look_around",
+        "dispatch::look_around",
+        "contract::look_around"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "think",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/25_think.mp4",
+        "videos/actions/75_thinking__1.mp4",
+        "videos/actions/76_thinking__2.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::think",
+        "dispatch::think",
+        "contract::think"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "observe",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires camera perception, external targets, mapping, or planning absent from the model/backend",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/26_observe.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::observe",
+        "dispatch::observe",
+        "contract::observe"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "camera_or_external_input",
+        "localization_or_planner"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "yawn",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/27_yawn.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::yawn",
+        "dispatch::yawn",
+        "contract::yawn"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "clap_hand",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/28_clap_hand.mp4"
+      ],
+      "video_status": "DIRECT_MATCH",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::clap_hand",
+        "dispatch::clap_hand",
+        "contract::clap_hand"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "dance",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/15_dance_beats.mp4",
+        "videos/actions/30_dance_shoulder.mp4",
+        "videos/actions/31_dance_lion.mp4",
+        "videos/actions/87_dance_in_place.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::dance",
+        "dispatch::dance",
+        "contract::dance"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "DIRECT_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "eager",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/32_eager.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::eager",
+        "dispatch::eager",
+        "contract::eager"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "rub_eyes",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/33_rub_eyes.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::rub_eyes",
+        "dispatch::rub_eyes",
+        "contract::rub_eyes"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "point_to_sky",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/34_point_to_sky_left.mp4",
+        "videos/actions/35_point_to_sky_right.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::point_to_sky",
+        "dispatch::point_to_sky",
+        "contract::point_to_sky"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "wait_for_praise",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/36_wait_for_praise.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::wait_for_praise",
+        "dispatch::wait_for_praise",
+        "contract::wait_for_praise"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "lucky_cat",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/37_lucky_cat_1.mp4",
+        "videos/actions/38_lucky_cat_2.mp4",
+        "videos/actions/39_lucky_cat_3.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::lucky_cat",
+        "dispatch::lucky_cat",
+        "contract::lucky_cat"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "AMBIGUOUS",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "dramatic_listen",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::dramatic_listen",
+        "dispatch::dramatic_listen",
+        "contract::dramatic_listen"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "jingle",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/41_jingle.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::jingle",
+        "dispatch::jingle",
+        "contract::jingle"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "flex_muscles",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/42_flex_muscles.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::flex_muscles",
+        "dispatch::flex_muscles",
+        "contract::flex_muscles"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "good_night_wave",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/44_good_night_wave.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::good_night_wave",
+        "dispatch::good_night_wave",
+        "contract::good_night_wave"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "cry",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/45_cry.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::cry",
+        "dispatch::cry",
+        "contract::cry"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "encourage",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/46_encourage.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::encourage",
+        "dispatch::encourage",
+        "contract::encourage"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "playful_greeting",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::playful_greeting",
+        "dispatch::playful_greeting",
+        "contract::playful_greeting"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "nod_with_beats",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/50_nod_with_beats.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::nod_with_beats",
+        "dispatch::nod_with_beats",
+        "contract::nod_with_beats"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "head_up_down",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/51_head_up_down.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::head_up_down",
+        "dispatch::head_up_down",
+        "contract::head_up_down"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "push_ahead",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/54_push_ahead.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::push_ahead",
+        "dispatch::push_ahead",
+        "contract::push_ahead"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "brace",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::brace",
+        "dispatch::brace",
+        "contract::brace"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "shake_hand_quick",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::shake_hand_quick",
+        "dispatch::shake_hand_quick",
+        "contract::shake_hand_quick"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "pee_quick",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::pee_quick",
+        "dispatch::pee_quick",
+        "contract::pee_quick"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sway_front_back",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/65_sway_front_back.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::sway_front_back",
+        "dispatch::sway_front_back",
+        "contract::sway_front_back"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "step_idle",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/66_step_idle.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::step_idle",
+        "dispatch::step_idle",
+        "contract::step_idle"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "rear_stretch",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::rear_stretch",
+        "dispatch::rear_stretch",
+        "contract::rear_stretch"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "rear_puff",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::rear_puff",
+        "dispatch::rear_puff",
+        "contract::rear_puff"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "chat",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/71_chatting.mp4",
+        "videos/actions/72_chatting__1.mp4",
+        "videos/actions/73_chatting__2.mp4",
+        "videos/actions/77_talking.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::chat",
+        "dispatch::chat",
+        "contract::chat"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "cooking",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::cooking",
+        "dispatch::cooking",
+        "contract::cooking"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "eat",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/80_eating_swallow.mp4",
+        "videos/actions/81_eating_only.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::eat",
+        "dispatch::eat",
+        "contract::eat"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "excited",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/84_excited_2.mp4",
+        "videos/actions/128_excited.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::excited",
+        "dispatch::excited",
+        "contract::excited"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "AMBIGUOUS",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "shake_self",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/86_shake_self.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::shake_self",
+        "dispatch::shake_self",
+        "contract::shake_self"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "explore_road",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires camera perception, external targets, mapping, or planning absent from the model/backend",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/89_explore_road_yaw.mp4",
+        "videos/actions/90_explore_road_roll.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::explore_road",
+        "dispatch::explore_road",
+        "contract::explore_road"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "camera_or_external_input",
+        "localization_or_planner"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "search_environment",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires camera perception, external targets, mapping, or planning absent from the model/backend",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/91_search_env_yaw.mp4",
+        "videos/actions/92_search_env_roll.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::search_environment",
+        "dispatch::search_environment",
+        "contract::search_environment"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "camera_or_external_input",
+        "localization_or_planner"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "search_tag",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires camera perception, external targets, mapping, or planning absent from the model/backend",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/93_search_tag.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::search_tag",
+        "dispatch::search_tag",
+        "contract::search_tag"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "camera_or_external_input",
+        "localization_or_planner"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "body_tag_search",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires camera perception, external targets, mapping, or planning absent from the model/backend",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/94_body_tag_search.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::body_tag_search",
+        "dispatch::body_tag_search",
+        "contract::body_tag_search"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "camera_or_external_input",
+        "localization_or_planner"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "listen",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/95_listen_left.mp4",
+        "videos/actions/96_listen_right.mp4",
+        "videos/actions/97_listen_right_and_left.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::listen",
+        "dispatch::listen",
+        "contract::listen"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "toss",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/99_tossing_left.mp4",
+        "videos/actions/100_tossing_right.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::toss",
+        "dispatch::toss",
+        "contract::toss"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "explore_new_home",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Requires camera perception, external targets, mapping, or planning absent from the model/backend",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/101_explore_new_home.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::explore_new_home",
+        "dispatch::explore_new_home",
+        "contract::explore_new_home"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "camera_or_external_input",
+        "localization_or_planner"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "bored_half_sit",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/102_bored_half_sit.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::bored_half_sit",
+        "dispatch::bored_half_sit",
+        "contract::bored_half_sit"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "rest",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/103_rest.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::rest",
+        "dispatch::rest",
+        "contract::rest"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sniff_up",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/104_sniff_up.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::sniff_up",
+        "dispatch::sniff_up",
+        "contract::sniff_up"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "act_shy",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/106_coquetry_1.mp4",
+        "videos/actions/107_coquetry_2.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::act_shy",
+        "dispatch::act_shy",
+        "contract::act_shy"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "AMBIGUOUS",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "look_down",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/108_look_down.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::look_down",
+        "dispatch::look_down",
+        "contract::look_down"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "snuggle",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/109_snuggle_x.mp4",
+        "videos/actions/110_snuggle_y.mp4"
+      ],
+      "video_status": "AMBIGUOUS",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::snuggle",
+        "dispatch::snuggle",
+        "contract::snuggle"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "AMBIGUOUS",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "be_sleepy",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/111_be_sleepy.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::be_sleepy",
+        "dispatch::be_sleepy",
+        "contract::be_sleepy"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "brush_teeth",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/112_brush_teeth_right.mp4",
+        "videos/actions/113_brush_teeth_left.mp4",
+        "videos/actions/127_brush_teeth_right_start.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "routine_level_direct_or_legacy_evidence_only",
+        "corrected_profile_is_semantic_approximation_not_motion_capture"
+      ],
+      "test_ids": [
+        "inventory::brush_teeth",
+        "dispatch::brush_teeth",
+        "contract::brush_teeth"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "toilet_pose",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::toilet_pose",
+        "dispatch::toilet_pose",
+        "contract::toilet_pose"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "fast_rotate",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A conservative composition of existing body-frame locomotion is physically executable",
+      "implementation": "locomotion_composition",
+      "ground_truth": [
+        "videos/actions/115_fast_rotate.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::fast_rotate",
+        "dispatch::fast_rotate",
+        "contract::fast_rotate"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "swim",
+      "category": "actions",
+      "status": "UNAVAILABLE_IN_MUJOCO",
+      "reason": "The main scene has no fluid medium or corresponding MuJoCo mechanism",
+      "implementation": "structured_unavailable_result",
+      "ground_truth": [
+        "videos/actions/116_swim.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::swim",
+        "dispatch::swim",
+        "contract::swim"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": true,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "fluid_environment"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "joy_walk",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A conservative composition of existing body-frame locomotion is physically executable",
+      "implementation": "locomotion_composition",
+      "ground_truth": [
+        "videos/actions/117_joy_walk.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::joy_walk",
+        "dispatch::joy_walk",
+        "contract::joy_walk"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "duck_walk",
+      "category": "actions",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [
+        "videos/actions/118_duck_walk.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [],
+      "test_ids": [
+        "inventory::duck_walk",
+        "dispatch::duck_walk",
+        "contract::duck_walk"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "step",
+      "category": "actions",
+      "status": "APPROXIMATE",
+      "reason": "A conservative composition of existing body-frame locomotion is physically executable",
+      "implementation": "locomotion_composition",
+      "ground_truth": [
+        "videos/actions/119_step_forward.mp4",
+        "videos/actions/120_step_back.mp4"
+      ],
+      "video_status": "MULTIPLE_MATCHES",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::step",
+        "dispatch::step",
+        "contract::step"
+      ],
+      "batch": "B",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "LEGACY_CONFIRMED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "nod_off",
+      "category": "actions",
+      "status": "BLOCKED_BY_MODEL",
+      "reason": "Robot model has no independent head, neck, ear, nose, or gaze actuator",
+      "implementation": "structured_model_block",
+      "ground_truth": [
+        "videos/actions/123_nod_off.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "no_fake_substitute"
+      ],
+      "test_ids": [
+        "inventory::nod_off",
+        "dispatch::nod_off",
+        "contract::nod_off"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [
+        "independent_head_or_neck_joint",
+        "actuator"
+      ],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "ACTION_RUNNING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "BLOCKED_BY_MODEL",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "stand",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::stand",
+        "dispatch::stand",
+        "contract::stand"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "squat",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::squat",
+        "dispatch::squat",
+        "contract::squat"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sit",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::sit",
+        "dispatch::sit",
+        "contract::sit"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "lie_down",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "Conservative low-body joint profile is physically executable; final end state plus return, blocking and async contracts remain unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "end_state_return_blocking_async_unresolved",
+        "conservative_model_feasible_approximation"
+      ],
+      "test_ids": [
+        "inventory::lie_down",
+        "dispatch::lie_down",
+        "contract::lie_down"
+      ],
+      "batch": "E",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "lie_on_elbows",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::lie_on_elbows",
+        "dispatch::lie_on_elbows",
+        "contract::lie_on_elbows"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "prostrate",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::prostrate",
+        "dispatch::prostrate",
+        "contract::prostrate"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sphinx_lie",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::sphinx_lie",
+        "dispatch::sphinx_lie",
+        "contract::sphinx_lie"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sphinx_left_lie",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::sphinx_left_lie",
+        "dispatch::sphinx_left_lie",
+        "contract::sphinx_left_lie"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "sphinx_right_lie",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::sphinx_right_lie",
+        "dispatch::sphinx_right_lie",
+        "contract::sphinx_right_lie"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "standing_regular",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "stand_high",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "A distinct torque-controlled joint profile is physically executable but exact SDK trajectory/timing is unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO"
+      ],
+      "test_ids": [
+        "inventory::stand_high",
+        "dispatch::stand_high",
+        "contract::stand_high"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "stand_at_ease",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "Relaxed wide stance has measurable joint-target and posture differences; Ground Truth remains ambiguous",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "APPROXIMATE_NO_VIDEO",
+        "ground_truth_ambiguous",
+        "relaxed_stance_is_model_feasible_approximation"
+      ],
+      "test_ids": [
+        "inventory::stand_at_ease",
+        "dispatch::stand_at_ease",
+        "contract::stand_at_ease"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "AMBIGUOUS",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "stand_at_attention",
+      "category": "posture",
+      "status": "APPROXIMATE",
+      "reason": "Measurable tall attention posture is physically executable; the legacy mapping is inferred and exact SDK trajectory remains unresolved",
+      "implementation": "data_driven_joint_profile",
+      "ground_truth": [
+        "videos/actions/67_stand_at_attention.mp4"
+      ],
+      "video_status": "LEGACY_REFERENCE",
+      "limitations": [
+        "exact_joint_trajectory_and_timing_not_in_sdk_spec",
+        "blocking_and_return_contract_unresolved",
+        "ground_truth_inferred_not_direct",
+        "attention_pose_is_conservative_approximation"
+      ],
+      "test_ids": [
+        "inventory::stand_at_attention",
+        "dispatch::stand_at_attention",
+        "contract::stand_at_attention"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "INFERRED",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "recovery_stand",
+      "category": "posture",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::recovery_stand",
+        "dispatch::recovery_stand",
+        "contract::recovery_stand"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "POSTURE_HOLD",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "stop",
+      "category": "safety",
+      "status": "APPROXIMATE",
+      "reason": "Core MuJoCo behavior is independently verified; return, blocking, and async SDK contracts remain unresolved",
+      "implementation": "existing_controller",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "legacy_status_is_approximate_due_to_unresolved_sdk_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::stop",
+        "dispatch::stop",
+        "contract::stop"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "PHYSICALLY_IMPLEMENTED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "emergency_stop",
+      "category": "safety",
+      "status": "SIMULATED",
+      "reason": "Software zero-velocity and joint-PD holding is simulatable but is not a physical E-stop",
+      "implementation": "zero_velocity_and_joint_pd_hold",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "partial_hardware_equivalence"
+      ],
+      "test_ids": [
+        "inventory::emergency_stop",
+        "dispatch::emergency_stop",
+        "contract::emergency_stop"
+      ],
+      "batch": "A",
+      "physical_execution": true,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "SIMULATED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "get_status",
+      "category": "sensing",
+      "status": "SIMULATED",
+      "reason": "Current MuJoCo state query is simulated and verified; official return schema, blocking, and async contracts remain unresolved",
+      "implementation": "mujoco_query",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "simulated_return_not_full_vendor_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::get_status",
+        "dispatch::get_status",
+        "contract::get_status"
+      ],
+      "batch": "A",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "SIMULATED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "get_battery_status",
+      "category": "sensing",
+      "status": "HARDWARE_ONLY",
+      "reason": "The model contains no physical battery, supply, charger, or temperature hardware state",
+      "implementation": "structured_unavailable_result",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::get_battery_status",
+        "dispatch::get_battery_status",
+        "contract::get_battery_status"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [
+        "battery",
+        "supply",
+        "charger",
+        "temperature"
+      ],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "HARDWARE_ONLY",
+      "evidence_status": "VERIFIED"
+    },
+    {
+      "method": "body_status",
+      "category": "sensing",
+      "status": "SIMULATED",
+      "reason": "Current MuJoCo state query is simulated and verified; official return schema, blocking, and async contracts remain unresolved",
+      "implementation": "mujoco_query",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "simulated_return_not_full_vendor_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::body_status",
+        "dispatch::body_status",
+        "contract::body_status"
+      ],
+      "batch": "A",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "SIMULATED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "joint_states",
+      "category": "sensing",
+      "status": "SIMULATED",
+      "reason": "Current MuJoCo state query is simulated and verified; official return schema, blocking, and async contracts remain unresolved",
+      "implementation": "mujoco_query",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "simulated_return_not_full_vendor_contract",
+        "return_blocking_async_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::joint_states",
+        "dispatch::joint_states",
+        "contract::joint_states"
+      ],
+      "batch": "A",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "SIMULATED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "diagnose",
+      "category": "sensing",
+      "status": "SIMULATED",
+      "reason": "Diagnostic response combines real simulation state with explicit hardware gaps",
+      "implementation": "simulation_diagnostic",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "partial_hardware_equivalence"
+      ],
+      "test_ids": [
+        "inventory::diagnose",
+        "dispatch::diagnose",
+        "contract::diagnose"
+      ],
+      "batch": "A",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "SIMULATED",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "set_gait",
+      "category": "configuration",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::set_gait",
+        "dispatch::set_gait",
+        "contract::set_gait"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "set_foot_height",
+      "category": "configuration",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::set_foot_height",
+        "dispatch::set_foot_height",
+        "contract::set_foot_height"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "set_collision_protect",
+      "category": "configuration",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::set_collision_protect",
+        "dispatch::set_collision_protect",
+        "contract::set_collision_protect"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "set_friction",
+      "category": "configuration",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Unsafe claim is unproven in the current model; physical execution remains blocked by unresolved safe semantics",
+      "implementation": "structured_safety_rejection",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [
+        "unsafe_claim_not_reproduced",
+        "safe_behavior_contract_unresolved"
+      ],
+      "test_ids": [
+        "inventory::set_friction",
+        "dispatch::set_friction",
+        "contract::set_friction"
+      ],
+      "batch": "D",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "APPROXIMATE",
+      "evidence_status": "INSUFFICIENT"
+    },
+    {
+      "method": "set_jump_distance",
+      "category": "configuration",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::set_jump_distance",
+        "dispatch::set_jump_distance",
+        "contract::set_jump_distance"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    },
+    {
+      "method": "set_jump_angle",
+      "category": "configuration",
+      "status": "BLOCKED_BY_UNRESOLVED_SPEC",
+      "reason": "Core target, end state, configuration mapping, or under-development contract is unresolved",
+      "implementation": "structured_spec_block",
+      "ground_truth": [],
+      "video_status": "NO_VIDEO",
+      "limitations": [],
+      "test_ids": [
+        "inventory::set_jump_angle",
+        "dispatch::set_jump_angle",
+        "contract::set_jump_angle"
+      ],
+      "batch": "E",
+      "physical_execution": false,
+      "scenario_required": false,
+      "hardware_dependency": [],
+      "model_dependency": [],
+      "allowed_start_states": [
+        "STANDING"
+      ],
+      "preparation_state": "STANDING",
+      "active_state": "STANDING",
+      "expected_end_state": "UNRESOLVED",
+      "recovery_state": "STANDING",
+      "interruptibility": "stop_and_emergency_stop",
+      "timeout": "profile_or_global_limit",
+      "sdk_contract_status": "MULTIPLE_UNRESOLVED",
+      "ground_truth_status": "NOT_APPLICABLE",
+      "backend_behavior_status": "UNAVAILABLE",
+      "evidence_status": "VERIFIED_WITH_LIMITATIONS"
+    }
+  ],
+  "legacy_status_derivation": {
+    "authority": "backend_behavior_status + sdk_contract_status + evidence_status; ground_truth_status qualifies semantic confidence",
+    "IMPLEMENTED": "PHYSICALLY_IMPLEMENTED + RESOLVED + VERIFIED only",
+    "APPROXIMATE": "verified physical behavior with unresolved SDK contract, approximate behavior, or explicitly static/no-meaningful-motion semantics",
+    "SIMULATED": "SIMULATED behavior",
+    "non_executable": "derived from BLOCKED_BY_MODEL, HARDWARE_ONLY, UNAVAILABLE, UNSAFE_PROVEN, FAILED, or insufficient approximate evidence"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "purpose": "Release-stage prohibition baseline for model, physics, motion profiles, Ground Truth, and independent audit thresholds.",
+  "files": {
+    "scene.xml": "d4537bd75ef9dce89fe0483a5acdbe7790e24ef9ea5d3d0dd9a26be15474efe5",
+    "robot.xml": "fc978377fd1a68a61accf3e67109ff327708ab1a4cf41cca5aee73c1e367a873",
+    "model_config.py": "933b06c2c35c86204f2bfcc3560e189dcbe022a193e5665c2a732d0e51ddaeb3",
+    "config/action_ground_truth.json": "3b68d9b1c64fef623d47411802b298976c9f494788977770763e524a3e8b031e",
+    "config/action_profiles/full_sdk_profiles.json": "d744c8cb056a593e17c27a90203e4f16b4a8361e41f07f771486fdb6374388b0",
+    "config/full_sdk_corrected_ground_truth.json": "2592981bebb5ca27fea50a34a818ea5de9086f9fa75d16c3a49974aed1135c55",
+    "tools/run_full_sdk_independent_audit.py": "70d6b1ef88b033cdeb46099da8bdae1231efef74abe42e074eab803f3b310727",
+    "urdf/navi.urdf": "bd2b1ccbc73fad8647294fb84de82ff2bb16a19b28d8b6f88c0234e3f484e293",
+    "meshes/abad_link.STL": "5bc96e42caaf00c2d203bbfae75f9b6afe11f55544726245aca72090a820181a",
+    "meshes/abad_link_mirror_x.STL": "55151ca886dbd9328e812e075c73eee99ac44848a4aa54bf5ac08ea6d365d552",
+    "meshes/abad_link_mirror_xy.STL": "1afa02aa36d026251f0879b36e120856692884319a25558f48d067bdaae617dc",
+    "meshes/abad_link_mirror_y.STL": "6be07bda8303a504860821ab8d77dd419916801b5f95a3ea4ebb5aab72b2bbe7",
+    "meshes/base_link.STL": "8a40263c7e1eb08a22704b8ba05bc93ba762a084a14c1854e02b06ebfaeba4cc",
+    "meshes/foot_link.STL": "dd7e063392d7322350942c10bcba505b90b6313c446fe4e7b85bf16604fc1c28",
+    "meshes/hip_link.STL": "7bd7fd887efc5345596e45e1eed1ad27c9a023b5b335d52bed48422622cf782f",
+    "meshes/hip_link_mirror_y.STL": "1a38323e8915d555e5f0aad6b46df028e532338bd8f12a1f38ef47ffcfe13f82",
+    "meshes/knee_link.STL": "563713ceefe84b4d084efae27a7c7c5d2cfad3586fc8c440c4af307ad1c4c889",
+    "meshes/knee_link_mirror_y.STL": "4de9d84fd429327a8973a5cfb8e7e2d977363218b85c3922dfaafde940ffda68"
+  }
+}

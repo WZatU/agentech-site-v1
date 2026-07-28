@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "navi-mujoco-sdk-translator"
+dynamic = ["version"]
+description = "Restricted Navi SDK Python to auditable MuJoCo simulation translator"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "jsonschema>=4.23,<5",
+  "mujoco>=3.2,<4",
+  "numpy>=2,<3",
+]
+
+[project.optional-dependencies]
+video = [
+  "opencv-python>=4.10,<5",
+]
+dev = [
+  "build>=1.2,<2",
+]
+
+[project.scripts]
+navi-sim = "run_simulation:main"
+navi-sdk-acceptance = "run_full_sdk_acceptance:main"
+navi-sim-smoke-test = "tools.smoke_test:main"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = [
+  "controller",
+  "demo",
+  "model_config",
+  "run_full_sdk_acceptance",
+  "run_simulation",
+  "run_tests",
+  "run_translation",
+  "simulation",
+  "validate_model",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "translator.version.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "backends*",
+  "navi_mujoco_sdk_translator*",
+  "simulation*",
+  "tools*",
+  "translator*",
+]
+namespaces = true

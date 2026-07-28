@@ -4,7 +4,11 @@ import { closeSync, mkdirSync, openSync, readFileSync, writeFileSync } from "nod
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import OBSWebSocket from "obs-websocket-js";
-import { endSessionCleanupPolicy, keepsStreamActive } from "./robot-stream-session-policy.mjs";
+import {
+  endSessionCleanupPolicy,
+  finalSessionDatabaseStatus,
+  keepsStreamActive,
+} from "./robot-stream-session-policy.mjs";
 
 for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER"]) {
   if (!process.env[key]) throw new Error(`${key} is required.`);
@@ -299,6 +303,28 @@ function finishSessionCleanup(id, item) {
   saveState();
 }
 
+async function syncFinalSessionStatus(id, item) {
+  const databaseStatus = finalSessionDatabaseStatus(item);
+  if (!databaseStatus || item.databaseStatus === databaseStatus) return;
+  try {
+    await request(
+      "agentech_robot_sessions",
+      `id=eq.${encodeURIComponent(id)}&select=id`,
+      { method: "PATCH", body: { session_status: databaseStatus } },
+    );
+    item.databaseStatus = databaseStatus;
+    delete item.databaseStatusError;
+    console.log(`[robot-stream] session ${id} synchronized to ${databaseStatus} in Supabase.`);
+  } catch (error) {
+    item.databaseStatusError = error.message;
+    console.error(
+      `[robot-stream] unable to synchronize final status for session ${id}:`,
+      error.message,
+    );
+  }
+  saveState();
+}
+
 async function publishCaptures(id, item) {
   const remoteCaptures = item.remoteCaptures ?? (item.remoteCapture ? [item.remoteCapture] : []);
   item.publishedCaptures ??= [];
@@ -375,7 +401,14 @@ async function tick() {
   }
   const active = Object.values(state.sessions).some((item) => keepsStreamActive(item, now));
   if (!active) await stopObs();
-  for (const id of endingSessions) finishSessionCleanup(id, state.sessions[id]);
+  for (const id of endingSessions) {
+    const item = state.sessions[id];
+    finishSessionCleanup(id, item);
+    await syncFinalSessionStatus(id, item);
+  }
+  for (const [id, item] of Object.entries(state.sessions)) {
+    if (item.status === "finished") await syncFinalSessionStatus(id, item);
+  }
   if (!active) await stopObsVirtualCamera();
 }
 

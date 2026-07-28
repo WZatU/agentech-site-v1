@@ -5,7 +5,6 @@ ENV PYTHONUNBUFFERED=1 \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-      git \
       libegl1 \
       libgl1 \
       libglib2.0-0 \
@@ -20,9 +19,14 @@ RUN pip install --no-cache-dir \
       "uvicorn[standard]>=0.30" \
       pydantic>=2 \
       mujoco>=3.2 \
-      pillow>=10 \
-      "git+https://github.com/agent-tech0316/Aegies-Height.git"
+      pillow>=10
+
+COPY simulators ./simulators
+
+RUN pip install --no-cache-dir \
+      ./simulators/aegis \
+      ./simulators/navi
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn agentech.sim_server:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn simulators.service.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

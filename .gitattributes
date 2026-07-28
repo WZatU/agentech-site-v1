@@ -1,2 +1,6 @@
 *.pdf binary
 *.png binary
+
+# Preserve supplied robot runtime sources and model files byte-for-byte.
+simulators/aegis/aegis_runtime/assets/** whitespace=-trailing-space
+simulators/navi/** whitespace=-trailing-space

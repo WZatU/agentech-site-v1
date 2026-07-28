@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentech-aegis-simulator"
+version = "1.0.0"
+description = "Self-contained Aegis MuJoCo preview runtime for the Agentech website."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "mujoco>=3.2",
+  "pillow>=10",
+]
+
+[tool.setuptools.packages.find]
+include = ["aegis_runtime*"]
+
+[tool.setuptools.package-data]
+aegis_runtime = [
+  "assets/aegis/urdf/*",
+  "assets/aegis/meshes/*",
+]

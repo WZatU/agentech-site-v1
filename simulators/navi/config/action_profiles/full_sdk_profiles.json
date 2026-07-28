@@ -1,0 +1,2395 @@
+{
+  "schema_version": "1.0",
+  "joint_target_semantics": "offset_from_existing_STANDING_JOINT_TARGETS_rad",
+  "control": "existing_StandingPDController_through_12_torque_actuators",
+  "profiles": {
+    "sway_lateral": [
+      {
+        "name": "left",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "hind_left_abad_joint": 0.12,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "front_right_abad_joint": 0.04,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_right_abad_joint": 0.04,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "right",
+        "duration_s": 0.7,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.12,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.12,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0,
+          "front_left_abad_joint": -0.04,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "hind_left_abad_joint": -0.04,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "sway_pitch": [
+      {
+        "name": "forward",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.14,
+          "front_left_knee_joint": 0.18,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.14,
+          "front_right_knee_joint": 0.18,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.08,
+          "hind_left_knee_joint": -0.1,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.08,
+          "hind_right_knee_joint": -0.1
+        }
+      },
+      {
+        "name": "back",
+        "duration_s": 0.7,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.08,
+          "front_left_knee_joint": -0.1,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.08,
+          "front_right_knee_joint": -0.1,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.14,
+          "hind_left_knee_joint": 0.18,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.14,
+          "hind_right_knee_joint": 0.18
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "front_paw_left": [
+      {
+        "name": "lift",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_left_hip_joint": -0.3,
+          "front_left_knee_joint": 0.65
+        }
+      },
+      {
+        "name": "gesture",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.1,
+          "front_left_hip_joint": -0.22,
+          "front_left_knee_joint": 0.55
+        }
+      },
+      {
+        "name": "lower",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "front_paw_right": [
+      {
+        "name": "lift",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.1,
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.65
+        }
+      },
+      {
+        "name": "gesture",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": 0.1,
+          "front_right_hip_joint": -0.22,
+          "front_right_knee_joint": 0.55
+        }
+      },
+      {
+        "name": "lower",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "front_paws_alternate": [
+      {
+        "name": "left",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.08,
+          "front_left_hip_joint": -0.26,
+          "front_left_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "right",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.08,
+          "front_right_hip_joint": -0.26,
+          "front_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "left_again",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.08,
+          "front_left_hip_joint": -0.26,
+          "front_left_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "hind_leg_right": [
+      {
+        "name": "support_shift",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.08,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "hind_left_abad_joint": 0.08,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "lift_hind",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "hind_right_abad_joint": -0.22,
+          "hind_right_hip_joint": -0.28,
+          "hind_right_knee_joint": 0.62,
+          "front_left_abad_joint": 0.08,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "hind_left_abad_joint": 0.08,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "lower",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "rear_wiggle": [
+      {
+        "name": "rear_left",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.14,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": 0.14,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "rear_right",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": -0.14,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.14,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "rear_left_2",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.14,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": 0.14,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "bow": [
+      {
+        "name": "lower_front",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.28,
+          "front_left_knee_joint": 0.58,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.28,
+          "front_right_knee_joint": 0.58,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.08,
+          "hind_left_knee_joint": -0.12,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.08,
+          "hind_right_knee_joint": -0.12
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.28,
+          "front_left_knee_joint": 0.58,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.28,
+          "front_right_knee_joint": 0.58,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.08,
+          "hind_left_knee_joint": -0.12,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.08,
+          "hind_right_knee_joint": -0.12
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "front_stretch": [
+      {
+        "name": "stretch",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.62,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.34,
+          "front_right_knee_joint": 0.62,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.12,
+          "hind_left_knee_joint": -0.15,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.12,
+          "hind_right_knee_joint": -0.15
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.62,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.34,
+          "front_right_knee_joint": 0.62
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "rear_stretch": [
+      {
+        "name": "stretch",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.3,
+          "hind_left_knee_joint": 0.58,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.3,
+          "hind_right_knee_joint": 0.58,
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.1,
+          "front_left_knee_joint": -0.12,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.1,
+          "front_right_knee_joint": -0.12
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.3,
+          "hind_left_knee_joint": 0.58,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.3,
+          "hind_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "full_stretch": [
+      {
+        "name": "compress",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.18,
+          "front_left_knee_joint": 0.32,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.18,
+          "front_right_knee_joint": 0.32,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.18,
+          "hind_left_knee_joint": 0.32,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.18,
+          "hind_right_knee_joint": 0.32
+        }
+      },
+      {
+        "name": "extend",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.12,
+          "front_left_knee_joint": -0.2,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.12,
+          "front_right_knee_joint": -0.2,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.12,
+          "hind_left_knee_joint": -0.2,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.12,
+          "hind_right_knee_joint": -0.2
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "push_up": [
+      {
+        "name": "down",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.62,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.32,
+          "front_right_knee_joint": 0.62
+        }
+      },
+      {
+        "name": "up",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.05,
+          "front_left_knee_joint": -0.08,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.05,
+          "front_right_knee_joint": -0.08
+        }
+      },
+      {
+        "name": "down_2",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.62,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.32,
+          "front_right_knee_joint": 0.62
+        }
+      },
+      {
+        "name": "up_2",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "whole_body_shake": [
+      {
+        "name": "twist_left",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "front_right_abad_joint": 0.1,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_left_abad_joint": -0.1,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.1,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "twist_right",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.1,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "front_right_abad_joint": -0.1,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_left_abad_joint": 0.1,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": 0.1,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "twist_left_2",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "front_right_abad_joint": 0.1,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_left_abad_joint": -0.1,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.1,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "dance": [
+      {
+        "name": "diagonal_a",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.2,
+          "front_left_knee_joint": 0.35,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.2,
+          "hind_right_knee_joint": 0.35
+        }
+      },
+      {
+        "name": "diagonal_b",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.2,
+          "front_right_knee_joint": 0.35,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.2,
+          "hind_left_knee_joint": 0.35
+        }
+      },
+      {
+        "name": "wide",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "hind_left_abad_joint": 0.12,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "front_right_abad_joint": -0.12,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.12,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "crouch": [
+      {
+        "name": "lower",
+        "duration_s": 0.6,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.25,
+          "front_left_knee_joint": 0.5,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.25,
+          "front_right_knee_joint": 0.5,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.25,
+          "hind_left_knee_joint": 0.5,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.25,
+          "hind_right_knee_joint": 0.5
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.25,
+          "front_left_knee_joint": 0.5,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.25,
+          "front_right_knee_joint": 0.5,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.25,
+          "hind_left_knee_joint": 0.5,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.25,
+          "hind_right_knee_joint": 0.5
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "sit": [
+      {
+        "name": "sit",
+        "duration_s": 0.75,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.05,
+          "front_left_knee_joint": -0.1,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.05,
+          "front_right_knee_joint": -0.1,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.42,
+          "hind_left_knee_joint": 0.78,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.42,
+          "hind_right_knee_joint": 0.78
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.42,
+          "hind_left_knee_joint": 0.78,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.42,
+          "hind_right_knee_joint": 0.78
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "lie_elbows": [
+      {
+        "name": "lower_front",
+        "duration_s": 0.75,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.35,
+          "front_left_knee_joint": 0.72,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.35,
+          "front_right_knee_joint": 0.72,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.08,
+          "hind_left_knee_joint": 0.18,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.08,
+          "hind_right_knee_joint": 0.18
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.35,
+          "front_left_knee_joint": 0.72,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.35,
+          "front_right_knee_joint": 0.72
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "prostrate": [
+      {
+        "name": "lower_all",
+        "duration_s": 0.8,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.38,
+          "hind_left_knee_joint": 0.76,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.38,
+          "hind_right_knee_joint": 0.76
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.38,
+          "hind_left_knee_joint": 0.76,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.38,
+          "hind_right_knee_joint": 0.76
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "sphinx": [
+      {
+        "name": "pose",
+        "duration_s": 0.75,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.08,
+          "hind_left_knee_joint": -0.12,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.08,
+          "hind_right_knee_joint": -0.12
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "sphinx_left": [
+      {
+        "name": "pose",
+        "duration_s": 0.75,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": 0.04,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76,
+          "hind_left_abad_joint": 0.12,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": 0.04,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": 0.04,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "sphinx_right": [
+      {
+        "name": "pose",
+        "duration_s": 0.75,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.04,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": -0.12,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76,
+          "hind_left_abad_joint": -0.04,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.12,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.04,
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.76,
+          "front_right_abad_joint": -0.12,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.76
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "stand_high": [
+      {
+        "name": "raise",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.16,
+          "front_left_knee_joint": -0.28,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.16,
+          "front_right_knee_joint": -0.28,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.16,
+          "hind_left_knee_joint": -0.28,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.16,
+          "hind_right_knee_joint": -0.28
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.16,
+          "front_left_knee_joint": -0.28,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.16,
+          "front_right_knee_joint": -0.28,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.16,
+          "hind_left_knee_joint": -0.28,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.16,
+          "hind_right_knee_joint": -0.28
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "stand_ease": [
+      {
+        "name": "relax_and_widen",
+        "duration_s": 0.6,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.14,
+          "front_left_hip_joint": -0.08,
+          "front_left_knee_joint": 0.12,
+          "front_right_abad_joint": -0.14,
+          "front_right_hip_joint": -0.08,
+          "front_right_knee_joint": 0.12,
+          "hind_left_abad_joint": 0.14,
+          "hind_left_hip_joint": -0.05,
+          "hind_left_knee_joint": 0.08,
+          "hind_right_abad_joint": -0.14,
+          "hind_right_hip_joint": -0.05,
+          "hind_right_knee_joint": 0.08
+        }
+      },
+      {
+        "name": "relaxed_hold",
+        "duration_s": 0.8,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.14,
+          "front_left_hip_joint": -0.08,
+          "front_left_knee_joint": 0.12,
+          "front_right_abad_joint": -0.14,
+          "front_right_hip_joint": -0.08,
+          "front_right_knee_joint": 0.12,
+          "hind_left_abad_joint": 0.14,
+          "hind_left_hip_joint": -0.05,
+          "hind_left_knee_joint": 0.08,
+          "hind_right_abad_joint": -0.14,
+          "hind_right_hip_joint": -0.05,
+          "hind_right_knee_joint": 0.08
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "stand_attention": [
+      {
+        "name": "rise_to_attention",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.1,
+          "front_left_knee_joint": -0.16,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.1,
+          "front_right_knee_joint": -0.16,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.1,
+          "hind_left_knee_joint": -0.16,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.1,
+          "hind_right_knee_joint": -0.16
+        }
+      },
+      {
+        "name": "attention_hold",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.1,
+          "front_left_knee_joint": -0.16,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.1,
+          "front_right_knee_joint": -0.16,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.1,
+          "hind_left_knee_joint": -0.16,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.1,
+          "hind_right_knee_joint": -0.16
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "rest": [
+      {
+        "name": "lower",
+        "duration_s": 0.7,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.3,
+          "front_left_knee_joint": 0.58,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.58,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.3,
+          "hind_left_knee_joint": 0.58,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.3,
+          "hind_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "rest",
+        "duration_s": 0.6,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.3,
+          "front_left_knee_joint": 0.58,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.58,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.3,
+          "hind_left_knee_joint": 0.58,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.3,
+          "hind_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "playful": [
+      {
+        "name": "front_down",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.28,
+          "front_left_knee_joint": 0.55,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.28,
+          "front_right_knee_joint": 0.55,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.1,
+          "hind_left_knee_joint": -0.12,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.1,
+          "hind_right_knee_joint": -0.12
+        }
+      },
+      {
+        "name": "paw",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.62
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "torso_twist": [
+      {
+        "name": "left",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "front_right_abad_joint": 0.1,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_left_abad_joint": -0.1,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": -0.1,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "right",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.1,
+          "front_left_hip_joint": 0.0,
+          "front_left_knee_joint": 0.0,
+          "front_right_abad_joint": -0.1,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0,
+          "hind_left_abad_joint": 0.1,
+          "hind_left_hip_joint": 0.0,
+          "hind_left_knee_joint": 0.0,
+          "hind_right_abad_joint": 0.1,
+          "hind_right_hip_joint": 0.0,
+          "hind_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "center",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "jump_vertical": [
+      {
+        "name": "preload",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.35,
+          "front_left_knee_joint": 0.72,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.35,
+          "front_right_knee_joint": 0.72,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.35,
+          "hind_left_knee_joint": 0.72,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.35,
+          "hind_right_knee_joint": 0.72
+        }
+      },
+      {
+        "name": "launch",
+        "duration_s": 0.16,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.28,
+          "front_left_knee_joint": -0.52,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.28,
+          "front_right_knee_joint": -0.52,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.28,
+          "hind_left_knee_joint": -0.52,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.28,
+          "hind_right_knee_joint": -0.52
+        }
+      },
+      {
+        "name": "landing",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.16,
+          "front_left_knee_joint": 0.3,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.16,
+          "front_right_knee_joint": 0.3,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.16,
+          "hind_left_knee_joint": 0.3,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.16,
+          "hind_right_knee_joint": 0.3
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "jump_forward": [
+      {
+        "name": "preload",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.35,
+          "front_left_knee_joint": 0.72,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.35,
+          "front_right_knee_joint": 0.72,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.35,
+          "hind_left_knee_joint": 0.72,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.35,
+          "hind_right_knee_joint": 0.72
+        }
+      },
+      {
+        "name": "launch",
+        "duration_s": 0.18,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": 0.25,
+          "front_left_knee_joint": -0.5,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": 0.25,
+          "front_right_knee_joint": -0.5,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": 0.65,
+          "hind_left_knee_joint": -1.0,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": 0.65,
+          "hind_right_knee_joint": -1.0
+        }
+      },
+      {
+        "name": "landing",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.18,
+          "front_left_knee_joint": 0.34,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.18,
+          "front_right_knee_joint": 0.34,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.18,
+          "hind_left_knee_joint": 0.34,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.18,
+          "hind_right_knee_joint": 0.34
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "kick": [
+      {
+        "name": "load",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.08,
+          "front_left_hip_joint": -0.25,
+          "front_left_knee_joint": 0.58,
+          "front_right_abad_joint": -0.05,
+          "front_right_hip_joint": 0.0,
+          "front_right_knee_joint": 0.0
+        }
+      },
+      {
+        "name": "extend",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.05,
+          "front_left_hip_joint": 0.18,
+          "front_left_knee_joint": -0.48
+        }
+      },
+      {
+        "name": "retract",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.08,
+          "front_left_hip_joint": -0.28,
+          "front_left_knee_joint": 0.62
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "lie_down_conservative": [
+      {
+        "name": "lower_body",
+        "duration_s": 0.9,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.45,
+          "front_left_knee_joint": 0.85,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.45,
+          "front_right_knee_joint": 0.85,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.45,
+          "hind_left_knee_joint": 0.85,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.45,
+          "hind_right_knee_joint": 0.85
+        }
+      },
+      {
+        "name": "low_hold",
+        "duration_s": 0.7,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.0,
+          "front_left_hip_joint": -0.45,
+          "front_left_knee_joint": 0.85,
+          "front_right_abad_joint": 0.0,
+          "front_right_hip_joint": -0.45,
+          "front_right_knee_joint": 0.85,
+          "hind_left_abad_joint": 0.0,
+          "hind_left_hip_joint": -0.45,
+          "hind_left_knee_joint": 0.85,
+          "hind_right_abad_joint": 0.0,
+          "hind_right_hip_joint": -0.45,
+          "hind_right_knee_joint": 0.85
+        }
+      }
+    ],
+    "corrected_sway": [
+      {
+        "name": "lean_left",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.16,
+          "hind_left_abad_joint": 0.16,
+          "front_right_abad_joint": 0.04,
+          "hind_right_abad_joint": 0.04
+        }
+      },
+      {
+        "name": "lean_right",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.16,
+          "hind_right_abad_joint": -0.16,
+          "front_left_abad_joint": -0.04,
+          "hind_left_abad_joint": -0.04
+        }
+      },
+      {
+        "name": "second_left",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.13,
+          "hind_left_abad_joint": 0.13
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_affection": [
+      {
+        "name": "gentle_lower",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.16,
+          "front_left_knee_joint": 0.25,
+          "front_right_hip_joint": -0.16,
+          "front_right_knee_joint": 0.25
+        }
+      },
+      {
+        "name": "side_nuzzle",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "hind_left_abad_joint": 0.08,
+          "front_left_hip_joint": -0.12,
+          "front_left_knee_joint": 0.2
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "hind_left_abad_joint": 0.06,
+          "front_left_hip_joint": -0.1,
+          "front_left_knee_joint": 0.17
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_cute": [
+      {
+        "name": "shimmy_left",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.13,
+          "hind_right_abad_joint": -0.1,
+          "front_left_hip_joint": -0.06,
+          "hind_right_hip_joint": 0.05
+        }
+      },
+      {
+        "name": "shimmy_right",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.13,
+          "hind_left_abad_joint": 0.1,
+          "front_right_hip_joint": -0.06,
+          "hind_left_hip_joint": 0.05
+        }
+      },
+      {
+        "name": "pose",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.08,
+          "front_right_abad_joint": -0.08,
+          "front_left_knee_joint": 0.1,
+          "front_right_knee_joint": 0.1
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_enjoy_touch": [
+      {
+        "name": "happy_crouch",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "hind_left_hip_joint": -0.2,
+          "hind_left_knee_joint": 0.38,
+          "hind_right_hip_joint": -0.2,
+          "hind_right_knee_joint": 0.38
+        }
+      },
+      {
+        "name": "happy_sway",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "hind_left_abad_joint": 0.15,
+          "front_right_abad_joint": -0.04,
+          "hind_right_abad_joint": -0.07
+        }
+      },
+      {
+        "name": "delighted_sway",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.1,
+          "hind_right_abad_joint": -0.15,
+          "front_left_abad_joint": 0.04,
+          "hind_left_abad_joint": 0.07
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_bark": [
+      {
+        "name": "preload",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.1,
+          "front_left_knee_joint": 0.18,
+          "front_right_hip_joint": -0.1,
+          "front_right_knee_joint": 0.18
+        }
+      },
+      {
+        "name": "bark_pulse_1",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.09,
+          "front_left_knee_joint": -0.1,
+          "front_right_hip_joint": 0.09,
+          "front_right_knee_joint": -0.1
+        }
+      },
+      {
+        "name": "reset_1",
+        "duration_s": 0.2,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.05,
+          "front_left_knee_joint": 0.1,
+          "front_right_hip_joint": -0.05,
+          "front_right_knee_joint": 0.1
+        }
+      },
+      {
+        "name": "bark_pulse_2",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.09,
+          "front_left_knee_joint": -0.1,
+          "front_right_hip_joint": 0.09,
+          "front_right_knee_joint": -0.1
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_bow": [
+      {
+        "name": "lower_front",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.58,
+          "front_right_hip_joint": -0.32,
+          "front_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "bow_hold",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.58,
+          "front_right_hip_joint": -0.32,
+          "front_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_chat": [
+      {
+        "name": "gesture_left",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.18,
+          "front_left_knee_joint": 0.34,
+          "front_left_abad_joint": 0.12
+        }
+      },
+      {
+        "name": "gesture_right",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.18,
+          "front_right_knee_joint": 0.34,
+          "front_right_abad_joint": -0.12
+        }
+      },
+      {
+        "name": "animated_both",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.13,
+          "front_left_knee_joint": 0.26,
+          "front_right_hip_joint": -0.13,
+          "front_right_knee_joint": 0.26
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_knock": [
+      {
+        "name": "lift_left_paw",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.62,
+          "front_left_abad_joint": 0.08
+        }
+      },
+      {
+        "name": "tap_forward",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.12,
+          "front_left_knee_joint": 0.42,
+          "front_left_abad_joint": 0.08
+        }
+      },
+      {
+        "name": "retract",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.62,
+          "front_left_abad_joint": 0.08
+        }
+      },
+      {
+        "name": "tap_again",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.12,
+          "front_left_knee_joint": 0.42,
+          "front_left_abad_joint": 0.08
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_point_to_sky": [
+      {
+        "name": "raise_left",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.42,
+          "front_left_knee_joint": 0.78,
+          "front_left_abad_joint": 0.1
+        }
+      },
+      {
+        "name": "point_hold",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.42,
+          "front_left_knee_joint": 0.78,
+          "front_left_abad_joint": 0.1
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_wave_hand": [
+      {
+        "name": "raise_left",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.66
+        }
+      },
+      {
+        "name": "wave_out",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.66,
+          "front_left_abad_joint": 0.18
+        }
+      },
+      {
+        "name": "wave_in",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.66,
+          "front_left_abad_joint": -0.08
+        }
+      },
+      {
+        "name": "wave_out_2",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.66,
+          "front_left_abad_joint": 0.18
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_think": [
+      {
+        "name": "raise_right_paw",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.58,
+          "front_right_abad_joint": -0.08
+        }
+      },
+      {
+        "name": "thoughtful_tilt",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.58,
+          "front_left_abad_joint": 0.08,
+          "hind_left_abad_joint": 0.06
+        }
+      },
+      {
+        "name": "hold",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.27,
+          "front_right_knee_joint": 0.54,
+          "front_left_abad_joint": 0.06
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_yawn": [
+      {
+        "name": "lower",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.12,
+          "front_left_knee_joint": 0.22,
+          "front_right_hip_joint": -0.12,
+          "front_right_knee_joint": 0.22
+        }
+      },
+      {
+        "name": "full_rise",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.14,
+          "front_left_knee_joint": -0.18,
+          "front_right_hip_joint": 0.14,
+          "front_right_knee_joint": -0.18,
+          "hind_left_hip_joint": 0.08,
+          "hind_right_hip_joint": 0.08
+        }
+      },
+      {
+        "name": "long_hold",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.12,
+          "front_left_knee_joint": -0.15,
+          "front_right_hip_joint": 0.12,
+          "front_right_knee_joint": -0.15
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_clap": [
+      {
+        "name": "raise_both",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.26,
+          "front_left_knee_joint": 0.5,
+          "front_right_hip_joint": -0.26,
+          "front_right_knee_joint": 0.5
+        }
+      },
+      {
+        "name": "clap_in",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.16,
+          "front_right_abad_joint": 0.16,
+          "front_left_hip_joint": -0.25,
+          "front_right_hip_joint": -0.25,
+          "front_left_knee_joint": 0.48,
+          "front_right_knee_joint": 0.48
+        }
+      },
+      {
+        "name": "clap_out",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_right_abad_joint": -0.1,
+          "front_left_hip_joint": -0.25,
+          "front_right_hip_joint": -0.25,
+          "front_left_knee_joint": 0.48,
+          "front_right_knee_joint": 0.48
+        }
+      },
+      {
+        "name": "clap_in_2",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.16,
+          "front_right_abad_joint": 0.16,
+          "front_left_hip_joint": -0.25,
+          "front_right_hip_joint": -0.25,
+          "front_left_knee_joint": 0.48,
+          "front_right_knee_joint": 0.48
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_eat": [
+      {
+        "name": "lower_front",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.24,
+          "front_left_knee_joint": 0.44,
+          "front_right_hip_joint": -0.24,
+          "front_right_knee_joint": 0.44
+        }
+      },
+      {
+        "name": "bite",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.32,
+          "front_left_knee_joint": 0.58,
+          "front_right_hip_joint": -0.32,
+          "front_right_knee_joint": 0.58
+        }
+      },
+      {
+        "name": "lift",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.16,
+          "front_left_knee_joint": 0.3,
+          "front_right_hip_joint": -0.16,
+          "front_right_knee_joint": 0.3
+        }
+      },
+      {
+        "name": "swallow_hold",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.1,
+          "front_left_knee_joint": 0.18,
+          "front_right_hip_joint": -0.1,
+          "front_right_knee_joint": 0.18
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_toss": [
+      {
+        "name": "collect",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.28,
+          "front_left_knee_joint": 0.52,
+          "front_right_hip_joint": -0.28,
+          "front_right_knee_joint": 0.52
+        }
+      },
+      {
+        "name": "toss_up",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.12,
+          "front_left_knee_joint": -0.12,
+          "front_right_hip_joint": 0.12,
+          "front_right_knee_joint": -0.12
+        }
+      },
+      {
+        "name": "follow_through",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.04,
+          "front_left_knee_joint": -0.06,
+          "front_right_hip_joint": 0.04,
+          "front_right_knee_joint": -0.06,
+          "hind_left_hip_joint": -0.1,
+          "hind_right_hip_joint": -0.1
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_front_stretch": [
+      {
+        "name": "extend_front",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.72,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.72,
+          "hind_left_hip_joint": 0.1,
+          "hind_right_hip_joint": 0.1
+        }
+      },
+      {
+        "name": "stretch_hold",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.38,
+          "front_left_knee_joint": 0.72,
+          "front_right_hip_joint": -0.38,
+          "front_right_knee_joint": 0.72,
+          "hind_left_hip_joint": 0.1,
+          "hind_right_hip_joint": 0.1
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_confused": [
+      {
+        "name": "tilt_left",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.15,
+          "hind_left_abad_joint": 0.1,
+          "front_right_abad_joint": 0.04,
+          "hind_right_abad_joint": 0.02
+        }
+      },
+      {
+        "name": "pause_center",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "tilt_right",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.15,
+          "hind_right_abad_joint": -0.1,
+          "front_left_abad_joint": -0.04,
+          "hind_left_abad_joint": -0.02
+        }
+      },
+      {
+        "name": "second_pause",
+        "duration_s": 0.25,
+        "joint_offsets_rad": {}
+      },
+      {
+        "name": "small_left",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "hind_left_abad_joint": 0.07
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.35,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_dance": [
+      {
+        "name": "beat_one",
+        "duration_s": 0.28,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.14,
+          "hind_right_abad_joint": -0.12,
+          "front_left_hip_joint": -0.08,
+          "hind_right_hip_joint": -0.08
+        }
+      },
+      {
+        "name": "beat_two",
+        "duration_s": 0.28,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.14,
+          "hind_left_abad_joint": 0.12,
+          "front_right_hip_joint": -0.08,
+          "hind_left_hip_joint": -0.08
+        }
+      },
+      {
+        "name": "beat_three",
+        "duration_s": 0.28,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": -0.1,
+          "front_right_abad_joint": 0.1,
+          "hind_left_knee_joint": 0.16,
+          "hind_right_knee_joint": 0.16
+        }
+      },
+      {
+        "name": "beat_four",
+        "duration_s": 0.28,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.1,
+          "front_right_abad_joint": -0.1,
+          "front_left_knee_joint": 0.16,
+          "front_right_knee_joint": 0.16
+        }
+      },
+      {
+        "name": "final_pose",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "front_right_abad_joint": -0.12,
+          "hind_left_abad_joint": 0.08,
+          "hind_right_abad_joint": -0.08
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_ask_for_play": [
+      {
+        "name": "play_bow",
+        "duration_s": 0.55,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.34,
+          "front_left_knee_joint": 0.62,
+          "front_right_hip_joint": -0.34,
+          "front_right_knee_joint": 0.62,
+          "hind_left_hip_joint": 0.1,
+          "hind_right_hip_joint": 0.1
+        }
+      },
+      {
+        "name": "rear_wiggle_left",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.3,
+          "front_left_knee_joint": 0.56,
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.56,
+          "hind_left_abad_joint": 0.15,
+          "hind_right_abad_joint": -0.04
+        }
+      },
+      {
+        "name": "rear_wiggle_right",
+        "duration_s": 0.3,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.3,
+          "front_left_knee_joint": 0.56,
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.56,
+          "hind_right_abad_joint": -0.15,
+          "hind_left_abad_joint": 0.04
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_brush_teeth": [
+      {
+        "name": "raise_right",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.34,
+          "front_right_knee_joint": 0.64,
+          "front_right_abad_joint": -0.06
+        }
+      },
+      {
+        "name": "brush_left",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.2,
+          "front_right_knee_joint": 0.5,
+          "front_right_abad_joint": 0.13
+        }
+      },
+      {
+        "name": "brush_right",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.2,
+          "front_right_knee_joint": 0.5,
+          "front_right_abad_joint": -0.13
+        }
+      },
+      {
+        "name": "brush_left_2",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.2,
+          "front_right_knee_joint": 0.5,
+          "front_right_abad_joint": 0.13
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_draw_heart": [
+      {
+        "name": "upper_left",
+        "duration_s": 0.32,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.3,
+          "front_left_knee_joint": 0.58,
+          "front_left_abad_joint": 0.14,
+          "front_right_hip_joint": -0.18,
+          "front_right_knee_joint": 0.36
+        }
+      },
+      {
+        "name": "upper_right",
+        "duration_s": 0.32,
+        "joint_offsets_rad": {
+          "front_right_hip_joint": -0.3,
+          "front_right_knee_joint": 0.58,
+          "front_right_abad_joint": -0.14,
+          "front_left_hip_joint": -0.18,
+          "front_left_knee_joint": 0.36
+        }
+      },
+      {
+        "name": "lower_center",
+        "duration_s": 0.38,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.25,
+          "front_left_knee_joint": 0.48,
+          "front_right_hip_joint": -0.25,
+          "front_right_knee_joint": 0.48,
+          "front_left_abad_joint": -0.08,
+          "front_right_abad_joint": 0.08
+        }
+      },
+      {
+        "name": "heart_hold",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.22,
+          "front_left_knee_joint": 0.44,
+          "front_right_hip_joint": -0.22,
+          "front_right_knee_joint": 0.44
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_look_around": [
+      {
+        "name": "look_left",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {
+          "front_left_abad_joint": 0.12,
+          "front_right_abad_joint": 0.06,
+          "hind_left_abad_joint": -0.08,
+          "hind_right_abad_joint": -0.04,
+          "front_left_hip_joint": -0.06,
+          "hind_right_hip_joint": 0.05
+        }
+      },
+      {
+        "name": "look_right",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "front_right_abad_joint": -0.12,
+          "front_left_abad_joint": -0.06,
+          "hind_right_abad_joint": 0.08,
+          "hind_left_abad_joint": 0.04,
+          "front_right_hip_joint": -0.06,
+          "hind_left_hip_joint": 0.05
+        }
+      },
+      {
+        "name": "look_high",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.08,
+          "front_left_knee_joint": -0.1,
+          "front_right_hip_joint": 0.08,
+          "front_right_knee_joint": -0.1
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.45,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_full_body_stretch": [
+      {
+        "name": "compress",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": -0.15,
+          "front_left_knee_joint": 0.28,
+          "front_right_hip_joint": -0.15,
+          "front_right_knee_joint": 0.28,
+          "hind_left_hip_joint": -0.12,
+          "hind_left_knee_joint": 0.22,
+          "hind_right_hip_joint": -0.12,
+          "hind_right_knee_joint": 0.22
+        }
+      },
+      {
+        "name": "extend_all",
+        "duration_s": 0.65,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.13,
+          "front_left_knee_joint": -0.16,
+          "front_right_hip_joint": 0.13,
+          "front_right_knee_joint": -0.16,
+          "hind_left_hip_joint": 0.11,
+          "hind_left_knee_joint": -0.14,
+          "hind_right_hip_joint": 0.11,
+          "hind_right_knee_joint": -0.14
+        }
+      },
+      {
+        "name": "stretch_hold",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {
+          "front_left_hip_joint": 0.11,
+          "front_left_knee_joint": -0.14,
+          "front_right_hip_joint": 0.11,
+          "front_right_knee_joint": -0.14,
+          "hind_left_hip_joint": 0.09,
+          "hind_left_knee_joint": -0.11,
+          "hind_right_hip_joint": 0.09,
+          "hind_right_knee_joint": -0.11
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.5,
+        "joint_offsets_rad": {}
+      }
+    ],
+    "corrected_wag_rear": [
+      {
+        "name": "rear_left",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.2,
+          "hind_right_abad_joint": 0.06,
+          "hind_left_hip_joint": -0.06,
+          "hind_right_hip_joint": -0.02
+        }
+      },
+      {
+        "name": "rear_right",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "hind_right_abad_joint": -0.2,
+          "hind_left_abad_joint": -0.06,
+          "hind_right_hip_joint": -0.06,
+          "hind_left_hip_joint": -0.02
+        }
+      },
+      {
+        "name": "rear_left_2",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "hind_left_abad_joint": 0.2,
+          "hind_right_abad_joint": 0.06
+        }
+      },
+      {
+        "name": "rear_right_2",
+        "duration_s": 0.22,
+        "joint_offsets_rad": {
+          "hind_right_abad_joint": -0.2,
+          "hind_left_abad_joint": -0.06
+        }
+      },
+      {
+        "name": "recover",
+        "duration_s": 0.4,
+        "joint_offsets_rad": {}
+      }
+    ]
+  },
+  "method_profiles": {
+    "show_affection": "corrected_affection",
+    "sway": "corrected_sway",
+    "act_shy": "sway_lateral",
+    "enjoy_touch": "corrected_enjoy_touch",
+    "cute": "corrected_cute",
+    "snuggle": "sway_lateral",
+    "yawn": "corrected_yawn",
+    "be_sleepy": "sway_pitch",
+    "think": "corrected_think",
+    "sway_front_back": "sway_pitch",
+    "lucky_cat": "front_paw_left",
+    "good_night_wave": "front_paw_left",
+    "point_to_sky": "corrected_point_to_sky",
+    "knock": "corrected_knock",
+    "wave_hand": "corrected_wave_hand",
+    "shake_hand": "front_paw_left",
+    "wait_for_praise": "front_paw_left",
+    "shake_hand_quick": "front_paw_right",
+    "brush_teeth": "corrected_brush_teeth",
+    "eat": "corrected_eat",
+    "cooking": "front_paws_alternate",
+    "clap_hand": "corrected_clap",
+    "toss": "corrected_toss",
+    "pee": "hind_leg_right",
+    "pee_quick": "hind_leg_right",
+    "toilet_pose": "hind_leg_right",
+    "wag_rear": "corrected_wag_rear",
+    "hip_shake": "rear_wiggle",
+    "rear_puff": "rear_wiggle",
+    "playful_greeting": "bow",
+    "cry": "bow",
+    "chat": "corrected_chat",
+    "encourage": "bow",
+    "bow": "corrected_bow",
+    "bark": "corrected_bark",
+    "push_ahead": "front_stretch",
+    "front_stretch": "corrected_front_stretch",
+    "brace": "front_stretch",
+    "rear_stretch": "rear_stretch",
+    "full_body_stretch": "corrected_full_body_stretch",
+    "flex_muscles": "full_stretch",
+    "push_up": "push_up",
+    "confused": "corrected_confused",
+    "shake_self": "whole_body_shake",
+    "excited": "whole_body_shake",
+    "dance": "corrected_dance",
+    "jingle": "dance",
+    "step_idle": "dance",
+    "eager": "playful",
+    "ask_for_play": "corrected_ask_for_play",
+    "look_around": "corrected_look_around",
+    "draw_heart": "corrected_draw_heart",
+    "bored_half_sit": "rest",
+    "rest": "rest",
+    "squat": "crouch",
+    "sit": "sit",
+    "lie_on_elbows": "lie_elbows",
+    "prostrate": "prostrate",
+    "sphinx_lie": "sphinx",
+    "sphinx_left_lie": "sphinx_left",
+    "sphinx_right_lie": "sphinx_right",
+    "stand_high": "stand_high",
+    "stand_at_ease": "stand_ease",
+    "stand_at_attention": "stand_attention",
+    "jump": "jump_vertical",
+    "jump_forward": "jump_forward",
+    "kick": "kick",
+    "lie_down": "lie_down_conservative"
+  },
+  "locomotion_compositions": [
+    "fast_rotate",
+    "joy_walk",
+    "step"
+  ]
+}

@@ -1,4 +1,5 @@
 .next
+.next.codex-backup-*
 .next-cache-*
 .tmp
 node_modules
@@ -9,6 +10,9 @@ dist
 *.tsbuildinfo
 __pycache__/
 *.py[cod]
+simulators/**/.venv/
+simulators/**/outputs/
+simulators/**/results/
 tmp/
 .env
 .env.*

@@ -34,7 +34,7 @@ type HardwareChecklistItem = {
 type HardwareSimulationClip = {
   command: string;
   label: string;
-  gif: string;
+  asset: string;
   sourceLine: string;
 };
 type HardwareResult = {
@@ -76,8 +76,9 @@ type PremiumFeatureStatus = {
   error?: string;
 };
 const robotSchedulingPath = getEaicHubTaskPath("schedule-time");
-const useRealMuJoCoPreview = process.env.NODE_ENV === "development";
-const previewAsset = (name: string) => `/assets/products/aegis-previews/${name}.gif?v=squat-half-height-20260715`;
+const useRealMuJoCoPreview = true;
+const simulatorPreviewRoot = "/assets/products/agentech-library/simulator-previews";
+const previewAsset = (name: string) => `${simulatorPreviewRoot}/aegis/${name}.gif?v=squat-half-height-20260715`;
 
 function PremiumFeaturePanel({ item }: { item: AgentechFunction }) {
   const [status, setStatus] = useState<PremiumFeatureStatus | null>(null);
@@ -180,113 +181,133 @@ function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: "aegi
     || (selectedRobot === "navi" && (item.name === "stop" || item.name === "recovery_stand" || item.category === "Sensing" || item.category === "Configuration"));
 }
 const naviSimulationAssets: Partial<Record<string, string>> = {
-  backward: "/assets/products/agentech-library/navi-simulations/backward/navi-walk-backward.mp4?v=local-approval-20260720",
-  forward: "/assets/products/agentech-library/navi-simulations/forward/navi-walk-forward.mp4?v=local-approval-20260720",
-  lateral_left: "/assets/products/agentech-library/navi-simulations/lateral-left/navi-lateral-left.mp4?v=local-approval-20260720d",
-  lateral_right: "/assets/products/agentech-library/navi-simulations/lateral-right/navi-lateral-right.mp4?v=local-approval-20260720",
-  diagonal_left: "/assets/products/agentech-library/navi-simulations/diagonal-left/navi-diagonal-left.mp4?v=local-approval-20260720",
-  diagonal_right: "/assets/products/agentech-library/navi-simulations/diagonal-right/navi-diagonal-right.mp4?v=local-approval-20260720",
-  turn_left: "/assets/products/agentech-library/navi-simulations/turn-left/navi-turn-left.mp4?v=local-approval-20260720",
-  turn_right: "/assets/products/agentech-library/navi-simulations/turn-right/navi-turn-right.mp4?v=local-approval-20260720",
-  return_to_home: "/assets/products/agentech-library/navi-simulations/return-to-home/navi-return-to-home.mp4?v=20260722-1",
-  sway: "/assets/products/agentech-library/navi-simulations/actions/sway/navi-sway-standing.mp4?v=20260720-1",
-  pee: "/assets/products/agentech-library/navi-simulations/actions/pee/navi-pee-back-left-v2.mp4?v=20260720-2",
-  knock: "/assets/products/agentech-library/navi-simulations/actions/knock/navi-knock-higher-v2.mp4?v=20260721-3",
-  shake_hand: "/assets/products/agentech-library/navi-simulations/actions/shake-hand/navi-shake-hand-one-second.mp4?v=20260721-4",
-  hip_shake: "/assets/products/agentech-library/navi-simulations/actions/hip-shake/navi-hip-shake-rear-down.mp4?v=20260721-2",
-  wave_hand: "/assets/products/agentech-library/navi-simulations/actions/wave-hand/navi-wave-hand-forward-up.mp4?v=20260721-5",
-  bow: "/assets/products/agentech-library/navi-simulations/actions/bow/navi-reference-bow.gif?v=20260723-1",
-  wag_rear: "/assets/products/agentech-library/navi-simulations/actions/wag-rear/navi-wag-rear-planted.mp4?v=20260721-2",
-  bark: "/assets/products/agentech-library/navi-simulations/actions/bark/navi-reference-bark.gif?v=20260723-1",
-  clap_hand: "/assets/products/agentech-library/navi-simulations/actions/clap-hand/navi-reference-clap-hand.gif?v=20260723-1",
-  rub_eyes: "/assets/products/agentech-library/navi-simulations/actions/rub-eyes/navi-reference-rub-eyes.gif?v=20260723-1",
-  nod_head: "/assets/products/agentech-library/navi-simulations/actions/nod-head/navi-nod-head-sequential.mp4?v=20260721-4",
-  shake_head: "/assets/products/agentech-library/navi-simulations/actions/shake-head/navi-shake-head-twist.mp4?v=20260721-1",
-  confused: "/assets/products/agentech-library/navi-simulations/actions/confused/navi-confused-asymmetric-legs.mp4?v=20260721-4",
-  show_affection: "/assets/products/agentech-library/navi-simulations/actions/show-affection/navi-show-affection-from-cute.mp4?v=20260721-4",
-  draw_heart: "/assets/products/agentech-library/navi-simulations/actions/draw-heart/navi-draw-heart-reference.mp4?v=20260721-3",
-  cute: "/assets/products/agentech-library/navi-simulations/actions/cute/navi-cute-reference.mp4?v=20260721-5",
-  ask_for_play: "/assets/products/agentech-library/navi-simulations/actions/ask-for-play/navi-ask-for-play-reference.mp4?v=20260721-4",
-  enjoy_touch: "/assets/products/agentech-library/navi-simulations/actions/enjoy-touch/navi-enjoy-touch-reference.mp4?v=20260721-5",
-  sniff_ahead: "/assets/products/agentech-library/navi-simulations/actions/sniff-ahead/navi-sniff-ahead.mp4?v=20260721-1",
-  sniff_left: "/assets/products/agentech-library/navi-simulations/actions/sniff-left/navi-sniff-left.mp4?v=20260721-1",
-  sniff_right: "/assets/products/agentech-library/navi-simulations/actions/sniff-right/navi-sniff-right.mp4?v=20260721-1",
-  front_stretch: "/assets/products/agentech-library/navi-simulations/actions/front-stretch/navi-front-stretch.mp4?v=20260721-2",
-  full_body_stretch: "/assets/products/agentech-library/navi-simulations/actions/full-body-stretch/navi-full-body-stretch.mp4?v=20260721-2",
-  look_around: "/assets/products/agentech-library/navi-simulations/actions/look-around/navi-look-around.mp4?v=20260721-1",
-  squat: "/assets/products/agentech-library/navi-simulations/posture/squat/navi-reference-squat.gif?v=20260723-1",
-  sit: "/assets/products/agentech-library/navi-simulations/posture/sit/navi-sit.mp4?v=20260721-1",
-  lie_down: "/assets/products/agentech-library/navi-simulations/posture/lie-down/navi-lie-down.mp4?v=20260721-1",
-  lie_on_elbows: "/assets/products/agentech-library/navi-simulations/posture/lie-on-elbows/navi-lie-on-elbows.mp4?v=20260721-1",
-  prostrate: "/assets/products/agentech-library/navi-simulations/posture/prostrate/navi-prostrate.mp4?v=20260721-1",
-  sphinx_lie: "/assets/products/agentech-library/navi-simulations/posture/sphinx-lie/navi-sphinx-lie.mp4?v=20260721-1",
-  sphinx_left_lie: "/assets/products/agentech-library/navi-simulations/posture/sphinx-left-lie/navi-sphinx-left-lie.mp4?v=20260721-1",
-  sphinx_right_lie: "/assets/products/agentech-library/navi-simulations/posture/sphinx-right-lie/navi-sphinx-right-lie.mp4?v=20260721-1",
-  stand_high: "/assets/products/agentech-library/navi-simulations/posture/stand-high/navi-stand-high.mp4?v=20260721-1",
-  stand_at_ease: "/assets/products/agentech-library/navi-simulations/posture/stand-at-ease/navi-stand-at-ease.mp4?v=20260721-1",
-  stand_at_attention: "/assets/products/agentech-library/navi-simulations/posture/stand-at-attention/navi-stand-at-attention.mp4?v=20260721-1",
-  rear_puff: "/assets/products/agentech-library/navi-simulations/actions/long-fart/navi-long-fart.mp4?v=20260721-1",
-  head_up_down: "/assets/products/agentech-library/navi-simulations/actions/head-up-down/navi-head-up-down.mp4?v=20260721-1",
-  look_down: "/assets/products/agentech-library/navi-simulations/actions/look-down/navi-look-down.mp4?v=20260721-1",
-  nod_with_beats: "/assets/products/agentech-library/navi-simulations/actions/nod-with-beats/navi-nod-with-beats.mp4?v=20260721-1",
-  eat: "/assets/products/agentech-library/navi-simulations/actions/eat/navi-eat.mp4?v=20260721-7",
-  excited: "/assets/products/agentech-library/navi-simulations/actions/excited/navi-excited.mp4?v=20260721-1",
-  nod_off: "/assets/products/agentech-library/navi-simulations/actions/nod-off/navi-nod-off.mp4?v=20260721-2",
-  dance: "/assets/products/agentech-library/navi-simulations/actions/dance-shoulder/navi-dance-shoulder.mp4?v=20260721-2",
-  dramatic_listen: "/assets/products/agentech-library/navi-simulations/actions/dramatic-listen/navi-dramatic-listen.mp4?v=20260721-2",
-  act_shy: "/assets/products/agentech-library/navi-simulations/actions/act-shy/navi-reference-act-shy.gif?v=20260723-1",
-  be_sleepy: "/assets/products/agentech-library/navi-simulations/actions/be-sleepy/navi-reference-be-sleepy.gif?v=20260723-1",
-  body_tag_search: "/assets/products/agentech-library/navi-simulations/actions/body-tag-search/navi-reference-body-tag-search.gif?v=20260723-1",
-  bored_half_sit: "/assets/products/agentech-library/navi-simulations/actions/bored-half-sit/navi-reference-bored-half-sit.gif?v=20260723-1",
-  brush_teeth: "/assets/products/agentech-library/navi-simulations/actions/brush-teeth/navi-reference-brush-teeth.gif?v=20260723-1",
-  chat: "/assets/products/agentech-library/navi-simulations/actions/chat/navi-reference-chat.gif?v=20260723-1",
-  cooking: "/assets/products/agentech-library/navi-simulations/actions/cooking/navi-reference-cooking.gif?v=20260723-1",
-  duck_walk: "/assets/products/agentech-library/navi-simulations/actions/duck-walk/navi-reference-duck-walk.gif?v=20260723-1",
-  eager: "/assets/products/agentech-library/navi-simulations/actions/eager/navi-reference-eager.gif?v=20260723-1",
-  explore_new_home: "/assets/products/agentech-library/navi-simulations/actions/explore-new-home/navi-reference-explore-new-home.gif?v=20260723-1",
-  explore_road: "/assets/products/agentech-library/navi-simulations/actions/explore-road/navi-reference-explore-road.gif?v=20260723-1",
-  fast_rotate: "/assets/products/agentech-library/navi-simulations/actions/fast-rotate/navi-reference-fast-rotate.gif?v=20260723-1",
-  joy_walk: "/assets/products/agentech-library/navi-simulations/actions/joy-walk/navi-reference-joy-walk.gif?v=20260723-1",
-  listen: "/assets/products/agentech-library/navi-simulations/actions/listen/navi-reference-listen.gif?v=20260723-1",
-  observe: "/assets/products/agentech-library/navi-simulations/actions/observe/navi-reference-observe.gif?v=20260723-1",
-  push_up: "/assets/products/agentech-library/navi-simulations/actions/push-up/navi-reference-push-up.gif?v=20260723-2",
-  rear_stretch: "/assets/products/agentech-library/navi-simulations/actions/rear-stretch/navi-reference-rear-stretch.gif?v=20260723-1",
-  rest: "/assets/products/agentech-library/navi-simulations/actions/rest/navi-reference-rest.gif?v=20260723-1",
-  search_environment: "/assets/products/agentech-library/navi-simulations/actions/search-environment/navi-reference-search-environment.gif?v=20260723-1",
-  search_tag: "/assets/products/agentech-library/navi-simulations/actions/search-tag/navi-reference-search-tag.gif?v=20260723-1",
-  shake_self: "/assets/products/agentech-library/navi-simulations/actions/shake-self/navi-reference-shake-self.gif?v=20260723-1",
-  sniff_up: "/assets/products/agentech-library/navi-simulations/actions/sniff-up/navi-reference-sniff-up.gif?v=20260723-1",
-  snuggle: "/assets/products/agentech-library/navi-simulations/actions/snuggle/navi-reference-snuggle.gif?v=20260723-1",
-  step: "/assets/products/agentech-library/navi-simulations/actions/step/navi-reference-step.gif?v=20260723-1",
-  step_idle: "/assets/products/agentech-library/navi-simulations/actions/step-idle/navi-reference-step-idle.gif?v=20260723-1",
-  sway_front_back: "/assets/products/agentech-library/navi-simulations/actions/sway-front-back/navi-reference-sway-front-back.gif?v=20260723-1",
-  think: "/assets/products/agentech-library/navi-simulations/actions/think/navi-reference-think.gif?v=20260723-1",
-  toilet_pose: "/assets/products/agentech-library/navi-simulations/actions/toilet-pose/navi-reference-toilet-pose.gif?v=20260723-1",
-  toss: "/assets/products/agentech-library/navi-simulations/actions/toss/navi-reference-toss.gif?v=20260723-1",
-  yawn: "/assets/products/agentech-library/navi-simulations/actions/yawn/navi-reference-yawn.gif?v=20260723-1",
-  swim: "/assets/products/agentech-library/navi-simulations/actions/swim/navi-swim.mp4?v=20260722-4",
-  point_to_sky: "/assets/products/agentech-library/navi-simulations/actions/point-to-sky/navi-point-to-sky-left.mp4?v=20260722-2",
-  wait_for_praise: "/assets/products/agentech-library/navi-simulations/actions/wait-for-praise/navi-wait-for-praise-planted-feet.mp4?v=20260722-1",
-  lucky_cat: "/assets/products/agentech-library/navi-simulations/actions/lucky-cat/navi-lucky-cat-floor-safe.mp4?v=20260722-1",
-  jingle: "/assets/products/agentech-library/navi-simulations/actions/jingle/navi-jingle-fast-three-times.mp4?v=20260722-1",
-  flex_muscles: "/assets/products/agentech-library/navi-simulations/actions/flex-muscles/navi-flex-muscles-live-joints.mp4?v=20260722-1",
-  good_night_wave: "/assets/products/agentech-library/navi-simulations/actions/good-night-wave/navi-good-night-wave-front-camera.mp4?v=20260722-1",
-  cry: "/assets/products/agentech-library/navi-simulations/actions/cry/navi-cry-live-joints.mp4?v=20260722-2",
-  encourage: "/assets/products/agentech-library/navi-simulations/actions/encourage/navi-encourage-clean-return.mp4?v=20260722-1",
-    playful_greeting: "/assets/products/agentech-library/navi-simulations/actions/playful-greeting/navi-playful-greeting-shoulder-dips.webp?v=20260722-5",
-    push_ahead: "/assets/products/agentech-library/navi-simulations/actions/push-ahead/navi-push-ahead-knee-forward.webp?v=20260722-4",
-    brace: "/assets/products/agentech-library/navi-simulations/actions/brace/navi-brace-live-joints.mp4?v=20260722-2",
-    shake_hand_quick: "/assets/products/agentech-library/navi-simulations/actions/shake-hand-quick/navi-shake-hand-quick-live-joints.mp4?v=20260722-2",
-    pee_quick: "/assets/products/agentech-library/navi-simulations/actions/pee-quick/navi-pee-quick-live-joints.mp4?v=20260722-2",
-  emergency_stop: "/assets/products/agentech-library/navi-simulations/safety/emergency-stop/navi-emergency-stop.mp4?v=20260722-1",
-  jump: "/assets/products/agentech-library/navi-simulations/athletics/jump/navi-reference-jump.mp4?v=20260721-2",
-  jump_round: "/assets/products/agentech-library/navi-simulations/athletics/jump-round/navi-reference-jump-round.gif?v=20260723-1",
-  kick: "/assets/products/agentech-library/navi-simulations/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
-  frontflip: "/assets/products/agentech-library/navi-simulations/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
-  jump_forward: "/assets/products/agentech-library/navi-simulations/athletics/jump-forward/navi-reference-jump-forward.mp4?v=20260721-2",
-  sideflip: "/assets/products/agentech-library/navi-simulations/athletics/sideflip-right/navi-reference-sideflip-right.mp4?v=20260721-2",
-  stand: "/assets/products/agentech-library/navi-simulations/stand/navi-stand-up.mp4?v=approved-20260720"
+  backward: "/assets/products/agentech-library/simulator-previews/navi/backward/navi-walk-backward.mp4?v=local-approval-20260720",
+  forward: "/assets/products/agentech-library/simulator-previews/navi/forward/navi-walk-forward.mp4?v=local-approval-20260720",
+  lateral_left: "/assets/products/agentech-library/simulator-previews/navi/lateral-left/navi-lateral-left.mp4?v=local-approval-20260720d",
+  lateral_right: "/assets/products/agentech-library/simulator-previews/navi/lateral-right/navi-lateral-right.mp4?v=local-approval-20260720",
+  diagonal_left: "/assets/products/agentech-library/simulator-previews/navi/diagonal-left/navi-diagonal-left.mp4?v=local-approval-20260720",
+  diagonal_right: "/assets/products/agentech-library/simulator-previews/navi/diagonal-right/navi-diagonal-right.mp4?v=local-approval-20260720",
+  turn_left: "/assets/products/agentech-library/simulator-previews/navi/turn-left/navi-turn-left.mp4?v=local-approval-20260720",
+  turn_right: "/assets/products/agentech-library/simulator-previews/navi/turn-right/navi-turn-right.mp4?v=local-approval-20260720",
+  return_to_home: "/assets/products/agentech-library/simulator-previews/navi/return-to-home/navi-return-to-home.mp4?v=20260722-1",
+  sway: "/assets/products/agentech-library/simulator-previews/navi/actions/sway/navi-sway-standing.mp4?v=20260720-1",
+  pee: "/assets/products/agentech-library/simulator-previews/navi/actions/pee/navi-pee-back-left-v2.mp4?v=20260720-2",
+  knock: "/assets/products/agentech-library/simulator-previews/navi/actions/knock/navi-knock-higher-v2.mp4?v=20260721-3",
+  shake_hand: "/assets/products/agentech-library/simulator-previews/navi/actions/shake-hand/navi-shake-hand-one-second.mp4?v=20260721-4",
+  hip_shake: "/assets/products/agentech-library/simulator-previews/navi/actions/hip-shake/navi-hip-shake-rear-down.mp4?v=20260721-2",
+  wave_hand: "/assets/products/agentech-library/simulator-previews/navi/actions/wave-hand/navi-wave-hand-forward-up.mp4?v=20260721-5",
+  bow: "/assets/products/agentech-library/simulator-previews/navi/actions/bow/navi-reference-bow.gif?v=20260723-1",
+  wag_rear: "/assets/products/agentech-library/simulator-previews/navi/actions/wag-rear/navi-wag-rear-planted.mp4?v=20260721-2",
+  bark: "/assets/products/agentech-library/simulator-previews/navi/actions/bark/navi-reference-bark.gif?v=20260723-1",
+  clap_hand: "/assets/products/agentech-library/simulator-previews/navi/actions/clap-hand/navi-reference-clap-hand.gif?v=20260723-1",
+  rub_eyes: "/assets/products/agentech-library/simulator-previews/navi/actions/rub-eyes/navi-reference-rub-eyes.gif?v=20260723-1",
+  nod_head: "/assets/products/agentech-library/simulator-previews/navi/actions/nod-head/navi-nod-head-sequential.mp4?v=20260721-4",
+  shake_head: "/assets/products/agentech-library/simulator-previews/navi/actions/shake-head/navi-shake-head-twist.mp4?v=20260721-1",
+  confused: "/assets/products/agentech-library/simulator-previews/navi/actions/confused/navi-confused-asymmetric-legs.mp4?v=20260721-4",
+  show_affection: "/assets/products/agentech-library/simulator-previews/navi/actions/show-affection/navi-show-affection-from-cute.mp4?v=20260721-4",
+  draw_heart: "/assets/products/agentech-library/simulator-previews/navi/actions/draw-heart/navi-draw-heart-reference.mp4?v=20260721-3",
+  cute: "/assets/products/agentech-library/simulator-previews/navi/actions/cute/navi-cute-reference.mp4?v=20260721-5",
+  ask_for_play: "/assets/products/agentech-library/simulator-previews/navi/actions/ask-for-play/navi-ask-for-play-reference.mp4?v=20260721-4",
+  enjoy_touch: "/assets/products/agentech-library/simulator-previews/navi/actions/enjoy-touch/navi-enjoy-touch-reference.mp4?v=20260721-5",
+  sniff_ahead: "/assets/products/agentech-library/simulator-previews/navi/actions/sniff-ahead/navi-sniff-ahead.mp4?v=20260721-1",
+  sniff_left: "/assets/products/agentech-library/simulator-previews/navi/actions/sniff-left/navi-sniff-left.mp4?v=20260721-1",
+  sniff_right: "/assets/products/agentech-library/simulator-previews/navi/actions/sniff-right/navi-sniff-right.mp4?v=20260721-1",
+  front_stretch: "/assets/products/agentech-library/simulator-previews/navi/actions/front-stretch/navi-front-stretch.mp4?v=20260721-2",
+  full_body_stretch: "/assets/products/agentech-library/simulator-previews/navi/actions/full-body-stretch/navi-full-body-stretch.mp4?v=20260721-2",
+  look_around: "/assets/products/agentech-library/simulator-previews/navi/actions/look-around/navi-look-around.mp4?v=20260721-1",
+  squat: "/assets/products/agentech-library/simulator-previews/navi/posture/squat/navi-reference-squat.gif?v=20260723-1",
+  sit: "/assets/products/agentech-library/simulator-previews/navi/posture/sit/navi-sit.mp4?v=20260721-1",
+  lie_down: "/assets/products/agentech-library/simulator-previews/navi/posture/lie-down/navi-lie-down.mp4?v=20260721-1",
+  lie_on_elbows: "/assets/products/agentech-library/simulator-previews/navi/posture/lie-on-elbows/navi-lie-on-elbows.mp4?v=20260721-1",
+  prostrate: "/assets/products/agentech-library/simulator-previews/navi/posture/prostrate/navi-prostrate.mp4?v=20260721-1",
+  sphinx_lie: "/assets/products/agentech-library/simulator-previews/navi/posture/sphinx-lie/navi-sphinx-lie.mp4?v=20260721-1",
+  sphinx_left_lie: "/assets/products/agentech-library/simulator-previews/navi/posture/sphinx-left-lie/navi-sphinx-left-lie.mp4?v=20260721-1",
+  sphinx_right_lie: "/assets/products/agentech-library/simulator-previews/navi/posture/sphinx-right-lie/navi-sphinx-right-lie.mp4?v=20260721-1",
+  stand_high: "/assets/products/agentech-library/simulator-previews/navi/posture/stand-high/navi-stand-high.mp4?v=20260721-1",
+  stand_at_ease: "/assets/products/agentech-library/simulator-previews/navi/posture/stand-at-ease/navi-stand-at-ease.mp4?v=20260721-1",
+  stand_at_attention: "/assets/products/agentech-library/simulator-previews/navi/posture/stand-at-attention/navi-stand-at-attention.mp4?v=20260721-1",
+  rear_puff: "/assets/products/agentech-library/simulator-previews/navi/actions/long-fart/navi-long-fart.mp4?v=20260721-1",
+  head_up_down: "/assets/products/agentech-library/simulator-previews/navi/actions/head-up-down/navi-head-up-down.mp4?v=20260721-1",
+  look_down: "/assets/products/agentech-library/simulator-previews/navi/actions/look-down/navi-look-down.mp4?v=20260721-1",
+  nod_with_beats: "/assets/products/agentech-library/simulator-previews/navi/actions/nod-with-beats/navi-nod-with-beats.mp4?v=20260721-1",
+  eat: "/assets/products/agentech-library/simulator-previews/navi/actions/eat/navi-eat.mp4?v=20260721-7",
+  excited: "/assets/products/agentech-library/simulator-previews/navi/actions/excited/navi-excited.mp4?v=20260721-1",
+  nod_off: "/assets/products/agentech-library/simulator-previews/navi/actions/nod-off/navi-nod-off.mp4?v=20260721-2",
+  dance: "/assets/products/agentech-library/simulator-previews/navi/actions/dance-shoulder/navi-dance-shoulder.mp4?v=20260721-2",
+  dramatic_listen: "/assets/products/agentech-library/simulator-previews/navi/actions/dramatic-listen/navi-dramatic-listen.mp4?v=20260721-2",
+  act_shy: "/assets/products/agentech-library/simulator-previews/navi/actions/act-shy/navi-reference-act-shy.gif?v=20260723-1",
+  be_sleepy: "/assets/products/agentech-library/simulator-previews/navi/actions/be-sleepy/navi-reference-be-sleepy.gif?v=20260723-1",
+  body_tag_search: "/assets/products/agentech-library/simulator-previews/navi/actions/body-tag-search/navi-reference-body-tag-search.gif?v=20260723-1",
+  bored_half_sit: "/assets/products/agentech-library/simulator-previews/navi/actions/bored-half-sit/navi-reference-bored-half-sit.gif?v=20260723-1",
+  brush_teeth: "/assets/products/agentech-library/simulator-previews/navi/actions/brush-teeth/navi-reference-brush-teeth.gif?v=20260723-1",
+  chat: "/assets/products/agentech-library/simulator-previews/navi/actions/chat/navi-reference-chat.gif?v=20260723-1",
+  cooking: "/assets/products/agentech-library/simulator-previews/navi/actions/cooking/navi-reference-cooking.gif?v=20260723-1",
+  duck_walk: "/assets/products/agentech-library/simulator-previews/navi/actions/duck-walk/navi-reference-duck-walk.gif?v=20260723-1",
+  eager: "/assets/products/agentech-library/simulator-previews/navi/actions/eager/navi-reference-eager.gif?v=20260723-1",
+  explore_new_home: "/assets/products/agentech-library/simulator-previews/navi/actions/explore-new-home/navi-reference-explore-new-home.gif?v=20260723-1",
+  explore_road: "/assets/products/agentech-library/simulator-previews/navi/actions/explore-road/navi-reference-explore-road.gif?v=20260723-1",
+  fast_rotate: "/assets/products/agentech-library/simulator-previews/navi/actions/fast-rotate/navi-reference-fast-rotate.gif?v=20260723-1",
+  joy_walk: "/assets/products/agentech-library/simulator-previews/navi/actions/joy-walk/navi-reference-joy-walk.gif?v=20260723-1",
+  listen: "/assets/products/agentech-library/simulator-previews/navi/actions/listen/navi-reference-listen.gif?v=20260723-1",
+  observe: "/assets/products/agentech-library/simulator-previews/navi/actions/observe/navi-reference-observe.gif?v=20260723-1",
+  push_up: "/assets/products/agentech-library/simulator-previews/navi/actions/push-up/navi-reference-push-up.gif?v=20260723-2",
+  rear_stretch: "/assets/products/agentech-library/simulator-previews/navi/actions/rear-stretch/navi-reference-rear-stretch.gif?v=20260723-1",
+  rest: "/assets/products/agentech-library/simulator-previews/navi/actions/rest/navi-reference-rest.gif?v=20260723-1",
+  search_environment: "/assets/products/agentech-library/simulator-previews/navi/actions/search-environment/navi-reference-search-environment.gif?v=20260723-1",
+  search_tag: "/assets/products/agentech-library/simulator-previews/navi/actions/search-tag/navi-reference-search-tag.gif?v=20260723-1",
+  shake_self: "/assets/products/agentech-library/simulator-previews/navi/actions/shake-self/navi-reference-shake-self.gif?v=20260723-1",
+  sniff_up: "/assets/products/agentech-library/simulator-previews/navi/actions/sniff-up/navi-reference-sniff-up.gif?v=20260723-1",
+  snuggle: "/assets/products/agentech-library/simulator-previews/navi/actions/snuggle/navi-reference-snuggle.gif?v=20260723-1",
+  step: "/assets/products/agentech-library/simulator-previews/navi/actions/step/navi-reference-step.gif?v=20260723-1",
+  step_idle: "/assets/products/agentech-library/simulator-previews/navi/actions/step-idle/navi-reference-step-idle.gif?v=20260723-1",
+  sway_front_back: "/assets/products/agentech-library/simulator-previews/navi/actions/sway-front-back/navi-reference-sway-front-back.gif?v=20260723-1",
+  think: "/assets/products/agentech-library/simulator-previews/navi/actions/think/navi-reference-think.gif?v=20260723-1",
+  toilet_pose: "/assets/products/agentech-library/simulator-previews/navi/actions/toilet-pose/navi-reference-toilet-pose.gif?v=20260723-1",
+  toss: "/assets/products/agentech-library/simulator-previews/navi/actions/toss/navi-reference-toss.gif?v=20260723-1",
+  yawn: "/assets/products/agentech-library/simulator-previews/navi/actions/yawn/navi-reference-yawn.gif?v=20260723-1",
+  swim: "/assets/products/agentech-library/simulator-previews/navi/actions/swim/navi-swim.mp4?v=20260722-4",
+  point_to_sky: "/assets/products/agentech-library/simulator-previews/navi/actions/point-to-sky/navi-point-to-sky-left.mp4?v=20260722-2",
+  wait_for_praise: "/assets/products/agentech-library/simulator-previews/navi/actions/wait-for-praise/navi-wait-for-praise-planted-feet.mp4?v=20260722-1",
+  lucky_cat: "/assets/products/agentech-library/simulator-previews/navi/actions/lucky-cat/navi-lucky-cat-floor-safe.mp4?v=20260722-1",
+  jingle: "/assets/products/agentech-library/simulator-previews/navi/actions/jingle/navi-jingle-fast-three-times.mp4?v=20260722-1",
+  flex_muscles: "/assets/products/agentech-library/simulator-previews/navi/actions/flex-muscles/navi-flex-muscles-live-joints.mp4?v=20260722-1",
+  good_night_wave: "/assets/products/agentech-library/simulator-previews/navi/actions/good-night-wave/navi-good-night-wave-front-camera.mp4?v=20260722-1",
+  cry: "/assets/products/agentech-library/simulator-previews/navi/actions/cry/navi-cry-live-joints.mp4?v=20260722-2",
+  encourage: "/assets/products/agentech-library/simulator-previews/navi/actions/encourage/navi-encourage-clean-return.mp4?v=20260722-1",
+  playful_greeting: "/assets/products/agentech-library/simulator-previews/navi/actions/playful-greeting/navi-playful-greeting-shoulder-dips.webp?v=20260722-5",
+  push_ahead: "/assets/products/agentech-library/simulator-previews/navi/actions/push-ahead/navi-push-ahead-knee-forward.webp?v=20260722-4",
+  brace: "/assets/products/agentech-library/simulator-previews/navi/actions/brace/navi-brace-live-joints.mp4?v=20260722-2",
+  shake_hand_quick: "/assets/products/agentech-library/simulator-previews/navi/actions/shake-hand-quick/navi-shake-hand-quick-live-joints.mp4?v=20260722-2",
+  pee_quick: "/assets/products/agentech-library/simulator-previews/navi/actions/pee-quick/navi-pee-quick-live-joints.mp4?v=20260722-2",
+  emergency_stop: "/assets/products/agentech-library/simulator-previews/navi/safety/emergency-stop/navi-emergency-stop.mp4?v=20260722-1",
+  jump: "/assets/products/agentech-library/simulator-previews/navi/athletics/jump/navi-reference-jump.mp4?v=20260721-2",
+  jump_round: "/assets/products/agentech-library/simulator-previews/navi/athletics/jump-round/navi-reference-jump-round.gif?v=20260723-1",
+  kick: "/assets/products/agentech-library/simulator-previews/navi/athletics/kick/navi-reference-kick.mp4?v=20260721-2",
+  frontflip: "/assets/products/agentech-library/simulator-previews/navi/athletics/frontflip/navi-reference-frontflip.mp4?v=20260721-2",
+  jump_forward: "/assets/products/agentech-library/simulator-previews/navi/athletics/jump-forward/navi-reference-jump-forward.mp4?v=20260721-2",
+  sideflip: "/assets/products/agentech-library/simulator-previews/navi/athletics/sideflip-right/navi-reference-sideflip-right.mp4?v=20260721-2",
+  stand: "/assets/products/agentech-library/simulator-previews/navi/stand/navi-stand-up.mp4?v=approved-20260720"
 };
+const naviPreviewAliases: Partial<Record<string, string[]>> = {
+  diagonal: ["diagonal_left", "diagonal_right"],
+  lateral: ["lateral_left", "lateral_right"],
+  turn: ["turn_left", "turn_right"]
+};
+const naviPreviewCategories = new Set(["Movement", "Athletics", "Actions", "Posture"]);
+const missingNaviSimulationAssets = naviFunctions
+  .filter((item) =>
+    item.status !== "development"
+    && item.status !== "unsupported"
+    && naviPreviewCategories.has(item.category)
+    && item.name !== "recovery_stand"
+  )
+  .flatMap((item) => naviPreviewAliases[item.name] ?? [item.name])
+  .filter((command) => !naviSimulationAssets[command]);
+
+if (missingNaviSimulationAssets.length) {
+  throw new Error(`Missing Navi simulation previews: ${missingNaviSimulationAssets.join(", ")}`);
+}
+
 const naviSimulationReplayStart: Partial<Record<string, number>> = {
   bow: 0,
   bark: 0,
@@ -490,20 +511,24 @@ function previewCommandLabel(command: string) {
   return labels[command] ?? command;
 }
 
-function simulationClipsForMotionPlan(motionPlan: string[]): HardwareSimulationClip[] {
+function simulationClipsForMotionPlan(
+  motionPlan: string[],
+  robotModel: AgentechRobotModel
+): HardwareSimulationClip[] {
+  const assets = robotModel === "Navi" ? naviSimulationAssets : localPreviewAssets;
   const clips = motionPlan
     .map((line) => {
       const match = line.match(/^([a-zA-Z_][\w]*)\s*\((.*)\)$/);
       const command = match ? resolvePreviewCommand(match[1], match[2]) : "";
-      const gif = localPreviewAssets[command];
-      if (!command || !gif) {
+      const asset = assets[command];
+      if (!command || !asset) {
         return null;
       }
 
       return {
         command,
         label: previewCommandLabel(command),
-        gif,
+        asset,
         sourceLine: line
       };
     })
@@ -517,7 +542,9 @@ function simulationClipsForMotionPlan(motionPlan: string[]): HardwareSimulationC
     {
       command: "stand",
       label: "Stand",
-      gif: localPreviewFallback,
+      asset: robotModel === "Navi"
+        ? naviSimulationAssets.stand ?? "/assets/robotics/ff-navi-white.jpg"
+        : localPreviewFallback,
       sourceLine: "No renderable Agentech movement command found."
     }
   ];
@@ -1844,10 +1871,47 @@ function FocusedBrowseFunctionsSection() {
   );
 }
 
+function HardwareSimulationMedia({
+  clip,
+  robotModel
+}: {
+  clip: HardwareSimulationClip;
+  robotModel: AgentechRobotModel;
+}) {
+  const isVideo = /\.(?:mp4|webm)(?:[?#]|$)/i.test(clip.asset);
+  const alt = `${robotModel} preview for ${clip.label}`;
+
+  if (isVideo) {
+    return (
+      <video
+        key={clip.asset}
+        src={clip.asset}
+        aria-label={alt}
+        autoPlay
+        muted
+        playsInline
+        loop
+        className="aspect-video w-full object-contain"
+      />
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      key={clip.asset}
+      src={clip.asset}
+      alt={alt}
+      className="aspect-video w-full object-contain"
+    />
+  );
+}
+
 function HardwareResultPanel({ result }: { result: HardwareResult }) {
   const passed = result.status === "PASS";
   const warning = result.status === "WARNING";
-  const isNavi = normalizeAgentechRobotModel(result.robotModel) === "Navi";
+  const selectedRobotModel = normalizeAgentechRobotModel(result.robotModel) ?? "Aegies";
+  const isNavi = selectedRobotModel === "Navi";
   const [activeClipIndex, setActiveClipIndex] = useState(0);
   const activeClip = result.simulationClips[Math.min(activeClipIndex, Math.max(result.simulationClips.length - 1, 0))];
 
@@ -1919,43 +1983,19 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
                 ? "The app validates the uploaded commands against the latest reviewed Navi SDK. Navi execution uses the exact SDK calls after scheduling."
                 : "The app reads the uploaded Agentech commands and shows what the code does on the selected robot."}
             </p>
-            {passed && isNavi ? (
-              <div className="mt-4">
-                <div className="border border-[#dce7f2] bg-white p-4">
-                  <Image
-                    src="/assets/robotics/ff-navi-white.jpg"
-                    alt="FF Navi robot"
-                    width={1200}
-                    height={675}
-                    className="aspect-video w-full object-contain"
-                  />
-                </div>
-                <div className="border-x border-b border-[#dce7f2] bg-[#f8fbff] px-3 py-3">
-                  <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#005bd6]">Validated for Navi</p>
-                  <div className="mt-3 grid gap-2">
-                    {result.motionPlan.map((line, index) => (
-                      <p key={`${line}-${index}`} className="border border-[#dce7f2] bg-white px-3 py-2 font-mono text-xs text-[#334155]">
-                        {index + 1}. {line}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : passed && activeClip ? (
+            {passed && activeClip ? (
               <div className="mt-4">
                 <div className="border border-[#dce7f2] bg-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <HardwareSimulationMedia
                     key={`${result.resultId}-${activeClipIndex}-${activeClip.command}`}
-                    src={activeClip.gif}
-                    alt={`Aegis preview for ${activeClip.label}`}
-                    className="aspect-video w-full object-contain"
+                    clip={activeClip}
+                    robotModel={selectedRobotModel}
                   />
                 </div>
                 <div className="border-x border-b border-[#dce7f2] bg-[#f8fbff] px-3 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#005bd6]">
-                      Playing public preview {activeClipIndex + 1} / {result.simulationClips.length}: {activeClip.label}
+                      Playing {selectedRobotModel} preview {activeClipIndex + 1} / {result.simulationClips.length}: {activeClip.label}
                     </p>
                     <p className="font-mono text-xs text-[#526174]">{activeClip.sourceLine}</p>
                   </div>
@@ -2112,7 +2152,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
   const [previewCommand, setPreviewCommand] = useState<string>(initialPreview.command);
   const [previewStatus, setPreviewStatus] = useState(
-    useRealMuJoCoPreview ? "Local simulator preview ready. Run your code to render the real Aegis model." : "Official GIF preview ready. Run your code to play a matching clip."
+    "MuJoCo simulator preview ready. Choose Aegies or Navi, then run your code."
   );
   const [isSimulating, setIsSimulating] = useState(false);
   const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
@@ -2276,7 +2316,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           commandCount: restoredPlan.trace.length,
           checklist: buildHardwareChecklist("PASS", "", movementSafety, restoredRobotModel),
           motionPlan: restoredPlan.trace,
-          simulationClips: restoredRobotModel === "Navi" ? [] : simulationClipsForMotionPlan(restoredPlan.trace),
+          simulationClips: simulationClipsForMotionPlan(restoredPlan.trace, restoredRobotModel),
           simulationError: "",
           finalHint: "The saved Physical Hardware Check passed. This submission is ready for Software Check.",
           movementSafety
@@ -2326,7 +2366,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     const nextPreview = previewAssetForCode(nextCode, preferredCommand);
     setPreviewStatus(
       selectedModel === "Navi"
-        ? "Navi SDK compatibility mode selected. Hardware review uses the latest Navi command and parameter contract."
+        ? "Navi MuJoCo simulator ready. The supplied translator will validate, translate, and render this code."
         : useRealMuJoCoPreview
           ? "Local simulator preview ready. Run your code to render the real Aegis model."
           : "Official GIF preview ready. Run your code to play a matching clip."
@@ -2446,13 +2486,6 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   async function runPreviewSimulation() {
     const runnableCode = prepareMuJoCoCode(code);
     setIsSimulating(true);
-    if (robotModel === "Navi") {
-      setRenderedFrames([]);
-      setSimFrameIndex(0);
-      setPreviewStatus("Navi selected: the hardware check validates exact Navi SDK commands. No Aegies MuJoCo or GIF preview is substituted.");
-      setIsSimulating(false);
-      return;
-    }
     const primary = detectPrimaryPreviewCommand(runnableCode);
     setPreviewCommand(primary);
     setPreviewGif(localPreviewAssets[primary] ?? localPreviewFallback);
@@ -2465,14 +2498,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       return;
     }
 
-    setPreviewStatus("Running local simulator preview...");
+    setPreviewStatus(`Running ${robotModel} MuJoCo simulator preview...`);
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 15_000);
+    const timeout = window.setTimeout(() => controller.abort(), 55_000);
     try {
       const response = await fetch("/api/agentech-simulate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: runnableCode }),
+        body: JSON.stringify({ code: runnableCode, robotModel }),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({ error: "Simulation returned an unreadable response." }));
@@ -2486,15 +2519,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       const pose = payload.final_pose ?? frames.at(-1) ?? {};
       const yaw = Number(pose.yaw ?? 0);
       const pitch = Number(pose.pitch ?? 0);
-      setPreviewStatus(`Local simulator rendered ${payload.steps ?? 0} steps. yaw=${yaw.toFixed(1)}deg, tilt=${pitch.toFixed(1)}deg.`);
+      setPreviewStatus(`${robotModel} MuJoCo rendered ${payload.steps ?? 0} steps. yaw=${yaw.toFixed(1)}deg, tilt=${pitch.toFixed(1)}deg.`);
     } catch (error) {
       setRenderedFrames([]);
+      const fallback = robotModel === "Navi"
+        ? "The Navi reference image remains available."
+        : `Showing ${previewCommandLabel(primary)} GIF instead.`;
       setPreviewStatus(
         error instanceof Error && error.name === "AbortError"
-          ? `Local simulator timed out. Showing ${previewCommandLabel(primary)} GIF instead.`
+          ? `${robotModel} simulator timed out. ${fallback}`
           : error instanceof Error
-            ? `${error.message} Showing ${previewCommandLabel(primary)} GIF instead.`
-            : `Local simulator failed. Showing ${previewCommandLabel(primary)} GIF instead.`
+            ? `${error.message} ${fallback}`
+            : `${robotModel} simulator failed. ${fallback}`
       );
     } finally {
       window.clearTimeout(timeout);
@@ -2617,7 +2653,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         checklist: buildHardwareChecklist("PASS", "", movementSafety, robotModel),
         movementSafety,
         motionPlan: reviewPlan.trace,
-        simulationClips: robotModel === "Navi" ? [] : simulationClipsForMotionPlan(reviewPlan.trace),
+        simulationClips: simulationClipsForMotionPlan(reviewPlan.trace, robotModel),
         simulationError: "",
         finalHint: "All checks passed. This result is ready to submit for further review."
       });
@@ -3197,7 +3233,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               <div className="border-b border-[#2a3440] px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7f8c99]">Preview</p>
-                  <p className="font-mono text-xs text-[#93c5fd]">{useRealMuJoCoPreview ? "local simulator" : "official GIF"}</p>
+                  <p className="font-mono text-xs text-[#93c5fd]">MuJoCo simulator</p>
                 </div>
               </div>
               <div className="p-4">
@@ -3208,20 +3244,20 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   <p className="font-mono text-xs text-[#7f8c99]">{renderedFrames.length ? "real rendered frames" : "approved GIF asset"}</p>
                 </div>
                 <div className="relative mx-auto aspect-[4/3] max-h-[54vh] w-full overflow-hidden border border-[#2a3440] bg-black sm:aspect-[13/9]">
-                  {robotModel === "Navi" ? (
-                    <Image
-                      src="/assets/robotics/ff-navi-white.jpg"
-                      alt="FF Navi SDK hardware reference"
-                      width={1200}
-                      height={675}
-                      className="h-full w-full bg-white object-contain"
-                    />
-                  ) : renderedFrame ? (
+                  {renderedFrame ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={renderedFrame}
-                      alt={`Aegis simulator render for ${previewCommandLabel(previewCommand)}`}
+                      alt={`${robotModel} simulator render for ${previewCommandLabel(previewCommand)}`}
                       className="h-full w-full object-contain"
+                    />
+                  ) : robotModel === "Navi" ? (
+                    <Image
+                      src="/assets/robotics/ff-navi-white.jpg"
+                      alt="FF Navi MuJoCo preview reference"
+                      width={1200}
+                      height={675}
+                      className="h-full w-full bg-white object-contain"
                     />
                   ) : previewGif ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -3244,7 +3280,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 </div>
                 <div className="mt-4 hidden grid-cols-3 border border-[#2a3440] bg-[#0d1117] text-center font-mono text-xs sm:grid">
                   <div className="border-r border-[#2a3440] p-2">model ready</div>
-                  <div className="border-r border-[#2a3440] p-2">{renderedFrames.length ? "sim" : "gif"}</div>
+                  <div className="border-r border-[#2a3440] p-2">{renderedFrames.length ? "sim" : robotModel === "Navi" ? "reference" : "gif"}</div>
                   <div className="p-2">{previewPlan.motionCount} moves</div>
                 </div>
                 <button
@@ -3253,7 +3289,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   disabled={isSimulating}
                   className="mt-4 w-full border border-[#93c5fd] bg-[#101d2e] px-3 py-2 text-sm font-semibold text-[#dbeafe] transition hover:bg-[#93c5fd] hover:text-[#07111f]"
                 >
-                  {isSimulating ? "Preparing preview..." : robotModel === "Navi" ? "Show Navi Hardware Check" : "Run Preview"}
+                  {isSimulating ? "Preparing preview..." : `Run ${robotModel} MuJoCo Preview`}
                 </button>
                 <p className="mt-3 border border-[#2a3440] bg-[#0d1117] p-3 text-xs leading-5 text-[#aeb8c2]">{previewStatus}</p>
                 <div className="mt-2 border border-[#2a3440] bg-[#0d1117] p-2 text-center font-mono text-xs text-[#7f8c99]">
