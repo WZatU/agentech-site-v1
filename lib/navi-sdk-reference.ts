@@ -771,7 +771,7 @@ export const naviFunctions: NaviFunction[] = naviFunctionDefinitions.map(complet
 validateNaviReference(naviFunctions);
 
 export const naviStarterCode = `from agentech import Agentech
-Agentech.use("navi", host="192.168.4.65")`;
+Agentech.use("navi")`;
 
 export const naviSafetyLimits = [
   "Motion is dry-run unless dry_run=False is selected",
