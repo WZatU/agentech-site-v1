@@ -146,6 +146,24 @@ export const masterFunctions: AgentechFunction[] = [
     verification: "The both-hands raise was physically verified on Master."
   },
   {
+    name: "bow",
+    category: "Actions",
+    signature: "Agentech.bow()",
+    summary: "Bow using Master's fixed standing preset.",
+    example: "Agentech.bow()",
+    params: [],
+    verification: "The standing bow was physically verified on Master."
+  },
+  {
+    name: "scratch_head",
+    category: "Actions",
+    signature: "Agentech.scratch_head()",
+    summary: "Scratch the head with the left hand using Master's fixed standing preset.",
+    example: "Agentech.scratch_head()",
+    params: [],
+    verification: "The fixed left-hand scratch-head action was physically verified on Master; AimDK provides no right-hand selector."
+  },
+  {
     name: "status",
     category: "Sensing",
     signature: "Agentech.status()",
