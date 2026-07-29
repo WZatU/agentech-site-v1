@@ -11,7 +11,7 @@ export const agentechLibraryTasks = [
     slug: "view-sdk",
     number: "02",
     title: "View SDK",
-    summary: "Choose Aegis or Navi, then browse exact functions, parameters, limits, examples, and reference media.",
+    summary: "Choose Aegis, Navi, or Master, then browse exact functions, parameters, limits, examples, and reference media.",
     accent: "#145cff",
     tint: "#ecf3ff"
   },

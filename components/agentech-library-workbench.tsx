@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
 import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk-reference";
+import { masterFunctions, masterReferenceCategories, masterSafetyLimits, masterStarterCode } from "@/lib/master-sdk-reference";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
 import { eaicHubPath, getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
@@ -176,8 +177,11 @@ const localPreviewAssets: Record<string, string> = {
   battery: previewAsset("battery_status")
 };
 const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
-function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: "aegis" | "navi") {
+type SdkRobot = "aegis" | "navi" | "master";
+
+function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: SdkRobot) {
   return commandsWithoutReferencePreview.has(item.name)
+    || selectedRobot === "master"
     || (selectedRobot === "navi" && (item.name === "stop" || item.name === "recovery_stand" || item.category === "Sensing" || item.category === "Configuration"));
 }
 const naviSimulationAssets: Partial<Record<string, string>> = {
@@ -1293,7 +1297,7 @@ Live camera -> Website viewer -> Student watches the run`;
 
 const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
   "start-coding": "Install commands, starter imports, and the beginner quick-start docs are collected here.",
-  "view-sdk": "Choose Aegis or Navi, then browse exact functions, parameters, limits, examples, and reference images.",
+  "view-sdk": "Choose Aegis, Navi, or Master, then browse exact functions, parameters, limits, examples, and reference images.",
   "physical-hardware-check": "Upload or paste one Python file, then run the physical hardware check before any software review.",
   "software-check": "Upload, paste, or type one file. Pass Hardware Safety first, then run Software Security on the exact same code.",
   "watch-live-run": "Live Stream opens only during an approved scheduled robot slot after the required checks pass."
@@ -1547,7 +1551,7 @@ print(Agentech.battery())`
 }
 
 function FocusedBrowseFunctionsSection() {
-  const [selectedRobot, setSelectedRobot] = useState<"aegis" | "navi">("aegis");
+  const [selectedRobot, setSelectedRobot] = useState<SdkRobot>("aegis");
   const publicNaviPlatformNotes = new Set([
     "jump",
     "jump_forward",
@@ -1559,19 +1563,27 @@ function FocusedBrowseFunctionsSection() {
     "set_jump_distance",
     "set_jump_angle"
   ]);
-  const selectedFunctions = selectedRobot === "navi"
-    ? naviFunctions.map((item) => ({
-        ...item,
-        verification: undefined,
-        platformNote: publicNaviPlatformNotes.has(item.name) ? item.platformNote : undefined,
-        params: item.params.filter((param) => param.name !== "**connect_kwargs")
-      }))
-    : agentechFunctions;
-  const selectedStarterCode = selectedRobot === "navi" ? naviStarterCode : starterCode;
-  const selectedRobotLabel = selectedRobot === "navi" ? "Navi" : "Aegis";
-  const referenceCategories: AgentechFunction["category"][] = selectedRobot === "navi"
-    ? naviReferenceCategories
-    : categories.filter((category): category is Exclude<Category, "All"> => category !== "All");
+  const selectedFunctions = selectedRobot === "master"
+    ? masterFunctions
+    : selectedRobot === "navi"
+      ? naviFunctions.map((item) => ({
+          ...item,
+          verification: undefined,
+          platformNote: publicNaviPlatformNotes.has(item.name) ? item.platformNote : undefined,
+          params: item.params.filter((param) => param.name !== "**connect_kwargs")
+        }))
+      : agentechFunctions;
+  const selectedStarterCode = selectedRobot === "master"
+    ? masterStarterCode
+    : selectedRobot === "navi"
+      ? naviStarterCode
+      : starterCode;
+  const selectedRobotLabel = selectedRobot === "master" ? "Master" : selectedRobot === "navi" ? "Navi" : "Aegis";
+  const referenceCategories: AgentechFunction["category"][] = selectedRobot === "master"
+    ? masterReferenceCategories
+    : selectedRobot === "navi"
+      ? naviReferenceCategories
+      : categories.filter((category): category is Exclude<Category, "All"> => category !== "All");
   const groupedFunctions = referenceCategories
     .map((category) => ({
       category,
@@ -1583,18 +1595,20 @@ function FocusedBrowseFunctionsSection() {
     detail: "Crossing this temporary boundary fails the Hardware Check.",
     temporary: true
   };
-  const safetyLimits: { label: string; detail?: string; temporary?: boolean }[] = selectedRobot === "navi"
-    ? [
-        ...naviSafetyLimits.map((label) => ({ label })),
-        temporaryBoundaryLimit
-      ]
-    : [
-        { label: "Dry-run before hardware" },
-        { label: "10s max per linear motion" },
-        { label: "Speed caps enforced" },
-        { label: "Emergency stop available" },
-        temporaryBoundaryLimit
-      ];
+  const safetyLimits: { label: string; detail?: string; temporary?: boolean }[] = selectedRobot === "master"
+    ? masterSafetyLimits.map((label) => ({ label }))
+    : selectedRobot === "navi"
+      ? [
+          ...naviSafetyLimits.map((label) => ({ label })),
+          temporaryBoundaryLimit
+        ]
+      : [
+          { label: "Dry-run before hardware" },
+          { label: "10s max per linear motion" },
+          { label: "Speed caps enforced" },
+          { label: "Emergency stop available" },
+          temporaryBoundaryLimit
+        ];
   const tutorialCards = [
     {
       title: "Read the signature",
@@ -1602,7 +1616,13 @@ function FocusedBrowseFunctionsSection() {
     },
     {
       title: "Open details",
-      body: `Details reveal definitions, parameter meanings, examples, and ${selectedRobot === "navi" ? "approved simulations where available" : "GIF previews"}.`
+      body: `Details reveal definitions, parameter meanings, examples, and ${
+        selectedRobot === "master"
+          ? "physical-verification notes"
+          : selectedRobot === "navi"
+            ? "approved simulations where available"
+            : "GIF previews"
+      }.`
     },
     {
       title: "Copy into Hardware Check",
@@ -1619,10 +1639,10 @@ function FocusedBrowseFunctionsSection() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Robot SDK Reference</p>
               <h2 className="mt-2 text-3xl font-semibold text-[#07142e]">Choose the robot. Use its real capabilities.</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-[#334155]">
-                The import stays the same. Shared functions keep the same names where the robots match, while Navi-only actions and tuning controls appear only for Navi.
+                The import and setup pattern stay the same. Each robot shows only the functions and limits its public SDK supports.
               </p>
-              <div className="mt-5 inline-grid grid-cols-2 border border-[#93bce8] bg-[#eef6ff] p-1" role="group" aria-label="Select robot SDK">
-                {(["aegis", "navi"] as const).map((robot) => {
+              <div className="mt-5 inline-grid grid-cols-3 border border-[#93bce8] bg-[#eef6ff] p-1" role="group" aria-label="Select robot SDK">
+                {(["aegis", "navi", "master"] as const).map((robot) => {
                   const selected = selectedRobot === robot;
                   return (
                     <button
@@ -1632,7 +1652,7 @@ function FocusedBrowseFunctionsSection() {
                       onClick={() => setSelectedRobot(robot)}
                       className={`min-w-28 px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005bd6] ${selected ? "bg-[#005bd6] text-white" : "bg-white text-[#17436f] hover:bg-[#e5f1ff]"}`}
                     >
-                      {robot === "aegis" ? "Aegis" : "Navi"}
+                      {robot === "aegis" ? "Aegis" : robot === "navi" ? "Navi" : "Master"}
                     </button>
                   );
                 })}
@@ -1641,6 +1661,9 @@ function FocusedBrowseFunctionsSection() {
                 <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">{selectedFunctions.length} reference cards</span>
                 {selectedRobot === "navi" ? (
                   <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Navi-specific API</span>
+                ) : null}
+                {selectedRobot === "master" ? (
+                  <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Standing upper-body API</span>
                 ) : null}
               </div>
             </div>
@@ -1690,7 +1713,7 @@ function FocusedBrowseFunctionsSection() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] md:grid-cols-4">
+        <div className={`mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] ${selectedRobot === "master" ? "md:grid-cols-2" : "md:grid-cols-4"}`}>
           {groupedFunctions.map((group) => (
             <a key={group.category} href={`#function-${group.category.toLowerCase()}`} className="bg-white p-4 transition hover:bg-[#f3f8ff]">
               <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">{group.category}</p>
@@ -1725,7 +1748,11 @@ function FocusedBrowseFunctionsSection() {
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Jumps, flips, and kicks that move Navi&apos;s whole body.</p>
                   ) : null}
                   {group.category === "Actions" ? (
-                    <p className="mt-2 text-sm leading-6 text-[#526174]">Expressive gestures and coordinated body motions. Timed actions return to standing automatically.</p>
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">
+                      {selectedRobot === "master"
+                        ? "Standing upper-body gestures. Each live command verifies stable standing before it starts and after it completes."
+                        : "Expressive gestures and coordinated body motions. Timed actions return to standing automatically."}
+                    </p>
                   ) : null}
                   {group.category === "Configuration" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Range-checked gait, foot, floor-grip, jump, and collision settings. Physical calibration remains under development.</p>
