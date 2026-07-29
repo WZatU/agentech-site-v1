@@ -101,6 +101,51 @@ export const masterFunctions: AgentechFunction[] = [
     verification: "The coordinated cross-arms action was physically verified on Master."
   },
   {
+    name: "chest_wave",
+    category: "Actions",
+    signature: "Agentech.chest_wave(hand)",
+    summary: "Wave at chest height with the selected left or right hand while Master remains standing.",
+    example: 'Agentech.chest_wave("right")',
+    params: [hand('"left" | "right"', "Choose the hand Master waves at chest height.")],
+    verification: "Left- and right-hand chest-wave variants physically verified on Master."
+  },
+  {
+    name: "hug",
+    category: "Actions",
+    signature: "Agentech.hug()",
+    summary: "Perform Master's coordinated two-arm standing hug gesture.",
+    example: "Agentech.hug()",
+    params: [],
+    verification: "The coordinated hug was physically verified on Master."
+  },
+  {
+    name: "cheer",
+    category: "Actions",
+    signature: "Agentech.cheer()",
+    summary: "Perform Master's fixed left-hand cheer while remaining in place.",
+    example: "Agentech.cheer()",
+    params: [],
+    verification: "The left-hand cheer was physically verified on Master."
+  },
+  {
+    name: "wave_goodbye",
+    category: "Actions",
+    signature: "Agentech.wave_goodbye()",
+    summary: "Perform Master's fixed left-hand goodbye wave while remaining in place.",
+    example: "Agentech.wave_goodbye()",
+    params: [],
+    verification: "The left-hand goodbye wave was physically verified on Master."
+  },
+  {
+    name: "raise_hands",
+    category: "Actions",
+    signature: "Agentech.raise_hands()",
+    summary: "Raise both hands using Master's coordinated standing preset.",
+    example: "Agentech.raise_hands()",
+    params: [],
+    verification: "The both-hands raise was physically verified on Master."
+  },
+  {
     name: "status",
     category: "Sensing",
     signature: "Agentech.status()",
