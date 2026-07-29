@@ -68,9 +68,16 @@ export function AgentechLibraryHome() {
       `}</style>
       <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
         <header className="flex items-start justify-between gap-5">
-          <Link href="/" aria-label="Go to Agentech homepage" className="block">
-            <span className="block text-2xl font-extrabold leading-none tracking-normal text-[#07142e]">AGENTECH</span>
-            <span className="mt-1 block text-2xl font-extrabold leading-none tracking-normal text-[#008a7a]">PRODUCTS</span>
+          <Link href="/" aria-label="Go to Agentech homepage" className="inline-flex items-center py-1">
+            <Image
+              src="/assets/logo/AGENTECH.png"
+              alt="Agentech"
+              width={1000}
+              height={101}
+              sizes="(min-width: 640px) 184px, 168px"
+              className="h-auto w-[10.5rem] sm:w-[11.5rem]"
+              priority
+            />
           </Link>
           <Link
             href="/account"
@@ -82,10 +89,19 @@ export function AgentechLibraryHome() {
 
         <section className="mt-10 grid items-center gap-8 lg:grid-cols-[0.86fr_1.14fr]">
           <div>
-            <h1 className="text-[4rem] font-extrabold leading-[0.98] tracking-normal text-[#07142e] sm:text-[5.6rem] lg:text-[6.35rem]">
-              EAIC
-              <br />
-              HUB.
+            <h1 className="font-extrabold tracking-normal text-[#07142e]">
+              <span className="block w-[min(84vw,20rem)] sm:w-[22rem] lg:w-[23rem]">
+                <Image
+                  src="/assets/products/agentech-library/eaic-logo.png"
+                  alt="EAIC"
+                  width={1880}
+                  height={434}
+                  sizes="(min-width: 1024px) 368px, (min-width: 640px) 352px, 84vw"
+                  className="h-auto w-full"
+                  priority
+                />
+              </span>
+              <span className="mt-3 block text-[3.5rem] leading-[0.94] sm:text-[4.6rem] lg:text-[5.25rem]">HUB.</span>
             </h1>
             <p className="mt-5 max-w-sm text-lg font-semibold leading-8 text-[#111d35]">
               Developer tools for Aegis, Navi, and Master SDK references, plus supported previews, submissions, and supervised live runs.
