@@ -36,7 +36,7 @@ test("compiler turns literal Agentech calls into an inert plan", () => {
     "from agentech import Agentech",
     "Agentech.stand()",
     "Agentech.forward(speed_mps=0.3, duration_s=1.0)",
-    "Agentech.capture_image(mode=\"display\")"
+    "Agentech.capture_image(output=\"capture.jpg\", source=\"default\")"
   ].join("\n");
   const plan = compile(source);
 
@@ -45,6 +45,27 @@ test("compiler turns literal Agentech calls into an inert plan", () => {
   assert.equal(plan.source_sha256, createHash("sha256").update(source).digest("hex"));
   assert.deepEqual(plan.commands.map(({ name }) => name), ["stand", "forward", "capture_image"]);
   assert.equal("source" in plan, false);
+});
+
+test("Aegies compiler accepts the exact public sensing and hold calls", () => {
+  const source = [
+    "from agentech import Agentech",
+    "Agentech.stay(duration_s=1.0)",
+    "Agentech.get_battery_status()",
+    "Agentech.capture_image(output=\"capture.jpg\", source=\"default\")"
+  ].join("\n");
+  const plan = compile(source);
+
+  assert.deepEqual(plan.commands, [
+    { name: "stay", args: { duration_s: 1 }, line: 2 },
+    { name: "get_battery_status", args: {}, line: 3 },
+    { name: "capture_image", args: { output: "capture.jpg", source: "default" }, line: 4 }
+  ]);
+});
+
+test("Aegies compiler rejects removed website-only battery and IMU names", () => {
+  assert.throws(() => compile("from agentech import Agentech\nAgentech.battery()\n"));
+  assert.throws(() => compile("from agentech import Agentech\nAgentech.imu(freq_hz=5)\n"));
 });
 
 test("compiler creates a model-bound Navi plan from exact SDK calls", () => {
@@ -70,7 +91,7 @@ function writePlan(plan) {
 }
 
 test("Navi compiler rejects Aegies-only capture commands", () => {
-  assert.throws(() => compile("from agentech import Agentech\nAgentech.capture_image(mode=\"display\")\n", "Navi"));
+  assert.throws(() => compile("from agentech import Agentech\nAgentech.capture_image(output=\"capture.jpg\", source=\"default\")\n", "Navi"));
 });
 
 test("Navi compiler accepts only cardinal return-to-home headings", () => {

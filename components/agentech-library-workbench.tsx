@@ -174,9 +174,9 @@ const localPreviewAssets: Record<string, string> = {
   sit: previewAsset("sit"),
   stop: previewAsset("stop"),
   emergency_stop: previewAsset("emergency_stop"),
-  battery: previewAsset("battery_status")
+  get_battery_status: previewAsset("battery_status")
 };
-const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "battery", "get_body_state", "imu", "capture_image"]);
+const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "get_battery_status", "get_body_state", "capture_image"]);
 type SdkRobot = "aegis" | "navi" | "master";
 
 function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: SdkRobot) {
@@ -510,7 +510,7 @@ function previewCommandLabel(command: string) {
     sit: "Sit",
     stop: "Stop",
     emergency_stop: "Emergency Stop",
-    battery: "Battery"
+    get_battery_status: "Battery Status"
   };
   return labels[command] ?? command;
 }
@@ -629,8 +629,8 @@ const categoryExamples: Record<Category, { activeName: string; code: string }> =
 
 Agentech.stand()
 Agentech.squat()
-Agentech.forward(speed=0.3, seconds=1)
-Agentech.backward(speed=0.2, seconds=1)
+Agentech.forward(speed_mps=0.3, duration_s=1)
+Agentech.backward(speed_mps=0.2, duration_s=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
 Agentech.diagonal(angle_deg=45, speed_mps=0.5, duration_s=2.0)
@@ -643,10 +643,10 @@ Agentech.turn(angle_deg=45, turn_rate_deg_s=22.5)
 Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)
 Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)
 Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
-Agentech.stay(time=1.0)
+Agentech.stay(duration_s=1.0)
 Agentech.backflip()
 Agentech.jump()
-battery = Agentech.battery()
+battery = Agentech.get_battery_status()
 Agentech.stop()`
   },
   Movement: {
@@ -654,8 +654,8 @@ Agentech.stop()`
     code: `from agentech import Agentech
 
 Agentech.stand()
-Agentech.forward(speed=0.3, seconds=1)
-Agentech.backward(speed=0.2, seconds=1)
+Agentech.forward(speed_mps=0.3, duration_s=1)
+Agentech.backward(speed_mps=0.2, duration_s=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)
 Agentech.diagonal(x_m=0.5, y_m=1.0, duration_s=2.0)
@@ -677,7 +677,7 @@ Agentech.squat()
 Agentech.yaw(speed_rad_s=0.4, position_rad=0.4426)
 Agentech.pitch(speed_rad_s=0.4, position_rad=0.4)
 Agentech.roll(speed_rad_s=0.4, position_rad=-0.463)
-Agentech.stay(time=1.0)
+Agentech.stay(duration_s=1.0)
 Agentech.sit()`
   },
   Safety: {
@@ -688,10 +688,10 @@ Agentech.stop()
 Agentech.emergency_stop()`
   },
   Sensing: {
-    activeName: "battery",
+    activeName: "get_battery_status",
     code: `from agentech import Agentech
 
-battery = Agentech.battery()`
+battery = Agentech.get_battery_status()`
   }
 };
 
@@ -715,7 +715,7 @@ function commandPlan(code: string, robotModel: AgentechRobotModel = "Aegies") {
   const aegisCommands = new Set([
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal", "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn", "turn", "turn_right", "turn_left", "u_turn",
     "yaw", "pitch", "roll", "stay", "twist_left", "twist_right", "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
-    "battery", "get_body_state", "imu", "capture_image"
+    "get_battery_status", "get_body_state", "capture_image"
   ]);
   const supportedCommands = robotModel === "Navi" ? naviHardwareCommands : aegisCommands;
 
@@ -1030,8 +1030,8 @@ function DocsOverview() {
 from agentech import Agentech
 
 Agentech.stand()
-Agentech.forward(speed=0.3, seconds=1)
-Agentech.backward(speed=0.2, seconds=1)
+Agentech.forward(speed_mps=0.3, duration_s=1)
+Agentech.backward(speed_mps=0.2, duration_s=1)
 Agentech.lateral_left(speed_mps=0.5, duration_s=2.0)
 Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)`}</pre>
           </div>
@@ -1090,9 +1090,8 @@ function DocsSection() {
       "sit",
       "stop",
       "emergency_stop",
-      "battery",
+      "get_battery_status",
       "get_body_state",
-      "imu",
       "capture_image"
     ].includes(item.name)
   );
@@ -1101,8 +1100,8 @@ function DocsSection() {
 with Agentech.robot(dry_run=True) as dog:
     dog.stand()
     dog.squat()
-    dog.forward(speed=0.25, seconds=1)
-    dog.backward(speed=0.2, seconds=1)
+    dog.forward(speed_mps=0.25, duration_s=1)
+    dog.backward(speed_mps=0.2, duration_s=1)
     dog.lateral_left(speed_mps=0.5, duration_s=2.0)
     dog.lateral_right(speed_mps=0.5, duration_s=2.0)
     dog.squat_forward(speed_mps=0.5, duration_s=1.0)
@@ -1113,7 +1112,7 @@ with Agentech.robot(dry_run=True) as dog:
     dog.yaw(speed_rad_s=0.4, position_rad=0.4426)
     dog.pitch(speed_rad_s=0.4, position_rad=0.4)
     dog.roll(speed_rad_s=0.4, position_rad=-0.463)
-    dog.stay(time=1.0)
+    dog.stay(duration_s=1.0)
     dog.backflip()
     dog.jump()
     dog.stop()`;
@@ -1204,7 +1203,7 @@ Live camera -> Website viewer -> Student watches the run`;
                 <p>Backward speed is capped at 2.365 m/s.</p>
                 <p>Lateral speed benchmark is 0.78 m/s.</p>
                 <p>Yaw rate is capped at +/-3 rad/s. Negative values turn left; positive values turn right.</p>
-                <p>`Agentech.battery()` returns the current battery percentage without changing body mode.</p>
+                <p>`Agentech.get_battery_status()` returns the current battery status without changing body mode.</p>
                 <p>Roll benchmark limit is 28 degrees.</p>
                 <p>Pitch velocity is capped at +/-0.5 rad/s.</p>
                 <p>Linear acceleration benchmark is about 2.5 m/s^2.</p>
@@ -1443,7 +1442,7 @@ function FocusedStartCodingSection() {
       label: "04",
       title: "Move, then stop",
       body: "Keep early commands short. Preview first, then submit for review when the sequence is stable.",
-      code: "Agentech.forward(speed=0.3, seconds=1)\nAgentech.stop()"
+      code: "Agentech.forward(speed_mps=0.3, duration_s=1)\nAgentech.stop()"
     }
   ];
 
@@ -1453,7 +1452,7 @@ function FocusedStartCodingSection() {
       code: `from agentech import Agentech
 
 Agentech.stand()
-Agentech.forward(speed=0.3, seconds=1)
+Agentech.forward(speed_mps=0.3, duration_s=1)
 Agentech.stop()`
     },
     {
@@ -1468,7 +1467,7 @@ Agentech.sit()`
       title: "Battery Check",
       code: `from agentech import Agentech
 
-print(Agentech.battery())`
+print(Agentech.get_battery_status())`
     }
   ];
 
@@ -2846,7 +2845,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
               </div>
               <div className="border border-[#2a3440] bg-[#0d1117] p-3">
                 <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">One line</p>
-                <p className="mt-2 font-mono text-xs leading-5 text-[#e5edf5]">Agentech.forward(speed=0.3, seconds=1)</p>
+                <p className="mt-2 font-mono text-xs leading-5 text-[#e5edf5]">Agentech.forward(speed_mps=0.3, duration_s=1)</p>
               </div>
               <div className="border border-[#2a3440] bg-[#0d1117] p-3">
                 <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Session</p>

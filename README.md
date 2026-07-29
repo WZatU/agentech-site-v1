@@ -163,7 +163,7 @@ the website accepts physical code containing `Agentech.return_to_home()`.
 
 `LIVEKIT_API_SECRET` and any FF SDK / robot-control implementation details must also stay server-side or on the private robot/OBS computer. The website may show public beginner calls such as `Agentech.forward()`, but it must not expose private SDK internals, SSH credentials, robot hotspot details, or service-role keys in client code.
 
-The private website code runner should set `AGENTECH_CAPTURE_UPLOAD_URL` to the site's `/api/agentech-capture` URL, `AGENTECH_CAPTURE_UPLOAD_TOKEN` to the same value as `ROBOT_RUNNER_SECRET`, `AGENTECH_CAPTURE_LIVEKIT_ROOM` to the active room, and `AGENTECH_CAPTURE_ACCOUNT_EMAIL` to the authenticated customer's account. `Agentech.capture_image(mode="internal")` returns the image only to Python. `mode="display"` sends it to the website panel and charges `AGENTECH_CAPTURE_DISPLAY_CREDITS` (10 by default). Company accounts are not charged.
+The private website code runner should set `AGENTECH_CAPTURE_UPLOAD_URL` to the site's `/api/agentech-capture` URL, `AGENTECH_CAPTURE_UPLOAD_TOKEN` to the same value as `ROBOT_RUNNER_SECRET`, `AGENTECH_CAPTURE_LIVEKIT_ROOM` to the active room, and `AGENTECH_CAPTURE_ACCOUNT_EMAIL` to the authenticated customer's account. The public call matches the SDK: `Agentech.capture_image(output="capture.jpg", source="default")`. During a supervised website run, the gateway replaces the requested output with a safe session-managed filename, sends the capture to the website panel, and charges `AGENTECH_CAPTURE_DISPLAY_CREDITS` (10 by default). Company accounts are not charged.
 
 ## Core Routes
 
@@ -807,7 +807,7 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 
 - This page is marked `noindex`.
 - Share the direct URL only with collaborators who are helping build, teach, review, or test the Agentech robot dog workflow.
-- The page may show the public beginner API, for example `Agentech.forward(speed=0.3, seconds=1)`.
+- The page may show the public beginner API, for example `Agentech.forward(speed_mps=0.3, duration_s=1)`.
 - Do not expose FF SDK internals, robot hotspot details, SSH credentials, service-role keys, LiveKit API secrets, or private robot-control code in client-rendered code or public docs.
 - Live robot viewing is account-gated through `/api/livekit-token`: users must be signed in and have an active scheduled robot slot. Non-internal users also need account credits; `@agent-tech.ai` accounts can test without credit charges, but every custom-code run must still pass both review gates and book a time and duration.
 - Robot session booking is handled through `/account` and `/api/robot-slot`; booked slots are disabled in the UI and rejected by the API if they overlap an active session.
@@ -818,7 +818,7 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 - The bridge polls Supabase for upcoming `agentech_robot_sessions`, starts OBS streaming shortly before a scheduled session, and stops when no active session is due.
 - For a custom-code booking, the website pins the exact reviewed `agentech_code_submissions` record to the session. During the preparation window, the standalone gateway rechecks both review gates, atomically claims the booking, parses the submitted Python without executing it, and compiles supported literal SDK calls into an inert JSON plan.
 - The gateway transfers only the trusted plan and `trusted-robot-runner.py` to the robot. Raw customer Python is never sent to the robot or executed on the gateway computer.
-- Each `capture_image(mode="display")` call creates one numbered capture. The gateway retrieves each requested capture and uploads it through the authenticated robot-capture endpoint for the matching website account.
+- Each `capture_image()` call creates one numbered capture. The gateway retrieves each requested capture and uploads it through the authenticated robot-capture endpoint for the matching website account.
 - OBS remains live for the full booked duration even when customer code finishes early. At the scheduled end, the bridge closes the stream and stops any remaining motion. For Navi, it calls `return_to_home()` when the reviewed plan did not already contain that command, waits for the return to finish, and then always calls `damping()`. For Aegis, it preserves the existing automatic `sit()` cleanup unless the submitted plan already ends in `sit()`. When no stream or home-return operation remains active, the bridge stops OBS Virtual Camera; the OBS application may stay minimized so the next scheduled session can start reliably.
 - Keep the robot host, SSH user, SSH key, local Python, and remote directory in private user-level environment variables on the gateway computer. Do not print service credentials, runner secrets, SSH keys, or OBS passwords.
 - The bridge should run only between 8:00 AM and 10:00 PM local time. The computer power schedule scripts also wake the machine at 8:00 AM and sleep it at 10:00 PM.

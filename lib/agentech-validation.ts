@@ -11,39 +11,38 @@ const num = (min: number, max: number, open = false): Rule => ({ type: "number",
 const integer = (min: number, max: number): Rule => ({ type: "integer", min, max });
 const pick = (...values: (string | number)[]): Rule => ({ type: "choice", values });
 const positiveNumber = (): Rule => ({ type: "number", min: 0, open: true });
-const linearRules = { speed_mps: num(0.05, 3), duration_s: num(0, 10, true), speed_percent: num(0, 100), speed_level: integer(0, 511), pace: pick("slow", "normal", "fast"), step_rate_hz: num(0.5, 3), gait: pick("auto") };
+const linearRules = { speed_mps: num(0.05, 3), duration_s: num(0, 10, true), speed_percent: integer(1, 100), speed_level: integer(0, 511) };
 
 export const agentechSdkSpec: Record<string, Spec> = {
-  forward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 20), distance_m: num(0, 2) } },
-  backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "pace", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "pace", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2) } },
-  lateral: { allowed: ["direction", "speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], required: ["direction"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { direction: pick("left", "right"), ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
-  lateral_left: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
-  lateral_right: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "step_count", "step_rate_hz", "gait", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "step_count", "distance_m"], rules: { ...linearRules, step_count: integer(1, 10), distance_m: num(0, 2, true) } },
-  diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
+  forward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "distance_m"], rules: { ...linearRules, distance_m: num(0, 5, true) } },
+  backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "distance_m"], rules: { ...linearRules, distance_m: num(0, 3, true) } },
+  lateral: { allowed: ["direction", "speed_mps", "duration_s", "distance_m"], required: ["direction"], selectors: ["speed_mps", "distance_m"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true), distance_m: num(0, 10, true) } },
+  lateral_left: { allowed: ["speed_mps", "duration_s", "distance_m"], selectors: ["speed_mps", "distance_m"], rules: { speed_mps: num(0.1, 1), duration_s: num(0, 10, true), distance_m: num(0, 10, true) } },
+  lateral_right: { allowed: ["speed_mps", "duration_s", "distance_m"], selectors: ["speed_mps", "distance_m"], rules: { speed_mps: num(0.1, 1), duration_s: num(0, 10, true), distance_m: num(0, 10, true) } },
+  diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
   squat_forward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
   squat_backward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
   squat_lateral: { allowed: ["direction", "speed_mps", "duration_s"], required: ["direction", "speed_mps", "duration_s"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true) } },
-  squat_diagonal: { allowed: ["angle_deg", "speed_mps", "duration_s"], required: ["angle_deg", "speed_mps", "duration_s"], rules: { angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
+  squat_diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
   squat_turn: { allowed: ["angle_deg"], required: ["angle_deg"], rules: { angle_deg: { type: "number" } } },
-  turn: { allowed: ["angle_rad", "turn_rate_rad_s", "angle_deg", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, turn_rate_rad_s: num(-3, 3), angle_deg: { type: "number" }, turn_rate_deg_s: num(-120, 120), rate_percentage: num(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
+  turn: { allowed: ["angle_rad", "turn_rate_rad_s", "angle_deg", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, turn_rate_rad_s: num(-3, 3), angle_deg: { type: "number" }, turn_rate_deg_s: num(-171.887339, 171.887339), rate_percentage: integer(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
   turn_right: { allowed: [], rules: {} },
   turn_left: { allowed: [], rules: {} },
   u_turn: { allowed: [], rules: {} },
-  yaw: { allowed: ["speed_rad_s", "speed_deg_s", "position_rad", "position_deg"], rules: { speed_rad_s: num(0, 0.6), speed_deg_s: num(0, 34.38), position_rad: num(-0.466, 0.4426), position_deg: num(-26.73, 25.36) } },
-  pitch: { allowed: ["speed_rad_s", "speed_deg_s", "position_rad", "position_deg"], rules: { speed_rad_s: num(0, 0.6), speed_deg_s: num(0, 34.38), position_rad: num(-0.368, 0.4), position_deg: num(-21.11, 22.98) } },
-  roll: { allowed: ["speed_rad_s", "speed_deg_s", "position_rad", "position_deg"], rules: { speed_rad_s: num(0, 0.6), speed_deg_s: num(0, 34.38), position_rad: num(-0.463, 0.461), position_deg: num(-26.6, 26.4) } },
-  stay: { allowed: ["time"], required: ["time"], rules: { time: positiveNumber() } },
-  backflip: { allowed: ["variant", "stabilize_s"], rules: { variant: pick("standard"), stabilize_s: num(0, 10) } },
-  jump: { allowed: ["variant", "stabilize_s"], rules: { variant: pick("standard"), stabilize_s: num(0, 10) } },
+  yaw: { allowed: ["speed_rad_s", "position_rad"], rules: { speed_rad_s: num(0.01, 0.6), position_rad: num(-0.466, 0.4426) } },
+  pitch: { allowed: ["speed_rad_s", "position_rad"], rules: { speed_rad_s: num(0.01, 0.6), position_rad: num(-0.3685, 0.4011) } },
+  roll: { allowed: ["speed_rad_s", "position_rad"], rules: { speed_rad_s: num(0.01, 0.6), position_rad: num(-0.463, 0.461) } },
+  stay: { allowed: ["duration_s"], required: ["duration_s"], rules: { duration_s: positiveNumber() } },
+  backflip: { allowed: ["wait"], rules: { wait: { type: "boolean" } } },
+  jump: { allowed: ["wait"], rules: { wait: { type: "boolean" } } },
   stand: { allowed: [], rules: {} },
   squat: { allowed: [], rules: {} },
   sit: { allowed: [], rules: {} },
   stop: { allowed: [], rules: {} },
   emergency_stop: { allowed: [], rules: {} },
-  battery: { allowed: [], rules: {} },
+  get_battery_status: { allowed: [], rules: {} },
   get_body_state: { allowed: [], rules: {} },
-  imu: { allowed: ["freq_hz"], rules: { freq_hz: num(1, 5) } },
-  capture_image: { allowed: ["mode"], rules: { mode: pick("internal", "display") } }
+  capture_image: { allowed: ["output", "source"], rules: { output: { type: "string" }, source: { type: "string" } } }
 };
 
 const blockedNaviHardwareCommands = new Set([
@@ -175,7 +174,7 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
     const values: Record<string, unknown> = {};
     argsOf(raw).forEach((arg) => { const eq = arg.indexOf("="); if (eq < 0) return add("POSITIONAL_PARAMETER_BLOCKED", `${command}() must use named parameters.`, line); const name = arg.slice(0, eq).trim(); if (!spec.allowed.includes(name)) return add("UNKNOWN_PARAMETER", `${command}() does not support '${name}'.`, line); values[name] = valueOf(arg.slice(eq + 1)); });
     (spec.required ?? []).forEach((name) => { if (!(name in values)) add("REQUIRED_PARAMETER", `${command}() requires '${name}'.`, line); });
-    let selectors = (spec.selectors ?? []).filter((name) => name in values); if (["forward", "backward", "lateral", "lateral_left", "lateral_right"].includes(command) && selectors.includes("distance_m") && selectors.includes("speed_mps")) selectors = selectors.filter((name) => name !== "speed_mps");
+    let selectors = (spec.selectors ?? []).filter((name) => name in values); if (["lateral", "lateral_left", "lateral_right"].includes(command) && selectors.includes("distance_m") && selectors.includes("speed_mps")) selectors = selectors.filter((name) => name !== "speed_mps");
     if (selectors.length > 1) add("PROFILE_MIXED", `${command}() mixes profiles: ${selectors.join(", ")}.`, line);
     if (command === "turn") {
       const provided = Object.keys(values).filter((name) => name !== "stop").sort();
@@ -216,7 +215,7 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
     if (command === "diagonal" || command === "squat_diagonal") {
       const provided = Object.keys(values).filter((name) => name !== "stop").sort();
       const profiles = (command === "squat_diagonal"
-        ? [["angle_deg", "duration_s", "speed_mps"]]
+        ? [[], ["duration_s", "x_m", "y_m"], ["angle_deg", "duration_s", "speed_mps"]]
         : [[], ["duration_s", "x_m", "y_m"], ["angle_deg", "duration_s", "speed_mps"]]
       ).map((profile) => [...profile].sort());
       const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
@@ -236,8 +235,7 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
       const provided = Object.keys(values).sort();
       const profiles = [
         [],
-        ["position_rad", "speed_rad_s"],
-        ["position_deg", "speed_deg_s"]
+        ["position_rad", "speed_rad_s"]
       ].map((profile) => [...profile].sort());
       const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
       if (!validProfile) add("PROFILE_MIXED", `yaw() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
@@ -246,8 +244,7 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
       const provided = Object.keys(values).sort();
       const profiles = [
         [],
-        ["position_rad", "speed_rad_s"],
-        ["position_deg", "speed_deg_s"]
+        ["position_rad", "speed_rad_s"]
       ].map((profile) => [...profile].sort());
       const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
       if (!validProfile) add("PROFILE_MIXED", `pitch() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
@@ -256,8 +253,7 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
       const provided = Object.keys(values).sort();
       const profiles = [
         [],
-        ["position_rad", "speed_rad_s"],
-        ["position_deg", "speed_deg_s"]
+        ["position_rad", "speed_rad_s"]
       ].map((profile) => [...profile].sort());
       const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
       if (!validProfile) add("PROFILE_MIXED", `roll() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);

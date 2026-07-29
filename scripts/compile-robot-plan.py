@@ -18,8 +18,8 @@ AEGIS_ALLOWED = {
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal",
     "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn",
     "turn", "turn_right", "turn_left", "u_turn", "yaw", "pitch", "roll", "stay",
-    "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop", "battery",
-    "get_body_state", "imu", "capture_image",
+    "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
+    "get_battery_status", "get_body_state", "capture_image",
 }
 ROOTS = {"Agentech", "dog"}
 

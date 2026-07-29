@@ -161,9 +161,7 @@ function stage(session, submission) {
     for (const command of plan.commands) {
       if (command.name !== "capture_image") continue;
       captureIndex += 1;
-      if (command.args?.mode === "display") {
-        remoteCaptures.push(`${remoteDir}/${prefix}.plan-capture-${captureIndex}.jpg`);
-      }
+      remoteCaptures.push(`${remoteDir}/${prefix}.plan-capture-${captureIndex}.jpg`);
     }
   }
   state.sessions[session.id] = {

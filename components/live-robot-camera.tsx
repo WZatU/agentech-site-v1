@@ -358,7 +358,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fdc8f]">Captured Image</p>
               <p className="mt-3 text-sm leading-6 text-[#aeb8c2]">
-                Run <span className="font-mono text-white">Agentech.capture_image(mode=&quot;display&quot;)</span> in the website code runner. This paid result will appear here.
+                Run <span className="font-mono text-white">Agentech.capture_image()</span> in the website code runner. The supervised runner stores the image safely and displays it here.
               </p>
             </div>
           </div>

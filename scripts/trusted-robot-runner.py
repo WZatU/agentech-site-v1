@@ -13,8 +13,8 @@ ALLOWED = {
     "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal",
     "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn",
     "turn", "turn_right", "turn_left", "u_turn", "yaw", "pitch", "roll", "stay",
-    "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop", "battery",
-    "get_body_state", "imu", "capture_image",
+    "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
+    "get_battery_status", "get_body_state", "capture_image",
 }
 
 
@@ -43,12 +43,12 @@ def main() -> None:
                 raise ValueError("unapproved command plan entry")
             if name == "capture_image":
                 capture_index += 1
-                mode = args.get("mode", "internal")
-                if mode not in {"internal", "display"}:
-                    raise ValueError("capture_image mode is unsupported")
+                source = args.get("source", "default")
+                if not isinstance(source, str) or not source.strip():
+                    raise ValueError("capture_image source must be a non-empty string")
                 translated = {
                     "output": str(Path(sys.argv[1]).with_name(f"{Path(sys.argv[1]).stem}-capture-{capture_index}.jpg")),
-                    "source": "default",
+                    "source": source,
                 }
             else:
                 aliases = {"speed_mps": "speed", "duration_s": "seconds"} if name in LEGACY_LINEAR_COMMANDS else {}

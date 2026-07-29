@@ -71,15 +71,13 @@ function normalizeCanonicalTurnsForMuJoCo(code: string) {
     .replace(/((?:Agentech|dog))\.u_turn\(\s*\)/g, `$1.turn_left(angle=180, speed=${aliasSpeed})`)
     .replace(/((?:Agentech|dog))\.yaw\(([^)]*)\)/g, (_match, owner: string, args: string) => {
       const positionRad = numberArg(args, "position_rad");
-      const positionDeg = numberArg(args, "position_deg");
-      const signedPositionDeg = positionRad !== null ? positionRad * 180 / Math.PI : positionDeg ?? 25.36;
+      const signedPositionDeg = positionRad !== null ? positionRad * 180 / Math.PI : 25.36;
       const direction = signedPositionDeg > 0 ? "right" : "left";
       return `${owner}.twist_${direction}(angle=${Math.abs(signedPositionDeg)})`;
     })
     .replace(/((?:Agentech|dog))\.pitch\(([^)]*)\)/g, (_match, owner: string, args: string) => {
       const positionRad = numberArg(args, "position_rad");
-      const positionDeg = numberArg(args, "position_deg");
-      const signedPositionDeg = positionRad !== null ? positionRad * 180 / Math.PI : positionDeg ?? 22.98;
+      const signedPositionDeg = positionRad !== null ? positionRad * 180 / Math.PI : 22.98;
       const direction = signedPositionDeg < 0 ? "down" : "up";
       return `${owner}.look_${direction}(angle=${Math.abs(signedPositionDeg)})`;
     })
