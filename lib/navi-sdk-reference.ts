@@ -1,4 +1,4 @@
-import type { AgentechFunction, AgentechParam, CapabilityStatus } from "@/lib/agentech-library";
+import type { AgentechFunction, AgentechParam, CapabilityStatus } from "@/lib/aegis-sdk-reference";
 
 export type NaviFunction = AgentechFunction;
 

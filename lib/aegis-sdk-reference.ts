@@ -35,7 +35,7 @@ const p = (name: string, type: string, description: string, defaultValue?: strin
 const squatPreparationNote = "Before using this movement, make sure the dog is in squat mode by running Agentech.squat().";
 const squatDistanceNote = "Distance traveled is not guaranteed. Squat movement is open loop, so acceleration, stabilization, and stopping can change the actual distance.";
 
-export const agentechFunctions: AgentechFunction[] = [
+export const aegisFunctions: AgentechFunction[] = [
   {
     name: "forward", category: "Movement", signature: "Agentech.forward()",
     summary: "Move forward using one positive speed-magnitude profile and a controlled stop.",
@@ -265,5 +265,5 @@ export const agentechFunctions: AgentechFunction[] = [
   }
 ] as const;
 
-export const starterCode = `from agentech import Agentech
+export const aegisStarterCode = `from agentech import Agentech
 Agentech.use("aegis")`;

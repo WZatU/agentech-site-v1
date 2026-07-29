@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
-import { agentechFunctions, starterCode, type AgentechFunction } from "@/lib/agentech-library";
+import { aegisFunctions, aegisStarterCode, type AgentechFunction } from "@/lib/aegis-sdk-reference";
 import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk-reference";
 import { masterFunctions, masterReferenceCategories, masterSafetyLimits, masterStarterCode } from "@/lib/master-sdk-reference";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
@@ -998,7 +998,7 @@ function DocsOverview() {
     .filter((category) => category !== "All")
     .map((category) => ({
       category,
-      items: agentechFunctions.filter((item) => item.category === category)
+      items: aegisFunctions.filter((item) => item.category === category)
     }));
 
   return (
@@ -1067,7 +1067,7 @@ Agentech.lateral_right(speed_mps=0.5, duration_s=2.0)`}</pre>
 }
 
 function DocsSection() {
-  const beginnerFunctions = agentechFunctions.filter((item) =>
+  const beginnerFunctions = aegisFunctions.filter((item) =>
     [
       "forward",
       "backward",
@@ -1260,7 +1260,7 @@ Live camera -> Website viewer -> Student watches the run`;
             <p className="text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Complete Function Reference</p>
           </div>
           <div className="grid gap-px bg-[#2a3440] md:grid-cols-2 xl:grid-cols-3">
-            {agentechFunctions.map((item) => (
+            {aegisFunctions.map((item) => (
               <div key={item.name} className="bg-[#0d1117] p-4">
                 <p className="font-mono text-sm text-[#8fdc8f]">{item.signature}</p>
                 <p className="mt-2 min-h-12 text-sm leading-6 text-[#cdd6df]">{item.summary}</p>
@@ -1571,12 +1571,12 @@ function FocusedBrowseFunctionsSection() {
           platformNote: publicNaviPlatformNotes.has(item.name) ? item.platformNote : undefined,
           params: item.params.filter((param) => param.name !== "**connect_kwargs")
         }))
-      : agentechFunctions;
+      : aegisFunctions;
   const selectedStarterCode = selectedRobot === "master"
     ? masterStarterCode
     : selectedRobot === "navi"
       ? naviStarterCode
-      : starterCode;
+      : aegisStarterCode;
   const selectedRobotLabel = selectedRobot === "master" ? "Master" : selectedRobot === "navi" ? "Navi" : "Aegis";
   const referenceCategories: AgentechFunction["category"][] = selectedRobot === "master"
     ? masterReferenceCategories
@@ -2152,7 +2152,7 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
 }
 
 export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps = {}) {
-  const [code, setCode] = useState(() => (task ? "from agentech import Agentech\n\n" : starterCode));
+  const [code, setCode] = useState(() => (task ? "from agentech import Agentech\n\n" : aegisStarterCode));
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [activeName, setActiveName] = useState("stand");
   const [requestStatus, setRequestStatus] = useState("Ready for Code Certification. Run Hardware Safety first; Software Security unlocks after it passes.");
@@ -2174,7 +2174,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [submissionQuery, setSubmissionQuery] = useState({ ready: false, id: "" });
   const [reviewResetKey, setReviewResetKey] = useState(0);
   const [hardwareResult, setHardwareResult] = useState<HardwareResult | null>(null);
-  const initialPreview = previewAssetForCode(starterCode, "stand");
+  const initialPreview = previewAssetForCode(aegisStarterCode, "stand");
   const [previewGif, setPreviewGif] = useState<string>(initialPreview.gif);
   const [previewCommand, setPreviewCommand] = useState<string>(initialPreview.command);
   const [previewStatus, setPreviewStatus] = useState(
@@ -2186,11 +2186,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [renderedFrames, setRenderedFrames] = useState<string[]>([]);
 
   const filteredFunctions = useMemo(
-    () => agentechFunctions.filter((item) => activeCategory === "All" || item.category === activeCategory),
+    () => aegisFunctions.filter((item) => activeCategory === "All" || item.category === activeCategory),
     [activeCategory]
   );
 
-  const activeFunction = agentechFunctions.find((item) => item.name === activeName) ?? agentechFunctions[0];
+  const activeFunction = aegisFunctions.find((item) => item.name === activeName) ?? aegisFunctions[0];
   const plan = useMemo(() => commandPlan(code, robotModel), [code, robotModel]);
   const previewPlan = useMemo(() => commandPlan(prepareMuJoCoCode(code), robotModel), [code, robotModel]);
   const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
@@ -2824,7 +2824,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
             </p>
             <div className="mt-7 grid max-w-2xl grid-cols-3 border border-[#2a3440] bg-[#0d1117]">
               <div className="border-r border-[#2a3440] p-4">
-                <p className="text-2xl font-semibold text-[#8fdc8f]">{agentechFunctions.length}</p>
+                <p className="text-2xl font-semibold text-[#8fdc8f]">{aegisFunctions.length}</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#7f8c99]">Functions</p>
               </div>
               <div className="border-r border-[#2a3440] p-4">
@@ -3225,7 +3225,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 <select
                   value={activeFunction.name}
                   onChange={(event) => {
-                    const selected = agentechFunctions.find((item) => item.name === event.target.value);
+                    const selected = aegisFunctions.find((item) => item.name === event.target.value);
                     if (selected) {
                       loadExample(selected);
                     }

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { agentechFunctions } from "@/lib/agentech-library";
+import { aegisFunctions } from "@/lib/aegis-sdk-reference";
 import { agentechLibraryTasks } from "@/lib/agentech-library-tasks";
 import { getEaicHubTaskPath } from "@/lib/eaic-hub";
 
@@ -88,7 +88,7 @@ export function AgentechLibraryHome() {
               HUB.
             </h1>
             <p className="mt-5 max-w-sm text-lg font-semibold leading-8 text-[#111d35]">
-              Developer-only cloud tools for Aegis robot code, previews, submissions, and supervised live runs.
+              Developer tools for Aegis, Navi, and Master SDK references, plus supported previews, submissions, and supervised live runs.
             </p>
           </div>
           <div className="relative min-h-[330px] overflow-hidden rounded-[8px] bg-white lg:min-h-[390px]">
@@ -157,7 +157,7 @@ export function AgentechLibraryHome() {
         </section>
 
         <p className="mt-5 text-center font-mono text-xs uppercase tracking-[0.16em] text-[#6b7a90]">
-          {agentechFunctions.length} functions stay available across the task pages.
+          {aegisFunctions.length} Aegis reference cards, with Navi and Master in View SDK.
         </p>
       </main>
     </div>

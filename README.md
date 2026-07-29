@@ -542,6 +542,18 @@ The Products developer workspace is EAIC HUB. It lives at:
 
 This area is the developer-facing workflow for learning the public Agentech robot API, uploading robot-control code, running staged review gates, scheduling supervised robot tests, and watching the live robot feed.
 
+The three robot references use parallel source files and the same public setup pattern:
+
+| Robot | Reference source | Setup |
+| --- | --- | --- |
+| Aegis | `lib/aegis-sdk-reference.ts` | `Agentech.use("aegis")` |
+| Navi | `lib/navi-sdk-reference.ts` | `Agentech.use("navi")` |
+| Master | `lib/master-sdk-reference.ts` | `Agentech.use("master")` |
+
+Run `npm run test:sdk-reference` after changing any robot card. The test keeps
+the three setup snippets free of robot addresses, checks card structure and
+duplicates, and locks the reviewed card counts and Master gesture surface.
+
 The page is organized into five workflows:
 
 | Workflow | Route | Purpose |
@@ -614,7 +626,7 @@ See [Software Check access policy](docs/software-check-access-policy.md) for the
 
 The Physical Hardware Check answers:
 
-- Does the uploaded script use only the current public command contract in `lib/agentech-validation.ts`? Keep that contract synchronized with the SDK cards in `lib/agentech-library.ts`, including the official `turn_left()`, `turn_right()`, and `u_turn()` spellings.
+- Does the uploaded script use only the current public command contract in `lib/agentech-validation.ts`? Keep that contract synchronized with the robot SDK sources in `lib/aegis-sdk-reference.ts`, `lib/navi-sdk-reference.ts`, and `lib/master-sdk-reference.ts`, including the official `turn_left()`, `turn_right()`, and `u_turn()` spellings.
 
 ```text
 Can this code damage the robot?

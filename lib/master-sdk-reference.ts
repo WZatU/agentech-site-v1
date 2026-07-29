@@ -1,4 +1,4 @@
-import type { AgentechFunction, AgentechParam } from "@/lib/agentech-library";
+import type { AgentechFunction, AgentechParam } from "@/lib/aegis-sdk-reference";
 
 const hand = (
   allowed: '"left" | "right"' | '"left" | "right" | "both"',
