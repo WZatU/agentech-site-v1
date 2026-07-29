@@ -65,6 +65,42 @@ export const masterFunctions: AgentechFunction[] = [
     verification: "The coordinated both-hands heart was physically verified on Master."
   },
   {
+    name: "handshake",
+    category: "Actions",
+    signature: "Agentech.handshake(hand)",
+    summary: "Offer the selected left or right hand for a handshake while Master remains standing.",
+    example: 'Agentech.handshake("right")',
+    params: [hand('"left" | "right"', "Choose the hand Master offers.")],
+    verification: "Left- and right-hand variants physically verified on Master."
+  },
+  {
+    name: "high_five",
+    category: "Actions",
+    signature: "Agentech.high_five(hand)",
+    summary: "Raise the selected left or right hand for a high-five while Master remains standing.",
+    example: 'Agentech.high_five("right")',
+    params: [hand('"left" | "right"', "Choose the hand Master raises.")],
+    verification: "Left- and right-hand variants physically verified on Master."
+  },
+  {
+    name: "clap",
+    category: "Actions",
+    signature: "Agentech.clap()",
+    summary: "Clap using Master's coordinated two-arm standing preset.",
+    example: "Agentech.clap()",
+    params: [],
+    verification: "The coordinated clap was physically verified on Master."
+  },
+  {
+    name: "cross_arms",
+    category: "Actions",
+    signature: "Agentech.cross_arms()",
+    summary: "Cross both arms using Master's coordinated upper-body standing preset.",
+    example: "Agentech.cross_arms()",
+    params: [],
+    verification: "The coordinated cross-arms action was physically verified on Master."
+  },
+  {
     name: "status",
     category: "Sensing",
     signature: "Agentech.status()",

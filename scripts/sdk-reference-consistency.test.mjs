@@ -50,7 +50,7 @@ const references = [
     robot: "master",
     functions: master.masterFunctions,
     starter: master.masterStarterCode,
-    expectedCount: 7
+    expectedCount: 11
   }
 ];
 
@@ -90,6 +90,18 @@ test("Aegis and Master reference only their current public names", () => {
 
   assert.deepEqual(
     master.masterFunctions.map((item) => item.name),
-    ["wave", "blow_kiss", "raise_hand", "salute", "heart", "status", "action_catalog"]
+    [
+      "wave",
+      "blow_kiss",
+      "raise_hand",
+      "salute",
+      "heart",
+      "handshake",
+      "high_five",
+      "clap",
+      "cross_arms",
+      "status",
+      "action_catalog"
+    ]
   );
 });
