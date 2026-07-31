@@ -38,13 +38,17 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isViewing, setIsViewing] = useState(false);
-  const [status, setStatus] = useState(livekitUrl ? "Press Start Live View when you are ready to watch." : "LiveKit URL is not configured.");
+  const [status, setStatus] = useState(livekitUrl
+    ? "Waiting for the scheduled session. Live view will start automatically."
+    : "LiveKit URL is not configured.");
   const [captureUrl, setCaptureUrl] = useState("");
   const [captureTime, setCaptureTime] = useState("");
   const [captureHistory, setCaptureHistory] = useState<DisplayCapture[]>([]);
   const [hasActiveSession, setHasActiveSession] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [activeRobotModel, setActiveRobotModel] = useState<AgentechRobotModel | null>(null);
   const localCaptureIdRef = useRef("");
+  const manuallyStoppedSessionIdRef = useRef<number | null>(null);
   const isNaviSession = hasActiveSession && activeRobotModel === "Navi";
   const showLiveCapturePreview = hasActiveSession && activeRobotModel === "Aegies";
 
@@ -92,27 +96,50 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
         const response = await fetch("/api/agentech-live-session", { cache: "no-store" });
         const payload = (await response.json()) as {
           active?: boolean;
-          session?: { robotModel?: string } | null;
+          session?: { id?: number; robotModel?: string } | null;
         };
         if (!active) return;
         const model = normalizeAgentechRobotModel(payload.session?.robotModel);
-        setHasActiveSession(response.ok && payload.active === true && Boolean(model));
-        setActiveRobotModel(model);
+        const sessionId = Number(payload.session?.id);
+        const sessionIsActive = response.ok
+          && payload.active === true
+          && Number.isInteger(sessionId)
+          && Boolean(model);
+        setHasActiveSession(sessionIsActive);
+        setActiveSessionId(sessionIsActive ? sessionId : null);
+        setActiveRobotModel(sessionIsActive ? model : null);
       } catch {
-        if (active) {
-          setHasActiveSession(false);
-          setActiveRobotModel(null);
-        }
+        // Keep the last confirmed session state during a transient request
+        // failure. The next poll will reconcile it without forcing a refresh.
       }
     }
 
     void readActiveSession();
-    const timer = window.setInterval(() => void readActiveSession(), 5000);
+    const timer = window.setInterval(() => void readActiveSession(), 3000);
     return () => {
       active = false;
       window.clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    if (!livekitUrl) return;
+    if (!hasActiveSession || activeSessionId === null) {
+      manuallyStoppedSessionIdRef.current = null;
+      if (isViewing) {
+        setIsViewing(false);
+        setStatus("Scheduled robot session ended. Waiting for the next session.");
+      }
+      return;
+    }
+    if (isViewing || manuallyStoppedSessionIdRef.current === activeSessionId) return;
+
+    const timer = window.setTimeout(() => {
+      setStatus("Scheduled session is active. Connecting automatically...");
+      setIsViewing(true);
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [activeSessionId, hasActiveSession, isViewing]);
 
   useEffect(() => {
     if (!livekitUrl || !isViewing) {
@@ -295,14 +322,17 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   }, [isViewing]);
 
   function startViewing() {
-    if (!livekitUrl) {
+    if (!livekitUrl || !hasActiveSession) {
+      setStatus("Waiting for the scheduled session. Live view will start automatically.");
       return;
     }
+    manuallyStoppedSessionIdRef.current = null;
     setStatus("Connecting to live robot camera...");
     setIsViewing(true);
   }
 
   function stopViewing() {
+    manuallyStoppedSessionIdRef.current = activeSessionId;
     setIsViewing(false);
     setStatus("Live view stopped.");
   }
@@ -327,14 +357,14 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
         <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
       {status === "Live robot camera connected." ? null : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center text-sm leading-6 text-[#aeb8c2]">
-          <span>{status}</span>
+          <span aria-live="polite">{status}</span>
           <button
             type="button"
             onClick={startViewing}
-            disabled={!livekitUrl || isViewing}
+            disabled={!livekitUrl || !hasActiveSession || isViewing}
             className="border border-[#8fdc8f] bg-[#17351f] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#dfffe0] transition hover:bg-[#8fdc8f] hover:text-[#08100a] disabled:cursor-not-allowed disabled:border-[#2a3440] disabled:bg-[#10151c] disabled:text-[#7f8c99]"
           >
-            Start Live View
+            {hasActiveSession ? "Start Live View" : "Waiting for Scheduled Time"}
           </button>
         </div>
       )}

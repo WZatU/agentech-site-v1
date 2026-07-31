@@ -128,6 +128,8 @@ async function reviewedSubmission(session) {
 async function startObs() {
   const status = await obsCall("GetStreamStatus");
   if (!status.outputActive) await obsCall("StartStream");
+  const verified = await obsCall("GetStreamStatus");
+  if (!verified.outputActive) throw new Error("OBS did not enter the streaming state");
 }
 
 async function stopObs() {
@@ -172,7 +174,11 @@ function stage(session, submission) {
     remoteCaptures,
     publishedCaptures: [],
     accountEmail: session.email,
+    start: session.scheduled_start,
     end: session.scheduled_end,
+    streamStatus: "pending",
+    streamAvailableDuringSession: false,
+    streamFailureCount: 0,
     endCleanupRequired: endCleanup.required,
     endReturnHomeRequired: endCleanup.returnHomeRequired,
     endCleanupStatus: endCleanup.required ? "pending" : "not_required",
@@ -180,6 +186,32 @@ function stage(session, submission) {
   };
   saveState();
   console.log(`[robot-stream] Code X compiled and staged ${plan.commands.length} ${selectedModel} commands for session ${session.id}.`);
+}
+
+async function ensureSessionStream(id, item, nowMs) {
+  try {
+    await startObs();
+    const firstStart = item.streamStatus !== "publishing";
+    const wasAvailableDuringSession = item.streamAvailableDuringSession === true;
+    item.streamStatus = "publishing";
+    item.streamStartedAt ??= new Date().toISOString();
+    delete item.streamError;
+    if (nowMs >= Date.parse(item.start) && nowMs < Date.parse(item.end)) {
+      item.streamAvailableDuringSession = true;
+      item.streamAvailableDuringSessionAt ??= new Date().toISOString();
+    }
+    const becameAvailableDuringSession = !wasAvailableDuringSession
+      && item.streamAvailableDuringSession === true;
+    if (firstStart || becameAvailableDuringSession) saveState();
+    return true;
+  } catch (error) {
+    item.streamStatus = "failed";
+    item.streamError = error.message;
+    item.streamFailureCount = Number(item.streamFailureCount || 0) + 1;
+    saveState();
+    console.error(`[robot-stream] session ${id} OBS delivery check failed:`, error.message);
+    return false;
+  }
 }
 
 async function claimSession(session) {
@@ -361,9 +393,10 @@ async function tick() {
     if (!state.sessions[session.id]) {
       const submission = await reviewedSubmission(session);
       stage(session, submission);
-      await startObs();
     }
-    if (state.sessions[session.id].status === "staged" && now >= Date.parse(session.scheduled_start)) await launch(session);
+    const item = state.sessions[session.id];
+    const streamReady = await ensureSessionStream(session.id, item, now);
+    if (streamReady && item.status === "staged" && now >= Date.parse(session.scheduled_start)) await launch(session);
   }
   for (const [id, item] of Object.entries(state.sessions)) {
     if (item.status === "running" && !processRunning(item)) {
@@ -374,20 +407,19 @@ async function tick() {
         item.status = "completed";
         saveState();
       } catch (error) {
-        item.status = "failed";
-        item.error = error.message;
+        item.status = "completed";
+        item.executionStatus = "failed";
+        item.executionError = error.message;
         saveState();
-        try {
-          await request(
-            "agentech_robot_sessions",
-            `id=eq.${encodeURIComponent(id)}`,
-            { method: "PATCH", body: { session_status: "failed" } }
-          );
-        } catch (statusError) {
-          console.error(`[robot-stream] unable to publish failed status for session ${id}:`, statusError.message);
-        }
-        console.error(`[robot-stream] session ${id} failed after runner exit:`, error.message);
+        console.error(`[robot-stream] session ${id} execution/capture processing failed:`, error.message);
       }
+    }
+    if (item.status === "staged" && now >= Date.parse(item.end)) {
+      item.status = "finished";
+      item.streamAvailableDuringSession = false;
+      item.endCleanupRequired = false;
+      item.endCleanupStatus = "not_started";
+      saveState();
     }
     if (["running", "completed"].includes(item.status) && now >= Date.parse(item.end)) {
       stopSession(id);

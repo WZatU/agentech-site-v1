@@ -175,29 +175,25 @@ test("session policy selects model-specific scheduled-end cleanup", () => {
   );
 });
 
-test("session policy publishes a final database status only after cleanup resolves", () => {
+test("session policy publishes a final database status from stream delivery only", () => {
   assert.equal(finalSessionDatabaseStatus({ status: "running" }), null);
   assert.equal(
-    finalSessionDatabaseStatus({ status: "finished", endCleanupRequired: false }),
-    "completed",
-  );
-  assert.equal(
     finalSessionDatabaseStatus({
       status: "finished",
-      endCleanupRequired: true,
-      endCleanupStatus: "completed",
-      endCleanupAttempts: 1,
-    }),
-    "completed",
-  );
-  assert.equal(
-    finalSessionDatabaseStatus({
-      status: "finished",
+      streamAvailableDuringSession: true,
       endCleanupRequired: true,
       endCleanupStatus: "failed",
-      endCleanupAttempts: 2,
+      endCleanupAttempts: 3,
     }),
-    null,
+    "completed",
+  );
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      streamAvailableDuringSession: false,
+      endCleanupRequired: false,
+    }),
+    "failed",
   );
   assert.equal(
     finalSessionDatabaseStatus({
@@ -206,6 +202,6 @@ test("session policy publishes a final database status only after cleanup resolv
       endCleanupStatus: "failed",
       endCleanupAttempts: 3,
     }),
-    "failed",
+    "completed",
   );
 });

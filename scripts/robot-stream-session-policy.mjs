@@ -35,11 +35,9 @@ export function keepsStreamActive(item, nowMs) {
 
 export function finalSessionDatabaseStatus(item) {
   if (item?.status !== "finished") return null;
-  const required = item.endCleanupRequired ?? item.endLieDownRequired;
-  const cleanupStatus = item.endCleanupStatus ?? item.endLieDownStatus;
-  const attempts = Number(item.endCleanupAttempts ?? item.endLieDownAttempts ?? 0);
-  if (required !== true) return "completed";
-  if (cleanupStatus === "completed") return "completed";
-  if (cleanupStatus === "failed" && attempts >= 3) return "failed";
-  return null;
+  if (item.streamAvailableDuringSession === true) return "completed";
+  if (item.streamAvailableDuringSession === false) return "failed";
+  // Legacy sessions reached `finished` only after startObs() succeeded and the
+  // runner launched. Treat those as delivered even if later cleanup failed.
+  return "completed";
 }
