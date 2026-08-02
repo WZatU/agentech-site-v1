@@ -42,6 +42,7 @@ Important documents:
 
 - [Contributing and repository workflow](CONTRIBUTING.md)
 - [Software Check access policy](docs/software-check-access-policy.md)
+- [Offline website verification matrix](docs/robot-test-matrix.md)
 - [Dropbox News automation](docs/dropbox-news-automation.md)
 - [Documentation index](docs/documentation-index.md)
 - Hidden product documents page: `/agentech-products/documents`
@@ -874,6 +875,25 @@ Write Markdown
 -> Website links to docs
 ```
 
+## Offline Verification
+
+`npm test` is an aggregate offline suite. It verifies compiler acceptance and
+rejection, stream-relay safety boundaries, return-to-home access policy, and
+SDK-reference consistency. It never starts the stream bridge, connects to a
+robot, or moves hardware. Use the full verification gates before a change:
+
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Passing these gates proves website code quality and checked policy behavior;
+it does not replace a supervised physical-robot check. See the
+[offline verification matrix](docs/robot-test-matrix.md) for coverage and
+remaining operator checks.
+
 ## Scripts
 
 | Command | Description |
@@ -882,6 +902,7 @@ Write Markdown
 | `npm run build` | Build production site |
 | `npm run start` | Start production server |
 | `npm run serve:3001` | Start production server on port 3001 |
+| `npm test` | Run all offline compiler, stream-boundary, access-policy, and SDK-reference tests |
 | `npm run lint` | Lint JavaScript and TypeScript source |
 | `npm run typecheck` | Run TypeScript without emitting build files |
 | `npm run check` | Run lint, typecheck, and the production build |
