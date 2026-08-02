@@ -26,3 +26,4 @@ review_submissions/
 .robot-stream-logs/
 .robot-stream-jobs/
 .robot-stream-runtime/
+.worktrees/
