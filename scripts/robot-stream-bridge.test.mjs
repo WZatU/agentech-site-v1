@@ -27,8 +27,12 @@ function compile(source, robotModel) {
   const args = [compiler, sourcePath, "submission-test"];
   if (robotModel) args.push(robotModel);
   args.push(planPath);
-  execFileSync(python, args);
-  return JSON.parse(readFileSync(planPath, "utf8"));
+  const result = spawnSync(python, args, { encoding: "utf8" });
+  return {
+    status: result.status,
+    stderr: result.stderr,
+    plan: result.status === 0 ? JSON.parse(readFileSync(planPath, "utf8")) : null,
+  };
 }
 
 test("compiler turns literal Agentech calls into an inert plan", () => {
@@ -38,7 +42,9 @@ test("compiler turns literal Agentech calls into an inert plan", () => {
     "Agentech.forward(speed_mps=0.3, duration_s=1.0)",
     "Agentech.capture_image(output=\"capture.jpg\", source=\"default\")"
   ].join("\n");
-  const plan = compile(source);
+  const result = compile(source);
+  assert.equal(result.status, 0);
+  const { plan } = result;
 
   assert.equal(plan.version, 1);
   assert.equal(plan.submission_id, "submission-test");
@@ -54,7 +60,9 @@ test("Aegies compiler accepts the exact public sensing and hold calls", () => {
     "Agentech.get_battery_status()",
     "Agentech.capture_image(output=\"capture.jpg\", source=\"default\")"
   ].join("\n");
-  const plan = compile(source);
+  const result = compile(source);
+  assert.equal(result.status, 0);
+  const { plan } = result;
 
   assert.deepEqual(plan.commands, [
     { name: "stay", args: { duration_s: 1 }, line: 2 },
@@ -64,8 +72,14 @@ test("Aegies compiler accepts the exact public sensing and hold calls", () => {
 });
 
 test("Aegies compiler rejects removed website-only battery and IMU names", () => {
-  assert.throws(() => compile("from agentech import Agentech\nAgentech.battery()\n"));
-  assert.throws(() => compile("from agentech import Agentech\nAgentech.imu(freq_hz=5)\n"));
+  for (const source of [
+    "from agentech import Agentech\nAgentech.battery()\n",
+    "from agentech import Agentech\nAgentech.imu(freq_hz=5)\n",
+  ]) {
+    const result = compile(source);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /unapproved command/);
+  }
 });
 
 test("compiler creates a model-bound Navi plan from exact SDK calls", () => {
@@ -75,7 +89,9 @@ test("compiler creates a model-bound Navi plan from exact SDK calls", () => {
     "Agentech.forward(speed_mps=0.5, duration_s=1.0)",
     "Agentech.wave_hand()"
   ].join("\n");
-  const plan = compile(source, "Navi");
+  const result = compile(source, "Navi");
+  assert.equal(result.status, 0);
+  const { plan } = result;
 
   assert.equal(plan.version, 2);
   assert.equal(plan.robot_model, "navi");
@@ -91,7 +107,9 @@ function writePlan(plan) {
 }
 
 test("Navi compiler rejects Aegies-only capture commands", () => {
-  assert.throws(() => compile("from agentech import Agentech\nAgentech.capture_image(output=\"capture.jpg\", source=\"default\")\n", "Navi"));
+  const result = compile("from agentech import Agentech\nAgentech.capture_image(output=\"capture.jpg\", source=\"default\")\n", "Navi");
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /not approved/);
 });
 
 test("Navi compiler accepts only cardinal return-to-home headings", () => {
@@ -99,26 +117,26 @@ test("Navi compiler accepts only cardinal return-to-home headings", () => {
     "from agentech import Agentech",
     "Agentech.return_to_home(facing_angle_deg=270)"
   ].join("\n");
-  const plan = compile(source, "Navi");
+  const result = compile(source, "Navi");
+  assert.equal(result.status, 0);
+  const { plan } = result;
 
   assert.deepEqual(plan.commands, [
     { name: "return_to_home", args: { facing_angle_deg: 270 }, line: 2 }
   ]);
   execFileSync(python, [naviRunner, "--validate", writePlan(plan)]);
-  assert.throws(() => compile(
+  const rejected = compile(
     "from agentech import Agentech\nAgentech.return_to_home(facing_angle_deg=45)\n",
     "Navi"
-  ));
+  );
+  assert.notEqual(rejected.status, 0);
+  assert.match(rejected.stderr, /must be 0, 90, 180, or 270/);
 });
 
 test("compiler rejects loops and nonliteral customer execution", () => {
-  const directory = mkdtempSync(join(tmpdir(), "agentech-plan-reject-"));
-  const sourcePath = join(directory, "reviewed.py");
-  const planPath = join(directory, "plan.json");
-  writeFileSync(sourcePath, "for _ in range(2):\n    Agentech.forward(speed_mps=0.3, duration_s=1.0)\n", "utf8");
-
-  const result = spawnSync(python, [compiler, sourcePath, "submission-reject", planPath], { encoding: "utf8" });
+  const result = compile("for _ in range(2):\n    Agentech.forward(speed_mps=0.3, duration_s=1.0)\n");
   assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /only direct robot command calls are executable/);
 });
 
 test("gateway transfers only the plan and trusted runner", () => {
