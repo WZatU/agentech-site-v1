@@ -57,6 +57,21 @@ Command-specific cross-parameter checks will use structured profile and constrai
 
 The trusted Python compiler and Navi gateway may remain conservative about executable syntax, but their public command and parameter allowlists must be supersets of the public hardware-check contract for literal direct calls. Automated consistency tests will detect missing public names or parameters before a change can ship.
 
+### Standalone CLI deliverables
+
+Generate two self-contained, standard-library-only Python validators named `aegis.py` and `navi.py`. Each CLI embeds a generated snapshot and hash of its selected public website SDK contract, parses a submitted Python file without executing it, and applies the same hardware-check rules as the website.
+
+Usage:
+
+```text
+python aegis.py <submission.py>
+python navi.py <submission.py>
+```
+
+Both CLIs also support `--json` for automation. Human-readable mode prints the overall result followed by line-specific finding codes and messages. Exit status `0` means the submission passed, `1` means validation findings were reported, and `2` means the command or input file could not be used.
+
+The two generated files are the user-facing deliverables. The repository may contain a generator and tests needed to prove that their embedded public contracts match the website source of truth, but the CLIs do not require Node.js, repository modules, network access, or third-party Python packages at runtime.
+
 ## Error Reporting
 
 Existing finding categories remain stable where possible:
@@ -86,6 +101,9 @@ Coverage will include:
 - exclusive boundaries fail at the boundary and pass immediately inside it;
 - required parameters, valid profiles, mixed profiles, types, choices, signs, and diagonal component constraints behave as documented;
 - downstream compiler/gateway allowlists contain every public literal command and parameter accepted by the hardware check;
+- the standalone Aegis and Navi CLIs produce the same pass/fail findings as the website for shared fixtures;
+- each CLI's embedded contract hash matches the current selected robot's public website contract;
+- CLI text and JSON output, exit statuses, unreadable input handling, and non-execution guarantee behave as documented;
 - existing Python safety blocks remain effective.
 
 Tests will be added before validator changes and observed failing for the current contract drift before production code is changed.
@@ -97,6 +115,7 @@ Tests will be added before validator changes and observed failing for the curren
 - Allowing undocumented legacy aliases.
 - Weakening the trusted compiler's restrictions on variables, loops, helpers, or nonliteral executable commands.
 - Changing Master validation or adding Master hardware-check support in this work.
+- Combining the two requested CLI deliverables into a single robot-selection command.
 
 ## Success Criteria
 
@@ -104,4 +123,5 @@ Tests will be added before validator changes and observed failing for the curren
 - Examples shown on available public cards pass the hardware check for the correct robot.
 - Values and parameter combinations outside the displayed public contract fail with actionable findings.
 - Public commands and parameters that pass Step 3 are present in the downstream literal-call allowlists.
+- `aegis.py` and `navi.py` run with the Python standard library alone and match website findings for the same supported source files.
 - Focused validator tests, existing robot tests, type checking, and the production build pass.
