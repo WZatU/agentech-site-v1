@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { aegisFunctions, aegisStarterCode, type AgentechFunction } from "@/lib/aegis-sdk-reference";
 import { naviFunctions, naviSafetyLimits, naviStarterCode } from "@/lib/navi-sdk-reference";
 import { masterFunctions, masterReferenceCategories, masterSafetyLimits, masterStarterCode } from "@/lib/master-sdk-reference";
+import { masterSimulationPreviews, resolveMasterSimulationVariant } from "@/lib/master-simulation-previews";
 import { agentechLibraryTasks, getAgentechLibraryTask, type AgentechLibraryTaskSlug } from "@/lib/agentech-library-tasks";
 import { eaicHubPath, getEaicHubTaskPath } from "@/lib/eaic-hub";
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
@@ -181,7 +182,6 @@ type SdkRobot = "aegis" | "navi" | "master";
 
 function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: SdkRobot) {
   return commandsWithoutReferencePreview.has(item.name)
-    || selectedRobot === "master"
     || (selectedRobot === "navi" && (item.name === "stop" || item.name === "recovery_stand" || item.category === "Sensing" || item.category === "Configuration"));
 }
 const naviSimulationAssets: Partial<Record<string, string>> = {
@@ -939,6 +939,83 @@ function NaviSimulationPreview({ command }: { command: string }) {
   );
 }
 
+function MasterSimulationPreviewPanel({ command }: { command: string }) {
+  const previewEntry = masterSimulationPreviews[command];
+  const [selectedVariant, setSelectedVariant] = useState(previewEntry?.defaultVariant ?? "fixed");
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    setSelectedVariant(previewEntry?.defaultVariant ?? "fixed");
+  }, [command, previewEntry?.defaultVariant]);
+
+  const activeVariant = resolveMasterSimulationVariant(command, selectedVariant);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !activeVariant) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        video.currentTime = 0;
+        void video.play().catch(() => undefined);
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [activeVariant]);
+
+  if (!previewEntry || !activeVariant) return null;
+
+  const accessibleVariant = activeVariant.value === "fixed"
+    ? ""
+    : ` using ${activeVariant.label.toLowerCase()}`;
+
+  return (
+    <div>
+      {previewEntry.variants.length > 1 ? (
+        <div
+          className="mb-3 inline-flex border border-[#93bce8] bg-[#eef6ff] p-1"
+          role="group"
+          aria-label={`Select ${command} simulation variant`}
+        >
+          {previewEntry.variants.map((variantOption) => {
+            const selected = variantOption.value === activeVariant.value;
+            return (
+              <button
+                key={variantOption.value}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setSelectedVariant(variantOption.value)}
+                className={`min-w-20 px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005bd6] ${selected ? "bg-[#005bd6] text-white" : "bg-white text-[#17436f] hover:bg-[#e5f1ff]"}`}
+              >
+                {variantOption.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <video
+        key={activeVariant.asset}
+        ref={videoRef}
+        src={activeVariant.asset}
+        aria-label={`Master MuJoCo simulation for ${command}${accessibleVariant}`}
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls
+        preload="metadata"
+        className="aspect-video w-full border border-[#dce7f2] bg-black object-contain"
+      />
+      <p className="mt-3 text-xs leading-5 text-[#526174]">
+        Prerecorded Master MuJoCo simulation{activeVariant.value === "fixed" ? "" : ` · ${activeVariant.label} variant`}
+      </p>
+    </div>
+  );
+}
+
 function FunctionReference({ item }: { item: AgentechFunction }) {
   return (
     <div className="border border-[#2a3440] bg-[#11151b]">
@@ -1617,7 +1694,7 @@ function FocusedBrowseFunctionsSection() {
       title: "Open details",
       body: `Details reveal definitions, parameter meanings, examples, and ${
         selectedRobot === "master"
-          ? "physical-verification notes"
+          ? "MuJoCo simulations and physical-verification notes"
           : selectedRobot === "navi"
             ? "approved simulations where available"
             : "GIF previews"
@@ -1872,7 +1949,9 @@ function FocusedBrowseFunctionsSection() {
                           <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">
                             {selectedRobot === "navi" && item.name === "lateral" ? "lateral_left" : item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}
                           </p>
-                          {selectedRobot === "navi" ? (
+                          {selectedRobot === "master" ? (
+                            <MasterSimulationPreviewPanel command={item.name} />
+                          ) : selectedRobot === "navi" ? (
                             <NaviSimulationPreview command={resolvePreviewCommand(item.name)} />
                           ) : (
                             // eslint-disable-next-line @next/next/no-img-element
