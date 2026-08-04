@@ -14,6 +14,20 @@ The repository is designed to work like a professional product codebase: public 
 
 Repository: [agent-tech0316/agentech-site-v1](https://github.com/agent-tech0316/agentech-site-v1)
 
+## EAIC Product Workflow
+
+![EAIC product architecture](docs/eaic-platform/assets/eaic-product-architecture.png)
+
+The EAIC product workflow follows one unified, API-driven operating loop:
+
+1. **Client entry points** — EAIC Hub today, with EAIC CLI, World macOS, and World iOS as companion clients.
+2. **Unified API layer** — shared identity and access, project validation, resource and run, and live-result contracts.
+3. **Cloud core** — project packaging, cloud validation, AI review, resource reservation, deployment authorization, account quotas, robot catalogs, and run auditing.
+4. **Edge and robot execution** — approved projects flow through warehouse services, behavior parsing, robot runtimes, and supervised physical execution.
+5. **Live data and delivery** — live video, telemetry, logs, files, reports, and usage return through the unified API to each client.
+
+The implementation and team-ownership map lives in [`features/eaic/`](features/eaic/), with supporting workflow documentation in [`docs/eaic-platform/`](docs/eaic-platform/).
+
 ## What This Repository Contains
 
 - Public company website for Robotics, Education, Bots, Talents, About, and News.
@@ -32,6 +46,7 @@ Repository: [agent-tech0316/agentech-site-v1](https://github.com/agent-tech0316/
 | App routes and API routes | `app/` |
 | Shared UI and forms | `components/` |
 | Business logic and service helpers | `lib/` |
+| EAIC workflow modules | `features/eaic/` |
 | Static and imported data | `data/` |
 | Images, logos, QR codes, news media | `public/assets/` |
 | Maintenance and importer scripts | `scripts/` |
