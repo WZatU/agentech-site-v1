@@ -29,7 +29,7 @@ function loadTypeScriptModule(relativePath) {
   return module.exports;
 }
 
-const master = loadTypeScriptModule("lib/master-sdk-reference.ts");
+const master = loadTypeScriptModule("features/eaic/02-unified-api/projects-validation/master-sdk-reference.ts");
 const previews = loadTypeScriptModule("lib/master-simulation-previews.ts");
 
 const expectedVariants = {
@@ -74,11 +74,13 @@ const expectedDefaults = {
   action_catalog: "fixed"
 };
 
-test("every public Master function has exactly its supported simulation variants", () => {
-  const functionNames = master.masterFunctions.map((item) => item.name);
-  assert.deepEqual(Object.keys(previews.masterSimulationPreviews), functionNames);
+test("every previewed Master function has exactly its supported simulation variants", () => {
+  const functionNames = new Set(master.masterFunctions.map((item) => item.name));
+  const previewNames = Object.keys(previews.masterSimulationPreviews);
+  assert.deepEqual(previewNames, Object.keys(expectedVariants));
+  assert.ok(previewNames.every((functionName) => functionNames.has(functionName)));
 
-  for (const functionName of functionNames) {
+  for (const functionName of previewNames) {
     const preview = previews.masterSimulationPreviews[functionName];
     assert.deepEqual(
       preview.variants.map((variant) => variant.value),

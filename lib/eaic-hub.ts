@@ -1,5 +1,1 @@
-export const eaicHubPath = "/agentech-products/eaic-hub";
-
-export function getEaicHubTaskPath(task: string) {
-  return `${eaicHubPath}/${task}`;
-}
+export * from "../features/eaic/01-clients/eaic-hub/contracts/eaic-hub";

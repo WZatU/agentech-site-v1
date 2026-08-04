@@ -29,9 +29,9 @@ function loadTypeScriptModule(relativePath) {
   return module.exports;
 }
 
-const aegis = loadTypeScriptModule("lib/aegis-sdk-reference.ts");
-const navi = loadTypeScriptModule("lib/navi-sdk-reference.ts");
-const master = loadTypeScriptModule("lib/master-sdk-reference.ts");
+const aegis = loadTypeScriptModule("features/eaic/02-unified-api/projects-validation/aegis-sdk-reference.ts");
+const navi = loadTypeScriptModule("features/eaic/02-unified-api/projects-validation/navi-sdk-reference.ts");
+const master = loadTypeScriptModule("features/eaic/02-unified-api/projects-validation/master-sdk-reference.ts");
 
 const references = [
   {
@@ -50,7 +50,7 @@ const references = [
     robot: "master",
     functions: master.masterFunctions,
     starter: master.masterStarterCode,
-    expectedCount: 18
+    expectedCount: 23
   }
 ];
 
@@ -107,6 +107,11 @@ test("Aegis and Master reference only their current public names", () => {
       "raise_hands",
       "bow",
       "scratch_head",
+      "center",
+      "stay",
+      "sit",
+      "seated_actions.turn_head",
+      "seated_actions.shake_head",
       "status",
       "action_catalog"
     ]
