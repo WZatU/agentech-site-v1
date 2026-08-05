@@ -300,6 +300,29 @@ const naviPreviewAliases: Partial<Record<string, string[]>> = {
   lateral: ["lateral_left", "lateral_right"],
   turn: ["turn_left", "turn_right"]
 };
+const naviPreviewPendingActions = new Set([
+  "prepare_camera",
+  "smell_food",
+  "look_at_food",
+  "eat_yellow",
+  "drink",
+  "enjoy_eating",
+  "finish_eating",
+  "apply_toothpaste",
+  "main_brush",
+  "gargle",
+  "brush_teeth_horizontal_30s",
+  "brush_teeth_back_and_forth_30s",
+  "brush_teeth_horizontal_23s",
+  "raise_camera",
+  "camera_stand_3s",
+  "take_photo",
+  "photo_wave_hand",
+  "brush_teeth_vertical_30s",
+  "before_take_photo_fast",
+  "after_take_photo_1_fast",
+  "after_take_photo_2_fast"
+]);
 const naviPreviewCategories = new Set(["Movement", "Athletics", "Actions", "Posture"]);
 const missingNaviSimulationAssets = naviFunctions
   .filter((item) =>
@@ -307,6 +330,7 @@ const missingNaviSimulationAssets = naviFunctions
     && item.status !== "unsupported"
     && naviPreviewCategories.has(item.category)
     && item.name !== "recovery_stand"
+    && !naviPreviewPendingActions.has(item.name)
   )
   .flatMap((item) => naviPreviewAliases[item.name] ?? [item.name])
   .filter((command) => !naviSimulationAssets[command]);
@@ -862,13 +886,16 @@ function NaviSimulationPreview({ command }: { command: string }) {
 
   if (!videoSource) {
     return (
-      <Image
-        src="/assets/robotics/ff-navi-white.jpg"
-        alt={`FF Navi robot for Agentech.${command}`}
-        width={1200}
-        height={675}
-        className="aspect-video w-full border border-[#dce7f2] bg-white object-contain"
-      />
+      <div>
+        <Image
+          src="/assets/robotics/ff-navi-white.jpg"
+          alt={`FF Navi robot for Agentech.${command}`}
+          width={1200}
+          height={675}
+          className="aspect-video w-full border border-[#dce7f2] bg-white object-contain"
+        />
+        <p className="mt-3 text-xs leading-5 text-[#526174]">Simulation preview coming soon</p>
+      </div>
     );
   }
 
