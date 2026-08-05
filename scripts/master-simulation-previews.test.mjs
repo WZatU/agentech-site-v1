@@ -49,6 +49,11 @@ const expectedVariants = {
   raise_hands: ["fixed"],
   bow: ["fixed"],
   scratch_head: ["fixed"],
+  center: ["fixed"],
+  stay: ["fixed"],
+  sit: ["fixed"],
+  "seated_actions.turn_head": ["fixed"],
+  "seated_actions.shake_head": ["fixed"],
   status: ["fixed"],
   action_catalog: ["fixed"]
 };
@@ -70,6 +75,11 @@ const expectedDefaults = {
   raise_hands: "fixed",
   bow: "fixed",
   scratch_head: "fixed",
+  center: "fixed",
+  stay: "fixed",
+  sit: "fixed",
+  "seated_actions.turn_head": "fixed",
+  "seated_actions.shake_head": "fixed",
   status: "fixed",
   action_catalog: "fixed"
 };
@@ -92,13 +102,13 @@ test("every previewed Master function has exactly its supported simulation varia
   }
 });
 
-test("the Master preview manifest maps 27 unique MP4 assets that all exist", () => {
+test("the Master preview manifest maps 32 unique MP4 assets that all exist", () => {
   const assets = Object.values(previews.masterSimulationPreviews).flatMap((preview) =>
     preview.variants.map((variant) => variant.asset)
   );
 
-  assert.equal(assets.length, 27);
-  assert.equal(new Set(assets).size, 27);
+  assert.equal(assets.length, 32);
+  assert.equal(new Set(assets).size, 32);
 
   for (const asset of assets) {
     assert.match(asset, /^\/assets\/products\/agentech-library\/simulator-previews\/master\/.+\.mp4$/);
@@ -112,6 +122,8 @@ test("variant selection starts from the SDK example and accepts only supported c
   assert.equal(previews.resolveMasterSimulationVariant("heart").value, "both");
   assert.equal(previews.resolveMasterSimulationVariant("heart", "right").value, "right");
   assert.equal(previews.resolveMasterSimulationVariant("scratch_head", "right").value, "fixed");
+  assert.equal(previews.resolveMasterSimulationVariant("sit").value, "fixed");
+  assert.equal(previews.resolveMasterSimulationVariant("seated_actions.turn_head").value, "fixed");
   assert.equal(previews.resolveMasterSimulationVariant("unknown"), undefined);
 });
 

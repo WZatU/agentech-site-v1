@@ -181,7 +181,9 @@ const commandsWithoutReferencePreview = new Set(["stay", "squat_forward", "squat
 type SdkRobot = "aegis" | "navi" | "master";
 
 function shouldHideReferencePreview(item: AgentechFunction, selectedRobot: SdkRobot) {
-  return commandsWithoutReferencePreview.has(item.name)
+  const hasMasterPreview = selectedRobot === "master" && Boolean(masterSimulationPreviews[item.name]);
+
+  return (commandsWithoutReferencePreview.has(item.name) && !hasMasterPreview)
     || (selectedRobot === "master" && !masterSimulationPreviews[item.name])
     || (selectedRobot === "navi" && (item.name === "stop" || item.name === "recovery_stand" || item.category === "Sensing" || item.category === "Configuration"));
 }
