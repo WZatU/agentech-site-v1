@@ -247,6 +247,20 @@ const naviSimulationAssets: Partial<Record<string, string>> = {
   body_tag_search: "/assets/products/agentech-library/simulator-previews/navi/actions/body-tag-search/navi-reference-body-tag-search.gif?v=20260723-1",
   bored_half_sit: "/assets/products/agentech-library/simulator-previews/navi/actions/bored-half-sit/navi-reference-bored-half-sit.gif?v=20260723-1",
   brush_teeth: "/assets/products/agentech-library/simulator-previews/navi/actions/brush-teeth/navi-reference-brush-teeth.gif?v=20260723-1",
+  smell_food: "/assets/products/agentech-library/simulator-previews/navi/actions/smell-food/navi-smell-food-live-telemetry.mp4?v=20260805-grounded-1",
+  look_at_food: "/assets/products/agentech-library/simulator-previews/navi/actions/look-at-food/navi-look-at-food-live-telemetry.mp4?v=20260805-grounded-1",
+  eat_yellow: "/assets/products/agentech-library/simulator-previews/navi/actions/eat-yellow/navi-eat-yellow-live-telemetry.mp4?v=20260805-grounded-1",
+  drink: "/assets/products/agentech-library/simulator-previews/navi/actions/drink/navi-drink-live-telemetry.mp4?v=20260805-grounded-1",
+  enjoy_eating: "/assets/products/agentech-library/simulator-previews/navi/actions/enjoy-eating/navi-enjoy-eating-live-telemetry.mp4?v=20260805-recapture-2",
+  finish_eating: "/assets/products/agentech-library/simulator-previews/navi/actions/finish-eating/navi-finish-eating-live-telemetry.mp4?v=20260805-recapture-2",
+  apply_toothpaste: "/assets/products/agentech-library/simulator-previews/navi/actions/apply-toothpaste/navi-apply-toothpaste-live-telemetry.mp4?v=20260805-grounded-1",
+  main_brush: "/assets/products/agentech-library/simulator-previews/navi/actions/main-brush/navi-main-brush-live-telemetry.mp4?v=20260805-grounded-1",
+  gargle: "/assets/products/agentech-library/simulator-previews/navi/actions/gargle/navi-gargle-live-telemetry.mp4?v=20260805-grounded-1",
+  brush_teeth_horizontal_30s: "/assets/products/agentech-library/simulator-previews/navi/actions/brush-teeth-horizontal-30s/navi-brush-teeth-horizontal-30s-live-telemetry.mp4?v=20260805-grounded-1",
+  brush_teeth_back_and_forth_30s: "/assets/products/agentech-library/simulator-previews/navi/actions/brush-teeth-back-and-forth-30s/navi-brush-teeth-back-and-forth-30s-live-telemetry.mp4?v=20260805-grounded-1",
+  brush_teeth_horizontal_23s: "/assets/products/agentech-library/simulator-previews/navi/actions/brush-teeth-horizontal-23s/navi-brush-teeth-horizontal-23s-live-telemetry.mp4?v=20260805-grounded-1",
+  raise_camera: "/assets/products/agentech-library/simulator-previews/navi/actions/raise-camera/navi-raise-camera-live-telemetry.mp4?v=20260805-recapture-2",
+  brush_teeth_vertical_30s: "/assets/products/agentech-library/simulator-previews/navi/actions/brush-teeth-vertical-30s/navi-brush-teeth-vertical-30s-live-telemetry.mp4?v=20260805-grounded-1",
   chat: "/assets/products/agentech-library/simulator-previews/navi/actions/chat/navi-reference-chat.gif?v=20260723-1",
   cooking: "/assets/products/agentech-library/simulator-previews/navi/actions/cooking/navi-reference-cooking.gif?v=20260723-1",
   duck_walk: "/assets/products/agentech-library/simulator-previews/navi/actions/duck-walk/navi-reference-duck-walk.gif?v=20260723-1",
@@ -300,29 +314,6 @@ const naviPreviewAliases: Partial<Record<string, string[]>> = {
   lateral: ["lateral_left", "lateral_right"],
   turn: ["turn_left", "turn_right"]
 };
-const naviPreviewPendingActions = new Set([
-  "prepare_camera",
-  "smell_food",
-  "look_at_food",
-  "eat_yellow",
-  "drink",
-  "enjoy_eating",
-  "finish_eating",
-  "apply_toothpaste",
-  "main_brush",
-  "gargle",
-  "brush_teeth_horizontal_30s",
-  "brush_teeth_back_and_forth_30s",
-  "brush_teeth_horizontal_23s",
-  "raise_camera",
-  "camera_stand_3s",
-  "take_photo",
-  "photo_wave_hand",
-  "brush_teeth_vertical_30s",
-  "before_take_photo_fast",
-  "after_take_photo_1_fast",
-  "after_take_photo_2_fast"
-]);
 const naviPreviewCategories = new Set(["Movement", "Athletics", "Actions", "Posture"]);
 const missingNaviSimulationAssets = naviFunctions
   .filter((item) =>
@@ -330,7 +321,6 @@ const missingNaviSimulationAssets = naviFunctions
     && item.status !== "unsupported"
     && naviPreviewCategories.has(item.category)
     && item.name !== "recovery_stand"
-    && !naviPreviewPendingActions.has(item.name)
   )
   .flatMap((item) => naviPreviewAliases[item.name] ?? [item.name])
   .filter((command) => !naviSimulationAssets[command]);

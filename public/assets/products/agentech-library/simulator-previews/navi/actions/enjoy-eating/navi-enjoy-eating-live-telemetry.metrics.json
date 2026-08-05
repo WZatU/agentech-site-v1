@@ -1,0 +1,19 @@
+{
+  "command": "enjoy_eating",
+  "duration_s": 4.965038614273069,
+  "source_duration_s": 8.926550149917603,
+  "replay_speed": 1.0,
+  "fps": 30,
+  "measured_samples": 245,
+  "median_sample_rate_hz": 27.765814907983582,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 0.15200042724609375,
+  "maximum_body_translation_m": 0.01655648146845687,
+  "maximum_abs_relative_roll_rad": 0.03240213613025844,
+  "maximum_abs_relative_pitch_rad": 0.010942136403173208,
+  "intentionally_lifted_legs": [],
+  "maximum_support_foot_error_m": 1.972857766956422e-05,
+  "maximum_support_vertical_error_m": 1.7602301692176692e-05,
+  "capture_sha256": "74fefd0eef1cb8accfe79fb89be02cec8f30d3cfe23a1043ac61acd2171ec45d",
+  "visual_correction": null
+}

@@ -1,0 +1,19 @@
+{
+  "command": "smell_food",
+  "duration_s": 6.465563945770264,
+  "source_duration_s": 8.300170421600342,
+  "replay_speed": 1.0,
+  "fps": 30,
+  "measured_samples": 221,
+  "median_sample_rate_hz": 26.89199421678095,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 1.384500503540039,
+  "maximum_body_translation_m": 0.049825032317296555,
+  "maximum_abs_relative_roll_rad": 0.03922409191727638,
+  "maximum_abs_relative_pitch_rad": 0.30960206408053637,
+  "intentionally_lifted_legs": [],
+  "maximum_support_foot_error_m": 0.01910095160873244,
+  "maximum_support_vertical_error_m": 1.9540735960471567e-05,
+  "capture_sha256": "2b2ac04033c2f38707c47b58f9c6d8020c1ea5b5ec22cdcef8a9a39d7ec95aac",
+  "visual_correction": null
+}
