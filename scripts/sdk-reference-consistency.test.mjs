@@ -44,7 +44,7 @@ const references = [
     robot: "navi",
     functions: navi.naviFunctions,
     starter: navi.naviStarterCode,
-    expectedCount: 116
+    expectedCount: 137
   },
   {
     robot: "master",
@@ -116,4 +116,34 @@ test("Aegis and Master reference only their current public names", () => {
       "action_catalog"
     ]
   );
+});
+
+test("Navi reference includes the 20700-20720 actions but not turn_around", () => {
+  const naviNames = new Set(navi.naviFunctions.map((item) => item.name));
+  const newActionNames = [
+    "prepare_camera",
+    "smell_food",
+    "look_at_food",
+    "eat_yellow",
+    "drink",
+    "enjoy_eating",
+    "finish_eating",
+    "apply_toothpaste",
+    "main_brush",
+    "gargle",
+    "brush_teeth_horizontal_30s",
+    "brush_teeth_back_and_forth_30s",
+    "brush_teeth_horizontal_23s",
+    "raise_camera",
+    "camera_stand_3s",
+    "take_photo",
+    "photo_wave_hand",
+    "brush_teeth_vertical_30s",
+    "before_take_photo_fast",
+    "after_take_photo_1_fast",
+    "after_take_photo_2_fast"
+  ];
+
+  for (const name of newActionNames) assert.ok(naviNames.has(name), name);
+  assert.ok(!naviNames.has("turn_around"));
 });
