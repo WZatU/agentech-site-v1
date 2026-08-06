@@ -12,6 +12,7 @@ import { eaicHubPath, getEaicHubTaskPath } from "@/features/eaic/01-clients/eaic
 import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/lib/agentech-motion-safety";
 import { normalizeAgentechRobotModel, robotModelOptions, type AgentechRobotModel } from "@/features/eaic/02-unified-api/resources-runs/agentech-robot-model";
 import { LiveRobotCamera } from "@/features/eaic/05-delivery/live-results/components/live-robot-camera";
+import { MasterMotorMap } from "@/features/eaic/01-clients/eaic-hub/components/master-motor-map";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 const naviReferenceCategories: AgentechFunction["category"][] = [
@@ -1808,6 +1809,8 @@ function FocusedBrowseFunctionsSection() {
             </div>
           </div>
         </div>
+
+        {selectedRobot === "master" ? <MasterMotorMap /> : null}
 
         <div className={`mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] ${selectedRobot === "master" ? "md:grid-cols-2" : "md:grid-cols-4"}`}>
           {groupedFunctions.map((group) => (

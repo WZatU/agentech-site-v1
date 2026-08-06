@@ -2,12 +2,12 @@
 
 ## Goal
 
-Add an informational Master motor map to the EAIC Hub SDK Library. Customers can see each controllable joint on a front-facing Master image and inspect its name and manufacturer movement limits.
+Add an informational Master motor map to the EAIC Hub SDK Library. Customers can see each controllable joint on the official front-and-back Master diagram and inspect its name and manufacturer movement limits.
 
 ## Scope
 
 - Display the map only when **Master** is selected in the SDK Library.
-- Reuse the existing front-facing `ff-master-ultra.jpg` asset.
+- Use the official AimDK `joint_name_and_limit.png` diagram supplied by the user, preserving both robot views and the yellow feet.
 - Overlay 31 accessible interactive markers:
   - 14 arm joints (7 per arm)
   - 12 leg joints (6 per leg)
@@ -19,7 +19,7 @@ Add an informational Master motor map to the EAIC Hub SDK Library. Customers can
 
 ## Data and Interaction Design
 
-The existing `lib/master-robot-joint-reference.ts` remains the single source for the official groups, degree ranges, runtime joint keys, and source URL. A client-side map model adds display coordinates and joins each marker to its official and runtime records.
+The existing joint-reference exports remain stable, but their data moves into a shared client-safe module so the browser map can use the same official groups, degree ranges, runtime joint keys, and source URL without duplication. A client-side map model adds display coordinates and joins each marker to its official and runtime records.
 
 Each marker is a native button with a visible focus state, descriptive accessible label, and a popup detail panel. Markers sharing one physical articulation are offset slightly so all independent axes remain reachable. Pointer hover previews a marker; click/tap pins it until another marker is selected. Keyboard Tab and Enter/Space provide equivalent access.
 
@@ -27,7 +27,7 @@ Each marker is a native button with a visible focus state, descriptive accessibl
 
 The Master Motor Map appears between the Master setup block and the command-category cards. It has three areas:
 
-1. A labelled front-view robot image with numbered motor markers.
+1. The labelled official front-and-back robot diagram with numbered motor markers mapped in the robot's physical left/right coordinate system.
 2. A selected-joint detail panel with the joint’s user-facing and runtime names plus limits in degrees and radians.
 3. A grouped reference table for arms, legs, waist, and head, with the official source link.
 
