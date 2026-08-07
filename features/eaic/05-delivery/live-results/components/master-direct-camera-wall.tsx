@@ -9,7 +9,7 @@ type Channel = { id: number; topic: string; schema: string; schemaName: string; 
 type CompressedImage = { data: Uint8Array; format?: string; header?: { stamp?: { sec?: number; nanosec?: number } } };
 type Frame = { url: string; receivedAt: number };
 
-const RELAY_URL = process.env.NEXT_PUBLIC_MASTER_CAMERA_RELAY_URL || "ws://127.0.0.1:21275";
+const RELAY_URL = process.env.NEXT_PUBLIC_MASTER_CAMERA_RELAY_URL || "ws://127.0.0.1:4175/robot";
 
 export function MasterDirectCameraWall({ selection }: { selection: MasterViewSelection }) {
   const [frames, setFrames] = useState<Partial<Record<MasterCameraId, Frame>>>({});
