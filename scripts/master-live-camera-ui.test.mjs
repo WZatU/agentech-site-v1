@@ -21,14 +21,21 @@ test("Live camera gates Master controls and keeps one shared video element", () 
   assert.match(camera, /Aegies live session: display-mode captures/);
 });
 
-test("Master preview is development-only and does not claim a live connection", () => {
+test("Master preview is development-only and uses the direct wired camera wall", () => {
   assert.match(camera, /NODE_ENV === "development"/);
   assert.match(camera, /NEXT_PUBLIC_MASTER_CAMERA_PREVIEW/);
   assert.match(camera, /masterCameraPreview/);
   assert.match(camera, /localhost|127\.0\.0\.1/);
-  assert.match(controls, /Master camera UI preview/);
-  assert.match(controls, /data-master-camera-placeholder/);
-  assert.match(controls, /Preview placeholder · connect Master for live video/);
-  assert.match(controls, /4K Focus/);
+  assert.match(controls, /Direct wired Master preview through AGENTECH01/);
   assert.match(controls, /onClick=\{\(\) => void choose\(\{ mode: "focus", cameraId: camera.id \}\)\}/);
+  assert.match(controls, /MasterDirectCameraWall/);
+  assert.match(controls, /selection=\{selection\}/);
+});
+
+test("Master direct wall keeps only newest frames and excludes rear", () => {
+  const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
+  assert.match(wall, /masterRobotMode: selection.mode === "focus" \? "focus" : "preview"/);
+  assert.match(wall, /URL\.revokeObjectURL/);
+  assert.match(wall, /4K Focus/);
+  assert.doesNotMatch(wall, /rear-view|rgb_head_rear/);
 });

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MASTER_LIVE_CAMERAS, type MasterViewSelection } from "@/lib/master-live-camera";
+import { MasterDirectCameraWall } from "./master-direct-camera-wall";
 
 export function MasterLiveCameraControls({ preview = false }: { preview?: boolean }) {
   const [selection, setSelection] = useState<MasterViewSelection>({ mode: "wall" });
@@ -55,35 +56,9 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
         ))}
       </div>
       {preview ? (
-        <div className={`mt-4 grid gap-3 ${selection.mode === "wall" ? "sm:grid-cols-2" : "grid-cols-1"}`}>
-          {MASTER_LIVE_CAMERAS
-            .filter((camera) => selection.mode === "wall" || selection.cameraId === camera.id)
-            .map((camera, index) => (
-              <button
-                key={camera.id}
-                type="button"
-                data-master-camera-placeholder
-                aria-label={`Open ${camera.label} in 4K focus view`}
-                disabled={pending}
-                onClick={() => void choose({ mode: "focus", cameraId: camera.id })}
-                className="relative aspect-video overflow-hidden border border-[#476784] bg-[radial-gradient(circle_at_50%_30%,#264c69_0%,#102438_42%,#07111c_100%)] text-left transition hover:border-[#93c5fd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#93c5fd] disabled:opacity-60"
-              >
-                <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(rgba(147,197,253,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(147,197,253,.16) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
-                <div className="absolute inset-0 grid place-items-center text-center">
-                  <div>
-                    <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-[#93c5fd]/60 bg-[#0b1e31]/80 text-lg">{index + 1}</div>
-                    <p className="mt-3 text-sm font-bold text-white">{camera.label}</p>
-                    <p className="mt-1 text-[11px] text-[#bfdbfe]">Preview placeholder · connect Master for live video</p>
-                  </div>
-                </div>
-                <span className="absolute left-2 top-2 bg-[#07111c]/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#93c5fd]">
-                  {selection.mode === "wall" ? "1080p allocation" : "4K Focus"}
-                </span>
-              </button>
-            ))}
-        </div>
+        <MasterDirectCameraWall selection={selection} />
       ) : null}
-      {preview ? <p className="mt-3 text-xs text-[#bfdbfe]">Master camera UI preview · no robot or live feed is connected.</p> : null}
+      {preview ? <p className="mt-3 text-xs text-[#bfdbfe]">Direct wired Master preview through AGENTECH01.</p> : null}
       {error ? <p className="mt-3 text-xs text-[#fca5a5]" role="alert">{error}</p> : null}
     </section>
   );
