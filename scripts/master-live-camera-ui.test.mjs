@@ -26,4 +26,6 @@ test("Master preview is development-only and does not claim a live connection", 
   assert.match(camera, /masterCameraPreview/);
   assert.match(camera, /localhost|127\.0\.0\.1/);
   assert.match(controls, /Master camera UI preview/);
+  assert.match(controls, /data-master-camera-placeholder/);
+  assert.match(controls, /Preview placeholder · connect Master for live video/);
 });
