@@ -32,12 +32,13 @@ test("Master preview is development-only and uses the direct wired camera wall",
   assert.match(controls, /selection=\{selection\}/);
 });
 
-test("Master direct wall keeps only newest frames and excludes rear", () => {
+test("Master direct wall paints only the newest decoded frame and excludes rear", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
   assert.match(wall, /masterRobotMode: selection.mode === "focus" \? "focus" : "preview"/);
-  assert.match(wall, /URL\.revokeObjectURL/);
-  assert.match(wall, /setFrames\(Object\.fromEntries/);
-  assert.doesNotMatch(wall, /setFrames\(\(current\)/);
+  assert.match(wall, /createImageBitmap/);
+  assert.match(wall, /decodeVersions/);
+  assert.match(wall, /drawImage\(bitmap/);
+  assert.doesNotMatch(wall, /<img/);
   assert.match(wall, /4K Focus/);
   assert.doesNotMatch(wall, /rear-view|rgb_head_rear/);
 });

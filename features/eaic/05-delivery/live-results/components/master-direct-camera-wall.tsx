@@ -7,16 +7,14 @@ import { MASTER_LIVE_CAMERAS, type MasterCameraId, type MasterViewSelection } fr
 
 type Channel = { id: number; topic: string; schema: string; schemaName: string; encoding: string };
 type CompressedImage = { data: Uint8Array; format?: string; header?: { stamp?: { sec?: number; nanosec?: number } } };
-type Frame = { url: string; receivedAt: number };
 
 const RELAY_URL = process.env.NEXT_PUBLIC_MASTER_CAMERA_RELAY_URL || "ws://127.0.0.1:4175/robot";
 
 export function MasterDirectCameraWall({ selection }: { selection: MasterViewSelection }) {
-  const [frames, setFrames] = useState<Partial<Record<MasterCameraId, Frame>>>({});
+  const [available, setAvailable] = useState<Partial<Record<MasterCameraId, boolean>>>({});
   const [status, setStatus] = useState("Connecting to Master cameras…");
-  const urls = useRef(new Map<MasterCameraId, string>());
-  const pendingUrls = useRef(new Map<MasterCameraId, string>());
-  const paintRequest = useRef<number | null>(null);
+  const canvases = useRef(new Map<MasterCameraId, HTMLCanvasElement>());
+  const decodeVersions = useRef(new Map<MasterCameraId, number>());
 
   useEffect(() => {
     let stopped = false;
@@ -71,26 +69,24 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
           const image = subscription.reader.readMessage(bytes.subarray(13)) as CompressedImage;
           const mime = String(image.format || "jpeg").toLowerCase().includes("png") ? "image/png" : "image/jpeg";
           const data = new Uint8Array(image.data);
-          const url = URL.createObjectURL(new Blob([data.buffer], { type: mime }));
-          const superseded = pendingUrls.current.get(subscription.cameraId);
-          if (superseded) URL.revokeObjectURL(superseded);
-          pendingUrls.current.set(subscription.cameraId, url);
-          if (paintRequest.current == null) {
-            paintRequest.current = requestAnimationFrame(() => {
-              paintRequest.current = null;
-              const newest = new Map(pendingUrls.current);
-              pendingUrls.current.clear();
-              for (const [cameraId, newestUrl] of newest) {
-                const previous = urls.current.get(cameraId);
-                urls.current.set(cameraId, newestUrl);
-                if (previous) URL.revokeObjectURL(previous);
-              }
-              const receivedAt = Date.now();
-              setFrames(Object.fromEntries(
-                [...urls.current].map(([cameraId, currentUrl]) => [cameraId, { url: currentUrl, receivedAt }]),
-              ));
-            });
+          const cameraId = subscription.cameraId;
+          const version = (decodeVersions.current.get(cameraId) ?? 0) + 1;
+          decodeVersions.current.set(cameraId, version);
+          const bitmap = await createImageBitmap(new Blob([data.buffer], { type: mime }));
+          if (decodeVersions.current.get(cameraId) !== version) {
+            bitmap.close();
+            return;
           }
+          const canvas = canvases.current.get(cameraId);
+          if (!canvas) {
+            bitmap.close();
+            return;
+          }
+          if (canvas.width !== bitmap.width) canvas.width = bitmap.width;
+          if (canvas.height !== bitmap.height) canvas.height = bitmap.height;
+          canvas.getContext("2d", { alpha: false })?.drawImage(bitmap, 0, 0);
+          bitmap.close();
+          setAvailable((current) => current[cameraId] ? current : { ...current, [cameraId]: true });
         };
         void decode();
       };
@@ -111,25 +107,23 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
     };
   }, [selection]);
 
-  useEffect(() => () => {
-    if (paintRequest.current != null) cancelAnimationFrame(paintRequest.current);
-    for (const url of pendingUrls.current.values()) URL.revokeObjectURL(url);
-    pendingUrls.current.clear();
-    for (const url of urls.current.values()) URL.revokeObjectURL(url);
-    urls.current.clear();
-  }, []);
-
   const visible = MASTER_LIVE_CAMERAS.filter((camera) => selection.mode === "wall" || camera.id === selection.cameraId);
   return (
     <div className="mt-4">
       <p className="mb-2 text-xs text-[#bfdbfe]" role="status">{status}</p>
       <div className={`grid gap-3 ${selection.mode === "wall" ? "sm:grid-cols-2" : "grid-cols-1"}`}>
         {visible.map((camera) => {
-          const frame = frames[camera.id];
           return (
             <div key={camera.id} data-master-camera-live className="relative aspect-video overflow-hidden border border-[#476784] bg-[#07111c]">
-              {/* Blob URLs are live frames and cannot use Next's server image optimizer. */}
-              {frame ? <img /* eslint-disable-line @next/next/no-img-element */ src={frame.url} alt={`${camera.label} live camera`} className="h-full w-full object-contain" /> : <div className="grid h-full place-items-center text-sm text-[#bfdbfe]">Waiting for {camera.label}…</div>}
+              <canvas
+                ref={(node) => {
+                  if (node) canvases.current.set(camera.id, node);
+                  else canvases.current.delete(camera.id);
+                }}
+                aria-label={`${camera.label} live camera`}
+                className="h-full w-full object-contain"
+              />
+              {available[camera.id] ? null : <div className="absolute inset-0 grid place-items-center text-sm text-[#bfdbfe]">Waiting for {camera.label}…</div>}
               <span className="absolute left-2 top-2 bg-[#07111c]/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#93c5fd]">{camera.label} · {selection.mode === "wall" ? "1080p" : "4K Focus"}</span>
             </div>
           );
