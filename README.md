@@ -842,6 +842,20 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 
 ### Local Robot-Camera Operations
 
+For Master sessions, the Live Stream client keeps the existing single LiveKit
+program track and adds Master-only Wall/Focus controls. The active session must
+report `robot_model=Master`; Aegies and Navi follow their existing paths. The
+four allowed Master Robot Vision feeds are Front Main, Front Left, Front Right,
+and Rear View. RGB-D, depth, and LiDAR are intentionally excluded. The gateway
+must composite wall mode as four 1080p quadrants in one 3840x2160 OBS program,
+or switch that same program to one selected camera at up to its native 4K
+resolution. Use Master's wired development connection for supervised hardware
+acceptance.
+
+Set `NEXT_PUBLIC_MASTER_CAMERA_PREVIEW=1` only for local development to review
+the controls without an active Master session. The preview does not mint a
+LiveKit token and clearly states that no robot or live feed is connected.
+
 - The OBS/LiveKit stream bridge is intended to run on the Windows computer connected to the Logitech camera and OBS.
 - The bridge polls Supabase for upcoming `agentech_robot_sessions`, starts OBS streaming shortly before a scheduled session, and stops when no active session is due.
 - For a custom-code booking, the website pins the exact reviewed `agentech_code_submissions` record to the session. During the preparation window, the standalone gateway rechecks both review gates, atomically claims the booking, parses the submitted Python without executing it, and compiles supported literal SDK calls into an inert JSON plan.
