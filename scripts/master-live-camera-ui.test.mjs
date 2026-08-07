@@ -29,4 +29,6 @@ test("Master preview is development-only and does not claim a live connection", 
   assert.match(controls, /Master camera UI preview/);
   assert.match(controls, /data-master-camera-placeholder/);
   assert.match(controls, /Preview placeholder · connect Master for live video/);
+  assert.match(controls, /4K Focus/);
+  assert.match(controls, /onClick=\{\(\) => void choose\(\{ mode: "focus", cameraId: camera.id \}\)\}/);
 });

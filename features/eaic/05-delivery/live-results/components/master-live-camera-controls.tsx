@@ -59,7 +59,15 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
           {MASTER_LIVE_CAMERAS
             .filter((camera) => selection.mode === "wall" || selection.cameraId === camera.id)
             .map((camera, index) => (
-              <div key={camera.id} data-master-camera-placeholder className="relative aspect-video overflow-hidden border border-[#476784] bg-[radial-gradient(circle_at_50%_30%,#264c69_0%,#102438_42%,#07111c_100%)]">
+              <button
+                key={camera.id}
+                type="button"
+                data-master-camera-placeholder
+                aria-label={`Open ${camera.label} in 4K focus view`}
+                disabled={pending}
+                onClick={() => void choose({ mode: "focus", cameraId: camera.id })}
+                className="relative aspect-video overflow-hidden border border-[#476784] bg-[radial-gradient(circle_at_50%_30%,#264c69_0%,#102438_42%,#07111c_100%)] text-left transition hover:border-[#93c5fd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#93c5fd] disabled:opacity-60"
+              >
                 <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(rgba(147,197,253,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(147,197,253,.16) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
                 <div className="absolute inset-0 grid place-items-center text-center">
                   <div>
@@ -68,8 +76,10 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
                     <p className="mt-1 text-[11px] text-[#bfdbfe]">Preview placeholder · connect Master for live video</p>
                   </div>
                 </div>
-                <span className="absolute left-2 top-2 bg-[#07111c]/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#93c5fd]">1080p allocation</span>
-              </div>
+                <span className="absolute left-2 top-2 bg-[#07111c]/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#93c5fd]">
+                  {selection.mode === "wall" ? "1080p allocation" : "4K Focus"}
+                </span>
+              </button>
             ))}
         </div>
       ) : null}
