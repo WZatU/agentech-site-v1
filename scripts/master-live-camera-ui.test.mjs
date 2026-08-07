@@ -36,6 +36,8 @@ test("Master direct wall keeps only newest frames and excludes rear", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
   assert.match(wall, /masterRobotMode: selection.mode === "focus" \? "focus" : "preview"/);
   assert.match(wall, /URL\.revokeObjectURL/);
+  assert.match(wall, /setFrames\(Object\.fromEntries/);
+  assert.doesNotMatch(wall, /setFrames\(\(current\)/);
   assert.match(wall, /4K Focus/);
   assert.doesNotMatch(wall, /rear-view|rgb_head_rear/);
 });

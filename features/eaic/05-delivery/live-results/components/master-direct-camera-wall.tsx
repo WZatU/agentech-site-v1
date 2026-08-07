@@ -80,16 +80,15 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
               paintRequest.current = null;
               const newest = new Map(pendingUrls.current);
               pendingUrls.current.clear();
-              setFrames((current) => {
-                const next = { ...current };
-                for (const [cameraId, newestUrl] of newest) {
-                  const previous = urls.current.get(cameraId);
-                  urls.current.set(cameraId, newestUrl);
-                  next[cameraId] = { url: newestUrl, receivedAt: Date.now() };
-                  if (previous) URL.revokeObjectURL(previous);
-                }
-                return next;
-              });
+              for (const [cameraId, newestUrl] of newest) {
+                const previous = urls.current.get(cameraId);
+                urls.current.set(cameraId, newestUrl);
+                if (previous) URL.revokeObjectURL(previous);
+              }
+              const receivedAt = Date.now();
+              setFrames(Object.fromEntries(
+                [...urls.current].map(([cameraId, currentUrl]) => [cameraId, { url: currentUrl, receivedAt }]),
+              ));
             });
           }
         };
