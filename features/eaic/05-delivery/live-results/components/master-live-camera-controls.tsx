@@ -38,7 +38,7 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">Master Robot Vision</p>
           <p className="mt-1 text-sm leading-6">
             {selection.mode === "wall"
-              ? "Camera Wall · three 1080p views inside one 4K program"
+              ? "Camera Wall · four 1080p views inside one 4K program"
               : `${MASTER_LIVE_CAMERAS.find(({ id }) => id === selection.cameraId)?.label} · focused up to native 4K`}
           </p>
         </div>
@@ -55,7 +55,7 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
         ))}
       </div>
       {preview ? (
-        <div className={`mt-4 grid gap-3 ${selection.mode === "wall" ? "lg:grid-cols-3" : "grid-cols-1"}`}>
+        <div className={`mt-4 grid gap-3 ${selection.mode === "wall" ? "sm:grid-cols-2" : "grid-cols-1"}`}>
           {MASTER_LIVE_CAMERAS
             .filter((camera) => selection.mode === "wall" || selection.cameraId === camera.id)
             .map((camera, index) => (

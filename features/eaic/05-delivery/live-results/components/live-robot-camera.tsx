@@ -362,7 +362,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           : "border-[#2a3440] bg-[#0d1117] text-[#aeb8c2]"
     }`}>
       {isMasterSession
-        ? "Master live session: choose the three-camera wall or focus one front RGB camera."
+        ? "Master live session: choose the four-camera wall or focus one approved color camera."
         : isNaviSession
         ? "Navi live session: live video only. Navi does not support Agentech.capture_image(), so no capture preview is shown."
         : showLiveCapturePreview

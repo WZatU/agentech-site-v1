@@ -845,9 +845,9 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 For Master sessions, the Live Stream client keeps the existing single LiveKit
 program track and adds Master-only Wall/Focus controls. The active session must
 report `robot_model=Master`; Aegies and Navi follow their existing paths. The
-three allowed Master Robot Vision feeds are Front Main, Front Left, and Front
-Right. Rear View, RGB-D, depth, and LiDAR are intentionally excluded. The gateway
-must composite wall mode as three 1080p quadrants in one 3840x2160 OBS program,
+four allowed Master Robot Vision feeds are Front Main, Front Left, Front Right,
+and RGB-D Color. Rear View, Depth Map, and LiDAR are intentionally excluded. The gateway
+must composite wall mode as four 1080p quadrants in one 3840x2160 OBS program,
 or switch that same program to one selected camera at up to its native 4K
 resolution. Use Master's wired development connection for supervised hardware
 acceptance.

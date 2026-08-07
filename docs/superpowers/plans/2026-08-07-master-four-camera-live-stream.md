@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a Master-only three-front-camera wall/focus experience to the existing Live Stream delivery layer while preserving Aegies and Navi behavior.
+**Goal:** Add a Master-only four-color-camera wall/focus experience to the existing Live Stream delivery layer while preserving Aegies and Navi behavior.
 
 **Architecture:** Extend the shared robot-model normalizer so delivery APIs can identify an externally provisioned Master session. Store the active Master's validated view preference through a session-bound API, render one existing LiveKit program track with Master-only controls, and provide a gateway contract that maps wall/focus preferences to the one-4K-output compositor. A development-only preview flag makes the UI reviewable without robot hardware.
 
@@ -11,9 +11,9 @@
 ## Global Constraints
 
 - Aegies and Navi Live Stream behavior must remain unchanged.
-- Use only Front Main, Front Left, and Front Right; exclude Rear View, RGB-D Color, Depth Map, and LiDAR 3D.
+- Use only Front Main, Front Left, Front Right, and RGB-D Color; exclude Rear View, Depth Map, and LiDAR 3D.
 - Publish exactly one output track with a maximum 3840x2160 frame size.
-- Wall mode allocates 1920x1080 to each of three quadrants; focus mode enables one camera at up to native 3840x2160.
+- Wall mode allocates 1920x1080 to each of four quadrants; focus mode enables one camera at up to native 3840x2160.
 - Master controls appear only for an active Master session, except under an explicit development-only local preview flag.
 - Do not enable public Master booking, code execution, or robot motion.
 
@@ -31,7 +31,7 @@
 - Produces: `MASTER_LIVE_CAMERAS`, `normalizeMasterCameraId(value)`, `normalizeMasterViewSelection(value)`, `MasterCameraId`, and `MasterViewSelection`.
 - Produces: `normalizeAgentechRobotModel("Master") === "Master"` without changing Aegies/Navi aliases.
 
-- [ ] **Step 1: Write failing Node tests** for the three-item allowlist, excluded sensor IDs, wall/focus validation, invalid fallback to wall, and robot-model normalization.
+- [ ] **Step 1: Write failing Node tests** for the four-item allowlist, excluded sensor IDs, wall/focus validation, invalid fallback to wall, and robot-model normalization.
 - [ ] **Step 2: Run `node --test scripts/master-live-camera.test.mjs`** and confirm missing-module or failed-assertion output.
 - [ ] **Step 3: Implement the immutable camera metadata and normalization functions** with `wall` as the safe fallback and an allowlisted camera required for `focus`.
 - [ ] **Step 4: Add `test:master-live-camera` to `package.json` and the aggregate `test` script.**
@@ -68,9 +68,9 @@
 
 **Interfaces:**
 - Consumes: active robot model and the API from Task 2.
-- Produces: `MasterLiveCameraControls` with Wall and three Focus choices, actual-output labeling, pending/error status, and no additional video element or LiveKit connection.
+- Produces: `MasterLiveCameraControls` with Wall and four Focus choices, actual-output labeling, pending/error status, and no additional video element or LiveKit connection.
 
-- [ ] **Step 1: Write failing source-contract tests** asserting Master-only gating, all three labels, exclusions, one shared `<video>`, and unchanged Aegies/Navi copy branches.
+- [ ] **Step 1: Write failing source-contract tests** asserting Master-only gating, all four labels, exclusions, one shared `<video>`, and unchanged Aegies/Navi copy branches.
 - [ ] **Step 2: Run the UI contract test and confirm failure.**
 - [ ] **Step 3: Implement the focused controls component** with accessible pressed states, POST selection, safe rollback/error copy, and responsive layout.
 - [ ] **Step 4: Integrate it only when `activeRobotModel === "Master"`; keep the existing video lifecycle and Aegies capture/Navi paths intact.**
@@ -88,10 +88,10 @@
 - Modify: `package.json`
 
 **Interfaces:**
-- Consumes: local Master Robot Vision `/robot` relay, authenticated Master selection API, and the three domain camera topics.
-- Produces: one local 3840x2160 browser-program page for OBS: three-view labeled wall or selected-camera focus; uses newest frames only and shows labeled unavailable placeholders.
+- Consumes: local Master Robot Vision `/robot` relay, authenticated Master selection API, and the four domain camera topics.
+- Produces: one local 3840x2160 browser-program page for OBS: four-view labeled wall or selected-camera focus; uses newest frames only and shows labeled unavailable placeholders.
 
-- [ ] **Step 1: Write failing tests** for canvas geometry, three-topic allowlist, focus subscription set, unavailable placeholders, and rejection of rear/RGB-D/depth/LiDAR.
+- [ ] **Step 1: Write failing tests** for canvas geometry, four-topic allowlist, focus subscription set, unavailable placeholders, and rejection of rear/depth/LiDAR.
 - [ ] **Step 2: Run the focused test and confirm failure.**
 - [ ] **Step 3: Implement pure program-layout and subscription-selection functions** exported by the script without starting hardware during import.
 - [ ] **Step 4: Implement the supervised local HTTP/browser program** behind an explicit start command; connect only to the loopback Master Vision relay, keep latest frames, and expose no SDK endpoint.
@@ -110,6 +110,6 @@
 
 - [ ] **Step 1: Start Next.js with `NEXT_PUBLIC_MASTER_CAMERA_PREVIEW=1` on an available local port.**
 - [ ] **Step 2: Open the Live Stream route in the in-app browser.**
-- [ ] **Step 3: Verify desktop and narrow layouts, all three camera choices, wall/focus interaction, waiting-state honesty, and no console errors.**
+- [ ] **Step 3: Verify desktop and narrow layouts, all four camera choices, wall/focus interaction, waiting-state honesty, and no console errors.**
 - [ ] **Step 4: Run `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`; record exact results.**
 - [ ] **Step 5: Leave the local server running and provide the URL for user review.**

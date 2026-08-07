@@ -5,10 +5,11 @@ import test from "node:test";
 const controls = readFileSync(new URL("../features/eaic/05-delivery/live-results/components/master-live-camera-controls.tsx", import.meta.url), "utf8");
 const camera = readFileSync(new URL("../features/eaic/05-delivery/live-results/components/live-robot-camera.tsx", import.meta.url), "utf8");
 
-test("Master controls expose wall and exactly three requested front RGB camera choices", () => {
+test("Master controls expose wall, three front RGB cameras, and RGB-D Color", () => {
   assert.match(controls, /Camera Wall/);
   assert.match(controls, /MASTER_LIVE_CAMERAS\.map/);
-  assert.doesNotMatch(controls, /RGB-D Color|Depth Map|LiDAR 3D/);
+  assert.match(camera + controls, /RGB-D Color|MASTER_LIVE_CAMERAS/);
+  assert.doesNotMatch(controls, /Depth Map|LiDAR 3D/);
   assert.doesNotMatch(controls, /Rear View/);
 });
 
