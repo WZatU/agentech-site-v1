@@ -38,7 +38,7 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">Master Robot Vision</p>
           <p className="mt-1 text-sm leading-6">
             {selection.mode === "wall"
-              ? "Camera Wall · four 1080p views inside one 4K program"
+              ? "Camera Wall · three 1080p views inside one 4K program"
               : `${MASTER_LIVE_CAMERAS.find(({ id }) => id === selection.cameraId)?.label} · focused up to native 4K`}
           </p>
         </div>
@@ -46,7 +46,7 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
           One 4K stream max
         </span>
       </div>
-      <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <button type="button" aria-pressed={selection.mode === "wall"} disabled={pending} onClick={() => void choose({ mode: "wall" })} className="border border-[#4b6680] px-3 py-2 text-xs font-semibold transition aria-pressed:border-[#93c5fd] aria-pressed:bg-[#1d4f78] disabled:opacity-60">Camera Wall</button>
         {MASTER_LIVE_CAMERAS.map((camera) => (
           <button key={camera.id} type="button" aria-pressed={selection.mode === "focus" && selection.cameraId === camera.id} disabled={pending} onClick={() => void choose({ mode: "focus", cameraId: camera.id })} className="border border-[#4b6680] px-3 py-2 text-xs font-semibold transition aria-pressed:border-[#93c5fd] aria-pressed:bg-[#1d4f78] disabled:opacity-60">

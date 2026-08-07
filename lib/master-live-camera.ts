@@ -4,7 +4,6 @@ export const MASTER_LIVE_CAMERAS = [
   { id: "front-main", label: "Front Main", topic: "/aima/hal/sensor/rgb_head_front_center/rgb_image/compressed" },
   { id: "front-left", label: "Front Left", topic: "/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed" },
   { id: "front-right", label: "Front Right", topic: "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed" },
-  { id: "rear-view", label: "Rear View", topic: "/aima/hal/sensor/rgb_head_rear/rgb_image/compressed" },
 ] as const;
 
 export type MasterCameraId = (typeof MASTER_LIVE_CAMERAS)[number]["id"];

@@ -7,13 +7,13 @@ import {
   normalizeMasterViewSelection,
 } from "../lib/master-live-camera.ts";
 
-test("Master live camera allowlist contains only the four primary RGB views", () => {
+test("Master live camera allowlist contains only the three requested front RGB views", () => {
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ id }) => id), [
     "front-main",
     "front-left",
     "front-right",
-    "rear-view",
   ]);
+  assert.equal(normalizeMasterCameraId("rear-view"), null);
   assert.equal(normalizeMasterCameraId("rgbd-color"), null);
   assert.equal(normalizeMasterCameraId("depth-map"), null);
   assert.equal(normalizeMasterCameraId("lidar-3d"), null);
@@ -21,9 +21,9 @@ test("Master live camera allowlist contains only the four primary RGB views", ()
 
 test("Master view selection accepts wall or one allowlisted focus camera", () => {
   assert.deepEqual(normalizeMasterViewSelection({ mode: "wall" }), { mode: "wall" });
-  assert.deepEqual(normalizeMasterViewSelection({ mode: "focus", cameraId: "rear-view" }), {
+  assert.deepEqual(normalizeMasterViewSelection({ mode: "focus", cameraId: "front-right" }), {
     mode: "focus",
-    cameraId: "rear-view",
+    cameraId: "front-right",
   });
   assert.deepEqual(normalizeMasterViewSelection({ mode: "focus", cameraId: "depth-map" }), {
     mode: "wall",
