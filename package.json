@@ -23,6 +23,7 @@
     "test:master-simulation-previews": "node --test scripts/master-simulation-previews.test.mjs",
     "test:master-motor-map": "node --test scripts/master-motor-map.test.mjs",
     "test:master-live-camera": "node --test scripts/master-live-camera.test.mjs scripts/master-live-camera-state.test.mjs scripts/master-live-camera-ui.test.mjs",
+    "test:master-live-camera-gateway": "node --test scripts/master-live-camera-gateway.test.mjs",
     "test": "npm run test:robot-stream-bridge && npm run test:return-to-home-access && npm run test:sdk-reference && npm run test:master-simulation-previews && npm run test:master-motor-map && npm run test:master-live-camera",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
