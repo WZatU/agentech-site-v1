@@ -185,7 +185,8 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
     async function connect() {
       try {
         setStatus("Connecting to live robot camera...");
-        const response = await fetch(`/api/livekit-token?room=${encodeURIComponent(roomName)}`, { cache: "no-store" });
+        const targetRoomName = activeRobotModel === "Master" ? "master-live-1" : roomName;
+        const response = await fetch(`/api/livekit-token?room=${encodeURIComponent(targetRoomName)}`, { cache: "no-store" });
         const payload = (await response.json()) as { token?: string; error?: string; robotModel?: string };
 
         if (!response.ok || !payload.token) {
@@ -296,7 +297,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       }
       activeRoom?.disconnect();
     };
-  }, [roomName, isViewing, receiveCapture]);
+  }, [roomName, isViewing, receiveCapture, activeRobotModel]);
 
   useEffect(() => {
     if (!isViewing) {

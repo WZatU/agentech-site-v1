@@ -5,6 +5,7 @@ import {
   type MasterGatewaySessionRow,
 } from "@/lib/master-live-camera-gateway-session";
 import { getMasterViewSelection } from "@/lib/master-live-camera-state";
+import { createMasterPublisherToken } from "@/lib/master-livekit-publisher";
 import { supabaseRequest } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
@@ -32,10 +33,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ active: false }, { headers: noStoreHeaders });
   }
 
+  const roomName = process.env.MASTER_LIVEKIT_ROOM_NAME || "master-live-1";
+  const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL || "";
+  const publisherToken = await createMasterPublisherToken({
+    apiKey: process.env.LIVEKIT_API_KEY || "",
+    apiSecret: process.env.LIVEKIT_API_SECRET || "",
+    roomName,
+    sessionId: session.id,
+  });
+
   return NextResponse.json({
     active: true,
     sessionId: session.id,
-    roomName: process.env.LIVEKIT_ROOM_NAME || "master-live-1",
+    roomName,
+    livekitUrl,
+    publisherToken,
     selection: await getMasterViewSelection(session.id),
     expiresAt: session.scheduledEnd,
   }, { headers: noStoreHeaders });

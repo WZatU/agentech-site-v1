@@ -19,6 +19,9 @@ test("private gateway route is no-store and returns only active Master state", (
   assert.match(route, /robotModel !== "Master"/);
   assert.match(route, /active: false/);
   assert.match(route, /Cache-Control.*no-store/s);
+  assert.match(route, /createMasterPublisherToken/);
+  assert.match(route, /livekitUrl/);
+  assert.match(route, /publisherToken/);
   assert.doesNotMatch(route, /Aegies.*active: true|Navi.*active: true/s);
 });
 

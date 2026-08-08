@@ -15,6 +15,7 @@ test("Master controls expose wall, three front RGB cameras, and RGB-D Color", ()
 
 test("Live camera gates Master controls and keeps one shared video element", () => {
   assert.match(camera, /activeRobotModel === "Master"/);
+  assert.match(camera, /activeRobotModel === "Master" \? "master-live-1" : roomName/);
   assert.match(camera, /MasterLiveCameraControls/);
   assert.equal((camera.match(/<video\b/g) ?? []).length, 1);
   assert.match(camera, /Navi live session: live video only/);
