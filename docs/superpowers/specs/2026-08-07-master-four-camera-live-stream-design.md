@@ -45,6 +45,8 @@ A Master compositor module on that gateway consumes the four approved color feed
 
 The compositor publishes that one program as the scheduled room's LiveKit video track. It must use latest-frame-only queues and discard superseded frames so latency cannot grow without bound. The robot should use its wired development connection for live operation because the Master Robot Vision documentation identifies the RGB set as exceeding the measured Wi-Fi link capacity.
 
+For production, the gateway publishes to the existing LiveKit Cloud project named `agentech-robot-lab`. AGENTECH01 is the persistent gateway: Master remains connected to it through the wired `10.0.1.0/24` robot network, while AGENTECH01 reaches LiveKit Cloud through its normal internet connection. The developer laptop is not part of the production data path.
+
 ### Website
 
 The website continues to obtain a viewer token from `/api/livekit-token` and subscribe to the scheduled room. The existing token response supplies `robotModel`, allowing the client to select the Master presentation without exposing robot addresses or credentials.
@@ -55,6 +57,8 @@ Master mode commands are sent through an authenticated, session-bound website AP
 - camera ID: one of the four allowlisted color sensor IDs when mode is `focus`.
 
 The gateway polls or receives the current session-bound selection through its authenticated control channel. The browser never connects directly to `127.0.0.1:4173`, the robot coBridge address, or the SDK endpoint.
+
+The main website is deployed through its existing Vercel project. Vercel stores the LiveKit URL, API key, and API secret as environment variables; only `NEXT_PUBLIC_LIVEKIT_URL` is exposed to the browser. The API secret is never committed to Git, copied into client-side code, or exposed by the gateway's public interface.
 
 ### Free-tier enforcement
 
@@ -75,6 +79,8 @@ This design adds no paid-tier behavior. It establishes the requested free limit 
 5. A mode selection is authenticated against the signed-in account and active Master session.
 6. The gateway applies the validated selection, changes robot subscriptions, and keeps publishing on the same LiveKit track.
 7. At session end, the gateway stops the compositor and camera subscriptions; the website returns to its existing waiting state.
+
+The production path is therefore `Master -> Ethernet -> AGENTECH01 -> LiveKit Cloud -> Vercel website`. Reboot recovery on AGENTECH01 must start both the robot relay and the LiveKit publisher automatically without requiring the developer laptop.
 
 ## Failure Handling
 
