@@ -21,12 +21,17 @@ async function activeMasterSession() {
 export async function GET() {
   const result = await activeMasterSession();
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: result.status });
-  return NextResponse.json({ sessionId: result.session.id, selection: getMasterViewSelection(result.session.id) });
+  return NextResponse.json({ sessionId: result.session.id, selection: await getMasterViewSelection(result.session.id) });
 }
 
 export async function POST(request: Request) {
   const result = await activeMasterSession();
   if ("error" in result) return NextResponse.json({ error: result.error }, { status: result.status });
-  const selection = setMasterViewSelection(result.session.id, await request.json().catch(() => null));
+  const expiresAt = result.session.scheduledEnd ?? new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  const selection = await setMasterViewSelection(
+    result.session.id,
+    await request.json().catch(() => null),
+    expiresAt,
+  );
   return NextResponse.json({ sessionId: result.session.id, selection });
 }
