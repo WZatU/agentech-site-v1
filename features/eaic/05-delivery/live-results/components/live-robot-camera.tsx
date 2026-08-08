@@ -2,7 +2,8 @@
 
 import { Room, RoomEvent, Track, type RemoteTrack } from "livekit-client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { normalizeAgentechRobotModel, type AgentechRobotModel } from "@/features/eaic/02-unified-api/resources-runs/agentech-robot-model";
+import { normalizeLiveRobotModel, type LiveRobotModel } from "@/lib/master-live-camera";
+import { MasterLiveCameraControls } from "./master-live-camera-controls";
 
 type LiveRobotCameraProps = {
   roomName: string;
@@ -46,11 +47,22 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   const [captureHistory, setCaptureHistory] = useState<DisplayCapture[]>([]);
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
-  const [activeRobotModel, setActiveRobotModel] = useState<AgentechRobotModel | null>(null);
+  const [activeRobotModel, setActiveRobotModel] = useState<LiveRobotModel | null>(null);
+  const [localMasterPreview, setLocalMasterPreview] = useState(false);
   const localCaptureIdRef = useRef("");
   const manuallyStoppedSessionIdRef = useRef<number | null>(null);
   const isNaviSession = hasActiveSession && activeRobotModel === "Navi";
   const showLiveCapturePreview = hasActiveSession && activeRobotModel === "Aegies";
+  const masterPreview = process.env.NODE_ENV === "development"
+    && (process.env.NEXT_PUBLIC_MASTER_CAMERA_PREVIEW === "1" || localMasterPreview);
+  const isMasterSession = hasActiveSession && activeRobotModel === "Master";
+  const showMasterControls = isMasterSession || masterPreview;
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    const localHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    setLocalMasterPreview(localHost && new URLSearchParams(window.location.search).get("masterCameraPreview") === "1");
+  }, []);
 
   const receiveCapture = useCallback((capture: DisplayCapture) => {
     setCaptureUrl(capture.dataUrl);
@@ -99,7 +111,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           session?: { id?: number; robotModel?: string } | null;
         };
         if (!active) return;
-        const model = normalizeAgentechRobotModel(payload.session?.robotModel);
+        const model = normalizeLiveRobotModel(payload.session?.robotModel);
         const sessionId = Number(payload.session?.id);
         const sessionIsActive = response.ok
           && payload.active === true
@@ -173,13 +185,14 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
     async function connect() {
       try {
         setStatus("Connecting to live robot camera...");
-        const response = await fetch(`/api/livekit-token?room=${encodeURIComponent(roomName)}`, { cache: "no-store" });
+        const targetRoomName = activeRobotModel === "Master" ? "master-live-1" : roomName;
+        const response = await fetch(`/api/livekit-token?room=${encodeURIComponent(targetRoomName)}`, { cache: "no-store" });
         const payload = (await response.json()) as { token?: string; error?: string; robotModel?: string };
 
         if (!response.ok || !payload.token) {
           throw new Error(payload.error || "Could not create LiveKit viewer token.");
         }
-        const sessionModel = normalizeAgentechRobotModel(payload.robotModel);
+        const sessionModel = normalizeLiveRobotModel(payload.robotModel);
         if (sessionModel) {
           setHasActiveSession(true);
           setActiveRobotModel(sessionModel);
@@ -284,7 +297,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       }
       activeRoom?.disconnect();
     };
-  }, [roomName, isViewing, receiveCapture]);
+  }, [roomName, isViewing, receiveCapture, activeRobotModel]);
 
   useEffect(() => {
     if (!isViewing) {
@@ -339,14 +352,19 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
 
   return (
     <div ref={containerRef}>
+    {showMasterControls ? <MasterLiveCameraControls preview={masterPreview && !isMasterSession} /> : null}
     <div className={`mb-3 border px-4 py-3 text-sm leading-6 ${
-      isNaviSession
+      isMasterSession
+        ? "border-[#31506a] bg-[#101d2e] text-[#dbeafe]"
+        : isNaviSession
         ? "border-[#31506a] bg-[#101d2e] text-[#dbeafe]"
         : showLiveCapturePreview
           ? "border-[#31583a] bg-[#102015] text-[#dfffe0]"
           : "border-[#2a3440] bg-[#0d1117] text-[#aeb8c2]"
     }`}>
-      {isNaviSession
+      {isMasterSession
+        ? "Master live session: choose the four-camera wall or focus one approved color camera."
+        : isNaviSession
         ? "Navi live session: live video only. Navi does not support Agentech.capture_image(), so no capture preview is shown."
         : showLiveCapturePreview
           ? "Aegies live session: display-mode captures appear beside the live stream and remain saved in the archive below."

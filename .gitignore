@@ -27,3 +27,5 @@ review_submissions/
 .robot-stream-jobs/
 .robot-stream-runtime/
 .worktrees/
+.vercel
+.env*
