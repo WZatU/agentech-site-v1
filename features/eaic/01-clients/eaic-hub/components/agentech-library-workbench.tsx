@@ -16,7 +16,9 @@ import { MasterMotorMap } from "@/features/eaic/01-clients/eaic-hub/components/m
 import {
   buildMasterLiveTestPayload,
   getCodeCheckingRobotOptions,
+  isMasterLiveSessionActive,
   masterLiveTestPresentation,
+  millisecondsUntilMasterLiveTestExpiry,
   selectCodeCheckingRobotModel,
 } from "@/lib/master-live-test-ui";
 
@@ -2440,6 +2442,58 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           throw new Error(payload.error ?? "Unable to load the latest Physical Hardware Check.");
         }
 
+        if (payload.masterLiveTestAccess === true) {
+          const masterStatusResponse = await fetch("/api/master-live-test", {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          const masterStatus = await masterStatusResponse.json().catch(() => ({ latestAudit: null, activeSession: null })) as {
+            latestAudit?: {
+              id: string;
+              code: string;
+              uploadedFileName?: string | null;
+              physicalSafetyStatus?: string;
+              aiSecurityStatus?: string;
+            } | null;
+            activeSession?: {
+              robotModel?: string | null;
+              scheduledStart?: string | null;
+              scheduledEnd?: string | null;
+            } | null;
+          };
+          const activeMasterSession = masterStatusResponse.ok && isMasterLiveSessionActive({
+            active: Boolean(masterStatus.activeSession),
+            session: masterStatus.activeSession,
+          });
+          if (
+            activeMasterSession
+            && masterStatus.latestAudit?.physicalSafetyStatus === "passed"
+            && masterStatus.latestAudit.aiSecurityStatus === "passed"
+          ) {
+            const audit = masterStatus.latestAudit;
+            setMasterLiveTestSelected(true);
+            setCode(audit.code);
+            setUploadedFileName(audit.uploadedFileName ?? "");
+            setUploadedOriginalCode(audit.code);
+            setApprovedCodeFile({
+              code: audit.code,
+              downloadFileName: "master-view-only-test.txt",
+              sourceFileName: audit.uploadedFileName || "view-only-test.txt",
+              source: audit.uploadedFileName ? "uploaded" : "editor",
+              editedOnWebsite: false,
+            });
+            setPhysicalSubmissionId(audit.id);
+            setPhysicalSafetyPassed(true);
+            setSoftwareReviewStatus("passed");
+            setCanScheduleRobotSlot(true);
+            setMasterLiveTestExpiresAt(masterStatus.activeSession?.scheduledEnd ?? "");
+            setHardwareResult(masterViewOnlyHardwareResult(audit.id, audit.uploadedFileName || "view-only test artifact"));
+            setRequestStatus("Active Master view-only session restored from the dedicated Master status. Open Master Live Stream before it expires.");
+            return;
+          }
+        }
+
         let cachedSubmission: CachedPhysicalReview | null = null;
         try {
           cachedSubmission = JSON.parse(window.sessionStorage.getItem("agentech-latest-physical-review") ?? "null");
@@ -2475,13 +2529,24 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           });
           setPhysicalSubmissionId(latestSubmission.id);
           setPhysicalSafetyPassed(true);
-          setSoftwareReviewStatus(latestSubmission.aiSecurityStatus as "locked" | "pending" | "passed" | "failed" | "error");
-          setCanScheduleRobotSlot(latestSubmission.aiSecurityStatus === "passed");
+          const activeSessionResponse = await fetch("/api/agentech-live-session", {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          const activeSessionPayload = await activeSessionResponse.json().catch(() => ({ active: false, session: null }));
+          const masterSessionActive = activeSessionResponse.ok && isMasterLiveSessionActive(activeSessionPayload);
+          const activeSessionEnd = masterSessionActive && typeof activeSessionPayload.session?.scheduledEnd === "string"
+            ? activeSessionPayload.session.scheduledEnd
+            : "";
+          setSoftwareReviewStatus(masterSessionActive ? "passed" : "locked");
+          setCanScheduleRobotSlot(masterSessionActive);
+          setMasterLiveTestExpiresAt(activeSessionEnd);
           setHardwareResult(masterViewOnlyHardwareResult(latestSubmission.id, latestSubmission.uploadedFileName || "view-only test artifact"));
           setRequestStatus(
-            latestSubmission.aiSecurityStatus === "passed"
-              ? "Master view-only approval restored. Open Master Live Stream while the active session is available. Submitted text will not execute."
-              : "Master view-only audit restored. Start the 30-minute live test to finish authorization."
+            masterSessionActive
+              ? "Active Master view-only session restored. Open Master Live Stream before it expires. Submitted text will not execute."
+              : "Master view-only audit restored, but there is no active session. Start a new 30-minute live test to unlock the cameras."
           );
           return;
         }
@@ -2568,6 +2633,24 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
     return () => window.clearInterval(interval);
   }, [renderedFrames]);
+
+  useEffect(() => {
+    if (!masterLiveTestSelected || !canScheduleRobotSlot || !masterLiveTestExpiresAt) return;
+
+    const expireMasterLiveTest = () => {
+      setCanScheduleRobotSlot(false);
+      setSoftwareReviewStatus("locked");
+      setRequestStatus("The 30-minute Master view-only session expired. Start a new test to unlock the livestream again.");
+    };
+    const remaining = millisecondsUntilMasterLiveTestExpiry(masterLiveTestExpiresAt);
+    if (remaining === 0) {
+      expireMasterLiveTest();
+      return;
+    }
+
+    const timeout = window.setTimeout(expireMasterLiveTest, Math.min(remaining, 2_147_483_647));
+    return () => window.clearTimeout(timeout);
+  }, [canScheduleRobotSlot, masterLiveTestExpiresAt, masterLiveTestSelected]);
 
   function resetPreview(nextCode = code, preferredCommand?: string, selectedModel: AgentechRobotModel = robotModel) {
     const nextPreview = previewAssetForCode(nextCode, preferredCommand);

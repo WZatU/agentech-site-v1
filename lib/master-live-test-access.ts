@@ -15,6 +15,7 @@ export type MasterLiveTestSession = {
   id: number;
   email: string;
   robot_model: string | null;
+  scheduled_start: string | null;
   scheduled_end: string | null;
   session_status: string;
   requested_run_type: string | null;
@@ -42,6 +43,7 @@ export function selectReusableMasterLiveTestSession<T extends MasterLiveTestSess
   const nowMs = now.getTime();
 
   return sessions.find((session) => {
+    const scheduledStart = Date.parse(session.scheduled_start ?? "");
     const scheduledEnd = Date.parse(session.scheduled_end ?? "");
     const status = session.session_status.replaceAll(" ", "_").toLowerCase();
 
@@ -51,7 +53,9 @@ export function selectReusableMasterLiveTestSession<T extends MasterLiveTestSess
       && session.approved_run_type === "preset_demo"
       && session.preset_demo === MASTER_LIVE_TEST_LABEL
       && activeSessionStatuses.has(status)
+      && Number.isFinite(scheduledStart)
       && Number.isFinite(scheduledEnd)
+      && scheduledStart <= nowMs
       && scheduledEnd > nowMs;
   }) ?? null;
 }

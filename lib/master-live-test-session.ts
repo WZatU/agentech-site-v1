@@ -7,12 +7,13 @@ import {
 } from "./master-live-test-access.ts";
 
 type MasterLiveTestSessionInput = ReturnType<typeof buildMasterLiveTestSessionInput>;
+type MasterLiveTestReservation<Session> = { session: Session; created: boolean };
 
 export type MasterLiveTestSessionDependencies<Session extends MasterLiveTestSession = MasterLiveTestSession> = {
   listSessions: (email: string) => Promise<Session[]>;
-  findConflict: (startIso: string, endIso: string) => Promise<unknown | null>;
+  listConflicts: (startIso: string, endIso: string) => Promise<Session[]>;
   listProfiles: (email: string) => Promise<MasterLiveTestProfile[]>;
-  createSession: (input: MasterLiveTestSessionInput) => Promise<Session | null>;
+  createSession: (input: MasterLiveTestSessionInput) => Promise<MasterLiveTestReservation<Session> | null>;
 };
 
 export class MasterLiveTestConflictError extends Error {
@@ -40,7 +41,14 @@ export async function ensureMasterLiveTestSession<Session extends MasterLiveTest
   }
 
   const window = masterLiveTestWindow(now);
-  if (await dependencies.findConflict(window.scheduledStart, window.scheduledEnd)) {
+  const conflictsBeforeCreate = await dependencies.listConflicts(window.scheduledStart, window.scheduledEnd);
+  const concurrentReusable = conflictsBeforeCreate
+    .filter((session) => selectReusableMasterLiveTestSession([session], email, now))
+    .sort((left, right) => left.id - right.id)[0];
+  if (concurrentReusable) {
+    return { session: concurrentReusable, reused: true as const };
+  }
+  if (conflictsBeforeCreate.length) {
     throw new MasterLiveTestConflictError();
   }
 
@@ -49,10 +57,10 @@ export async function ensureMasterLiveTestSession<Session extends MasterLiveTest
     throw new MasterLiveTestProfileError();
   }
 
-  const created = await dependencies.createSession(buildMasterLiveTestSessionInput(email, profile, now));
-  if (!created) {
+  const reservation = await dependencies.createSession(buildMasterLiveTestSessionInput(email, profile, now));
+  if (!reservation) {
     throw new Error("Unable to create the Master live-test session.");
   }
 
-  return { session: created, reused: false as const };
+  return { session: reservation.session, reused: !reservation.created };
 }

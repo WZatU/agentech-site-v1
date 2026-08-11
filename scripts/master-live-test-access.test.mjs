@@ -12,6 +12,10 @@ import {
   MasterLiveTestConflictError,
   MasterLiveTestProfileError,
 } from "../lib/master-live-test-session.ts";
+import {
+  isExclusiveRobotSessionReservation,
+  selectRobotSessionReservationWinner,
+} from "../lib/robot-session-reservation.ts";
 
 const victoria = "victoria_c@agent-tech.ai";
 const now = new Date("2026-08-11T18:00:00.000Z");
@@ -88,6 +92,7 @@ test("only an unexpired active Master preset-demo session is reusable", () => {
     session({ id: 3, approved_run_type: "custom_code" }),
     session({ id: 4, scheduled_end: "2026-08-11T17:59:59.000Z" }),
     session({ id: 5, session_status: "cancelled" }),
+    session({ id: 6, scheduled_start: "2026-08-11T18:05:00.000Z", scheduled_end: "2026-08-11T18:35:00.000Z" }),
     valid,
   ], victoria, now), valid);
   assert.equal(selectReusableMasterLiveTestSession([valid], "another@agent-tech.ai", now), null);
@@ -118,9 +123,9 @@ test("an existing Victoria Master authorization is reused without extending or c
   let externalCalls = 0;
   const result = await ensureMasterLiveTestSession(victoria, now, {
     listSessions: async () => [existing],
-    findConflict: async () => { externalCalls += 1; return null; },
+    listConflicts: async () => { externalCalls += 1; return []; },
     listProfiles: async () => { externalCalls += 1; return [profile()]; },
-    createSession: async () => { externalCalls += 1; return session({ id: 92 }); },
+    createSession: async () => { externalCalls += 1; return { session: session({ id: 92 }), created: true }; },
   });
 
   assert.deepEqual(result, { session: existing, reused: true });
@@ -133,9 +138,9 @@ test("a conflicting robot booking prevents creation", async () => {
   await assert.rejects(
     ensureMasterLiveTestSession(victoria, now, {
       listSessions: async () => [],
-      findConflict: async () => session({ id: 88, email: "other@agent-tech.ai" }),
+      listConflicts: async () => [session({ id: 88, email: "other@agent-tech.ai" })],
       listProfiles: async () => [profile()],
-      createSession: async () => { created = true; return session({ id: 92 }); },
+      createSession: async () => { created = true; return { session: session({ id: 92 }), created: true }; },
     }),
     MasterLiveTestConflictError,
   );
@@ -146,9 +151,9 @@ test("an access profile is required before a Master test session can be created"
   await assert.rejects(
     ensureMasterLiveTestSession(victoria, now, {
       listSessions: async () => [],
-      findConflict: async () => null,
+      listConflicts: async () => [],
       listProfiles: async () => [],
-      createSession: async () => session({ id: 92 }),
+      createSession: async () => ({ session: session({ id: 92 }), created: true }),
     }),
     MasterLiveTestProfileError,
   );
@@ -163,17 +168,69 @@ test("new sessions are created from the exact safe Master view-only input", asyn
   });
   const result = await ensureMasterLiveTestSession(victoria, now, {
     listSessions: async () => [],
-    findConflict: async (start, end) => {
+    listConflicts: async (start, end) => {
       assert.equal(start, "2026-08-11T18:00:00.000Z");
       assert.equal(end, "2026-08-11T18:30:00.000Z");
-      return null;
+      return [];
     },
     listProfiles: async () => [profile()],
-    createSession: async (input) => { receivedInput = input; return created; },
+    createSession: async (input) => { receivedInput = input; return { session: created, created: true }; },
   });
 
   assert.equal(receivedInput.approvedRunType, "preset_demo");
   assert.equal(receivedInput.codeSubmissionId, null);
   assert.equal(receivedInput.robotModel, "Master");
   assert.deepEqual(result, { session: created, reused: false });
+});
+
+test("database read failures fail closed before a Master session is created", async () => {
+  let created = false;
+  await assert.rejects(
+    ensureMasterLiveTestSession(victoria, now, {
+      listSessions: async () => { throw new Error("database unavailable"); },
+      listConflicts: async () => [],
+      listProfiles: async () => [profile()],
+      createSession: async () => { created = true; return { session: session({ id: 92 }), created: true }; },
+    }),
+    /database unavailable/,
+  );
+  assert.equal(created, false);
+});
+
+test("concurrent Master requests reuse the session returned by the atomic reservation", async () => {
+  const winner = session({ id: 90 });
+  const result = await ensureMasterLiveTestSession(victoria, now, {
+    listSessions: async () => [],
+    listConflicts: async () => [],
+    listProfiles: async () => [profile()],
+    createSession: async () => ({ session: winner, created: false }),
+  });
+
+  assert.deepEqual(result, { session: winner, reused: true });
+});
+
+test("cross-model concurrent reservations consistently keep the database-created winner", () => {
+  const aegiesFirst = session({
+    id: 700,
+    robot_model: "Aegies",
+    created_at: "2026-08-11T17:59:59.900Z",
+  });
+  const masterSecond = session({
+    id: -4_175_000_001,
+    created_at: "2026-08-11T18:00:00.000Z",
+  });
+  assert.equal(selectRobotSessionReservationWinner([masterSecond, aegiesFirst]), aegiesFirst);
+  assert.equal(selectRobotSessionReservationWinner([
+    session({ id: 12, created_at: "2026-08-11T18:00:00.000Z" }),
+    session({ id: 11, created_at: "2026-08-11T18:00:00.000Z" }),
+  ]).id, 11);
+});
+
+test("an existing Master reservation is reused only when it is the sole overlap", () => {
+  const master = session({ id: -4_175_000_001 });
+  const aegies = session({ id: 42, robot_model: "Aegies" });
+
+  assert.equal(isExclusiveRobotSessionReservation([master], master.id), true);
+  assert.equal(isExclusiveRobotSessionReservation([master, aegies], master.id), false);
+  assert.equal(isExclusiveRobotSessionReservation([aegies], master.id), false);
 });

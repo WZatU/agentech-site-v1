@@ -4,7 +4,9 @@ import test from "node:test";
 import {
   buildMasterLiveTestPayload,
   getCodeCheckingRobotOptions,
+  isMasterLiveSessionActive,
   masterLiveTestPresentation,
+  millisecondsUntilMasterLiveTestExpiry,
   selectCodeCheckingRobotModel,
 } from "../lib/master-live-test-ui.ts";
 
@@ -47,4 +49,27 @@ test("the unlocked presentation is explicitly view-only and opens the existing M
     expiresAt: "2026-08-11T18:30:00.000Z",
     viewOnlyNotice: "View-only test. Submitted text will not execute on Master.",
   });
+});
+
+test("restored Master UI is unlocked only by a currently active server session", () => {
+  const current = new Date("2026-08-11T18:00:00.000Z");
+  const activeMaster = {
+    active: true,
+    session: {
+      robotModel: "Master",
+      scheduledStart: "2026-08-11T17:55:00.000Z",
+      scheduledEnd: "2026-08-11T18:25:00.000Z",
+    },
+  };
+  assert.equal(isMasterLiveSessionActive(activeMaster, current), true);
+  assert.equal(isMasterLiveSessionActive({ ...activeMaster, active: false }, current), false);
+  assert.equal(isMasterLiveSessionActive({ ...activeMaster, session: { ...activeMaster.session, robotModel: "Aegies" } }, current), false);
+  assert.equal(isMasterLiveSessionActive({ ...activeMaster, session: { ...activeMaster.session, scheduledStart: "2026-08-11T18:05:00.000Z" } }, current), false);
+  assert.equal(isMasterLiveSessionActive({ ...activeMaster, session: { ...activeMaster.session, scheduledEnd: "2026-08-11T18:00:00.000Z" } }, current), false);
+});
+
+test("the client expiry timer reaches zero at the server-provided end time", () => {
+  assert.equal(millisecondsUntilMasterLiveTestExpiry("2026-08-11T18:30:00.000Z", new Date("2026-08-11T18:00:00.000Z")), 1_800_000);
+  assert.equal(millisecondsUntilMasterLiveTestExpiry("2026-08-11T18:00:00.000Z", new Date("2026-08-11T18:00:00.000Z")), 0);
+  assert.equal(millisecondsUntilMasterLiveTestExpiry("not-a-date", new Date("2026-08-11T18:00:00.000Z")), 0);
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { handleMasterLiveTest } from "../lib/master-live-test-handler.ts";
+import { handleMasterLiveTest, handleMasterLiveTestStatus } from "../lib/master-live-test-handler.ts";
 
 const victoria = "victoria_c@agent-tech.ai";
 const now = new Date("2026-08-11T18:00:00.000Z");
@@ -60,8 +60,6 @@ function dependencies(overrides = {}) {
     }),
     ensureSession: async () => ({ session: robotSession(), reused: false }),
     updateSubmission: async (id, body) => storedSubmission({ id, ...body }),
-    markAccountGate: async () => undefined,
-    deleteSession: async () => robotSession(),
     createSubmissionId: () => "master-live-test-audit-1",
     ...overrides,
   };
@@ -87,11 +85,11 @@ test("a signed account other than Victoria is forbidden before persistence", asy
   assert.equal(created, false);
 });
 
-test("Victoria's arbitrary input is approved only as a zero-command view-only audit", async () => {
+test("Victoria's arbitrary input is approved only as a zero-command view-only audit without changing shared Aegies or Navi gates", async () => {
   const arbitraryText = "rm -rf /\nAgentech.forward(999)\njust words";
   let createInput = null;
   let updateBody = null;
-  let gateInput = null;
+  let sharedGateWrites = 0;
   const result = await handleMasterLiveTest({
     email: "  VICTORIA_C@AGENT-TECH.AI ",
     payload: { code: arbitraryText, uploadedFileName: "notes.txt" },
@@ -105,7 +103,7 @@ test("Victoria's arbitrary input is approved only as a zero-command view-only au
       updateBody = { id, ...body };
       return storedSubmission({ id, ...body });
     },
-    markAccountGate: async (input) => { gateInput = input; },
+    markAccountGate: async () => { sharedGateWrites += 1; },
   }));
 
   assert.equal(result.status, 200);
@@ -119,12 +117,7 @@ test("Victoria's arbitrary input is approved only as a zero-command view-only au
   assert.equal(updateBody.physical_safety_status, "passed");
   assert.equal(updateBody.ai_security_status, "passed");
   assert.match(updateBody.ai_security_summary, /view-only, not executable/i);
-  assert.deepEqual(gateInput, {
-    email: victoria,
-    submissionId: "master-live-test-audit-1",
-    physicalSafetyStatus: "passed",
-    aiSecurityStatus: "passed",
-  });
+  assert.equal(sharedGateWrites, 0);
 });
 
 test("a locked Master audit is reused after a retry instead of being duplicated", async () => {
@@ -142,49 +135,73 @@ test("a locked Master audit is reused after a retry instead of being duplicated"
   assert.equal(creates, 0);
 });
 
-test("a session conflict keeps the audit locked and reports 409 without approval", async () => {
-  let approvals = 0;
-  let deletions = 0;
+test("a session conflict relocks the approved audit and reports 409", async () => {
+  const statuses = [];
   const conflict = new Error("Another active robot session overlaps this 30-minute Master test.");
   conflict.name = "MasterLiveTestConflictError";
   const result = await handleMasterLiveTest({ email: victoria, payload: { code: "test" }, now }, dependencies({
     ensureSession: async () => { throw conflict; },
-    updateSubmission: async () => { approvals += 1; return storedSubmission(); },
-    markAccountGate: async () => { approvals += 1; },
-    deleteSession: async () => { deletions += 1; return null; },
+    updateSubmission: async (id, body) => {
+      statuses.push(body.ai_security_status);
+      return storedSubmission({ id, ...body });
+    },
   }));
 
   assert.equal(result.status, 409);
   assert.equal(result.body.error, conflict.message);
-  assert.equal(approvals, 0);
-  assert.equal(deletions, 0);
+  assert.deepEqual(statuses, ["passed", "locked"]);
 });
 
-test("a newly created session is narrowly rolled back when final approval persistence fails", async () => {
+test("approval persistence completes before reservation so a failed approval cannot delete any session", async () => {
   const updates = [];
-  const deletions = [];
+  let reservations = 0;
   const result = await handleMasterLiveTest({ email: victoria, payload: { code: "test" }, now }, dependencies({
+    ensureSession: async () => {
+      reservations += 1;
+      return { session: robotSession(), reused: false };
+    },
     updateSubmission: async (id, body) => {
       updates.push({ id, body });
+      if (body.ai_security_status === "passed") throw new Error("approval write failed");
       return storedSubmission({ id, ...body });
     },
-    markAccountGate: async () => { throw new Error("account gate write failed"); },
-    deleteSession: async (id, email) => { deletions.push({ id, email }); return robotSession({ id }); },
   }));
 
   assert.equal(result.status, 500);
-  assert.deepEqual(deletions, [{ id: 501, email: victoria }]);
+  assert.equal(reservations, 0);
   assert.equal(updates.at(-1).body.ai_security_status, "locked");
 });
 
-test("a reused session is never deleted when final approval persistence fails", async () => {
-  let deletions = 0;
-  const result = await handleMasterLiveTest({ email: victoria, payload: { code: "test" }, now }, dependencies({
-    ensureSession: async () => ({ session: robotSession(), reused: true }),
-    markAccountGate: async () => { throw new Error("account gate write failed"); },
-    deleteSession: async () => { deletions += 1; return null; },
-  }));
+test("Master status returns its own latest audit without reading the shared Aegies or Navi pointer", async () => {
+  const masterAudit = storedSubmission({ id: "master-audit-status", ai_security_status: "passed" });
+  const result = await handleMasterLiveTestStatus({ email: victoria }, {
+    listSubmissions: async () => [storedSubmission({ id: "aegies-audit", robot_model: "Aegies" }), masterAudit],
+    getActiveSession: async () => ({
+      id: 501,
+      robotModel: "Master",
+      status: "requested",
+      scheduledStart: "2026-08-11T18:00:00.000Z",
+      scheduledEnd: "2026-08-11T18:30:00.000Z",
+    }),
+  });
 
-  assert.equal(result.status, 500);
-  assert.equal(deletions, 0);
+  assert.equal(result.status, 200);
+  assert.equal(result.body.latestAudit.id, "master-audit-status");
+  assert.equal(result.body.activeSession.robotModel, "Master");
+});
+
+test("Master status fails closed when the current live session belongs to another robot", async () => {
+  const result = await handleMasterLiveTestStatus({ email: victoria }, {
+    listSubmissions: async () => [storedSubmission({ ai_security_status: "passed" })],
+    getActiveSession: async () => ({
+      id: 88,
+      robotModel: "Aegies",
+      status: "requested",
+      scheduledStart: "2026-08-11T18:00:00.000Z",
+      scheduledEnd: "2026-08-11T18:30:00.000Z",
+    }),
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(result.body.activeSession, null);
 });

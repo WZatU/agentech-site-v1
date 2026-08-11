@@ -44,19 +44,23 @@ type MasterLiveTestDependencies = {
   }) => Promise<unknown | null>;
   ensureSession: (email: string, now: Date) => Promise<EnsuredMasterLiveTestSession>;
   updateSubmission: (id: string, body: Record<string, unknown>) => Promise<unknown | null>;
-  markAccountGate: (input: {
-    email: string;
-    submissionId: string;
-    physicalSafetyStatus: "passed";
-    aiSecurityStatus: "passed";
-  }) => Promise<unknown>;
-  deleteSession: (id: number, email: string) => Promise<unknown | null>;
   createSubmissionId: () => string;
 };
 
 type MasterLiveTestResult = {
   status: number;
   body: Record<string, unknown>;
+};
+
+type MasterLiveTestStatusDependencies = {
+  listSubmissions: (email: string, limit: number) => Promise<MasterLiveTestSubmission[]>;
+  getActiveSession: (email: string) => Promise<{
+    id: number;
+    robotModel: string;
+    status: string;
+    scheduledStart: string | null;
+    scheduledEnd: string | null;
+  } | null>;
 };
 
 function validEmail(email: string) {
@@ -70,6 +74,21 @@ function errorMessage(error: unknown, fallback: string) {
 function isSessionSetupError(error: unknown) {
   return error instanceof Error
     && (error.name === "MasterLiveTestConflictError" || error.name === "MasterLiveTestProfileError");
+}
+
+async function resetMasterLiveTestAudit(
+  dependencies: Pick<MasterLiveTestDependencies, "updateSubmission">,
+  submissionId: string,
+) {
+  await dependencies.updateSubmission(submissionId, {
+    ai_security_status: "locked",
+    ai_security_model: null,
+    ai_security_summary: null,
+    ai_security_findings: [],
+    ai_security_risk_level: null,
+    ai_security_reviewed_at: null,
+    credits_charged: 0,
+  }).catch(() => null);
 }
 
 export async function handleMasterLiveTest(
@@ -122,16 +141,6 @@ export async function handleMasterLiveTest(
       }
     }
 
-    let ensured: EnsuredMasterLiveTestSession;
-    try {
-      ensured = await dependencies.ensureSession(email, now);
-    } catch (error) {
-      if (isSessionSetupError(error)) {
-        return { status: 409, body: { error: errorMessage(error, "Unable to reserve the Master live-test session.") } };
-      }
-      throw error;
-    }
-
     try {
       const approvedAudit = await dependencies.updateSubmission(submissionId, {
         physical_safety_status: "passed",
@@ -146,25 +155,20 @@ export async function handleMasterLiveTest(
       if (!approvedAudit) {
         throw new Error("Unable to approve the Master live-test audit record.");
       }
-
-      await dependencies.markAccountGate({
-        email,
-        submissionId,
-        physicalSafetyStatus: "passed",
-        aiSecurityStatus: "passed",
-      });
     } catch (error) {
-      await dependencies.updateSubmission(submissionId, {
-        ai_security_status: "locked",
-        ai_security_model: null,
-        ai_security_summary: null,
-        ai_security_findings: [],
-        ai_security_risk_level: null,
-        ai_security_reviewed_at: null,
-        credits_charged: 0,
-      }).catch(() => null);
-      if (!ensured.reused) {
-        await dependencies.deleteSession(ensured.session.id, email).catch(() => null);
+      await resetMasterLiveTestAudit(dependencies, submissionId);
+      throw error;
+    }
+
+    let ensured: EnsuredMasterLiveTestSession;
+    try {
+      // Reserve last: no database write after this point can roll back or delete a
+      // session that a concurrent request has already reused successfully.
+      ensured = await dependencies.ensureSession(email, now);
+    } catch (error) {
+      await resetMasterLiveTestAudit(dependencies, submissionId);
+      if (isSessionSetupError(error)) {
+        return { status: 409, body: { error: errorMessage(error, "Unable to reserve the Master live-test session.") } };
       }
       throw error;
     }
@@ -188,6 +192,49 @@ export async function handleMasterLiveTest(
     return {
       status: 500,
       body: { error: errorMessage(error, "Unable to start the Master live test.") },
+    };
+  }
+}
+
+export async function handleMasterLiveTestStatus(
+  input: { email: string },
+  dependencies: MasterLiveTestStatusDependencies,
+): Promise<MasterLiveTestResult> {
+  const email = input.email.trim().toLowerCase();
+  if (!validEmail(email)) {
+    return { status: 401, body: { error: "Sign in before checking the Master live test." } };
+  }
+  if (!hasMasterLiveTestAccess(email)) {
+    return { status: 403, body: { error: "Master live-test access is not enabled for this account." } };
+  }
+
+  try {
+    const [submissions, activeSession] = await Promise.all([
+      dependencies.listSubmissions(email, 50),
+      dependencies.getActiveSession(email),
+    ]);
+    const latestAudit = submissions.find((record) => (
+      record.robot_model === "Master" && record.run_mode === MASTER_LIVE_TEST_LABEL
+    )) ?? null;
+
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        latestAudit: latestAudit ? {
+          id: latestAudit.id,
+          code: latestAudit.code,
+          uploadedFileName: latestAudit.uploaded_file_name,
+          physicalSafetyStatus: "passed",
+          aiSecurityStatus: latestAudit.ai_security_status,
+        } : null,
+        activeSession: activeSession?.robotModel === "Master" ? activeSession : null,
+      },
+    };
+  } catch (error) {
+    return {
+      status: 500,
+      body: { error: errorMessage(error, "Unable to load the Master live-test status.") },
     };
   }
 }

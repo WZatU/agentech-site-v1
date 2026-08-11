@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   createCodeSubmissionRecord,
-  createRobotSession,
-  deleteRobotSessionRecord,
-  findRobotSessionConflict,
   getAccessProfiles,
   getAccountRecord,
   getCodeSubmissionRecords,
-  getRobotSessions,
-  markDeveloperReviewGateOnAccount,
+  getRobotSessionConflictsStrict,
+  getRobotSessionsStrict,
+  reserveMasterLiveTestSession,
   updateCodeSubmissionRecord,
 } from "@/lib/account-records";
-import { handleMasterLiveTest } from "@/lib/master-live-test-handler";
+import { getActiveRobotViewingSession } from "@/lib/agentech-live-session";
+import { handleMasterLiveTest, handleMasterLiveTestStatus } from "@/lib/master-live-test-handler";
 import { ensureMasterLiveTestSession } from "@/lib/master-live-test-session";
 import { getServerAccountEmail } from "@/lib/server-account-session";
 
 export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const email = await getServerAccountEmail(request);
+  const result = await handleMasterLiveTestStatus({ email }, {
+    listSubmissions: getCodeSubmissionRecords,
+    getActiveSession: getActiveRobotViewingSession,
+  });
+  return NextResponse.json(result.body, { status: result.status });
+}
 
 export async function POST(request: NextRequest) {
   const email = await getServerAccountEmail(request);
@@ -25,14 +33,12 @@ export async function POST(request: NextRequest) {
     listSubmissions: getCodeSubmissionRecords,
     createSubmission: createCodeSubmissionRecord,
     ensureSession: (accountEmail, now) => ensureMasterLiveTestSession(accountEmail, now, {
-      listSessions: getRobotSessions,
-      findConflict: findRobotSessionConflict,
+      listSessions: getRobotSessionsStrict,
+      listConflicts: getRobotSessionConflictsStrict,
       listProfiles: getAccessProfiles,
-      createSession: createRobotSession,
+      createSession: reserveMasterLiveTestSession,
     }),
     updateSubmission: updateCodeSubmissionRecord,
-    markAccountGate: markDeveloperReviewGateOnAccount,
-    deleteSession: deleteRobotSessionRecord,
     createSubmissionId: () => `master-live-test-${crypto.randomUUID()}`,
   });
 
