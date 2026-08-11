@@ -1023,6 +1023,15 @@ export async function createRobotSession(input: {
   return rows[0] ?? null;
 }
 
+export async function deleteRobotSessionRecord(id: number, email: string) {
+  const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "DELETE",
+    query: `id=eq.${id}&email=eq.${encodeURIComponent(email)}&approved_run_type=eq.preset_demo`
+  });
+
+  return rows[0] ?? null;
+}
+
 function requestLooksActive(status: string) {
   const normalized = status.replace(/_/g, " ").toLowerCase();
 
