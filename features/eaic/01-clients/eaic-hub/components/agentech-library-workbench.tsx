@@ -13,6 +13,12 @@ import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/l
 import { normalizeAgentechRobotModel, robotModelOptions, type AgentechRobotModel } from "@/features/eaic/02-unified-api/resources-runs/agentech-robot-model";
 import { LiveRobotCamera } from "@/features/eaic/05-delivery/live-results/components/live-robot-camera";
 import { MasterMotorMap } from "@/features/eaic/01-clients/eaic-hub/components/master-motor-map";
+import {
+  buildMasterLiveTestPayload,
+  getCodeCheckingRobotOptions,
+  masterLiveTestPresentation,
+  selectCodeCheckingRobotModel,
+} from "@/lib/master-live-test-ui";
 
 const categories = ["All", "Movement", "Posture", "Safety", "Sensing"] as const;
 const naviReferenceCategories: AgentechFunction["category"][] = [
@@ -590,6 +596,34 @@ function approvedDownloadFileName(fileName: string) {
     .replace(/[^a-zA-Z0-9._-]+/g, "_")
     .replace(/^_+|_+$/g, "");
   return `${baseName || "agentech_submission"}-approved.py`;
+}
+
+function masterViewOnlyHardwareResult(resultId: string, fileName: string): HardwareResult {
+  const movementSafety = defaultMovementSafety("PASS", "No movement is evaluated because submitted text is never executed on Master.");
+  return {
+    status: "PASS",
+    resultId,
+    robotModel: "Master",
+    fileName,
+    commandCount: 0,
+    checklist: [
+      {
+        name: "View-only authorization",
+        status: "PASS",
+        detail: "This approval opens only the Master livestream for the active 30-minute test window.",
+      },
+      {
+        name: "Robot execution isolation",
+        status: "PASS",
+        detail: "Submitted text is stored as an audit artifact with zero executable commands.",
+      },
+    ],
+    motionPlan: [],
+    simulationClips: [],
+    simulationError: "",
+    finalHint: "View-only test approved. Open the Master Live Stream; this text will not run on the robot.",
+    movementSafety,
+  };
 }
 
 function buildHardwareChecklist(status: "PASS" | "WARNING" | "FAIL", failureReason = "", movementSafety = defaultMovementSafety(status, failureReason), robotModel: AgentechRobotModel = "Aegies"): HardwareChecklistItem[] {
@@ -2271,6 +2305,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [isRunningSoftwareCheck, setIsRunningSoftwareCheck] = useState(false);
   const [isLoadingReviewGate, setIsLoadingReviewGate] = useState(task === "software-check");
   const [isInternalCompanyAccount, setIsInternalCompanyAccount] = useState(false);
+  const [masterLiveTestAccess, setMasterLiveTestAccess] = useState(false);
+  const [masterLiveTestSelected, setMasterLiveTestSelected] = useState(false);
+  const [masterLiveTestExpiresAt, setMasterLiveTestExpiresAt] = useState("");
   const [canScheduleRobotSlot, setCanScheduleRobotSlot] = useState(false);
   const [softwareReviewStatus, setSoftwareReviewStatus] = useState<"locked" | "pending" | "passed" | "failed" | "error">("locked");
   const [submissionQuery, setSubmissionQuery] = useState({ ready: false, id: "" });
@@ -2286,6 +2323,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const [simFrames, setSimFrames] = useState<SimFrame[]>([{ x: 0, y: 0, z: 0.37, yaw: 0, pitch: 0 }]);
   const [simFrameIndex, setSimFrameIndex] = useState(0);
   const [renderedFrames, setRenderedFrames] = useState<string[]>([]);
+  const displayedRobotModel = masterLiveTestSelected ? "Master" : robotModel;
+  const codeCheckingRobotOptions = getCodeCheckingRobotOptions(robotModelOptions, masterLiveTestAccess);
+  const masterPresentation = masterLiveTestPresentation(masterLiveTestExpiresAt);
 
   const filteredFunctions = useMemo(
     () => aegisFunctions.filter((item) => activeCategory === "All" || item.category === activeCategory),
@@ -2298,18 +2338,26 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   const renderedFrame = renderedFrames[Math.min(simFrameIndex, renderedFrames.length - 1)];
   const previewFrameCount = renderedFrames.length || simFrames.length;
   const selectedTask = task ? getAgentechLibraryTask(task) : undefined;
-  const runMode = selectedTask?.slug === "software-check" ? "Code certification" : "Physical hardware limit and capability test";
+  const runMode = masterLiveTestSelected
+    ? "Master live stream test (view only)"
+    : selectedTask?.slug === "software-check" ? "Code certification" : "Physical hardware limit and capability test";
   const runModeDescription =
-    selectedTask?.slug === "software-check"
+    masterLiveTestSelected
+      ? masterPresentation.viewOnlyNotice
+      : selectedTask?.slug === "software-check"
       ? "Run Hardware Safety first. After it passes, click Run Software Security to scan the exact same file."
       : "Step 3 checks physical limits, robot capability, command duration, speed, angle, and risky movements.";
   const showHero = !selectedTask;
   const showOverview = !selectedTask;
   const showWorkbench = !selectedTask;
   const showFocusedReview = selectedTask?.slug === "software-check";
-  const focusedReviewStep = selectedTask?.slug === "software-check" ? "Step 3 - Code Certification" : "Step 3 - Physical Hardware Check";
+  const focusedReviewStep = masterLiveTestSelected
+    ? "Master - View-Only Live Test"
+    : selectedTask?.slug === "software-check" ? "Step 3 - Code Certification" : "Step 3 - Physical Hardware Check";
   const focusedReviewCopy =
-    selectedTask?.slug === "software-check"
+    masterLiveTestSelected
+      ? "Enter any test text, then create a 30-minute Master viewing session. The text is recorded only for audit and never executes on the robot."
+      : selectedTask?.slug === "software-check"
       ? "Complete Hardware Safety first, then run Software Security. Passing both unlocks a robot time-slot request."
       : "Physical Hardware Check runs first. It protects the robot body by checking command limits, motion duration, model compatibility, and risky movements.";
   const hardwarePassed = physicalSafetyPassed && hardwareResult?.status === "PASS";
@@ -2370,6 +2418,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           error?: string;
           internalAccount?: boolean;
           localPreview?: boolean;
+          masterLiveTestAccess?: boolean;
           latestSubmission?: {
             id: string;
             developerName?: string;
@@ -2386,6 +2435,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
         }
 
         setIsInternalCompanyAccount(payload.internalAccount === true);
+        setMasterLiveTestAccess(payload.masterLiveTestAccess === true);
         if (!response.ok) {
           throw new Error(payload.error ?? "Unable to load the latest Physical Hardware Check.");
         }
@@ -2404,6 +2454,35 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
 
         if (!latestSubmission || latestSubmission.physicalSafetyStatus !== "passed") {
           setRequestStatus("Run and pass Step 3 Physical Hardware Check before starting Step 4 Software Check.");
+          return;
+        }
+
+        if (latestSubmission.robotModel === "Master") {
+          if (payload.masterLiveTestAccess !== true) {
+            setRequestStatus("This account does not have access to the Master live test.");
+            return;
+          }
+          setMasterLiveTestSelected(true);
+          setCode(latestSubmission.code);
+          setUploadedFileName(latestSubmission.uploadedFileName ?? "");
+          setUploadedOriginalCode(latestSubmission.code);
+          setApprovedCodeFile({
+            code: latestSubmission.code,
+            downloadFileName: "master-view-only-test.txt",
+            sourceFileName: latestSubmission.uploadedFileName || "view-only-test.txt",
+            source: latestSubmission.uploadedFileName ? "uploaded" : "editor",
+            editedOnWebsite: false,
+          });
+          setPhysicalSubmissionId(latestSubmission.id);
+          setPhysicalSafetyPassed(true);
+          setSoftwareReviewStatus(latestSubmission.aiSecurityStatus as "locked" | "pending" | "passed" | "failed" | "error");
+          setCanScheduleRobotSlot(latestSubmission.aiSecurityStatus === "passed");
+          setHardwareResult(masterViewOnlyHardwareResult(latestSubmission.id, latestSubmission.uploadedFileName || "view-only test artifact"));
+          setRequestStatus(
+            latestSubmission.aiSecurityStatus === "passed"
+              ? "Master view-only approval restored. Open Master Live Stream while the active session is available. Submitted text will not execute."
+              : "Master view-only audit restored. Start the 30-minute live test to finish authorization."
+          );
           return;
         }
 
@@ -2522,12 +2601,53 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     resetPreview(normalizedCode, preferredCommand, selectedModel);
   }
 
+  function updateMasterLiveTestText(nextText: string) {
+    setCode(nextText);
+    setReviewInputError("");
+    setPhysicalSubmissionId("");
+    setPhysicalSafetyPassed(false);
+    setSoftwareReviewStatus("locked");
+    setCanScheduleRobotSlot(false);
+    setHardwareResult(null);
+    setApprovedCodeFile(null);
+    setMasterLiveTestExpiresAt("");
+    window.sessionStorage.removeItem("agentech-latest-physical-review");
+    setRequestStatus(masterPresentation.viewOnlyNotice);
+  }
+
   function changeRobotModel(value: string) {
     const nextModel = normalizeAgentechRobotModel(value);
     if (!nextModel || nextModel === robotModel) return;
     setRobotModel(nextModel);
     updateCode(code, undefined, nextModel);
     setRequestStatus(`Selected ${nextModel}. Run Hardware Safety again so this code is checked against the ${nextModel} SDK.`);
+  }
+
+  function changeCodeCheckingRobotModel(value: string) {
+    const selection = selectCodeCheckingRobotModel(value, masterLiveTestAccess, robotModel);
+    if (selection.masterLiveTestSelected) {
+      setMasterLiveTestSelected(true);
+      setMasterLiveTestExpiresAt("");
+      setPhysicalSubmissionId("");
+      setPhysicalSafetyPassed(false);
+      setSoftwareReviewStatus("locked");
+      setCanScheduleRobotSlot(false);
+      setHardwareResult(null);
+      setApprovedCodeFile(null);
+      setReviewInputError("");
+      setRequestStatus(masterPresentation.viewOnlyNotice);
+      return;
+    }
+
+    const wasMasterLiveTestSelected = masterLiveTestSelected;
+    setMasterLiveTestSelected(false);
+    setMasterLiveTestExpiresAt("");
+    if (wasMasterLiveTestSelected && selection.normalRobotModel === robotModel) {
+      updateCode(code, undefined, robotModel);
+      setRequestStatus(`Selected ${robotModel}. Run Hardware Safety again so this code is checked against the ${robotModel} SDK.`);
+    } else {
+      changeRobotModel(selection.normalRobotModel);
+    }
   }
 
   function checkAnotherCode() {
@@ -2542,8 +2662,13 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     const url = new URL(window.location.href);
     url.searchParams.delete("submissionId");
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
-    updateCode(nextCode);
-    setRequestStatus("Ready for another code submission. Upload a new file or paste code, then run Hardware Safety.");
+    if (masterLiveTestSelected) {
+      updateMasterLiveTestText("");
+      setRequestStatus(masterPresentation.viewOnlyNotice);
+    } else {
+      updateCode(nextCode);
+      setRequestStatus("Ready for another code submission. Upload a new file or paste code, then run Hardware Safety.");
+    }
   }
 
   async function loadUploadedCodeFile(file: File | null) {
@@ -2564,6 +2689,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     const text = await file.text();
     setUploadedFileName(file.name);
     setUploadedOriginalCode(text);
+    if (masterLiveTestSelected) {
+      updateMasterLiveTestText(text);
+      setRequestStatus(`${file.name} loaded as a view-only test artifact. Submitted text will not execute on Master.`);
+      return;
+    }
     updateCode(text);
     if (!text.trim()) {
       const message = `${file.name} is empty. Add at least one Agentech command before running the check.`;
@@ -2666,7 +2796,54 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     }
   }
 
+  async function runMasterLiveTest() {
+    setReviewInputError("");
+    setIsRunningPhysicalCheck(true);
+    setRequestStatus("Creating a 30-minute view-only Master live test...");
+    try {
+      const response = await fetch("/api/master-live-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildMasterLiveTestPayload(code, uploadedFileName)),
+      });
+      const payload = await response.json().catch(() => ({
+        error: "The Master live-test response could not be read.",
+      }));
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to start the Master live test.");
+      }
+
+      const expiresAt = typeof payload.expiresAt === "string" ? payload.expiresAt : "";
+      const expirationTime = expiresAt ? new Date(expiresAt).toLocaleTimeString() : "the session end";
+      setPhysicalSubmissionId(payload.submissionId);
+      setPhysicalSafetyPassed(true);
+      setSoftwareReviewStatus("passed");
+      setCanScheduleRobotSlot(true);
+      setMasterLiveTestExpiresAt(expiresAt);
+      setApprovedCodeFile({
+        code,
+        downloadFileName: "master-view-only-test.txt",
+        sourceFileName: uploadedFileName || "view-only-test.txt",
+        source: uploadedFileName ? "uploaded" : "editor",
+        editedOnWebsite: Boolean(uploadedFileName && code !== uploadedOriginalCode),
+      });
+      setHardwareResult(masterViewOnlyHardwareResult(payload.submissionId, uploadedFileName || "view-only test artifact"));
+      setRequestStatus(`Master view-only test unlocked until ${expirationTime}. No submitted text will execute on the robot.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to start the Master live test.";
+      setReviewInputError(message);
+      setRequestStatus(message);
+    } finally {
+      setIsRunningPhysicalCheck(false);
+    }
+  }
+
   async function runPhysicalSafetyCheck(continueToSoftware = false) {
+    if (masterLiveTestSelected) {
+      await runMasterLiveTest();
+      return;
+    }
+
     const reviewCode = ensureRequiredStand(code);
     if (reviewCode !== code) {
       setCode(reviewCode);
@@ -2819,6 +2996,11 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   }
 
   async function runSoftwareCheck(overrides?: { submissionId: string; approvedFile: ApprovedCodeFile; reviewCode: string }) {
+    if (masterLiveTestSelected) {
+      setRequestStatus("Master uses one view-only authorization action. Submitted text is never sent to the execution checker.");
+      return;
+    }
+
     const submissionId = overrides?.submissionId ?? physicalSubmissionId;
     if (!submissionId || (!physicalSafetyPassed && !overrides)) {
       setRequestStatus("Run and pass Step 3 Physical Hardware Check before starting Step 4 Software Check.");
@@ -2992,10 +3174,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 </p>
               </div>
               <textarea
-                aria-label="Python code submission editor"
-                placeholder="Type or paste your Agentech Python code here..."
+                aria-label={masterLiveTestSelected ? "Master view-only test text" : "Python code submission editor"}
+                placeholder={masterLiveTestSelected ? "Type any view-only test text here..." : "Type or paste your Agentech Python code here..."}
                 value={code}
-                onChange={(event) => updateCode(event.target.value)}
+                onChange={(event) => masterLiveTestSelected ? updateMasterLiveTestText(event.target.value) : updateCode(event.target.value)}
                 disabled={softwarePassed}
                 spellCheck={false}
                 className="min-h-[520px] w-full flex-1 resize-none border-0 bg-[#fbfdff] p-5 font-mono text-sm leading-7 text-[#07142e] outline-none selection:bg-[#bfe8d8] disabled:cursor-not-allowed disabled:bg-[#f1f7f5] disabled:text-[#526174] lg:min-h-[760px]"
@@ -3009,16 +3191,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   <label className="block">
                     <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</span>
                     <select
-                      value={robotModel}
-                      onChange={(event) => changeRobotModel(event.target.value)}
+                      value={displayedRobotModel}
+                      onChange={(event) => changeCodeCheckingRobotModel(event.target.value)}
                       disabled={softwarePassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
                       className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm font-semibold text-[#07142e] outline-none focus:border-[#008a7a] disabled:cursor-not-allowed disabled:bg-[#edf2f7]"
                     >
-                      {robotModelOptions.map((model) => <option key={model} value={model}>{model}</option>)}
+                      {codeCheckingRobotOptions.map((model) => <option key={model} value={model}>{model}</option>)}
                     </select>
                   </label>
                   <p className="mt-2 text-xs leading-5 text-[#526174]">
-                    {robotModel === "Navi" ? "Checks this submission against the latest Navi SDK." : "Checks this submission against the Aegies SDK."}
+                    {masterLiveTestSelected
+                      ? masterPresentation.viewOnlyNotice
+                      : robotModel === "Navi" ? "Checks this submission against the latest Navi SDK." : "Checks this submission against the Aegies SDK."}
                   </p>
                 </div>
                 <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
@@ -3090,7 +3274,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 ) : null}
                 <div className={`border p-3 ${step3PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Stage 1 - Hardware Safety</p>
+                    <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Stage 1 - View-Only Access" : "Stage 1 - Hardware Safety"}</p>
                     {hardwarePassed ? (
                       <span className="inline-flex items-center gap-1 border border-[#008a7a] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
                         <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 fill-none stroke-current stroke-[2.5]">
@@ -3110,13 +3294,15 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-2 font-mono text-xs leading-5 text-[#07142e]">{plan.motionCount} motion commands</p>
+                  <p className="mt-2 font-mono text-xs leading-5 text-[#07142e]">{masterLiveTestSelected ? 0 : plan.motionCount} motion commands</p>
                   <p
                     className={`mt-1 text-xs leading-5 ${
                       hardwareFailed ? "text-[#a51f1f]" : hardwareWarning ? "text-[#9a6700]" : "text-[#526174]"
                     }`}
                   >
-                    {hardwarePassed
+                    {masterLiveTestSelected && hardwarePassed
+                      ? "View-only authorization passed. Zero robot commands will be executed."
+                      : hardwarePassed
                       ? "Hardware and parameter limits passed. Software security is running next."
                       : hardwareWarning
                         ? requestStatus
@@ -3126,10 +3312,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   </p>
                   {hardwarePassed && approvedCodeFile ? (
                     <div className="mt-3 border-t border-[#008a7a]/30 pt-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#006a5c]">Approved code file</p>
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#006a5c]">{masterLiveTestSelected ? masterPresentation.artifactLabel : "Approved code file"}</p>
                       <p className="mt-2 break-all font-mono text-xs text-[#07142e]">{approvedCodeFile.downloadFileName}</p>
                       <p className="mt-1 text-xs leading-5 text-[#526174]">
-                        {approvedCodeFile.editedOnWebsite
+                        {masterLiveTestSelected
+                          ? "This text is saved for the view-only test audit and is not executable."
+                          : approvedCodeFile.editedOnWebsite
                           ? "This is the version edited in the website editor and passed Step 3."
                           : "This is the exact uploaded version that passed Step 3."}
                       </p>
@@ -3138,8 +3326,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         <button
                           type="button"
                           onClick={downloadApprovedCodeFile}
-                          aria-label="Download approved code file"
-                          title="Download approved code file"
+                          aria-label={masterLiveTestSelected ? "Download view-only test artifact" : "Download approved code file"}
+                          title={masterLiveTestSelected ? "Download view-only test artifact" : "Download approved code file"}
                           className="inline-flex items-center justify-center border border-[#008a7a] bg-white p-2 text-[#006a5c] transition hover:bg-[#e8f7f3]"
                         >
                           <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-[1.8]">
@@ -3152,7 +3340,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 </div>
                 <div className={`border p-3 ${step4PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Stage 2 - Software Security</p>
+                    <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Stage 2 - Execution Isolation" : "Stage 2 - Software Security"}</p>
                     {isLoadingReviewGate ? (
                       <span className="border border-[#93c5fd] bg-[#eaf3ff] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#194f92]">
                         Checking
@@ -3179,7 +3367,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     )}
                   </div>
                   <p className="mt-2 text-xs leading-5 text-[#23304a]">
-                    {isLoadingReviewGate
+                    {masterLiveTestSelected && softwarePassed
+                      ? "Execution isolation passed. The active session grants camera viewing only."
+                      : isLoadingReviewGate
                       ? "Checking the latest saved Physical Hardware Check for this account."
                       : softwarePassed
                       ? "Software security passed. Time-slot requests are unlocked."
@@ -3212,12 +3402,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   className="w-full border border-[#2f70c8] bg-[#eaf3ff] px-4 py-3 text-sm font-semibold text-[#194f92] transition hover:bg-[#2f70c8] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRunningPhysicalCheck
-                    ? "Running Hardware Safety..."
+                    ? masterLiveTestSelected ? "Starting Master Live Test..." : "Running Hardware Safety..."
+                    : masterLiveTestSelected
+                      ? masterPresentation.actionLabel
                     : hardwarePassed || hardwareFailed || hardwareWarning
                       ? "Run Hardware Safety Again"
                       : "Run Hardware Safety"}
                 </button> : null}
-                {!softwarePassed ? <button
+                {!softwarePassed && !masterLiveTestSelected ? <button
                   type="button"
                   onClick={() => void runSoftwareCheck()}
                   disabled={isLoadingReviewGate || !hardwarePassed || isRunningPhysicalCheck || isRunningSoftwareCheck || softwareReviewStatus !== "locked"}
@@ -3236,16 +3428,20 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         : "Software Security Used"}
                 </button> : null}
                 <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-[#dce7f2] bg-[#f8fbff]"}`}>
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Schedule gate</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Master live gate" : "Schedule gate"}</p>
                   <p className="mt-2 text-sm leading-6 text-[#23304a]">
-                    {canScheduleRobotSlot ? "Hardware safety and software security passed. You can request a supervised robot time slot now." : "Time-slot requests unlock only after both certification stages pass."}
+                    {masterLiveTestSelected
+                      ? canScheduleRobotSlot
+                        ? `Master view-only livestream is unlocked${masterLiveTestExpiresAt ? ` until ${new Date(masterLiveTestExpiresAt).toLocaleTimeString()}` : " for the active session"}.`
+                        : "Start the 30-minute view-only test to unlock the Master livestream."
+                      : canScheduleRobotSlot ? "Hardware safety and software security passed. You can request a supervised robot time slot now." : "Time-slot requests unlock only after both certification stages pass."}
                   </p>
                   {canScheduleRobotSlot ? (
                     <Link
-                      href={robotSchedulingPath}
+                      href={masterLiveTestSelected ? masterPresentation.livePath : robotSchedulingPath}
                       className="mt-3 block border border-[#008a7a] bg-[#008a7a] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#006a5c]"
                     >
-                      Request Time Slot
+                      {masterLiveTestSelected ? masterPresentation.liveLinkLabel : "Request Time Slot"}
                     </Link>
                   ) : (
                     <button
@@ -3253,7 +3449,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                       disabled
                       className="mt-3 w-full cursor-not-allowed border border-[#d5e0ec] bg-[#edf2f7] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
                     >
-                      Request Time Slot Locked
+                      {masterLiveTestSelected ? "Master Live Stream Locked" : "Request Time Slot Locked"}
                     </button>
                   )}
                 </div>
@@ -3262,7 +3458,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           </div>
         </section>
       ) : null}
-      {showFocusedReview && hardwareResult ? <HardwareResultPanel result={hardwareResult} /> : null}
+      {showFocusedReview && hardwareResult && !masterLiveTestSelected ? <HardwareResultPanel result={hardwareResult} /> : null}
 
       {showWorkbench ? (
       <main id="code-workbench" className="mx-auto grid w-full max-w-7xl scroll-mt-6 gap-0 overflow-hidden border-x border-[#2a3440] lg:grid-cols-[230px_minmax(0,1fr)]">
