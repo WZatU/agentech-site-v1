@@ -38,10 +38,16 @@ test("Master live camera allowlist contains the three front RGB views and RGB-D 
     "/agentech/web/focus/rgbd_color/compressed",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusResolution }) => focusResolution), [
-    "1440x1080 high resolution",
-    "1440x1080 high resolution",
-    "1440x1080 high resolution",
+    "960x720 high resolution",
+    "960x720 high resolution",
+    "960x720 high resolution",
     "640x480 native",
+  ]);
+  assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusFrameRate }) => focusFrameRate), [
+    "up to 30 FPS",
+    "up to 30 FPS",
+    "up to 30 FPS",
+    "up to 30 FPS",
   ]);
 });
 

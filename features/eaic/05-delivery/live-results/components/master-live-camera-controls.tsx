@@ -44,11 +44,11 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
           <p className="mt-1 text-sm leading-6">
             {selection.mode === "wall"
               ? "Low-latency camera wall · 480x360 at 30 FPS"
-              : `${selectedCamera?.label} · ${selectedCamera?.focusResolution}`}
+              : `${selectedCamera?.label} · ${selectedCamera?.focusResolution} · ${selectedCamera?.focusFrameRate}`}
           </p>
         </div>
         <span className="border border-[#375a78] bg-[#0a1624] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#bfdbfe]">
-          {selection.mode === "focus" ? "High-resolution · 30 FPS" : "Low-latency · 30 FPS"}
+          {selection.mode === "focus" ? `High-resolution · ${selectedCamera?.focusFrameRate}` : "Low-latency · 30 FPS"}
         </span>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

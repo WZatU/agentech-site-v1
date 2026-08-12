@@ -4,6 +4,7 @@ source /agibot/software/entry/cfg/env.sh >/dev/null 2>&1 || true
 set -Eeu
 
 optimizer=/home/run/.local/share/agentech/master_camera_web_optimizer.py
+focus_service=/home/run/.local/share/agentech/master_camera_focus_service.py
 wall_pids=()
 focus_pids=()
 
@@ -22,10 +23,10 @@ start_wall_stream() {
   wall_pids+=("$!")
 }
 
-start_focus_stream() {
+start_focus_service() {
   (
     while true; do
-      python3 "$optimizer" "$@" || true
+      python3 "$focus_service" || true
       sleep 1
     done
   ) &
@@ -37,9 +38,6 @@ start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_left/rgb_imag
 start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_right/rgb_image/compressed --output-topic /agentech/web/front_right/compressed --node-name agentech_web_front_right --width 480 --height 360 --quality 25 --max-fps 30
 start_wall_stream --input-topic /aima/hal/sensor/rgbd_head_front/rgb_image/compressed --output-topic /agentech/web/rgbd_color/compressed --node-name agentech_web_rgbd_color --width 480 --height 360 --quality 25 --max-fps 30
 
-start_focus_stream --input-topic /aima/hal/sensor/rgb_head_front_center/rgb_image/compressed --output-topic /agentech/web/focus/front_main/compressed --node-name agentech_web_focus_front_main --width 1440 --height 1080 --quality 50 --max-fps 30 --pause-without-subscribers
-start_focus_stream --input-topic /aima/hal/sensor/stereo_head_front_left/rgb_image/compressed --output-topic /agentech/web/focus/front_left/compressed --node-name agentech_web_focus_front_left --width 1440 --height 1080 --quality 50 --max-fps 30 --pause-without-subscribers
-start_focus_stream --input-topic /aima/hal/sensor/stereo_head_front_right/rgb_image/compressed --output-topic /agentech/web/focus/front_right/compressed --node-name agentech_web_focus_front_right --width 1440 --height 1080 --quality 50 --max-fps 30 --pause-without-subscribers
-start_focus_stream --input-topic /aima/hal/sensor/rgbd_head_front/rgb_image/compressed --output-topic /agentech/web/focus/rgbd_color/compressed --node-name agentech_web_focus_rgbd_color --width 640 --height 480 --quality 50 --max-fps 30 --pause-without-subscribers
+start_focus_service
 
 wait -n "${wall_pids[@]}"

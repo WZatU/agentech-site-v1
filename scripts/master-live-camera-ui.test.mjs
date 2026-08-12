@@ -4,6 +4,7 @@ import test from "node:test";
 
 const controls = readFileSync(new URL("../features/eaic/05-delivery/live-results/components/master-live-camera-controls.tsx", import.meta.url), "utf8");
 const camera = readFileSync(new URL("../features/eaic/05-delivery/live-results/components/live-robot-camera.tsx", import.meta.url), "utf8");
+const cameraConfig = readFileSync(new URL("../lib/master-live-camera.ts", import.meta.url), "utf8");
 
 test("Master controls expose wall, three front RGB cameras, and RGB-D Color", () => {
   assert.match(controls, /Camera Wall/);
@@ -60,7 +61,8 @@ test("Master direct preview chooses focus streams and labels wall fallback", () 
 test("Master controls describe wall and high-resolution focus modes", () => {
   assert.match(controls, /480x360 at 30 FPS/);
   assert.match(controls, /focusResolution/);
+  assert.match(controls, /focusFrameRate/);
+  assert.match(cameraConfig, /up to 30 FPS/);
   assert.match(controls, /High-resolution/);
-  assert.match(controls, /30 FPS/);
   assert.doesNotMatch(controls, /4K program|native 4K|One 4K stream max/);
 });
