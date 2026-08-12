@@ -33,13 +33,34 @@ test("Master preview is development-only and uses the direct wired camera wall",
   assert.match(controls, /selection=\{selection\}/);
 });
 
-test("Master direct wall paints only the newest decoded frame and excludes rear", () => {
+test("Master direct wall decodes one frame per camera and keeps only the newest backlog", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
+  assert.match(wall, /ws:\/\/127\.0\.0\.1:4173\/robot/);
+  assert.doesNotMatch(wall, /127\.0\.0\.1:4175/);
   assert.match(wall, /masterRobotMode: selection.mode === "focus" \? "focus" : "preview"/);
   assert.match(wall, /createImageBitmap/);
-  assert.match(wall, /decodeVersions/);
+  assert.match(wall, /pendingFrames/);
+  assert.match(wall, /decodingFrames/);
+  assert.doesNotMatch(wall, /decodeVersions/);
   assert.match(wall, /drawImage\(bitmap/);
   assert.doesNotMatch(wall, /<img/);
-  assert.match(wall, /4K Focus/);
+  assert.doesNotMatch(wall, /4K Focus/);
   assert.doesNotMatch(wall, /rear-view|rgb_head_rear/);
+});
+
+test("Master direct preview chooses focus streams and labels wall fallback", () => {
+  const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
+  assert.match(wall, /resolveMasterCameraStream/);
+  assert.match(wall, /streamLabels/);
+  assert.match(wall, /quality === "fallback"/);
+  assert.match(wall, /480x360 fallback/);
+  assert.match(wall, /setAvailable\(\{\}\)/);
+});
+
+test("Master controls describe wall and high-resolution focus modes", () => {
+  assert.match(controls, /480x360 at 30 FPS/);
+  assert.match(controls, /focusResolution/);
+  assert.match(controls, /High-resolution/);
+  assert.match(controls, /30 FPS/);
+  assert.doesNotMatch(controls, /4K program|native 4K|One 4K stream max/);
 });

@@ -32,6 +32,10 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
     }
   }
 
+  const selectedCamera = selection.mode === "focus"
+    ? MASTER_LIVE_CAMERAS.find(({ id }) => id === selection.cameraId)
+    : null;
+
   return (
     <section className="mb-3 border border-[#31506a] bg-[#101d2e] p-4 text-[#dbeafe]" aria-label="Master camera view controls">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -39,12 +43,12 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">Master Robot Vision</p>
           <p className="mt-1 text-sm leading-6">
             {selection.mode === "wall"
-              ? "Camera Wall · four 1080p views inside one 4K program"
-              : `${MASTER_LIVE_CAMERAS.find(({ id }) => id === selection.cameraId)?.label} · focused up to native 4K`}
+              ? "Low-latency camera wall · 480x360 at 30 FPS"
+              : `${selectedCamera?.label} · ${selectedCamera?.focusResolution}`}
           </p>
         </div>
         <span className="border border-[#375a78] bg-[#0a1624] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#bfdbfe]">
-          One 4K stream max
+          {selection.mode === "focus" ? "High-resolution · 30 FPS" : "Low-latency · 30 FPS"}
         </span>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
