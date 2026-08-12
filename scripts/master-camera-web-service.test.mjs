@@ -19,21 +19,13 @@ test("Master camera service uses the proven low-latency wall resolution", () => 
   assert.doesNotMatch(launcher, /--width (1280|1920|2064)/);
 });
 
-test("Front Main focus uses one dedicated subscriber-aware 2K worker", () => {
-  assert.match(
-    launcher,
-    /start_focus_stream --input-topic \/aima\/hal\/sensor\/rgb_head_front_center\/rgb_image\/compressed --output-topic \/agentech\/web\/focus\/front_main\/compressed --node-name agentech_web_focus_front_main --width 2560 --height 1851 --quality 50 --max-fps 30 --pause-without-subscribers/,
-  );
-  assert.doesNotMatch(focusService, /rgb_head_front_center/);
-  assert.doesNotMatch(focusService, /focus\/front_main/);
-  assert.equal((launcher.match(/--pause-without-subscribers/g) ?? []).length, 5);
-});
-
-test("shared focus worker keeps Left Right and RGB-D at their current profiles", () => {
-  for (const topic of ["front_left", "front_right", "rgbd_color"]) {
+test("Master camera service runs one shared focus worker", () => {
+  for (const topic of ["front_main", "front_left", "front_right", "rgbd_color"]) {
     assert.match(focusService, new RegExp(`/agentech/web/focus/${topic}/compressed`));
   }
   assert.equal((launcher.match(/master_camera_focus_service\.py/g) ?? []).length, 1);
+  assert.doesNotMatch(launcher, /start_focus_stream/);
+  assert.equal((launcher.match(/--pause-without-subscribers/g) ?? []).length, 4);
   assert.match(focusService, /FOCUS_WIDTH = 960/);
   assert.match(focusService, /FOCUS_HEIGHT = 720/);
   assert.match(focusService, /FOCUS_MAX_FPS = 30/);

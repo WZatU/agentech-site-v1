@@ -38,7 +38,7 @@ test("Master live camera allowlist contains the three front RGB views and RGB-D 
     "/agentech/web/focus/rgbd_color/compressed",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusResolution }) => focusResolution), [
-    "2560x1851 2K",
+    "960x720 high resolution",
     "960x720 high resolution",
     "960x720 high resolution",
     "640x480 native",
@@ -55,7 +55,7 @@ test("focus selection prefers its focus topic and falls back to the wall topic",
   const camera = MASTER_LIVE_CAMERAS[0];
   assert.deepEqual(
     resolveMasterCameraStream(camera.id, "focus", [camera.wallTopic, camera.focusTopic]),
-    { topic: "/agentech/web/focus/front_main/compressed", resolution: "2560x1851 2K", quality: "focus" },
+    { topic: camera.focusTopic, resolution: camera.focusResolution, quality: "focus" },
   );
   assert.deepEqual(
     resolveMasterCameraStream(camera.id, "focus", [camera.wallTopic]),

@@ -24,6 +24,10 @@ FOCUS_MAX_FPS = 30
 FRONT_SWITCH_SETTLE_SECONDS = 0.2
 
 FRONT_CAMERAS = {
+    "front-main": (
+        "/aima/hal/sensor/rgb_head_front_center/rgb_image/compressed",
+        "/agentech/web/focus/front_main/compressed",
+    ),
     "front-left": (
         "/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed",
         "/agentech/web/focus/front_left/compressed",
