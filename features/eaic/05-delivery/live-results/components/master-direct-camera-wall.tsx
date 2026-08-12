@@ -21,6 +21,7 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
     setAvailable({});
     setStreamLabels({});
     let stopped = false;
+    let pageVisible = document.visibilityState !== "hidden";
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let socket: WebSocket | undefined;
     const pendingFrames = new Map<MasterCameraId, PendingFrame>();
@@ -59,7 +60,7 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
     };
 
     const connect = () => {
-      if (stopped) return;
+      if (stopped || !pageVisible) return;
       setStatus("Connecting to Master cameras…");
       socket = new WebSocket(RELAY_URL, ["coBridge.websocket.v1", "foxglove.websocket.v1"]);
       socket.binaryType = "arraybuffer";
@@ -120,16 +121,33 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
       };
 
       socket.onclose = () => {
-        if (stopped) return;
+        if (stopped || !pageVisible) return;
         setStatus("Reconnecting to Master cameras…");
         reconnectTimer = setTimeout(connect, 1200);
       };
       socket.onerror = () => socket?.close();
     };
 
-    connect();
+    const handleVisibilityChange = () => {
+      pageVisible = document.visibilityState !== "hidden";
+      if (!pageVisible) {
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = undefined;
+        socket?.close();
+        socket = undefined;
+        pendingFrames.clear();
+        setStatus("Paused while this tab is hidden");
+        return;
+      }
+      connect();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    if (pageVisible) connect();
+    else setStatus("Paused while this tab is hidden");
     return () => {
       stopped = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (reconnectTimer) clearTimeout(reconnectTimer);
       socket?.close();
     };

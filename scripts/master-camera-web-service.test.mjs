@@ -24,7 +24,8 @@ test("Master camera service runs one shared focus worker", () => {
     assert.match(focusService, new RegExp(`/agentech/web/focus/${topic}/compressed`));
   }
   assert.equal((launcher.match(/master_camera_focus_service\.py/g) ?? []).length, 1);
-  assert.doesNotMatch(launcher, /start_focus_stream|--pause-without-subscribers/);
+  assert.doesNotMatch(launcher, /start_focus_stream/);
+  assert.equal((launcher.match(/--pause-without-subscribers/g) ?? []).length, 4);
   assert.match(focusService, /FOCUS_WIDTH = 960/);
   assert.match(focusService, /FOCUS_HEIGHT = 720/);
   assert.match(focusService, /FOCUS_MAX_FPS = 30/);
@@ -41,6 +42,10 @@ test("front focus cameras share one persistent NVIDIA pipeline", () => {
   assert.match(focusService, /select_active_front/);
   assert.match(focusService, /self\._front_pipeline/);
   assert.doesNotMatch(focusService, /set_state\(self\._gst\.State\.NULL\).*subscriber/s);
+});
+
+test("wall encoders pause while one focus stream owns the video budget", () => {
+  assert.equal((launcher.match(/start_wall_stream [^\n]*--pause-without-subscribers/g) ?? []).length, 4);
 });
 
 test("RGB-D focus forwards the native compressed frame without re-encoding", () => {

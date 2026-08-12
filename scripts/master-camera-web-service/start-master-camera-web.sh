@@ -33,10 +33,10 @@ start_focus_service() {
   focus_pids+=("$!")
 }
 
-start_wall_stream --input-topic /aima/hal/sensor/rgb_head_front_center/rgb_image/compressed --output-topic /agentech/web/front_main/compressed --node-name agentech_web_front_main --width 480 --height 360 --quality 25 --max-fps 30
-start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_left/rgb_image/compressed --output-topic /agentech/web/front_left/compressed --node-name agentech_web_front_left --width 480 --height 360 --quality 25 --max-fps 30
-start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_right/rgb_image/compressed --output-topic /agentech/web/front_right/compressed --node-name agentech_web_front_right --width 480 --height 360 --quality 25 --max-fps 30
-start_wall_stream --input-topic /aima/hal/sensor/rgbd_head_front/rgb_image/compressed --output-topic /agentech/web/rgbd_color/compressed --node-name agentech_web_rgbd_color --width 480 --height 360 --quality 25 --max-fps 30
+start_wall_stream --input-topic /aima/hal/sensor/rgb_head_front_center/rgb_image/compressed --output-topic /agentech/web/front_main/compressed --node-name agentech_web_front_main --width 480 --height 360 --quality 25 --max-fps 30 --pause-without-subscribers
+start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_left/rgb_image/compressed --output-topic /agentech/web/front_left/compressed --node-name agentech_web_front_left --width 480 --height 360 --quality 25 --max-fps 30 --pause-without-subscribers
+start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_right/rgb_image/compressed --output-topic /agentech/web/front_right/compressed --node-name agentech_web_front_right --width 480 --height 360 --quality 25 --max-fps 30 --pause-without-subscribers
+start_wall_stream --input-topic /aima/hal/sensor/rgbd_head_front/rgb_image/compressed --output-topic /agentech/web/rgbd_color/compressed --node-name agentech_web_rgbd_color --width 480 --height 360 --quality 25 --max-fps 30 --pause-without-subscribers
 
 start_focus_service
 

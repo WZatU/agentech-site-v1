@@ -58,6 +58,14 @@ test("Master direct preview chooses focus streams and labels wall fallback", () 
   assert.match(wall, /setAvailable\(\{\}\)/);
 });
 
+test("hidden Master preview tabs release their camera connection", () => {
+  const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
+  assert.match(wall, /document\.visibilityState/);
+  assert.match(wall, /visibilitychange/);
+  assert.match(wall, /Paused while this tab is hidden/);
+  assert.match(wall, /document\.removeEventListener/);
+});
+
 test("Master controls describe wall and high-resolution focus modes", () => {
   assert.match(controls, /480x360 at 30 FPS/);
   assert.match(controls, /focusResolution/);
