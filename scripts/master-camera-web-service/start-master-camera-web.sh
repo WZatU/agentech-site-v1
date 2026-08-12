@@ -23,6 +23,16 @@ start_wall_stream() {
   wall_pids+=("$!")
 }
 
+start_focus_stream() {
+  (
+    while true; do
+      python3 "$optimizer" "$@" || true
+      sleep 1
+    done
+  ) &
+  focus_pids+=("$!")
+}
+
 start_focus_service() {
   (
     while true; do
@@ -38,6 +48,7 @@ start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_left/rgb_imag
 start_wall_stream --input-topic /aima/hal/sensor/stereo_head_front_right/rgb_image/compressed --output-topic /agentech/web/front_right/compressed --node-name agentech_web_front_right --width 480 --height 360 --quality 25 --max-fps 30 --pause-without-subscribers
 start_wall_stream --input-topic /aima/hal/sensor/rgbd_head_front/rgb_image/compressed --output-topic /agentech/web/rgbd_color/compressed --node-name agentech_web_rgbd_color --width 480 --height 360 --quality 25 --max-fps 30 --pause-without-subscribers
 
+start_focus_stream --input-topic /aima/hal/sensor/rgb_head_front_center/rgb_image/compressed --output-topic /agentech/web/focus/front_main/compressed --node-name agentech_web_focus_front_main --width 2560 --height 1851 --quality 50 --max-fps 30 --pause-without-subscribers
 start_focus_service
 
 wait -n "${wall_pids[@]}"
