@@ -1,15 +1,46 @@
 import { normalizeAgentechRobotModel, type AgentechRobotModel } from "../features/eaic/02-unified-api/resources-runs/agentech-robot-model.ts";
 
 export const MASTER_LIVE_CAMERAS = [
-  { id: "front-main", label: "Front Main", topic: "/aima/hal/sensor/rgb_head_front_center/rgb_image/compressed" },
-  { id: "front-left", label: "Front Left", topic: "/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed" },
-  { id: "front-right", label: "Front Right", topic: "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed" },
-  { id: "rgbd-color", label: "RGB-D Color", topic: "/aima/hal/sensor/rgbd_head_front/rgb_image/compressed" },
+  { id: "front-main", label: "Front Main", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_main/compressed", focusResolution: "1440x1080 high resolution", focusTopic: "/agentech/web/focus/front_main/compressed" },
+  { id: "front-left", label: "Front Left", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_left/compressed", focusResolution: "1440x1080 high resolution", focusTopic: "/agentech/web/focus/front_left/compressed" },
+  { id: "front-right", label: "Front Right", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_right/compressed", focusResolution: "1440x1080 high resolution", focusTopic: "/agentech/web/focus/front_right/compressed" },
+  { id: "rgbd-color", label: "RGB-D Color", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/rgbd_color/compressed", focusResolution: "640x480 native", focusTopic: "/agentech/web/focus/rgbd_color/compressed" },
 ] as const;
 
 export type MasterCameraId = (typeof MASTER_LIVE_CAMERAS)[number]["id"];
 export type MasterViewSelection = { mode: "wall" } | { mode: "focus"; cameraId: MasterCameraId };
 export type LiveRobotModel = AgentechRobotModel | "Master";
+
+export type MasterCameraStream = {
+  topic: string;
+  resolution: string;
+  quality: "wall" | "focus" | "fallback";
+};
+
+export function resolveMasterCameraStream(
+  cameraId: MasterCameraId,
+  mode: "wall" | "focus",
+  advertisedTopics: readonly string[],
+): MasterCameraStream | null {
+  const camera = MASTER_LIVE_CAMERAS.find(({ id }) => id === cameraId);
+  if (!camera) return null;
+
+  const advertised = new Set(advertisedTopics);
+
+  if (mode === "focus" && advertised.has(camera.focusTopic)) {
+    return { topic: camera.focusTopic, resolution: camera.focusResolution, quality: "focus" };
+  }
+
+  if (advertised.has(camera.wallTopic)) {
+    return {
+      topic: camera.wallTopic,
+      resolution: camera.wallResolution,
+      quality: mode === "focus" ? "fallback" : "wall",
+    };
+  }
+
+  return null;
+}
 
 export function normalizeMasterCameraId(value: unknown): MasterCameraId | null {
   if (typeof value !== "string") return null;
