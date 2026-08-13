@@ -58,6 +58,19 @@ test("Master direct preview chooses focus streams and labels wall fallback", () 
   assert.match(wall, /setAvailable\(\{\}\)/);
 });
 
+test("Front Right focus exclusively uses the raw H264 WebCodecs path", () => {
+  const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
+  const h264 = readFileSync("features/eaic/05-delivery/live-results/components/master-h264-preview.mjs", "utf8");
+  assert.match(wall, /selection\.mode === "focus" && selection\.cameraId === "front-right"/);
+  assert.match(wall, /startMasterH264Preview/);
+  assert.match(wall, /getMasterH264PreviewUrl\(RELAY_URL\)/);
+  assert.match(wall, /raw RGB.*H\.264|H\.264.*raw RGB/s);
+  assert.match(h264, /VideoDecoder/);
+  assert.match(h264, /EncodedVideoChunk/);
+  assert.match(h264, /\/h264\/front-right/);
+  assert.doesNotMatch(h264, /createImageBitmap|new WebSocketImpl\([^)]*\/robot/);
+});
+
 test("hidden Master preview tabs release their camera connection", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
   assert.match(wall, /document\.visibilityState/);

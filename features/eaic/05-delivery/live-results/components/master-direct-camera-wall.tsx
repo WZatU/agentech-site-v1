@@ -4,10 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import { parse } from "@foxglove/rosmsg";
 import { MessageReader } from "@foxglove/rosmsg2-serialization";
 import { MASTER_LIVE_CAMERAS, resolveMasterCameraStream, type MasterCameraId, type MasterViewSelection } from "@/lib/master-live-camera";
+import { getMasterH264PreviewUrl, startMasterH264Preview } from "./master-h264-preview.mjs";
 
 type Channel = { id: number; topic: string; schema: string; schemaName: string; encoding: string };
 type CompressedImage = { data: Uint8Array; format?: string; header?: { stamp?: { sec?: number; nanosec?: number } } };
 type PendingFrame = { data: Uint8Array; mime: "image/jpeg" | "image/png" };
+type H264PreviewState = {
+  phase: "connecting" | "keyframe" | "decoding" | "stopped" | "error";
+  width: number;
+  height: number;
+  fps: number;
+  codec: string;
+  error: string | null;
+};
 
 const RELAY_URL = process.env.NEXT_PUBLIC_MASTER_CAMERA_RELAY_URL || "ws://127.0.0.1:4173/robot";
 
@@ -20,6 +29,64 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
   useEffect(() => {
     setAvailable({});
     setStreamLabels({});
+    if (selection.mode === "focus" && selection.cameraId === "front-right") {
+      let h264Stopped = false;
+      let stopH264: (() => void) | undefined;
+      let pageVisible = document.visibilityState !== "hidden";
+
+      const startH264 = () => {
+        if (h264Stopped || !pageVisible) return;
+        const canvas = canvases.current.get("front-right");
+        if (!canvas) {
+          setStatus("Front Right canvas is unavailable");
+          return;
+        }
+        setStreamLabels({ "front-right": "2064x1552 raw RGB · hardware H.264" });
+        stopH264 = startMasterH264Preview({
+          url: getMasterH264PreviewUrl(RELAY_URL),
+          canvas,
+          onState: (state: H264PreviewState) => {
+            if (h264Stopped) return;
+            if (state.phase === "connecting") {
+              setStatus(state.error || "Connecting to Front Right raw RGB H.264…");
+            } else if (state.phase === "keyframe") {
+              setStatus("Front Right H.264 connected · waiting for a keyframe…");
+            } else if (state.phase === "decoding") {
+              setAvailable((current) => current["front-right"]
+                ? current
+                : { ...current, "front-right": true });
+              setStreamLabels({
+                "front-right": `${state.width}x${state.height} raw RGB · ${state.codec} · ${state.fps} FPS`,
+              });
+              setStatus(`Front Right raw RGB H.264 · ${state.width}x${state.height} · ${state.fps} FPS`);
+            } else if (state.phase === "error") {
+              setStatus(`Front Right H.264 error · ${state.error || "decoder failed"}`);
+            }
+          },
+        });
+      };
+
+      const handleH264VisibilityChange = () => {
+        pageVisible = document.visibilityState !== "hidden";
+        if (!pageVisible) {
+          stopH264?.();
+          stopH264 = undefined;
+          setStatus("Paused while this tab is hidden");
+          return;
+        }
+        startH264();
+      };
+
+      document.addEventListener("visibilitychange", handleH264VisibilityChange);
+      if (pageVisible) startH264();
+      else setStatus("Paused while this tab is hidden");
+      return () => {
+        h264Stopped = true;
+        document.removeEventListener("visibilitychange", handleH264VisibilityChange);
+        stopH264?.();
+      };
+    }
+
     let stopped = false;
     let pageVisible = document.visibilityState !== "hidden";
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
