@@ -34,6 +34,13 @@ test("Master preview is development-only and uses the direct wired camera wall",
   assert.match(controls, /selection=\{selection\}/);
 });
 
+test("Master preview can open a requested camera directly from the local URL", () => {
+  assert.match(controls, /URLSearchParams\(window\.location\.search\)/);
+  assert.match(controls, /get\("masterCamera"\)/);
+  assert.match(controls, /camera\.id === cameraId/);
+  assert.match(controls, /setSelection\(\{ mode: "focus", cameraId: camera\.id \}\)/);
+});
+
 test("Master direct wall decodes one frame per camera and keeps only the newest backlog", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
   assert.match(wall, /ws:\/\/127\.0\.0\.1:4173\/robot/);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MASTER_LIVE_CAMERAS, type MasterViewSelection } from "@/lib/master-live-camera";
 import { MasterDirectCameraWall } from "./master-direct-camera-wall";
 
@@ -8,6 +8,13 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
   const [selection, setSelection] = useState<MasterViewSelection>({ mode: "wall" });
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (!preview) return;
+    const cameraId = new URLSearchParams(window.location.search).get("masterCamera");
+    const camera = MASTER_LIVE_CAMERAS.find((camera) => camera.id === cameraId);
+    if (camera) setSelection({ mode: "focus", cameraId: camera.id });
+  }, [preview]);
 
   async function choose(next: MasterViewSelection) {
     const previous = selection;
