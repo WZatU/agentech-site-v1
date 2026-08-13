@@ -34,13 +34,13 @@ test("Master live camera allowlist contains the three front RGB views and RGB-D 
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusTopic }) => focusTopic), [
     "/agentech/web/focus/front_main/compressed",
     "/agentech/web/focus/front_left/compressed",
-    "/agentech/web/focus/front_right/compressed",
+    "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed",
     "/agentech/web/focus/rgbd_color/compressed",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusResolution }) => focusResolution), [
     "960x720 high resolution",
     "960x720 high resolution",
-    "960x720 high resolution",
+    "2064x1552 native",
     "640x480 native",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusFrameRate }) => focusFrameRate), [
@@ -62,6 +62,13 @@ test("focus selection prefers its focus topic and falls back to the wall topic",
     { topic: camera.wallTopic, resolution: camera.wallResolution, quality: "fallback" },
   );
   assert.equal(resolveMasterCameraStream(camera.id, "focus", []), null);
+
+  const frontRight = MASTER_LIVE_CAMERAS.find(({ id }) => id === "front-right");
+  assert.ok(frontRight);
+  assert.deepEqual(
+    resolveMasterCameraStream("front-right", "focus", [frontRight.wallTopic, frontRight.focusTopic]),
+    { topic: frontRight.focusTopic, resolution: "2064x1552 native", quality: "focus" },
+  );
 });
 
 test("Master view selection accepts wall or one allowlisted focus camera", () => {

@@ -3,7 +3,7 @@ import { normalizeAgentechRobotModel, type AgentechRobotModel } from "../feature
 export const MASTER_LIVE_CAMERAS = [
   { id: "front-main", label: "Front Main", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_main/compressed", focusResolution: "960x720 high resolution", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/front_main/compressed" },
   { id: "front-left", label: "Front Left", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_left/compressed", focusResolution: "960x720 high resolution", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/front_left/compressed" },
-  { id: "front-right", label: "Front Right", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_right/compressed", focusResolution: "960x720 high resolution", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/front_right/compressed" },
+  { id: "front-right", label: "Front Right", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_right/compressed", focusResolution: "2064x1552 native", focusFrameRate: "up to 30 FPS", focusTopic: "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed" },
   { id: "rgbd-color", label: "RGB-D Color", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/rgbd_color/compressed", focusResolution: "640x480 native", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/rgbd_color/compressed" },
 ] as const;
 
