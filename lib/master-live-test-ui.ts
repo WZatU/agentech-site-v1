@@ -1,5 +1,5 @@
 export const masterLiveTestPresentation = (expiresAt = "") => ({
-  actionLabel: "Start 30-Minute Master Live Test",
+  actionLabel: "Start 3-Minute Master Live Test",
   artifactLabel: "View-only test artifact",
   liveLinkLabel: "Open Master Live Stream",
   livePath: "/agentech-products/eaic-hub/watch-live-run",

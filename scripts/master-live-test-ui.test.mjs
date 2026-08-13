@@ -40,13 +40,13 @@ test("arbitrary Master text is sent unchanged and without an executable command 
   });
 });
 
-test("the unlocked presentation is explicitly view-only and opens the existing Master live page", () => {
-  assert.deepEqual(masterLiveTestPresentation("2026-08-11T18:30:00.000Z"), {
-    actionLabel: "Start 30-Minute Master Live Test",
+test("the unlocked presentation describes the 3-minute view-only test and opens the existing Master live page", () => {
+  assert.deepEqual(masterLiveTestPresentation("2026-08-11T18:03:00.000Z"), {
+    actionLabel: "Start 3-Minute Master Live Test",
     artifactLabel: "View-only test artifact",
     liveLinkLabel: "Open Master Live Stream",
     livePath: "/agentech-products/eaic-hub/watch-live-run",
-    expiresAt: "2026-08-11T18:30:00.000Z",
+    expiresAt: "2026-08-11T18:03:00.000Z",
     viewOnlyNotice: "View-only test. Submitted text will not execute on Master.",
   });
 });

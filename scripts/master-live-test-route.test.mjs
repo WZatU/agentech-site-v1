@@ -39,7 +39,7 @@ function robotSession(overrides = {}) {
     email: victoria,
     robot_model: "Master",
     scheduled_start: "2026-08-11T18:00:00.000Z",
-    scheduled_end: "2026-08-11T18:30:00.000Z",
+    scheduled_end: "2026-08-11T18:03:00.000Z",
     session_status: "requested",
     requested_run_type: "preset_demo",
     approved_run_type: "preset_demo",
@@ -109,7 +109,7 @@ test("Victoria's arbitrary input is approved only as a zero-command view-only au
   assert.equal(result.status, 200);
   assert.equal(result.body.viewOnly, true);
   assert.equal(result.body.robotModel, "Master");
-  assert.equal(result.body.expiresAt, "2026-08-11T18:30:00.000Z");
+  assert.equal(result.body.expiresAt, "2026-08-11T18:03:00.000Z");
   assert.deepEqual(createInput.commands, []);
   assert.equal(createInput.code, arbitraryText);
   assert.equal(createInput.robotModel, "Master");
@@ -137,7 +137,7 @@ test("a locked Master audit is reused after a retry instead of being duplicated"
 
 test("a session conflict relocks the approved audit and reports 409", async () => {
   const statuses = [];
-  const conflict = new Error("Another active robot session overlaps this 30-minute Master test.");
+  const conflict = new Error("Another active robot session overlaps this 3-minute Master test.");
   conflict.name = "MasterLiveTestConflictError";
   const result = await handleMasterLiveTest({ email: victoria, payload: { code: "test" }, now }, dependencies({
     ensureSession: async () => { throw conflict; },

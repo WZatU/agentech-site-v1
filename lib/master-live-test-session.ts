@@ -17,7 +17,7 @@ export type MasterLiveTestSessionDependencies<Session extends MasterLiveTestSess
 };
 
 export class MasterLiveTestConflictError extends Error {
-  constructor(message = "Another active robot session overlaps this 30-minute Master test.") {
+  constructor(message = "Another active robot session overlaps this 3-minute Master test.") {
     super(message);
     this.name = "MasterLiveTestConflictError";
   }
