@@ -1181,7 +1181,7 @@ export async function reserveMasterLiveTestSession(input: RobotSessionInput) {
       return { session: reusable, created: false };
     }
     if (conflicts.length) {
-      const error = new Error("Another active robot session overlaps this 30-minute Master test.");
+      const error = new Error("Another active robot session overlaps this 3-minute Master test.");
       error.name = "MasterLiveTestConflictError";
       throw error;
     }
@@ -1235,7 +1235,7 @@ export async function reserveMasterLiveTestSession(input: RobotSessionInput) {
   if (inserted[0]) {
     const verified = await verifyRobotSessionReservation(inserted[0]);
     if (!verified) {
-      const error = new Error("Another active robot session overlaps this 30-minute Master test.");
+      const error = new Error("Another active robot session overlaps this 3-minute Master test.");
       error.name = "MasterLiveTestConflictError";
       throw error;
     }

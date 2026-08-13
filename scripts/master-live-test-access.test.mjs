@@ -77,10 +77,10 @@ test("only Victoria's exact normalized account receives Master live-test access"
   assert.equal(hasMasterLiveTestAccess(null), false);
 });
 
-test("the Master view-only authorization lasts exactly 30 minutes", () => {
+test("the Master view-only authorization lasts exactly 3 minutes", () => {
   assert.deepEqual(masterLiveTestWindow(now), {
     scheduledStart: "2026-08-11T18:00:00.000Z",
-    scheduledEnd: "2026-08-11T18:30:00.000Z",
+    scheduledEnd: "2026-08-11T18:03:00.000Z",
   });
 });
 
@@ -107,7 +107,7 @@ test("the session input is free, view-only, pre-approved, and never links execut
     sessionTitle: "Master live stream test (view only)",
     robotModel: "Master",
     scheduledStart: "2026-08-11T18:00:00.000Z",
-    scheduledEnd: "2026-08-11T18:30:00.000Z",
+    scheduledEnd: "2026-08-11T18:03:00.000Z",
     requestedRunType: "preset_demo",
     approvedRunType: "preset_demo",
     presetDemo: "Master live stream test (view only)",
@@ -164,13 +164,13 @@ test("new sessions are created from the exact safe Master view-only input", asyn
   const created = session({
     id: 92,
     scheduled_start: "2026-08-11T18:00:00.000Z",
-    scheduled_end: "2026-08-11T18:30:00.000Z",
+    scheduled_end: "2026-08-11T18:03:00.000Z",
   });
   const result = await ensureMasterLiveTestSession(victoria, now, {
     listSessions: async () => [],
     listConflicts: async (start, end) => {
       assert.equal(start, "2026-08-11T18:00:00.000Z");
-      assert.equal(end, "2026-08-11T18:30:00.000Z");
+      assert.equal(end, "2026-08-11T18:03:00.000Z");
       return [];
     },
     listProfiles: async () => [profile()],

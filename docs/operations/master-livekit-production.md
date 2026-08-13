@@ -1,12 +1,12 @@
 # Master Live Stream Production Check
 
-The Master Code Checking test is a camera-view authorization only. It creates or reuses a 30-minute `preset_demo` session with no code submission attached to the robot run. Text entered in Code Checking is saved as a zero-command audit artifact and is never executed on Master.
+The Master Code Checking test is a camera-view authorization only. It creates or reuses a 3-minute `preset_demo` session with no code submission attached to the robot run. Text entered in Code Checking is saved as a zero-command audit artifact and is never executed on Master.
 
 ## Victoria acceptance test
 
 1. Sign in as `victoria_c@agent-tech.ai`.
 2. Open Code Checking and select **Master**.
-3. Paste any test text and start the 30-minute view-only test.
+3. Paste any test text and start the 3-minute view-only test.
 4. Confirm both display gates pass and the response says the text will not execute.
 5. Select **Open Master Live Stream** and confirm the active robot model is Master and the Master-only camera controls appear.
 6. Confirm another company account does not receive the Master option in Code Checking.

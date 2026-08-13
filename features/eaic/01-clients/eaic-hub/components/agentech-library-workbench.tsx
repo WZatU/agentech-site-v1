@@ -612,7 +612,7 @@ function masterViewOnlyHardwareResult(resultId: string, fileName: string): Hardw
       {
         name: "View-only authorization",
         status: "PASS",
-        detail: "This approval opens only the Master livestream for the active 30-minute test window.",
+        detail: "This approval opens only the Master livestream for the active 3-minute test window.",
       },
       {
         name: "Robot execution isolation",
@@ -2358,7 +2358,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     : selectedTask?.slug === "software-check" ? "Step 3 - Code Certification" : "Step 3 - Physical Hardware Check";
   const focusedReviewCopy =
     masterLiveTestSelected
-      ? "Enter any test text, then create a 30-minute Master viewing session. The text is recorded only for audit and never executes on the robot."
+      ? "Enter any test text, then create a 3-minute Master viewing session. The text is recorded only for audit and never executes on the robot."
       : selectedTask?.slug === "software-check"
       ? "Complete Hardware Safety first, then run Software Security. Passing both unlocks a robot time-slot request."
       : "Physical Hardware Check runs first. It protects the robot body by checking command limits, motion duration, model compatibility, and risky movements.";
@@ -2546,7 +2546,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
           setRequestStatus(
             masterSessionActive
               ? "Active Master view-only session restored. Open Master Live Stream before it expires. Submitted text will not execute."
-              : "Master view-only audit restored, but there is no active session. Start a new 30-minute live test to unlock the cameras."
+              : "Master view-only audit restored, but there is no active session. Start a new 3-minute live test to unlock the cameras."
           );
           return;
         }
@@ -2640,7 +2640,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
     const expireMasterLiveTest = () => {
       setCanScheduleRobotSlot(false);
       setSoftwareReviewStatus("locked");
-      setRequestStatus("The 30-minute Master view-only session expired. Start a new test to unlock the livestream again.");
+      setRequestStatus("The 3-minute Master view-only session expired. Start a new test to unlock the livestream again.");
     };
     const remaining = millisecondsUntilMasterLiveTestExpiry(masterLiveTestExpiresAt);
     if (remaining === 0) {
@@ -2882,7 +2882,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   async function runMasterLiveTest() {
     setReviewInputError("");
     setIsRunningPhysicalCheck(true);
-    setRequestStatus("Creating a 30-minute view-only Master live test...");
+    setRequestStatus("Creating a 3-minute view-only Master live test...");
     try {
       const response = await fetch("/api/master-live-test", {
         method: "POST",
@@ -3516,7 +3516,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     {masterLiveTestSelected
                       ? canScheduleRobotSlot
                         ? `Master view-only livestream is unlocked${masterLiveTestExpiresAt ? ` until ${new Date(masterLiveTestExpiresAt).toLocaleTimeString()}` : " for the active session"}.`
-                        : "Start the 30-minute view-only test to unlock the Master livestream."
+                        : "Start the 3-minute view-only test to unlock the Master livestream."
                       : canScheduleRobotSlot ? "Hardware safety and software security passed. You can request a supervised robot time slot now." : "Time-slot requests unlock only after both certification stages pass."}
                   </p>
                   {canScheduleRobotSlot ? (

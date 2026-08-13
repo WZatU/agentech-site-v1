@@ -1,5 +1,5 @@
 export const MASTER_LIVE_TEST_EMAIL = "victoria_c@agent-tech.ai";
-export const MASTER_LIVE_TEST_DURATION_MINUTES = 30;
+export const MASTER_LIVE_TEST_DURATION_MINUTES = 3;
 export const MASTER_LIVE_TEST_LABEL = "Master live stream test (view only)";
 export const MASTER_LIVE_TEST_NOTE = "View-only authorization. Submitted text is never executed on Master.";
 
