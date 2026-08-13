@@ -78,6 +78,7 @@ A read-only measurement on 2026-08-13 confirmed that the robot reaches AGENTECH0
 - Active TCP round-trip time to AGENTECH01: approximately `1.8` to `2.2 ms`
 - TCP delivery-rate estimate while the camera connection was active: approximately `186` to `301 Mbps`, with a separately observed peak of approximately `472 Mbps`
 - Actual production camera traffic during a 10-second packet capture: `14.30 Mbps`
+- AGENTECH01 route adapter: Realtek Gaming 2.5GbE, negotiated at `1 Gbps`
 
 The PHY rate is not usable application throughput. For planning, use the measured TCP delivery range rather than the `600-1080 Mbps` Wi-Fi link label. The native Front Right stream previously measured about `26.4 Mbps` at 30 FPS, so this path has sufficient bandwidth margin if the robot, browser JPEG decoder, and LiveKit H.264 encoder keep up. A dedicated `iperf3` server was not available on AGENTECH01, so the delivery-rate value is an estimate from the live TCP connection, not a destructive saturation test.
 
