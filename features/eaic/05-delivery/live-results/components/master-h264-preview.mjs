@@ -44,6 +44,7 @@ export function startMasterH264Preview(options) {
   let waitingForKeyframe = true;
   let width = 0;
   let height = 0;
+  let lastDecodingReportAt = Number.NEGATIVE_INFINITY;
 
   function report(phase, error = null) {
     onState({
@@ -87,7 +88,10 @@ export function startMasterH264Preview(options) {
       const timestamp = now();
       decodedTimes.push(timestamp);
       while (decodedTimes.length && decodedTimes[0] < timestamp - 1000) decodedTimes.shift();
-      report("decoding");
+      if (timestamp - lastDecodingReportAt >= 250) {
+        lastDecodingReportAt = timestamp;
+        report("decoding");
+      }
     } catch (error) {
       fail(error);
     } finally {
@@ -222,4 +226,3 @@ export function startMasterH264Preview(options) {
     report("stopped");
   };
 }
-

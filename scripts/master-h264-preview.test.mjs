@@ -206,6 +206,10 @@ test("draws native frames, closes them, and reports decoded FPS", async () => {
   assert.equal(first.closed && second.closed && third.closed, true);
   assert.equal(states.at(-1).phase, "decoding");
   assert.equal(states.at(-1).fps, 3);
+  assert.ok(
+    states.filter(({ phase }) => phase === "decoding").length <= 2,
+    "canvas output stays per-frame while React-facing status updates are throttled",
+  );
   stop();
 });
 
@@ -250,4 +254,3 @@ test("derives the H264 endpoint only from the local relay URL", () => {
     "ws://127.0.0.1:4173/h264/front-right",
   );
 });
-
