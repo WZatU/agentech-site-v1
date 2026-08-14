@@ -55,12 +55,12 @@ export function MasterLiveCameraControls({ preview = false, selection, onSelecti
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#93c5fd]">Master Robot Vision</p>
           <p className="mt-1 text-sm leading-6">
             {selection.mode === "wall"
-              ? "Camera wall · four hardware H.264 streams · target 30 FPS"
-              : `${selectedCamera?.label} · ${selectedCamera?.focusResolution} · ${selectedCamera?.focusFrameRate}`}
+              ? "JPEG camera wall · four camera views"
+              : `${selectedCamera?.label} · ${selectedCamera?.focusResolution} · measured FPS shown below`}
           </p>
         </div>
         <span className="border border-[#375a78] bg-[#0a1624] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#bfdbfe]">
-          {selection.mode === "focus" ? `Native H.264 · ${selectedCamera?.focusFrameRate}` : "H.264 wall · 30 FPS target"}
+          {selection.mode === "focus" ? `Native H.264 · ${selectedCamera?.focusFrameRate}` : "JPEG wall"}
         </span>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">

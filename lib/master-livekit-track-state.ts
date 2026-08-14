@@ -1,5 +1,6 @@
 import {
   MASTER_LIVE_CAMERAS,
+  MASTER_WALL_TRACK_NAME,
   type MasterCameraId,
   type MasterViewSelection,
 } from "./master-live-camera.ts";
@@ -10,54 +11,48 @@ export type MasterTrackPublicationLike = {
 };
 
 export type MasterTrackLayoutSlot<T extends MasterTrackPublicationLike> = {
-  cameraId: MasterCameraId;
+  id: "wall" | MasterCameraId;
   label: string;
   trackName: string;
   publication: T | null;
 };
 
-const approvedTrackNames = new Set(MASTER_LIVE_CAMERAS.map((camera) => camera.trackName));
+const approvedTrackNames = new Set<string>([
+  MASTER_WALL_TRACK_NAME,
+  ...MASTER_LIVE_CAMERAS.map((camera) => camera.trackName),
+]);
+
+export function expectedMasterTrack(selection: MasterViewSelection) {
+  if (selection.mode === "wall") {
+    return { id: "wall" as const, label: "Camera Wall", trackName: MASTER_WALL_TRACK_NAME };
+  }
+  const camera = MASTER_LIVE_CAMERAS.find(({ id }) => id === selection.cameraId)!;
+  return { id: camera.id, label: camera.label, trackName: camera.trackName };
+}
+
+export function isApprovedMasterTrackName(trackName: string) {
+  return approvedTrackNames.has(trackName);
+}
 
 export function resolveMasterTrackLayout<T extends MasterTrackPublicationLike>(
   selection: MasterViewSelection,
   publications: Iterable<T>,
 ): MasterTrackLayoutSlot<T>[] {
-  const byName = new Map<string, T>();
+  const expected = expectedMasterTrack(selection);
+  let matched: T | null = null;
   for (const publication of publications) {
-    if (approvedTrackNames.has(publication.trackName as (typeof MASTER_LIVE_CAMERAS)[number]["trackName"])) {
-      byName.set(publication.trackName, publication);
-    }
+    if (publication.trackName === expected.trackName) matched = publication;
   }
-  return MASTER_LIVE_CAMERAS
-    .filter((camera) => selection.mode === "wall" || camera.id === selection.cameraId)
-    .map((camera) => ({
-      cameraId: camera.id,
-      label: camera.label,
-      trackName: camera.trackName,
-      publication: byName.get(camera.trackName) ?? null,
-    }));
+  return [{ ...expected, publication: matched }];
 }
 
 export function desiredMasterTrackSubscriptions<T extends MasterTrackPublicationLike>(
   selection: MasterViewSelection,
   publications: Iterable<T>,
 ) {
-  const selectedTrackName = selection.mode === "focus"
-    ? MASTER_LIVE_CAMERAS.find((camera) => camera.id === selection.cameraId)?.trackName
-    : null;
-  const byName = new Map<string, T>();
-  for (const publication of publications) {
-    if (approvedTrackNames.has(publication.trackName as (typeof MASTER_LIVE_CAMERAS)[number]["trackName"])) {
-      byName.set(publication.trackName, publication);
-    }
-  }
-  return MASTER_LIVE_CAMERAS.flatMap((camera) => {
-    const publication = byName.get(camera.trackName);
-    return publication
-      ? [{
-          trackSid: publication.trackSid,
-          subscribe: selection.mode === "wall" || camera.trackName === selectedTrackName,
-        }]
-      : [];
-  });
+  const expected = expectedMasterTrack(selection);
+  return Array.from(publications, (publication) => ({
+    trackSid: publication.trackSid,
+    subscribe: publication.trackName === expected.trackName,
+  }));
 }

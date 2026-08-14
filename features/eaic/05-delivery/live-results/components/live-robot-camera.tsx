@@ -10,13 +10,16 @@ import {
 } from "livekit-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  MASTER_LIVE_CAMERAS,
   normalizeLiveRobotModel,
   normalizeMasterViewSelection,
   type LiveRobotModel,
   type MasterViewSelection,
 } from "@/lib/master-live-camera";
-import { desiredMasterTrackSubscriptions } from "@/lib/master-livekit-track-state";
+import {
+  desiredMasterTrackSubscriptions,
+  expectedMasterTrack,
+  isApprovedMasterTrackName,
+} from "@/lib/master-livekit-track-state";
 import { MasterLiveCameraControls } from "./master-live-camera-controls";
 import { MasterLivekitCameraGrid } from "./master-livekit-camera-grid";
 
@@ -107,7 +110,24 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
     masterSelectionRef.current = masterSelection;
     const room = activeRoomRef.current;
     if (room && isMasterSession) applyMasterSubscriptions(room, masterSelection);
-  }, [isMasterSession, masterSelection]);
+    if (isMasterSession && isViewing) setStatus("Switching camera...");
+  }, [isMasterSession, isViewing, masterSelection]);
+
+  useEffect(() => {
+    if (!isMasterSession || !isViewing) return;
+    const expected = expectedMasterTrack(masterSelection);
+    if (masterTracksByName.has(expected.trackName)) {
+      setStatus("Live robot camera connected.");
+      return;
+    }
+    setStatus("Switching camera...");
+    const timer = window.setTimeout(() => {
+      setStatus(masterSelection.mode === "focus"
+        ? "Selected H.264 camera did not arrive. Choose Camera Wall to retry."
+        : "The JPEG camera wall did not arrive. Retry Camera Wall.");
+    }, 15000);
+    return () => window.clearTimeout(timer);
+  }, [isMasterSession, isViewing, masterSelection, masterTracksByName]);
 
   useEffect(() => {
     if (!isMasterSession || activeSessionId === null) return;
@@ -251,8 +271,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
     }
 
     function attachMasterVideo(track: RemoteTrack, publication: RemoteTrackPublication) {
-      const approved = MASTER_LIVE_CAMERAS.some((camera) => camera.trackName === publication.trackName);
-      if (!approved || track.kind !== Track.Kind.Video) return;
+      if (!isApprovedMasterTrackName(publication.trackName) || track.kind !== Track.Kind.Video) return;
       videoConnected = true;
       if (noVideoTimer) {
         clearTimeout(noVideoTimer);

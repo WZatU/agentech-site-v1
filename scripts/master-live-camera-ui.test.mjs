@@ -24,12 +24,15 @@ test("Live camera gates Master controls and keeps the shared Aegies/Navi video p
   assert.match(camera, /Aegies live session: display-mode captures/);
 });
 
-test("production Master view subscribes to four named tracks or exactly one focus track", () => {
+test("production Master view switches between one JPEG wall track and one native H264 track", () => {
 	const grid = readFileSync("features/eaic/05-delivery/live-results/components/master-livekit-camera-grid.tsx", "utf8");
 	const tile = readFileSync("features/eaic/05-delivery/live-results/components/master-livekit-video-tile.tsx", "utf8");
 	assert.match(camera, /desiredMasterTrackSubscriptions/);
+	assert.match(camera, /isApprovedMasterTrackName/);
 	assert.match(camera, /setSubscribed/);
 	assert.match(camera, /autoSubscribe: !masterConnection/);
+	assert.match(camera, /Switching camera/);
+	assert.match(camera, /Selected H\.264 camera did not arrive/);
 	assert.match(grid, /resolveMasterTrackLayout/);
 	assert.match(tile, /requestVideoFrameCallback/);
 	assert.match(tile, /setPlayoutDelay\(0\)/);
@@ -98,10 +101,12 @@ test("hidden Master preview tabs release their camera connection", () => {
 });
 
 test("Master controls describe wall and high-resolution focus modes", () => {
-  assert.match(controls, /four hardware H\.264 streams.*30 FPS/s);
+  assert.match(controls, /JPEG camera wall/);
+  assert.match(controls, /JPEG wall/);
   assert.match(controls, /focusResolution/);
   assert.match(controls, /focusFrameRate/);
   assert.match(cameraConfig, /up to 30 FPS/);
   assert.match(controls, /Native H\.264/);
+  assert.doesNotMatch(controls, /four hardware H\.264 streams/);
   assert.doesNotMatch(controls, /4K program|native 4K|One 4K stream max/);
 });

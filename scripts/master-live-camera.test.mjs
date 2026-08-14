@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   MASTER_LIVE_CAMERAS,
+  MASTER_WALL_TRACK_NAME,
   normalizeLiveRobotModel,
   normalizeMasterCameraId,
   normalizeMasterViewSelection,
@@ -25,10 +26,10 @@ test("Master live camera allowlist contains the three front RGB views and RGB-D 
     "/h264/rgbd-color",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ wallResolution }) => wallResolution), [
-    "up to 1920x1080 H.264",
-    "up to 1436x1080 H.264",
-    "up to 1436x1080 H.264",
-    "640x480 native H.264",
+    "480x360 JPEG preview",
+    "480x360 JPEG preview",
+    "480x360 JPEG preview",
+    "480x360 JPEG preview",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ trackName }) => trackName), [
     "master-front-main",
@@ -37,7 +38,7 @@ test("Master live camera allowlist contains the three front RGB views and RGB-D 
     "master-rgbd-color",
   ]);
   assert.deepEqual(MASTER_LIVE_CAMERAS.map(({ focusResolution }) => focusResolution), [
-    "native source H.264",
+    "1920x1080 native H.264",
     "2064x1552 native H.264",
     "2064x1552 native H.264",
     "640x480 native H.264",
@@ -48,6 +49,7 @@ test("Master live camera allowlist contains the three front RGB views and RGB-D 
     "up to 30 FPS",
     "up to 30 FPS",
   ]);
+  assert.equal(MASTER_WALL_TRACK_NAME, "master-program");
 });
 
 test("Master view selection accepts wall or one allowlisted focus camera", () => {
