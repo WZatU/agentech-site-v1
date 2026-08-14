@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { planMasterH264Views } from "@/lib/master-h264-view-plan";
 import { MASTER_LIVE_CAMERAS, type MasterCameraId, type MasterViewSelection } from "@/lib/master-live-camera";
 import { getMasterH264PreviewUrl, startMasterH264Preview } from "./master-h264-preview.mjs";
@@ -20,7 +20,7 @@ type H264PreviewState = {
 const RELAY_URL = process.env.NEXT_PUBLIC_MASTER_CAMERA_RELAY_URL || "ws://127.0.0.1:4173/robot";
 
 export function MasterDirectCameraWall({ selection }: { selection: MasterViewSelection }) {
-  const views = planMasterH264Views(selection);
+  const views = useMemo(() => planMasterH264Views(selection), [selection]);
   const [available, setAvailable] = useState<Partial<Record<MasterCameraId, boolean>>>({});
   const [streamLabels, setStreamLabels] = useState<Partial<Record<MasterCameraId, string>>>({});
   const [status, setStatus] = useState("Connecting to Master H.264 cameras…");
@@ -104,7 +104,7 @@ export function MasterDirectCameraWall({ selection }: { selection: MasterViewSel
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       stopAll();
     };
-  }, [selection]);
+  }, [selection, views]);
 
   return (
     <div className="mt-4">
