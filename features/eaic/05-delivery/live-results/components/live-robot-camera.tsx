@@ -1,9 +1,24 @@
 "use client";
 
-import { Room, RoomEvent, Track, type RemoteTrack } from "livekit-client";
+import {
+  Room,
+  RoomEvent,
+  Track,
+  type RemoteTrack,
+  type RemoteTrackPublication,
+  type RemoteVideoTrack,
+} from "livekit-client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { normalizeLiveRobotModel, type LiveRobotModel } from "@/lib/master-live-camera";
+import {
+  MASTER_LIVE_CAMERAS,
+  normalizeLiveRobotModel,
+  normalizeMasterViewSelection,
+  type LiveRobotModel,
+  type MasterViewSelection,
+} from "@/lib/master-live-camera";
+import { desiredMasterTrackSubscriptions } from "@/lib/master-livekit-track-state";
 import { MasterLiveCameraControls } from "./master-live-camera-controls";
+import { MasterLivekitCameraGrid } from "./master-livekit-camera-grid";
 
 type LiveRobotCameraProps = {
   roomName: string;
@@ -35,9 +50,32 @@ function captureExtension(dataUrl: string) {
   return "jpg";
 }
 
+function masterPublications(room: Room) {
+  const publications: RemoteTrackPublication[] = [];
+  room.remoteParticipants.forEach((participant) => {
+    participant.trackPublications.forEach((publication) => publications.push(publication));
+  });
+  return publications;
+}
+
+function applyMasterSubscriptions(room: Room, selection: MasterViewSelection) {
+  const publications = masterPublications(room);
+  const desired = new Map(
+    desiredMasterTrackSubscriptions(selection, publications).map((entry) => [entry.trackSid, entry.subscribe]),
+  );
+  for (const publication of publications) {
+    const subscribe = desired.get(publication.trackSid);
+    if (subscribe !== undefined && publication.isSubscribed !== subscribe) {
+      publication.setSubscribed(subscribe);
+    }
+  }
+}
+
 export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const activeRoomRef = useRef<Room | null>(null);
+  const masterSelectionRef = useRef<MasterViewSelection>({ mode: "wall" });
   const [isViewing, setIsViewing] = useState(false);
   const [status, setStatus] = useState(livekitUrl
     ? "Waiting for the scheduled session. Live view will start automatically."
@@ -49,6 +87,8 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [activeRobotModel, setActiveRobotModel] = useState<LiveRobotModel | null>(null);
   const [localMasterPreview, setLocalMasterPreview] = useState(false);
+  const [masterSelection, setMasterSelection] = useState<MasterViewSelection>({ mode: "wall" });
+  const [masterTracksByName, setMasterTracksByName] = useState<Map<string, RemoteVideoTrack>>(new Map());
   const localCaptureIdRef = useRef("");
   const manuallyStoppedSessionIdRef = useRef<number | null>(null);
   const isNaviSession = hasActiveSession && activeRobotModel === "Navi";
@@ -57,6 +97,33 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
     && (process.env.NEXT_PUBLIC_MASTER_CAMERA_PREVIEW === "1" || localMasterPreview);
   const isMasterSession = hasActiveSession && activeRobotModel === "Master";
   const showMasterControls = isMasterSession || masterPreview;
+
+  const changeMasterSelection = useCallback((selection: MasterViewSelection) => {
+    masterSelectionRef.current = selection;
+    setMasterSelection(selection);
+  }, []);
+
+  useEffect(() => {
+    masterSelectionRef.current = masterSelection;
+    const room = activeRoomRef.current;
+    if (room && isMasterSession) applyMasterSubscriptions(room, masterSelection);
+  }, [isMasterSession, masterSelection]);
+
+  useEffect(() => {
+    if (!isMasterSession || activeSessionId === null) return;
+    let active = true;
+    async function readMasterSelection() {
+      try {
+        const response = await fetch("/api/master-live-camera", { cache: "no-store" });
+        const payload = await response.json() as { selection?: unknown };
+        if (active && response.ok) changeMasterSelection(normalizeMasterViewSelection(payload.selection));
+      } catch {
+        // Keep the default wall until the authenticated selection can be read.
+      }
+    }
+    void readMasterSelection();
+    return () => { active = false; };
+  }, [activeSessionId, changeMasterSelection, isMasterSession]);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
@@ -160,6 +227,7 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
 
     let activeRoom: Room | null = null;
     const videoElement = videoRef.current;
+    const masterConnection = activeRobotModel === "Master";
     let isMounted = true;
     let videoConnected = false;
     let noVideoTimer: ReturnType<typeof setTimeout> | null = null;
@@ -180,6 +248,32 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       track.setPlayoutDelay(0);
       track.attach(videoElement);
       setStatus("Live robot camera connected.");
+    }
+
+    function attachMasterVideo(track: RemoteTrack, publication: RemoteTrackPublication) {
+      const approved = MASTER_LIVE_CAMERAS.some((camera) => camera.trackName === publication.trackName);
+      if (!approved || track.kind !== Track.Kind.Video) return;
+      videoConnected = true;
+      if (noVideoTimer) {
+        clearTimeout(noVideoTimer);
+        noVideoTimer = null;
+      }
+      setMasterTracksByName((current) => {
+        const next = new Map(current);
+        next.set(publication.trackName, track as RemoteVideoTrack);
+        return next;
+      });
+      setStatus("Live robot camera connected.");
+    }
+
+    function detachMasterVideo(track: RemoteTrack, publication: RemoteTrackPublication) {
+      track.detach();
+      setMasterTracksByName((current) => {
+        if (current.get(publication.trackName) !== track) return current;
+        const next = new Map(current);
+        next.delete(publication.trackName);
+        return next;
+      });
     }
 
     async function connect() {
@@ -203,16 +297,26 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           dynacast: false
         });
         activeRoom = room;
+        activeRoomRef.current = room;
 
-        room.on(RoomEvent.TrackSubscribed, (track) => {
-          attachVideo(track);
+        room.on(RoomEvent.TrackSubscribed, (track, publication) => {
+          if (masterConnection) attachMasterVideo(track, publication);
+          else attachVideo(track);
         });
 
-        room.on(RoomEvent.TrackUnsubscribed, (track) => {
-          track.detach();
-          if (isMounted) {
+        room.on(RoomEvent.TrackUnsubscribed, (track, publication) => {
+          if (masterConnection) {
+            detachMasterVideo(track, publication);
+          } else {
+            track.detach();
+          }
+          if (isMounted && !masterConnection) {
             setStatus("Robot camera stream paused.");
           }
+        });
+
+        room.on(RoomEvent.TrackPublished, () => {
+          if (masterConnection) applyMasterSubscriptions(room, masterSelectionRef.current);
         });
 
         const captureChunks = new Map<string, Array<string | undefined>>();
@@ -255,17 +359,19 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           }
         });
 
-        await room.connect(livekitUrl, payload.token);
+        await room.connect(livekitUrl, payload.token, { autoSubscribe: !masterConnection });
 
-        room.remoteParticipants.forEach((participant) => {
-          participant.trackPublications.forEach((publication) => {
-            if (publication.track) {
-              attachVideo(publication.track);
-            }
+        if (masterConnection) {
+          applyMasterSubscriptions(room, masterSelectionRef.current);
+        } else {
+          room.remoteParticipants.forEach((participant) => {
+            participant.trackPublications.forEach((publication) => {
+              if (publication.track) attachVideo(publication.track);
+            });
           });
-        });
+        }
 
-        if (!Array.from(room.remoteParticipants.values()).some((participant) => Array.from(participant.trackPublications.values()).some((publication) => publication.track?.kind === Track.Kind.Video))) {
+        if (masterConnection || !Array.from(room.remoteParticipants.values()).some((participant) => Array.from(participant.trackPublications.values()).some((publication) => publication.track?.kind === Track.Kind.Video))) {
           setStatus("Waiting for the robot camera stream...");
         }
 
@@ -295,6 +401,8 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
       if (videoElement) {
         videoElement.srcObject = null;
       }
+      setMasterTracksByName(new Map());
+      if (activeRoomRef.current === activeRoom) activeRoomRef.current = null;
       activeRoom?.disconnect();
     };
   }, [roomName, isViewing, receiveCapture, activeRobotModel]);
@@ -352,7 +460,13 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
 
   return (
     <div ref={containerRef}>
-    {showMasterControls ? <MasterLiveCameraControls preview={masterPreview && !isMasterSession} /> : null}
+    {showMasterControls ? (
+      <MasterLiveCameraControls
+        preview={masterPreview && !isMasterSession}
+        selection={masterSelection}
+        onSelectionChange={changeMasterSelection}
+      />
+    ) : null}
     <div className={`mb-3 border px-4 py-3 text-sm leading-6 ${
       isMasterSession
         ? "border-[#31506a] bg-[#101d2e] text-[#dbeafe]"
@@ -371,8 +485,12 @@ export function LiveRobotCamera({ roomName }: LiveRobotCameraProps) {
           : "No active robot session. Saved Aegies captures remain available in the archive below."}
     </div>
     <div className={showLiveCapturePreview ? "grid gap-3 lg:grid-cols-2" : "grid gap-3"}>
-      <div className="relative aspect-video min-h-64 w-full bg-black">
-        <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
+      <div className={isMasterSession ? "relative min-h-64 w-full bg-black" : "relative aspect-video min-h-64 w-full bg-black"}>
+        {isMasterSession ? (
+          <MasterLivekitCameraGrid selection={masterSelection} tracksByName={masterTracksByName} />
+        ) : (
+          <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
+        )}
       {status === "Live robot camera connected." ? null : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center text-sm leading-6 text-[#aeb8c2]">
           <span aria-live="polite">{status}</span>

@@ -14,13 +14,26 @@ test("Master controls expose wall, three front RGB cameras, and RGB-D Color", ()
   assert.doesNotMatch(controls, /Rear View/);
 });
 
-test("Live camera gates Master controls and keeps one shared video element", () => {
+test("Live camera gates Master controls and keeps the shared Aegies/Navi video path", () => {
   assert.match(camera, /activeRobotModel === "Master"/);
   assert.match(camera, /activeRobotModel === "Master" \? "master-live-1" : roomName/);
   assert.match(camera, /MasterLiveCameraControls/);
+	assert.match(camera, /MasterLivekitCameraGrid/);
   assert.equal((camera.match(/<video\b/g) ?? []).length, 1);
   assert.match(camera, /Navi live session: live video only/);
   assert.match(camera, /Aegies live session: display-mode captures/);
+});
+
+test("production Master view subscribes to four named tracks or exactly one focus track", () => {
+	const grid = readFileSync("features/eaic/05-delivery/live-results/components/master-livekit-camera-grid.tsx", "utf8");
+	const tile = readFileSync("features/eaic/05-delivery/live-results/components/master-livekit-video-tile.tsx", "utf8");
+	assert.match(camera, /desiredMasterTrackSubscriptions/);
+	assert.match(camera, /setSubscribed/);
+	assert.match(camera, /autoSubscribe: !masterConnection/);
+	assert.match(grid, /resolveMasterTrackLayout/);
+	assert.match(tile, /requestVideoFrameCallback/);
+	assert.match(tile, /setPlayoutDelay\(0\)/);
+	assert.match(tile, /H\.264/);
 });
 
 test("Master preview is development-only and uses the direct wired camera wall", () => {
@@ -38,7 +51,7 @@ test("Master preview can open a requested camera directly from the local URL", (
   assert.match(controls, /URLSearchParams\(window\.location\.search\)/);
   assert.match(controls, /get\("masterCamera"\)/);
   assert.match(controls, /camera\.id === cameraId/);
-  assert.match(controls, /setSelection\(\{ mode: "focus", cameraId: camera\.id \}\)/);
+  assert.match(controls, /onSelectionChange\(\{ mode: "focus", cameraId: camera\.id \}\)/);
 });
 
 test("Master direct wall starts one bounded H264 decoder per planned camera", () => {

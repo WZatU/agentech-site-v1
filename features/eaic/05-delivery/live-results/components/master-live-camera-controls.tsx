@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MASTER_LIVE_CAMERAS, type MasterViewSelection } from "@/lib/master-live-camera";
+import { MASTER_LIVE_CAMERAS, normalizeMasterViewSelection, type MasterViewSelection } from "@/lib/master-live-camera";
 import { MasterDirectCameraWall } from "./master-direct-camera-wall";
 
-export function MasterLiveCameraControls({ preview = false }: { preview?: boolean }) {
-  const [selection, setSelection] = useState<MasterViewSelection>({ mode: "wall" });
+type MasterLiveCameraControlsProps = {
+  preview?: boolean;
+  selection: MasterViewSelection;
+  onSelectionChange: (selection: MasterViewSelection) => void;
+};
+
+export function MasterLiveCameraControls({ preview = false, selection, onSelectionChange }: MasterLiveCameraControlsProps) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -13,12 +18,12 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
     if (!preview) return;
     const cameraId = new URLSearchParams(window.location.search).get("masterCamera");
     const camera = MASTER_LIVE_CAMERAS.find((camera) => camera.id === cameraId);
-    if (camera) setSelection({ mode: "focus", cameraId: camera.id });
-  }, [preview]);
+    if (camera) onSelectionChange({ mode: "focus", cameraId: camera.id });
+  }, [onSelectionChange, preview]);
 
   async function choose(next: MasterViewSelection) {
     const previous = selection;
-    setSelection(next);
+    onSelectionChange(next);
     setError("");
     if (preview) return;
     setPending(true);
@@ -30,9 +35,9 @@ export function MasterLiveCameraControls({ preview = false }: { preview?: boolea
       });
       const payload = await response.json() as { selection?: MasterViewSelection; error?: string };
       if (!response.ok || !payload.selection) throw new Error(payload.error || "Could not change the Master camera view.");
-      setSelection(payload.selection);
+      onSelectionChange(normalizeMasterViewSelection(payload.selection));
     } catch (caught) {
-      setSelection(previous);
+      onSelectionChange(previous);
       setError(caught instanceof Error ? caught.message : "Could not change the Master camera view.");
     } finally {
       setPending(false);
