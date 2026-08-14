@@ -14,7 +14,10 @@ export function selectionForMasterGatewayTransport(
   selection: MasterViewSelection,
   transport: string | null,
 ): MasterViewSelection | null {
-  return transport === "h264" && selection.mode !== "focus" ? null : selection;
+  if (transport === "h264" && selection.mode !== "focus") {
+    return { mode: "focus", cameraId: "front-main" };
+  }
+  return selection;
 }
 
 export function buildMasterGatewaySessionQuery(now = new Date()) {
