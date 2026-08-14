@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { isAuthorizedMasterGateway } from "../lib/master-live-camera-gateway-auth.ts";
 import {
+  buildMasterGatewaySessionQuery,
   selectActiveMasterGatewaySession,
   selectionForMasterGatewayTransport,
 } from "../lib/master-live-camera-gateway-session.ts";
@@ -59,4 +60,18 @@ test("gateway session selection excludes Aegies, Navi, and expired Master sessio
     scheduledStart: "2026-08-08T00:00:00Z",
     scheduledEnd: "2026-08-08T02:00:00Z",
   });
+});
+
+test("gateway filters for Master before limiting active session rows", () => {
+  const now = new Date("2026-08-14T21:29:00.000Z");
+
+  assert.equal(
+    buildMasterGatewaySessionQuery(now),
+    "scheduled_start=lte.2026-08-14T21%3A29%3A00.000Z"
+      + "&scheduled_end=gte.2026-08-14T21%3A29%3A00.000Z"
+      + "&robot_model=eq.Master"
+      + "&select=id,robot_model,session_status,scheduled_start,scheduled_end"
+      + "&order=scheduled_start.asc"
+      + "&limit=10",
+  );
 });

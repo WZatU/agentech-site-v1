@@ -17,6 +17,18 @@ export function selectionForMasterGatewayTransport(
   return transport === "h264" && selection.mode !== "focus" ? null : selection;
 }
 
+export function buildMasterGatewaySessionQuery(now = new Date()) {
+  const nowIso = encodeURIComponent(now.toISOString());
+  return [
+    `scheduled_start=lte.${nowIso}`,
+    `scheduled_end=gte.${nowIso}`,
+    "robot_model=eq.Master",
+    "select=id,robot_model,session_status,scheduled_start,scheduled_end",
+    "order=scheduled_start.asc",
+    "limit=10",
+  ].join("&");
+}
+
 export function selectActiveMasterGatewaySession(rows: MasterGatewaySessionRow[], now = new Date()) {
   const nowMs = now.getTime();
   const row = rows.find((candidate) => {

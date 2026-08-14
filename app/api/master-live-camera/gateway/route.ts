@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { isAuthorizedMasterGateway } from "@/lib/master-live-camera-gateway-auth";
 import {
-  selectionForMasterGatewayTransport,
+  buildMasterGatewaySessionQuery,
   selectActiveMasterGatewaySession,
+  selectionForMasterGatewayTransport,
   type MasterGatewaySessionRow,
 } from "@/lib/master-live-camera-gateway-session";
 import { getMasterViewSelection } from "@/lib/master-live-camera-state";
@@ -21,13 +22,7 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const rows = await supabaseRequest<MasterGatewaySessionRow[]>("agentech_robot_sessions", {
-    query: [
-      `scheduled_start=lte.${encodeURIComponent(now.toISOString())}`,
-      `scheduled_end=gte.${encodeURIComponent(now.toISOString())}`,
-      "select=id,robot_model,session_status,scheduled_start,scheduled_end",
-      "order=scheduled_start.asc",
-      "limit=10",
-    ].join("&"),
+    query: buildMasterGatewaySessionQuery(now),
   }).catch(() => []);
   const session = selectActiveMasterGatewaySession(rows, now);
   if (!session || session.robotModel !== "Master") {
