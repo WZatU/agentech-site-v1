@@ -21,12 +21,18 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
-  const rows = await supabaseRequest<MasterGatewaySessionRow[]>("agentech_robot_sessions", {
-    query: buildMasterGatewaySessionQuery(now),
-  }).catch(() => []);
+  let rows: MasterGatewaySessionRow[];
+  try {
+    rows = await supabaseRequest<MasterGatewaySessionRow[]>("agentech_robot_sessions", {
+      query: buildMasterGatewaySessionQuery(now),
+    });
+  } catch (error) {
+    console.error("Master gateway session query failed", error);
+    return NextResponse.json({ active: false, reason: "query_failed" }, { status: 503, headers: noStoreHeaders });
+  }
   const session = selectActiveMasterGatewaySession(rows, now);
   if (!session || session.robotModel !== "Master") {
-    return NextResponse.json({ active: false }, { headers: noStoreHeaders });
+    return NextResponse.json({ active: false, reason: "no_active_session", candidates: rows.length }, { headers: noStoreHeaders });
   }
 
   const transport = new URL(request.url).searchParams.get("transport");
