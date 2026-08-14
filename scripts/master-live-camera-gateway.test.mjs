@@ -8,10 +8,10 @@ import {
   selectionForMasterGatewayTransport,
 } from "../lib/master-live-camera-gateway-session.ts";
 
-test("the H264 transport defaults wall mode to the front camera", () => {
+test("the H264 transport preserves camera wall mode", () => {
   assert.deepEqual(
     selectionForMasterGatewayTransport({ mode: "wall" }, "h264"),
-    { mode: "focus", cameraId: "front-main" },
+    { mode: "wall" },
   );
   assert.deepEqual(
     selectionForMasterGatewayTransport({ mode: "focus", cameraId: "front-right" }, "h264"),

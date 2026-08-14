@@ -12,11 +12,8 @@ export type MasterGatewaySessionRow = {
 
 export function selectionForMasterGatewayTransport(
   selection: MasterViewSelection,
-  transport: string | null,
+  _transport: string | null,
 ): MasterViewSelection | null {
-  if (transport === "h264" && selection.mode !== "focus") {
-    return { mode: "focus", cameraId: "front-main" };
-  }
   return selection;
 }
 
