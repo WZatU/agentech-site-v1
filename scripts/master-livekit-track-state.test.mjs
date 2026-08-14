@@ -15,11 +15,11 @@ function publicationsForHybridTracks() {
   ];
 }
 
-test("wall maps the JPEG-backed program and focus maps one native H264 track", () => {
+test("wall maps all four H264 cameras and focus maps one selected camera", () => {
   const publications = publicationsForHybridTracks();
   assert.deepEqual(
     resolveMasterTrackLayout({ mode: "wall" }, publications).map((slot) => slot.id),
-    ["wall"],
+    ["front-main", "front-left", "front-right", "rgbd-color"],
   );
   assert.deepEqual(
     resolveMasterTrackLayout({ mode: "focus", cameraId: "front-right" }, publications).map((slot) => slot.id),
@@ -35,20 +35,20 @@ test("unknown and rear tracks never enter the Master layout", () => {
   assert.equal(layout.every((slot) => slot.publication === null), true);
 });
 
-test("wall subscribes only to the JPEG-backed master program", () => {
+test("wall subscribes to every approved H264 camera track", () => {
   assert.deepEqual(
     desiredMasterTrackSubscriptions({ mode: "wall" }, publicationsForHybridTracks()),
     [
-      { trackSid: "wall-sid", subscribe: true },
-      { trackSid: "front-main-sid", subscribe: false },
-      { trackSid: "front-left-sid", subscribe: false },
-      { trackSid: "front-right-sid", subscribe: false },
-      { trackSid: "rgbd-color-sid", subscribe: false },
+      { trackSid: "wall-sid", subscribe: false },
+      { trackSid: "front-main-sid", subscribe: true },
+      { trackSid: "front-left-sid", subscribe: true },
+      { trackSid: "front-right-sid", subscribe: true },
+      { trackSid: "rgbd-color-sid", subscribe: true },
     ],
   );
 });
 
-test("focus unsubscribes the wall and every non-selected Master track", () => {
+test("focus keeps approved H264 tracks subscribed so publication replacement cannot race the view", () => {
   assert.deepEqual(
     desiredMasterTrackSubscriptions(
       { mode: "focus", cameraId: "front-right" },
@@ -56,10 +56,10 @@ test("focus unsubscribes the wall and every non-selected Master track", () => {
     ),
     [
       { trackSid: "wall-sid", subscribe: false },
-      { trackSid: "front-main-sid", subscribe: false },
-      { trackSid: "front-left-sid", subscribe: false },
+      { trackSid: "front-main-sid", subscribe: true },
+      { trackSid: "front-left-sid", subscribe: true },
       { trackSid: "front-right-sid", subscribe: true },
-      { trackSid: "rgbd-color-sid", subscribe: false },
+      { trackSid: "rgbd-color-sid", subscribe: true },
     ],
   );
 });

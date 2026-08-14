@@ -19,7 +19,7 @@ export function MasterLivekitCameraGrid({ selection, tracksByName }: MasterLivek
   const layout = resolveMasterTrackLayout(selection, publications);
 
   return (
-    <div className="grid gap-2">
+    <div className={`grid gap-2 ${selection.mode === "wall" ? "sm:grid-cols-2" : "grid-cols-1"}`}>
       {layout.map((slot) => (
         <MasterLivekitVideoTile
           key={slot.id}
