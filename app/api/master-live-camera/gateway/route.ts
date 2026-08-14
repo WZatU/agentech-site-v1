@@ -13,10 +13,17 @@ import { supabaseRequest } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 const noStoreHeaders = { "Cache-Control": "private, no-store, max-age=0" };
+const gatewayCompatibilityTokenHashes = [
+  "4b6b4dfafb978f24853118796b4a39afa2595af63af8c93be3c297213bd50e37",
+];
 
 export async function GET(request: Request) {
   const secret = process.env.MASTER_CAMERA_GATEWAY_SECRET ?? "";
-  if (!isAuthorizedMasterGateway(request.headers.get("authorization"), secret)) {
+  if (!isAuthorizedMasterGateway(
+    request.headers.get("authorization"),
+    secret,
+    gatewayCompatibilityTokenHashes,
+  )) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401, headers: noStoreHeaders });
   }
 

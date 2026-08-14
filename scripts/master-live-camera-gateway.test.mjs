@@ -28,6 +28,25 @@ test("gateway bearer authorization accepts only the exact configured secret", ()
   assert.equal(isAuthorizedMasterGateway("Bearer production-secret", ""), false);
 });
 
+test("gateway authorization accepts a configured high-entropy token fingerprint", () => {
+  assert.equal(
+    isAuthorizedMasterGateway(
+      "Bearer agentech-machine-token",
+      "different-primary-secret",
+      ["bddb56f685aaf70fe7fafb4fd1e7757dfb198e87bdb4214e17ef9ee36225de2a"],
+    ),
+    true,
+  );
+  assert.equal(
+    isAuthorizedMasterGateway(
+      "Bearer wrong-machine-token",
+      "different-primary-secret",
+      ["bddb56f685aaf70fe7fafb4fd1e7757dfb198e87bdb4214e17ef9ee36225de2a"],
+    ),
+    false,
+  );
+});
+
 test("private gateway route is no-store and returns only active Master state", () => {
   const route = readFileSync("app/api/master-live-camera/gateway/route.ts", "utf8");
   assert.match(route, /MASTER_CAMERA_GATEWAY_SECRET/);
