@@ -6,20 +6,26 @@ import {
   startMasterH264Preview,
 } from "../features/eaic/05-delivery/live-results/components/master-h264-preview.mjs";
 
-function envelope(sequence, keyframe, timestampUs = 123456n) {
+const CAMERA_CODES = { "front-main": 1, "front-left": 2, "front-right": 3, "rgbd-color": 4 };
+
+function envelope(sequence, keyframe, timestampUs = 123456n, options = {}) {
+  const cameraId = options.cameraId ?? "front-right";
+  const generation = options.generation ?? 1;
   const payload = Uint8Array.from([0, 0, 0, 1, keyframe ? 0x65 : 0x41, sequence]);
-  const wire = new Uint8Array(28 + payload.length);
+  const wire = new Uint8Array(32 + payload.length);
   wire.set([65, 72, 50, 54], 0);
   const view = new DataView(wire.buffer);
-  view.setUint8(4, 1);
+  view.setUint8(4, 2);
   view.setUint8(5, keyframe ? 1 : 0);
-  view.setUint16(6, 28);
-  view.setUint32(8, sequence);
-  view.setBigUint64(12, timestampUs);
-  view.setUint16(20, 2064);
-  view.setUint16(22, 1552);
-  view.setUint32(24, payload.length);
-  wire.set(payload, 28);
+  view.setUint8(6, 32);
+  view.setUint8(7, CAMERA_CODES[cameraId]);
+  view.setUint32(8, generation);
+  view.setUint32(12, sequence);
+  view.setBigUint64(16, timestampUs);
+  view.setUint16(24, 2064);
+  view.setUint16(26, 1552);
+  view.setUint32(28, payload.length);
+  wire.set(payload, 32);
   return wire.buffer;
 }
 
@@ -140,7 +146,8 @@ function start(overrides = {}) {
   const states = [];
   const canvas = fakeCanvas();
   const stop = startMasterH264Preview({
-    url: "ws://127.0.0.1:4173/h264/front-right",
+    url: "ws://127.0.0.1:4173/h264/front-right?scope=preview&mode=focus",
+    cameraId: "front-right",
     canvas,
     WebSocketImpl: FakeWebSocket,
     VideoDecoderImpl: FakeDecoder,
@@ -186,6 +193,37 @@ test("maps keyframes, deltas, and microsecond timestamps without JPEG fallback",
   assert.equal(decoder.chunks[0].data[4], 0x65);
   assert.doesNotMatch(socket.url, /\/robot(?:$|\?)/);
   stop();
+});
+
+test("generation changes reset the decoder and require a new keyframe", async () => {
+  resetFakes();
+  const { states, stop } = start();
+  await settle();
+  const socket = FakeWebSocket.instances[0];
+  const decoder = FakeDecoder.instances[0];
+  socket.open();
+  socket.message(envelope(1, true, 1000n, { generation: 7 }));
+  socket.message(envelope(1, false, 2000n, { generation: 8 }));
+  socket.message(envelope(2, true, 3000n, { generation: 8 }));
+  await settle();
+
+  assert.deepEqual(decoder.chunks.map(({ type }) => type), ["key", "key"]);
+  assert.ok(decoder.resetCount >= 1);
+  assert.equal(states.at(-1).generation, 8);
+  assert.equal(states.at(-1).cameraId, "front-right");
+  stop();
+});
+
+test("an envelope for another camera is rejected", async () => {
+  resetFakes();
+  const value = start();
+  await settle();
+  FakeWebSocket.instances[0].open();
+  FakeWebSocket.instances[0].message(envelope(1, true, 1n, { cameraId: "front-left" }));
+  await settle();
+  assert.equal(value.states.at(-1).phase, "error");
+  assert.match(value.states.at(-1).error, /camera/i);
+  value.stop();
 });
 
 test("draws native frames, closes them, and reports decoded FPS", async () => {
@@ -250,7 +288,7 @@ test("cleanup closes transport and decoder while protocol errors are visible", a
 
 test("derives the H264 endpoint only from the local relay URL", () => {
   assert.equal(
-    getMasterH264PreviewUrl("ws://127.0.0.1:4173/robot"),
-    "ws://127.0.0.1:4173/h264/front-right",
+    getMasterH264PreviewUrl("ws://127.0.0.1:4173/robot", "front-main", "focus"),
+    "ws://127.0.0.1:4173/h264/front-main?scope=preview&mode=focus",
   );
 });

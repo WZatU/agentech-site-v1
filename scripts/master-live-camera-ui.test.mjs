@@ -41,40 +41,38 @@ test("Master preview can open a requested camera directly from the local URL", (
   assert.match(controls, /setSelection\(\{ mode: "focus", cameraId: camera\.id \}\)/);
 });
 
-test("Master direct wall decodes one frame per camera and keeps only the newest backlog", () => {
+test("Master direct wall starts one bounded H264 decoder per planned camera", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
   assert.match(wall, /ws:\/\/127\.0\.0\.1:4173\/robot/);
   assert.doesNotMatch(wall, /127\.0\.0\.1:4175/);
-  assert.match(wall, /masterRobotMode: selection.mode === "focus" \? "focus" : "preview"/);
-  assert.match(wall, /createImageBitmap/);
-  assert.match(wall, /pendingFrames/);
-  assert.match(wall, /decodingFrames/);
-  assert.doesNotMatch(wall, /decodeVersions/);
-  assert.match(wall, /drawImage\(bitmap/);
+  assert.match(wall, /planMasterH264Views\(selection\)/);
+  assert.match(wall, /startMasterH264Preview/);
+  assert.match(wall, /getMasterH264PreviewUrl\(RELAY_URL, view\.cameraId, view\.mode\)/);
+  assert.doesNotMatch(wall, /createImageBitmap|MessageReader|rosmsg/);
+  assert.doesNotMatch(wall, /compressed|jpeg/i);
   assert.doesNotMatch(wall, /<img/);
   assert.doesNotMatch(wall, /4K Focus/);
   assert.doesNotMatch(wall, /rear-view|rgb_head_rear/);
 });
 
-test("Master direct preview chooses focus streams and labels wall fallback", () => {
+test("Master direct preview labels actual H264 dimensions and measured FPS", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
-  assert.match(wall, /resolveMasterCameraStream/);
   assert.match(wall, /streamLabels/);
-  assert.match(wall, /quality === "fallback"/);
-  assert.match(wall, /480x360 fallback/);
+  assert.match(wall, /state\.width/);
+  assert.match(wall, /state\.height/);
+  assert.match(wall, /state\.fps/);
   assert.match(wall, /setAvailable\(\{\}\)/);
 });
 
-test("Front Right focus exclusively uses the raw H264 WebCodecs path", () => {
+test("all four Master views exclusively use the H264 WebCodecs path", () => {
   const wall = readFileSync("features/eaic/05-delivery/live-results/components/master-direct-camera-wall.tsx", "utf8");
   const h264 = readFileSync("features/eaic/05-delivery/live-results/components/master-h264-preview.mjs", "utf8");
-  assert.match(wall, /selection\.mode === "focus" && selection\.cameraId === "front-right"/);
-  assert.match(wall, /startMasterH264Preview/);
-  assert.match(wall, /getMasterH264PreviewUrl\(RELAY_URL\)/);
-  assert.match(wall, /raw RGB.*H\.264|H\.264.*raw RGB/s);
+  assert.doesNotMatch(wall, /selection\.cameraId === "front-right"/);
+  assert.match(wall, /views\.map/);
+  assert.match(wall, /H\.264/);
   assert.match(h264, /VideoDecoder/);
   assert.match(h264, /EncodedVideoChunk/);
-  assert.match(h264, /\/h264\/front-right/);
+  assert.match(h264, /`\/h264\/\$\{cameraId\}`/);
   assert.doesNotMatch(h264, /createImageBitmap|new WebSocketImpl\([^)]*\/robot/);
 });
 
@@ -87,10 +85,10 @@ test("hidden Master preview tabs release their camera connection", () => {
 });
 
 test("Master controls describe wall and high-resolution focus modes", () => {
-  assert.match(controls, /480x360 at 30 FPS/);
+  assert.match(controls, /four hardware H\.264 streams.*30 FPS/s);
   assert.match(controls, /focusResolution/);
   assert.match(controls, /focusFrameRate/);
   assert.match(cameraConfig, /up to 30 FPS/);
-  assert.match(controls, /High-resolution/);
+  assert.match(controls, /Native H\.264/);
   assert.doesNotMatch(controls, /4K program|native 4K|One 4K stream max/);
 });

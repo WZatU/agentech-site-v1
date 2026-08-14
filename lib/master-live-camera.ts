@@ -1,46 +1,15 @@
 import { normalizeAgentechRobotModel, type AgentechRobotModel } from "../features/eaic/02-unified-api/resources-runs/agentech-robot-model.ts";
 
 export const MASTER_LIVE_CAMERAS = [
-  { id: "front-main", label: "Front Main", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_main/compressed", focusResolution: "960x720 high resolution", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/front_main/compressed" },
-  { id: "front-left", label: "Front Left", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_left/compressed", focusResolution: "960x720 high resolution", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/front_left/compressed" },
-  { id: "front-right", label: "Front Right", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/front_right/compressed", focusResolution: "960x720 high resolution", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/front_right/compressed" },
-  { id: "rgbd-color", label: "RGB-D Color", wallResolution: "480x360 low latency", wallTopic: "/agentech/web/rgbd_color/compressed", focusResolution: "640x480 native", focusFrameRate: "up to 30 FPS", focusTopic: "/agentech/web/focus/rgbd_color/compressed" },
+  { id: "front-main", label: "Front Main", trackName: "master-front-main", previewPath: "/h264/front-main", wallResolution: "up to 1920x1080 H.264", focusResolution: "native source H.264", focusFrameRate: "up to 30 FPS", targetFrameRate: 30 },
+  { id: "front-left", label: "Front Left", trackName: "master-front-left", previewPath: "/h264/front-left", wallResolution: "up to 1436x1080 H.264", focusResolution: "2064x1552 native H.264", focusFrameRate: "up to 30 FPS", targetFrameRate: 30 },
+  { id: "front-right", label: "Front Right", trackName: "master-front-right", previewPath: "/h264/front-right", wallResolution: "up to 1436x1080 H.264", focusResolution: "2064x1552 native H.264", focusFrameRate: "up to 30 FPS", targetFrameRate: 30 },
+  { id: "rgbd-color", label: "RGB-D Color", trackName: "master-rgbd-color", previewPath: "/h264/rgbd-color", wallResolution: "640x480 native H.264", focusResolution: "640x480 native H.264", focusFrameRate: "up to 30 FPS", targetFrameRate: 30 },
 ] as const;
 
 export type MasterCameraId = (typeof MASTER_LIVE_CAMERAS)[number]["id"];
 export type MasterViewSelection = { mode: "wall" } | { mode: "focus"; cameraId: MasterCameraId };
 export type LiveRobotModel = AgentechRobotModel | "Master";
-
-export type MasterCameraStream = {
-  topic: string;
-  resolution: string;
-  quality: "wall" | "focus" | "fallback";
-};
-
-export function resolveMasterCameraStream(
-  cameraId: MasterCameraId,
-  mode: "wall" | "focus",
-  advertisedTopics: readonly string[],
-): MasterCameraStream | null {
-  const camera = MASTER_LIVE_CAMERAS.find(({ id }) => id === cameraId);
-  if (!camera) return null;
-
-  const advertised = new Set(advertisedTopics);
-
-  if (mode === "focus" && advertised.has(camera.focusTopic)) {
-    return { topic: camera.focusTopic, resolution: camera.focusResolution, quality: "focus" };
-  }
-
-  if (advertised.has(camera.wallTopic)) {
-    return {
-      topic: camera.wallTopic,
-      resolution: camera.wallResolution,
-      quality: mode === "focus" ? "fallback" : "wall",
-    };
-  }
-
-  return null;
-}
 
 export function normalizeMasterCameraId(value: unknown): MasterCameraId | null {
   if (typeof value !== "string") return null;
