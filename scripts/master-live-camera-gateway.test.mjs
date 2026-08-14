@@ -2,7 +2,22 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { isAuthorizedMasterGateway } from "../lib/master-live-camera-gateway-auth.ts";
-import { selectActiveMasterGatewaySession } from "../lib/master-live-camera-gateway-session.ts";
+import {
+  selectActiveMasterGatewaySession,
+  selectionForMasterGatewayTransport,
+} from "../lib/master-live-camera-gateway-session.ts";
+
+test("the H264 transport is active only for a focused camera", () => {
+  assert.equal(selectionForMasterGatewayTransport({ mode: "wall" }, "h264"), null);
+  assert.deepEqual(
+    selectionForMasterGatewayTransport({ mode: "focus", cameraId: "front-right" }, "h264"),
+    { mode: "focus", cameraId: "front-right" },
+  );
+  assert.deepEqual(
+    selectionForMasterGatewayTransport({ mode: "wall" }, null),
+    { mode: "wall" },
+  );
+});
 
 test("gateway bearer authorization accepts only the exact configured secret", () => {
   assert.equal(isAuthorizedMasterGateway("Bearer production-secret", "production-secret"), true);
@@ -22,6 +37,8 @@ test("private gateway route is no-store and returns only active Master state", (
   assert.match(route, /createMasterPublisherToken/);
   assert.match(route, /livekitUrl/);
   assert.match(route, /publisherToken/);
+  assert.match(route, /transport/);
+  assert.match(route, /selectionForMasterGatewayTransport/);
   assert.doesNotMatch(route, /Aegies.*active: true|Navi.*active: true/s);
 });
 

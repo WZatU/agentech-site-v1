@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthorizedMasterGateway } from "@/lib/master-live-camera-gateway-auth";
 import {
+  selectionForMasterGatewayTransport,
   selectActiveMasterGatewaySession,
   type MasterGatewaySessionRow,
 } from "@/lib/master-live-camera-gateway-session";
@@ -33,6 +34,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ active: false }, { headers: noStoreHeaders });
   }
 
+  const transport = new URL(request.url).searchParams.get("transport");
+  const selection = selectionForMasterGatewayTransport(
+    await getMasterViewSelection(session.id),
+    transport,
+  );
+  if (!selection) {
+    return NextResponse.json({ active: false }, { headers: noStoreHeaders });
+  }
+
   const roomName = process.env.MASTER_LIVEKIT_ROOM_NAME || "master-live-1";
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL || "";
   const publisherToken = await createMasterPublisherToken({
@@ -48,7 +58,7 @@ export async function GET(request: Request) {
     roomName,
     livekitUrl,
     publisherToken,
-    selection: await getMasterViewSelection(session.id),
+    selection,
     expiresAt: session.scheduledEnd,
   }, { headers: noStoreHeaders });
 }

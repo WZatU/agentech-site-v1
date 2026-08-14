@@ -1,4 +1,4 @@
-import { normalizeLiveRobotModel } from "./master-live-camera.ts";
+import { normalizeLiveRobotModel, type MasterViewSelection } from "./master-live-camera.ts";
 
 const activeStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
 
@@ -9,6 +9,13 @@ export type MasterGatewaySessionRow = {
   scheduled_start: string | null;
   scheduled_end: string | null;
 };
+
+export function selectionForMasterGatewayTransport(
+  selection: MasterViewSelection,
+  transport: string | null,
+): MasterViewSelection | null {
+  return transport === "h264" && selection.mode !== "focus" ? null : selection;
+}
 
 export function selectActiveMasterGatewaySession(rows: MasterGatewaySessionRow[], now = new Date()) {
   const nowMs = now.getTime();
