@@ -116,3 +116,26 @@ test("Master marker hit targets do not overlap on the wide diagram", () => {
     }
   }
 });
+
+test("Master joint markers are compact dots without visible J-number labels", () => {
+  const component = fs.readFileSync(
+    path.join(repositoryRoot, "features/eaic/01-clients/eaic-hub/components/master-motor-map.tsx"),
+    "utf8"
+  );
+
+  assert.match(component, /h-\[14px\] w-\[14px\]/);
+  assert.doesNotMatch(component, />\s*\{marker\.jointNumber\}\s*<\/button>/);
+});
+
+test("Master motor boxes identify the SDK function for each controllable joint", () => {
+  const marker = (name) => motorMap.MASTER_MOTOR_MARKERS.find((candidate) => candidate.runtimeJoint === name);
+
+  assert.equal(marker("right_shoulder_pitch_joint").sdkControl.functionName, "adjust_right_shoulder");
+  assert.match(marker("right_shoulder_pitch_joint").sdkControl.example, /"pitch"/);
+  assert.equal(marker("right_elbow_joint").sdkControl.functionName, "adjust_right_elbow");
+  assert.equal(marker("right_wrist_yaw_joint").sdkControl.functionName, "adjust_right_wrist");
+  assert.match(marker("right_wrist_yaw_joint").sdkControl.example, /"yaw"/);
+  assert.equal(marker("left_wrist_roll_joint").sdkControl.functionName, "standing_actions.teach");
+  assert.match(marker("left_wrist_roll_joint").sdkControl.example, /"left"/);
+  assert.equal(marker("head_yaw_joint").sdkControl, null);
+});

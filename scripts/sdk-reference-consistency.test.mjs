@@ -50,7 +50,7 @@ const references = [
     robot: "master",
     functions: master.masterFunctions,
     starter: master.masterStarterCode,
-    expectedCount: 23
+    expectedCount: 27
   }
 ];
 
@@ -112,6 +112,10 @@ test("Aegis and Master reference only their current public names", () => {
       "sit",
       "seated_actions.turn_head",
       "seated_actions.shake_head",
+      "standing_actions.teach",
+      "adjust_right_wrist",
+      "adjust_right_elbow",
+      "adjust_right_shoulder",
       "status",
       "action_catalog"
     ]

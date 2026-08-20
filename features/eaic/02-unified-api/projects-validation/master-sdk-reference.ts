@@ -208,6 +208,64 @@ export const masterFunctions: AgentechFunction[] = [
     platformNote: "Run Agentech.sit() before starting this seated action."
   },
   {
+    name: "standing_actions.teach",
+    category: "Joint Adjustments",
+    signature: "Agentech.standing_actions.teach(side, *, operator_ready=False, feet_planted=False)",
+    summary: "Enter Master's qualified standing hand-guidance state so the complete right arm can be positioned by hand while native standing balance remains active.",
+    example: 'session = Agentech.standing_actions.teach("right", operator_ready=True, feet_planted=True)',
+    params: [
+      { name: "side", type: '"right"', description: "Select the physically qualified complete right arm. Left and both remain fail-closed.", status: "available" },
+      { name: "operator_ready", type: "bool", description: "Confirm that a supervising operator is holding and ready to guide the arm.", defaultValue: "False", status: "available" },
+      { name: "feet_planted", type: "bool", description: "Confirm that Master is standing with both feet planted before hand guidance begins.", defaultValue: "False", status: "available" }
+    ],
+    verification: "The current SDK enters stand_hand_guidance for the physically qualified complete right arm.",
+    platformNoteLabel: "Standing supervision requirement",
+    platformNote: "Preset actions are unavailable during stand_hand_guidance. Native motion control continues to own standing balance."
+  },
+  {
+    name: "adjust_right_wrist",
+    category: "Joint Adjustments",
+    signature: "Agentech.adjust_right_wrist(axis=None, degrees=None, *, roll=None, pitch=None, yaw=None)",
+    summary: "Adjust one or more right-wrist axes from Master's fresh standing current hold while native balance remains active.",
+    example: 'Agentech.adjust_right_wrist("yaw", 5)',
+    params: [
+      { name: "axis", type: '"roll" | "pitch" | "yaw" | float | None', description: "Choose one wrist axis, or provide one numeric value to apply to all three axes.", defaultValue: "None", status: "available" },
+      { name: "degrees", type: "float | None", description: "Signed relative adjustment in degrees for the selected axis.", defaultValue: "None", status: "available" },
+      { name: "roll", type: "float | None", description: "Optional signed roll adjustment in degrees.", defaultValue: "None", status: "available" },
+      { name: "pitch", type: "float | None", description: "Optional signed pitch adjustment in degrees.", defaultValue: "None", status: "available" },
+      { name: "yaw", type: "float | None", description: "Optional signed yaw adjustment in degrees.", defaultValue: "None", status: "available" }
+    ],
+    platformNoteLabel: "Standing hold requirement",
+    platformNote: "Starts from a fresh standing current hold and retains native balance ownership."
+  },
+  {
+    name: "adjust_right_elbow",
+    category: "Joint Adjustments",
+    signature: "Agentech.adjust_right_elbow(degrees, *, duration_seconds=None)",
+    summary: "Adjust the right elbow from Master's fresh standing current hold; positive values flex and negative values extend.",
+    example: "Agentech.adjust_right_elbow(5, duration_seconds=2.0)",
+    params: [
+      { name: "degrees", type: "float", description: "Signed relative elbow adjustment: positive flexes and negative extends.", status: "available" },
+      { name: "duration_seconds", type: "float | None", description: "Optional validated movement duration in seconds.", defaultValue: "None", status: "available" }
+    ],
+    platformNoteLabel: "Standing hold requirement",
+    platformNote: "Starts from a fresh standing current hold and retains native balance ownership."
+  },
+  {
+    name: "adjust_right_shoulder",
+    category: "Joint Adjustments",
+    signature: "Agentech.adjust_right_shoulder(axis, degrees, *, duration_seconds=None)",
+    summary: "Adjust the right shoulder pitch, roll, or yaw from Master's active standing hold.",
+    example: 'Agentech.adjust_right_shoulder("yaw", 5, duration_seconds=2.0)',
+    params: [
+      { name: "axis", type: '"pitch" | "roll" | "yaw"', description: "Choose the right-shoulder axis to adjust.", status: "available" },
+      { name: "degrees", type: "float", description: "Signed relative shoulder adjustment in degrees.", status: "available" },
+      { name: "duration_seconds", type: "float | None", description: "Optional validated movement duration in seconds.", defaultValue: "None", status: "available" }
+    ],
+    platformNoteLabel: "Standing hold requirement",
+    platformNote: "Starts from the active standing hold and retains native balance ownership."
+  },
+  {
     name: "status",
     category: "Sensing",
     signature: "Agentech.status()",
@@ -239,5 +297,6 @@ export const masterSafetyLimits = [
 
 export const masterReferenceCategories: AgentechFunction["category"][] = [
   "Actions",
+  "Joint Adjustments",
   "Sensing"
 ];

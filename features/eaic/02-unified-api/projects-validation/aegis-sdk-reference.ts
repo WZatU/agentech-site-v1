@@ -10,7 +10,7 @@ export type AgentechParam = {
 
 export type AgentechFunction = {
   name: string;
-  category: "Movement" | "Athletics" | "Actions" | "Posture" | "Configuration" | "Safety" | "Sensing";
+  category: "Movement" | "Athletics" | "Actions" | "Joint Adjustments" | "Posture" | "Configuration" | "Safety" | "Sensing";
   signature: string;
   summary: string;
   example: string;

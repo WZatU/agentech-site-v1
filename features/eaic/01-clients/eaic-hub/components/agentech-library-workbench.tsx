@@ -13,6 +13,7 @@ import { evaluateAgentechMovementSafety, type AgentechMovementSafety } from "@/l
 import { normalizeAgentechRobotModel, robotModelOptions, type AgentechRobotModel } from "@/features/eaic/02-unified-api/resources-runs/agentech-robot-model";
 import { LiveRobotCamera } from "@/features/eaic/05-delivery/live-results/components/live-robot-camera";
 import { MasterMotorMap } from "@/features/eaic/01-clients/eaic-hub/components/master-motor-map";
+import { MasterJointMotionGuide } from "@/features/eaic/01-clients/eaic-hub/components/master-joint-motion-guide";
 import {
   buildMasterLiveTestPayload,
   getCodeCheckingRobotOptions,
@@ -1684,7 +1685,7 @@ print(Agentech.get_battery_status())`
 }
 
 function FocusedBrowseFunctionsSection() {
-  const [selectedRobot, setSelectedRobot] = useState<SdkRobot>("aegis");
+  const [selectedRobot, setSelectedRobot] = useState<SdkRobot>("master");
   const publicNaviPlatformNotes = new Set([
     "jump",
     "jump_forward",
@@ -1775,7 +1776,7 @@ function FocusedBrowseFunctionsSection() {
                 The import and setup pattern stay the same. Each robot shows only the functions and limits its public SDK supports.
               </p>
               <div className="mt-5 inline-grid grid-cols-3 border border-[#93bce8] bg-[#eef6ff] p-1" role="group" aria-label="Select robot SDK">
-                {(["aegis", "navi", "master"] as const).map((robot) => {
+                {(["master", "aegis", "navi"] as const).map((robot) => {
                   const selected = selectedRobot === robot;
                   return (
                     <button
@@ -1846,11 +1847,16 @@ function FocusedBrowseFunctionsSection() {
           </div>
         </div>
 
-        {selectedRobot === "master" ? <MasterMotorMap /> : null}
+        {selectedRobot === "master" ? (
+          <>
+            <MasterMotorMap />
+            <MasterJointMotionGuide />
+          </>
+        ) : null}
 
         <div className={`mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] ${selectedRobot === "master" ? "md:grid-cols-2" : "md:grid-cols-4"}`}>
           {groupedFunctions.map((group) => (
-            <a key={group.category} href={`#function-${group.category.toLowerCase()}`} className="bg-white p-4 transition hover:bg-[#f3f8ff]">
+            <a key={group.category} href={`#function-${group.category.toLowerCase().replaceAll(" ", "-")}`} className="bg-white p-4 transition hover:bg-[#f3f8ff]">
               <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">{group.category}</p>
               <p className="mt-2 text-3xl font-semibold text-[#07142e]">{group.items.length}</p>
               <p className="mt-1 text-xs leading-5 text-[#334155]">commands</p>
@@ -1862,13 +1868,13 @@ function FocusedBrowseFunctionsSection() {
           {groupedFunctions.map((group) => (
             <details
               key={group.category}
-              id={`function-${group.category.toLowerCase()}`}
+              id={`function-${group.category.toLowerCase().replaceAll(" ", "-")}`}
               className="group/category min-w-0 scroll-mt-6 overflow-hidden border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]"
             >
               <summary className="flex cursor-pointer list-none flex-col items-stretch gap-4 px-5 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.14em] text-[#008a7a]">{group.category}</p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category === "Actions" ? "Action" : group.category} Commands</h2>
+                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category === "Actions" ? "Action" : group.category === "Joint Adjustments" ? "Joint Adjustment" : group.category} Commands</h2>
                   {group.category === "Movement" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">All commands in this section move the robot by moving its four feet.</p>
                   ) : null}
@@ -1888,6 +1894,9 @@ function FocusedBrowseFunctionsSection() {
                         ? "Standing gestures and seated actions. Use Agentech.sit() before commands under Agentech.seated_actions."
                         : "Expressive gestures and coordinated body motions. Timed actions return to standing automatically."}
                     </p>
+                  ) : null}
+                  {group.category === "Joint Adjustments" ? (
+                    <p className="mt-2 text-sm leading-6 text-[#526174]">Fine standing adjustments for Master&apos;s qualified right wrist, elbow, and shoulder joints.</p>
                   ) : null}
                   {group.category === "Configuration" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Range-checked gait, foot, floor-grip, jump, and collision settings. Physical calibration remains under development.</p>

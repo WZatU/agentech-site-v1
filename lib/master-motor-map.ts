@@ -19,6 +19,11 @@ export type MasterMotorMarker = {
   positions: Record<MasterMotorView, MasterMotorPosition>;
   officialLimit: OfficialJointLimit;
   runtimeLimit: RuntimeJointLimit;
+  sdkControl: {
+    label: string;
+    functionName: string;
+    example: string;
+  } | null;
 };
 
 type MarkerSeed = readonly [runtimeJoint: string, xPercent: number, yPercent: number, officialIndex?: number];
@@ -60,6 +65,41 @@ function requireGroup<T extends { label: string }>(groups: ReadonlyArray<T>, lab
   return group;
 }
 
+function getSdkControl(runtimeJoint: string, side: MasterMotorMarker["side"]): MasterMotorMarker["sdkControl"] {
+  if (side === "Left") {
+    return {
+      label: "Hand-guided function",
+      functionName: "standing_actions.teach",
+      example: 'Agentech.standing_actions.teach("left", operator_ready=True, feet_planted=True)'
+    };
+  }
+  if (side === "Center") return null;
+  if (runtimeJoint.includes("shoulder")) {
+    const axis = runtimeJoint.match(/(pitch|roll|yaw)_joint$/)?.[1] ?? "axis";
+    return {
+      label: "Joint movement function",
+      functionName: "adjust_right_shoulder",
+      example: `Agentech.adjust_right_shoulder("${axis}", degrees)`
+    };
+  }
+  if (runtimeJoint.includes("elbow")) {
+    return {
+      label: "Joint movement function",
+      functionName: "adjust_right_elbow",
+      example: "Agentech.adjust_right_elbow(degrees)"
+    };
+  }
+  if (runtimeJoint.includes("wrist")) {
+    const axis = runtimeJoint.match(/(pitch|roll|yaw)_joint$/)?.[1] ?? "axis";
+    return {
+      label: "Joint movement function",
+      functionName: "adjust_right_wrist",
+      example: `Agentech.adjust_right_wrist("${axis}", degrees)`
+    };
+  }
+  return null;
+}
+
 export const MASTER_MOTOR_MARKERS: ReadonlyArray<MasterMotorMarker> = markerGroups.flatMap((group) => {
   const runtimeGroup = requireGroup(RUNTIME_X2_LIMIT_GROUPS, group.runtimeGroup);
   const officialGroup = requireGroup(OFFICIAL_X2_LIMIT_GROUPS, group.officialGroup);
@@ -84,7 +124,8 @@ export const MASTER_MOTOR_MARKERS: ReadonlyArray<MasterMotorMarker> = markerGrou
         back: { xPercent: 100 - xPercent, yPercent }
       },
       officialLimit,
-      runtimeLimit
+      runtimeLimit,
+      sdkControl: getSdkControl(runtimeJoint, group.side)
     };
   });
 });
