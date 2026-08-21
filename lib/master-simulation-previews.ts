@@ -84,15 +84,6 @@ export const masterSimulationPreviews: Record<string, MasterSimulationPreview> =
   scratch_head: preview("fixed", variant("fixed", "25_action_scratch_head.mp4")),
   center: preview("fixed", variant("fixed", "31_action_center.mp4")),
   stay: preview("fixed", variant("fixed", "32_action_stay.mp4")),
-  sit: preview("fixed", variant("fixed", "28_action_sit.mp4")),
-  "seated_actions.turn_head": preview(
-    "fixed",
-    variant("fixed", "29_action_seated_actions_turn_head.mp4")
-  ),
-  "seated_actions.shake_head": preview(
-    "fixed",
-    variant("fixed", "30_action_seated_actions_shake_head.mp4")
-  ),
   status: preview("fixed", variant("fixed", "26_sensor_status.mp4")),
   action_catalog: preview("fixed", variant("fixed", "27_sensor_action_catalog.mp4"))
 };

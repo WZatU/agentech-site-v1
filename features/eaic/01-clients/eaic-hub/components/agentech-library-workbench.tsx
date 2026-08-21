@@ -1891,7 +1891,7 @@ function FocusedBrowseFunctionsSection() {
                   {group.category === "Actions" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">
                       {selectedRobot === "master"
-                        ? "Standing gestures and seated actions. Use Agentech.sit() before commands under Agentech.seated_actions."
+                        ? "Master's supported standing gestures and fixed standing poses."
                         : "Expressive gestures and coordinated body motions. Timed actions return to standing automatically."}
                     </p>
                   ) : null}

@@ -65,12 +65,43 @@ def add_labels(frame: np.ndarray, title: str, direction: str) -> np.ndarray:
     return np.asarray(image)
 
 
-def highlight_joint(model: mujoco.MjModel, joint_name: str) -> None:
+HIGHLIGHT_RGBA = np.array([0.09, 0.31, 0.48, 1.0], dtype=np.float32)
+
+
+def highlight_joint(model: mujoco.MjModel, joint_name: str, key: str) -> None:
+    # Elbow and shoulder yaw use precise overlays below because their MuJoCo
+    # visual meshes combine the joint housing with too much downstream limb.
+    if key in {"elbow", "shoulder-yaw"}:
+        return
     joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
     body_id = int(model.jnt_bodyid[joint_id])
     for geom_id in range(model.ngeom):
         if int(model.geom_bodyid[geom_id]) == body_id:
-            model.geom_rgba[geom_id] = np.array([0.09, 0.31, 0.48, 1.0])
+            model.geom_rgba[geom_id] = HIGHLIGHT_RGBA
+
+
+def add_precise_joint_overlay(scene: mujoco.MjvScene, model: mujoco.MjModel, data: mujoco.MjData, key: str) -> None:
+    if key == "elbow":
+        joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "right_elbow_joint")
+        geom = scene.geoms[scene.ngeom]
+        mujoco.mjv_initGeom(
+            geom,
+            mujoco.mjtGeom.mjGEOM_SPHERE,
+            np.array([0.044, 0.0, 0.0]),
+            data.xanchor[joint_id],
+            np.eye(3).reshape(-1),
+            HIGHLIGHT_RGBA,
+        )
+        scene.ngeom += 1
+    elif key == "shoulder-yaw":
+        shoulder_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "right_shoulder_yaw_joint")
+        elbow_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, "right_elbow_joint")
+        start = data.xanchor[shoulder_id]
+        end = start + 0.48 * (data.xanchor[elbow_id] - start)
+        geom = scene.geoms[scene.ngeom]
+        mujoco.mjv_connector(geom, mujoco.mjtGeom.mjGEOM_CAPSULE, 0.041, start, end)
+        geom.rgba[:] = HIGHLIGHT_RGBA
+        scene.ngeom += 1
 
 
 def motion_value(key: str, center: float, amplitude: float, phase: float) -> float:
@@ -94,7 +125,7 @@ def render_clip(model_path: Path, output_path: Path, key: str) -> None:
     model.vis.global_.offwidth = WIDTH
     model.vis.global_.offheight = HEIGHT
     data = mujoco.MjData(model)
-    highlight_joint(model, joint_name)
+    highlight_joint(model, joint_name, key)
 
     renderer = mujoco.Renderer(model, height=HEIGHT, width=WIDTH)
     camera = mujoco.MjvCamera()
@@ -123,6 +154,7 @@ def render_clip(model_path: Path, output_path: Path, key: str) -> None:
             set_joint_value(model, data, joint_name, motion_value(key, center, amplitude, phase))
             mujoco.mj_forward(model, data)
             renderer.update_scene(data, camera=camera)
+            add_precise_joint_overlay(renderer.scene, model, data, key)
             frame = renderer.render()
             writer.append_data(add_labels(frame, title, direction))
     finally:

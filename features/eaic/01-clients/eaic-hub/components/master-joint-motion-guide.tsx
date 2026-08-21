@@ -82,7 +82,7 @@ export function MasterJointMotionGuide() {
             <video
               key={selected.id}
               className="h-full max-h-[610px] w-full object-contain"
-              src={`/assets/products/agentech-library/simulator-previews/master/joint-axes/master-${selected.id}.mp4?v=solid-body-20260820`}
+              src={`/assets/products/agentech-library/simulator-previews/master/joint-axes/master-${selected.id}.mp4?v=precise-joints-20260820`}
               autoPlay
               muted
               loop

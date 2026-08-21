@@ -180,34 +180,6 @@ export const masterFunctions: AgentechFunction[] = [
     params: []
   },
   {
-    name: "sit",
-    category: "Actions",
-    signature: "Agentech.sit()",
-    summary: "Move Master from its standing posture into the seated posture used by seated actions.",
-    example: "Agentech.sit()",
-    params: []
-  },
-  {
-    name: "seated_actions.turn_head",
-    category: "Actions",
-    signature: "Agentech.seated_actions.turn_head()",
-    summary: "Perform Master's predefined seated head-turn action.",
-    example: "Agentech.seated_actions.turn_head()",
-    params: [],
-    platformNoteLabel: "Posture requirement",
-    platformNote: "Run Agentech.sit() before starting this seated action."
-  },
-  {
-    name: "seated_actions.shake_head",
-    category: "Actions",
-    signature: "Agentech.seated_actions.shake_head()",
-    summary: "Perform Master's predefined seated head-shake action.",
-    example: "Agentech.seated_actions.shake_head()",
-    params: [],
-    platformNoteLabel: "Posture requirement",
-    platformNote: "Run Agentech.sit() before starting this seated action."
-  },
-  {
     name: "standing_actions.teach",
     category: "Joint Adjustments",
     signature: "Agentech.standing_actions.teach(side, *, operator_ready=False, feet_planted=False)",
@@ -289,7 +261,6 @@ Agentech.use("master")`;
 
 export const masterSafetyLimits = [
   "Stable standing posture is required before every standing gesture",
-  "Seated actions require Agentech.sit() first",
   "Only one gesture can run at a time",
   "Motion is dry-run unless dry_run=False is selected",
   "Every live gesture waits for completion and verifies stable standing again"

@@ -49,5 +49,8 @@ test("arm demonstrations use collision-safe clearance poses", () => {
   assert.match(renderer, /"right_shoulder_roll_joint": -0\.42/);
   assert.match(renderer, /set_joint_value\(model, data, pose_joint, pose_value\)/);
   assert.match(renderer, /value .* is outside/);
-  assert.match(component, /solid-body-20260820/);
+  assert.match(component, /precise-joints-20260820/);
+  assert.match(renderer, /if key in \{"elbow", "shoulder-yaw"\}/);
+  assert.match(renderer, /mjtGeom\.mjGEOM_SPHERE/);
+  assert.match(renderer, /0\.48 \* \(data\.xanchor\[elbow_id\] - start\)/);
 });
