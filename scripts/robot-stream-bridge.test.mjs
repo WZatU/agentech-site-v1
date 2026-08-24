@@ -139,9 +139,9 @@ test("compiler rejects loops and nonliteral customer execution", () => {
   assert.match(result.stderr, /only direct robot command calls are executable/);
 });
 
-test("gateway transfers only the plan and trusted runner", () => {
+test("gateway transfers only trusted runtime files and persists device results", () => {
   const source = readFileSync(bridge, "utf8");
-  assert.match(source, /run\("scp", \[\.\.\.sshArgs\(\), planPath, trustedRunner,/);
+  assert.match(source, /run\("scp", \[\.\.\.sshArgs\(\), planPath, trustedRunner, deviceResultsSerializer,/);
   assert.doesNotMatch(source, /run\("scp", \[\.\.\.sshArgs\(\), sourcePath,/);
   assert.match(source, /customer source is never sent to the robot/);
   assert.match(source, /async function claimSession/);
@@ -152,6 +152,10 @@ test("gateway transfers only the plan and trusted runner", () => {
   assert.match(source, /if \(!active\) await stopObsVirtualCamera\(\)/);
   assert.doesNotMatch(source, /readFileSync\(item\.localPlan/);
   assert.match(source, /session robot model does not match its reviewed submission/);
+  assert.match(source, /remoteResults/);
+  assert.match(source, /collectDeviceResults/);
+  assert.match(source, /syncDeviceResults/);
+  assert.match(source, /buildDeviceResultsPatch/);
 });
 
 test("session policy selects model-specific scheduled-end cleanup", () => {

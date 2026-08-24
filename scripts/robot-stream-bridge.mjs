@@ -9,6 +9,11 @@ import {
   finalSessionDatabaseStatus,
   keepsStreamActive,
 } from "./robot-stream-session-policy.mjs";
+import {
+  buildDeviceResultsPatch,
+  deviceResultsStateForPlan,
+  parseDeviceResults,
+} from "./robot-session-device-results.mjs";
 
 for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER"]) {
   if (!process.env[key]) throw new Error(`${key} is required.`);
@@ -19,6 +24,7 @@ const runtimeDir = join(here, "..", ".robot-stream-runtime");
 const stateFile = join(runtimeDir, "state.json");
 const compiler = join(here, "compile-robot-plan.py");
 const trustedRunner = join(here, "trusted-robot-runner.py");
+const deviceResultsSerializer = join(here, "aegis-device-results.py");
 const trustedNaviRunner = join(here, "trusted-navi-runner.py");
 const captureUploadUrl = process.env.AGENTECH_CAPTURE_UPLOAD_URL || "https://www.agent-tech.ai/api/agentech-capture";
 const supabaseUrl = process.env.SUPABASE_URL.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
@@ -155,11 +161,14 @@ function stage(session, submission) {
   const plan = JSON.parse(readFileSync(planPath, "utf8"));
   if (plan.source_sha256 !== createHash("sha256").update(submission.code).digest("hex")) throw new Error("compiled plan source hash mismatch");
   const endCleanup = endSessionCleanupPolicy(plan, selectedModel);
+  const deviceResultsState = selectedModel === "aegis"
+    ? deviceResultsStateForPlan(plan, `${remoteDir}/${prefix}`)
+    : deviceResultsStateForPlan({ commands: [] }, `${remoteDir}/${prefix}`);
   let captureIndex = 0;
   const remoteCaptures = [];
   if (selectedModel === "aegis") {
     run("ssh", [...sshArgs(), robot, "mkdir", "-p", remoteDir]);
-    run("scp", [...sshArgs(), planPath, trustedRunner, `${robot}:${remoteDir}/`]);
+    run("scp", [...sshArgs(), planPath, trustedRunner, deviceResultsSerializer, `${robot}:${remoteDir}/`]);
     for (const command of plan.commands) {
       if (command.name !== "capture_image") continue;
       captureIndex += 1;
@@ -171,6 +180,7 @@ function stage(session, submission) {
     executionModel: selectedModel,
     localPlan: planPath,
     remotePlan: selectedModel === "aegis" ? `${remoteDir}/${prefix}.plan.json` : null,
+    ...deviceResultsState,
     remoteCaptures,
     publishedCaptures: [],
     accountEmail: session.email,
@@ -255,7 +265,8 @@ async function launch(session) {
   }
   const remoteRunner = `${remoteDir}/trusted-robot-runner.py`;
   const remoteLog = `${remoteDir}/session-${session.id}.log`;
-  const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}' > '${remoteLog}' 2>&1 & echo $!`;
+  const resultsArgument = item.remoteResults ? ` --results '${item.remoteResults}'` : "";
+  const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}'${resultsArgument} > '${remoteLog}' 2>&1 & echo $!`;
   item.pid = run("ssh", [...sshArgs(), robot, command]).trim();
   item.status = "running";
   saveState();
@@ -355,6 +366,48 @@ async function syncFinalSessionStatus(id, item) {
   saveState();
 }
 
+function collectDeviceResults(id, item) {
+  if (item.deviceResultsRequested !== true || item.deviceResultsCollectionAttempted === true) return;
+  item.deviceResultsCollectionAttempted = true;
+  try {
+    const localResults = join(runtimeDir, `session-${id}.results.json`);
+    run("scp", [...sshArgs(), `${robot}:${item.remoteResults}`, localResults]);
+    item.deviceResults = parseDeviceResults(readFileSync(localResults, "utf8"));
+    delete item.deviceResultsError;
+    console.log(`[robot-stream] collected ${item.deviceResults.length} device results for session ${id}.`);
+  } catch (error) {
+    item.deviceResults = [];
+    item.deviceResultsError = error.message;
+    console.error(`[robot-stream] unable to collect device results for session ${id}:`, error.message);
+  }
+  saveState();
+}
+
+async function syncDeviceResults(id, item) {
+  if (
+    item.deviceResultsRequested !== true
+    || item.deviceResultsCollectionAttempted !== true
+    || item.deviceResultsPersisted === true
+  ) return;
+  try {
+    await request(
+      "agentech_robot_sessions",
+      `id=eq.${encodeURIComponent(id)}&select=id`,
+      { method: "PATCH", body: buildDeviceResultsPatch(item) },
+    );
+    item.deviceResultsPersisted = true;
+    delete item.deviceResultsPersistenceError;
+    console.log(`[robot-stream] synchronized device results for session ${id} in Supabase.`);
+  } catch (error) {
+    item.deviceResultsPersistenceError = error.message;
+    console.error(
+      `[robot-stream] unable to synchronize device results for session ${id}; verify the additive session schema:`,
+      error.message,
+    );
+  }
+  saveState();
+}
+
 async function publishCaptures(id, item) {
   const remoteCaptures = item.remoteCaptures ?? (item.remoteCapture ? [item.remoteCapture] : []);
   item.publishedCaptures ??= [];
@@ -428,6 +481,10 @@ async function tick() {
     if (item.status === "finished" && now >= Date.parse(item.end) && endCleanupCanRun(item)) {
       endingSessions.add(id);
     }
+  }
+  for (const [id, item] of Object.entries(state.sessions)) {
+    if (["completed", "finished"].includes(item.status)) collectDeviceResults(id, item);
+    await syncDeviceResults(id, item);
   }
   const active = Object.values(state.sessions).some((item) => keepsStreamActive(item, now));
   if (!active) await stopObs();
