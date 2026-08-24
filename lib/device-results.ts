@@ -87,3 +87,43 @@ function numericDetail(value: unknown, suffix: string, label: string): string | 
     ? `${label}: ${value}${suffix}`
     : null;
 }
+
+
+export type DeviceResultsViewModel = {
+  visible: boolean;
+  items: Array<{
+    label: string;
+    summary: string;
+    tone: "success" | "error";
+    status: DeviceResultStatus;
+    recordedAt: string;
+    sourceLine: number | null;
+    rawJson: string;
+    errorText: string | null;
+  }>;
+  collectionError: string | null;
+};
+
+
+export function buildDeviceResultsViewModel(input: {
+  requested: boolean;
+  results: DeviceResult[];
+  collectionError: string | null;
+}): DeviceResultsViewModel {
+  const collectionError = input.collectionError || null;
+  const items = input.results.map((record) => ({
+    label: deviceResultLabel(record.command),
+    summary: summarizeDeviceResult(record),
+    tone: record.status === "completed" ? "success" as const : "error" as const,
+    status: record.status,
+    recordedAt: record.recorded_at,
+    sourceLine: record.line,
+    rawJson: JSON.stringify(record, null, 2),
+    errorText: record.error ? `${record.error.type}: ${record.error.message}` : null,
+  }));
+  return {
+    visible: input.requested || items.length > 0 || collectionError !== null,
+    items,
+    collectionError,
+  };
+}

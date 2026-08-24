@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildDeviceResultsViewModel,
   deviceResultLabel,
   isDeviceResultArray,
   normalizeDeviceResults,
@@ -64,4 +65,56 @@ test("falls back safely for an unknown structured return shape", () => {
   };
 
   assert.equal(summarizeDeviceResult(record), "Structured result available");
+});
+
+
+test("builds a visible success view model for a requested battery result", () => {
+  const batteryResult = {
+    command: "get_battery_status" as const,
+    line: 3,
+    status: "completed" as const,
+    result: { percent: 82 },
+    error: null,
+    recorded_at: "2026-08-24T20:00:00.000Z",
+  };
+
+  const model = buildDeviceResultsViewModel({
+    requested: true,
+    results: [batteryResult],
+    collectionError: null,
+  });
+
+  assert.equal(model.visible, true);
+  assert.equal(model.items[0].label, "Battery Status");
+  assert.equal(model.items[0].tone, "success");
+  assert.equal(model.items[0].sourceLine, 3);
+  assert.match(model.items[0].rawJson, /"percent": 82/);
+});
+
+
+test("hides device results for historical or movement-only sessions", () => {
+  assert.deepEqual(
+    buildDeviceResultsViewModel({
+      requested: false,
+      results: [],
+      collectionError: null,
+    }),
+    { visible: false, items: [], collectionError: null },
+  );
+});
+
+
+test("keeps a requested collection failure visible without inventing results", () => {
+  assert.deepEqual(
+    buildDeviceResultsViewModel({
+      requested: true,
+      results: [],
+      collectionError: "results sidecar unavailable",
+    }),
+    {
+      visible: true,
+      items: [],
+      collectionError: "results sidecar unavailable",
+    },
+  );
 });
