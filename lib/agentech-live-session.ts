@@ -1,4 +1,4 @@
-import { normalizeAgentechRobotModel, type AgentechRobotModel } from "@/lib/agentech-robot-model";
+import { normalizeLiveRobotModel, type LiveRobotModel } from "@/lib/master-live-camera";
 import { supabaseRequest } from "@/lib/supabase-server";
 
 const activeSessionStatuses = new Set(["requested", "confirmed", "approved", "scheduled", "pending", "running"]);
@@ -13,7 +13,7 @@ type ActiveSessionRow = {
 
 export type ActiveRobotViewingSession = {
   id: number;
-  robotModel: AgentechRobotModel;
+  robotModel: LiveRobotModel;
   status: string;
   scheduledStart: string | null;
   scheduledEnd: string | null;
@@ -41,7 +41,7 @@ export async function getActiveRobotViewingSession(email: string, now = new Date
 
   return {
     id: session.id,
-    robotModel: normalizeAgentechRobotModel(session.robot_model) ?? "Aegies",
+    robotModel: normalizeLiveRobotModel(session.robot_model) ?? "Aegies",
     status: session.session_status,
     scheduledStart: session.scheduled_start,
     scheduledEnd: session.scheduled_end

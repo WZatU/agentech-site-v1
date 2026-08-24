@@ -82,6 +82,8 @@ export const masterSimulationPreviews: Record<string, MasterSimulationPreview> =
   raise_hands: preview("fixed", variant("fixed", "23_action_raise_hands.mp4")),
   bow: preview("fixed", variant("fixed", "24_action_bow.mp4")),
   scratch_head: preview("fixed", variant("fixed", "25_action_scratch_head.mp4")),
+  center: preview("fixed", variant("fixed", "31_action_center.mp4")),
+  stay: preview("fixed", variant("fixed", "32_action_stay.mp4")),
   status: preview("fixed", variant("fixed", "26_sensor_status.mp4")),
   action_catalog: preview("fixed", variant("fixed", "27_sensor_action_catalog.mp4"))
 };

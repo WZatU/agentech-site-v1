@@ -1,5 +1,3 @@
-import "server-only";
-
 export const X2_LIMITS_SOURCE_URL =
   "https://x2-aimdk.agibot.com/zh-cn/latest/about_agibot_X2/joint_name_and_limit.html";
 export const X2_JOINT_DIAGRAM_URL =

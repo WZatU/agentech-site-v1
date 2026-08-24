@@ -1,0 +1,18 @@
+{
+  "command": "eat_yellow",
+  "duration_s": 3.547488222122192,
+  "source_duration_s": 4.91264271736145,
+  "replay_speed": 1.0,
+  "fps": 30,
+  "measured_samples": 135,
+  "median_sample_rate_hz": 27.748180687501655,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 0.6944999694824219,
+  "maximum_body_translation_m": 0.07797770080526767,
+  "maximum_abs_relative_roll_rad": 0.009913462214171886,
+  "maximum_abs_relative_pitch_rad": 0.36242059990763664,
+  "intentionally_lifted_legs": [],
+  "maximum_support_foot_error_m": 1.9968385032532566e-05,
+  "capture_sha256": "7ae7f56a34d77e98945e1cfecb5dff352916d8617d429dce16743e27683ec9e1",
+  "visual_correction": null
+}

@@ -1,0 +1,18 @@
+{
+  "command": "look_at_food",
+  "duration_s": 2.6972622871398926,
+  "source_duration_s": 3.796218156814575,
+  "replay_speed": 1.0,
+  "fps": 30,
+  "measured_samples": 2,
+  "median_sample_rate_hz": 0.370746295148172,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 0.9689998626708984,
+  "maximum_body_translation_m": 0.0,
+  "maximum_abs_relative_roll_rad": 0.0,
+  "maximum_abs_relative_pitch_rad": 0.0,
+  "intentionally_lifted_legs": [],
+  "maximum_support_foot_error_m": 1.9945238883835716e-05,
+  "capture_sha256": "af806a81217e7b43a48e52c69736823279f79ee9d16d8ee541c796c959562f61",
+  "visual_correction": "measured_crouch_with_all_four_feet_inverse-kinematics-pinned_to_ground"
+}

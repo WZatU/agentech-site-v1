@@ -18,6 +18,7 @@ import { getAiReviewCreditCost } from "@/lib/agentech-review-pricing";
 import { normalizeAgentechRobotModel } from "@/lib/agentech-robot-model";
 import { validateAgentechCode } from "@/lib/agentech-validation";
 import { getSoftwareCheckCreditPolicy, isAgentechCompanyEmail } from "@/lib/company-accounts";
+import { hasMasterLiveTestAccess } from "@/lib/master-live-test-access";
 import { isValidEmail } from "@/lib/prototype-auth";
 import { getReturnToHomeAccess, RETURN_TO_HOME_FEATURE_CODE } from "@/lib/premium-features";
 import { getServerAccountEmail } from "@/lib/server-account-session";
@@ -145,6 +146,7 @@ export async function GET(request: NextRequest) {
         internalAccount: isAgentechCompanyEmail(email),
         creditsRequired: 0,
         creditCost: getAiReviewCreditCost(),
+        masterLiveTestAccess: hasMasterLiveTestAccess(email),
         latestSubmission: previewSubmission,
         localPreview: true
       });
@@ -175,6 +177,7 @@ export async function GET(request: NextRequest) {
       internalAccount,
       creditsRequired: internalAccount ? 0 : getAiReviewCreditCost(),
       creditCost: getAiReviewCreditCost(),
+      masterLiveTestAccess: hasMasterLiveTestAccess(email),
       latestSubmission: submission
         ? {
             id: submission.id,

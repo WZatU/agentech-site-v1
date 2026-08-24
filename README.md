@@ -14,6 +14,20 @@ The repository is designed to work like a professional product codebase: public 
 
 Repository: [agent-tech0316/agentech-site-v1](https://github.com/agent-tech0316/agentech-site-v1)
 
+## EAIC Product Workflow
+
+![EAIC product architecture](docs/eaic-platform/assets/eaic-product-architecture.png)
+
+The EAIC product workflow follows one unified, API-driven operating loop:
+
+1. **Client entry points** — EAIC Hub today, with EAIC CLI, World macOS, and World iOS as companion clients.
+2. **Unified API layer** — shared identity and access, project validation, resource and run, and live-result contracts.
+3. **Cloud core** — project packaging, cloud validation, AI review, resource reservation, deployment authorization, account quotas, robot catalogs, and run auditing.
+4. **Edge and robot execution** — approved projects flow through warehouse services, behavior parsing, robot runtimes, and supervised physical execution.
+5. **Live data and delivery** — live video, telemetry, logs, files, reports, and usage return through the unified API to each client.
+
+The implementation and team-ownership map lives in [`features/eaic/`](features/eaic/), with supporting workflow documentation in [`docs/eaic-platform/`](docs/eaic-platform/).
+
 ## What This Repository Contains
 
 - Public company website for Robotics, Education, Bots, Talents, About, and News.
@@ -32,6 +46,7 @@ Repository: [agent-tech0316/agentech-site-v1](https://github.com/agent-tech0316/
 | App routes and API routes | `app/` |
 | Shared UI and forms | `components/` |
 | Business logic and service helpers | `lib/` |
+| EAIC workflow modules | `features/eaic/` |
 | Static and imported data | `data/` |
 | Images, logos, QR codes, news media | `public/assets/` |
 | Maintenance and importer scripts | `scripts/` |
@@ -826,6 +841,20 @@ The robot slot API verifies Supabase before accepting custom-code scheduling. Pr
 - Robot session booking is handled through `/account` and `/api/robot-slot`; booked slots are disabled in the UI and rejected by the API if they overlap an active session.
 
 ### Local Robot-Camera Operations
+
+For Master sessions, the Live Stream client keeps the existing single LiveKit
+program track and adds Master-only Wall/Focus controls. The active session must
+report `robot_model=Master`; Aegies and Navi follow their existing paths. The
+four allowed Master Robot Vision feeds are Front Main, Front Left, Front Right,
+and RGB-D Color. Rear View, Depth Map, and LiDAR are intentionally excluded. The gateway
+must composite wall mode as four 1080p quadrants in one 3840x2160 OBS program,
+or switch that same program to one selected camera at up to its native 4K
+resolution. Use Master's wired development connection for supervised hardware
+acceptance.
+
+Set `NEXT_PUBLIC_MASTER_CAMERA_PREVIEW=1` only for local development to review
+the controls without an active Master session. The preview does not mint a
+LiveKit token and clearly states that no robot or live feed is connected.
 
 - The OBS/LiveKit stream bridge is intended to run on the Windows computer connected to the Logitech camera and OBS.
 - The bridge polls Supabase for upcoming `agentech_robot_sessions`, starts OBS streaming shortly before a scheduled session, and stops when no active session is due.

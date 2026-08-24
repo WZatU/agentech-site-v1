@@ -1,0 +1,18 @@
+{
+  "command": "gargle",
+  "duration_s": 10.733274221420288,
+  "source_duration_s": 11.103200674057007,
+  "replay_speed": 1.0,
+  "fps": 30,
+  "measured_samples": 5,
+  "median_sample_rate_hz": 0.37377673075201606,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 0.8445005416870117,
+  "maximum_body_translation_m": 0.0,
+  "maximum_abs_relative_roll_rad": 0.0,
+  "maximum_abs_relative_pitch_rad": 0.0,
+  "intentionally_lifted_legs": [],
+  "maximum_support_foot_error_m": 1.9939401345179245e-05,
+  "capture_sha256": "e970700b28a00f8d6424109bce244056f7e945f94edf8704ff88df2480c01138",
+  "visual_correction": null
+}

@@ -44,13 +44,13 @@ const references = [
     robot: "navi",
     functions: navi.naviFunctions,
     starter: navi.naviStarterCode,
-    expectedCount: 116
+    expectedCount: 130
   },
   {
     robot: "master",
     functions: master.masterFunctions,
     starter: master.masterStarterCode,
-    expectedCount: 23
+    expectedCount: 24
   }
 ];
 
@@ -109,11 +109,45 @@ test("Aegis and Master reference only their current public names", () => {
       "scratch_head",
       "center",
       "stay",
-      "sit",
-      "seated_actions.turn_head",
-      "seated_actions.shake_head",
+      "standing_actions.teach",
+      "adjust_right_wrist",
+      "adjust_right_elbow",
+      "adjust_right_shoulder",
       "status",
       "action_catalog"
     ]
   );
+});
+
+test("Navi reference excludes unsupported photo actions while retaining raise_camera", () => {
+  const naviNames = new Set(navi.naviFunctions.map((item) => item.name));
+  const newActionNames = [
+    "smell_food",
+    "look_at_food",
+    "eat_yellow",
+    "drink",
+    "enjoy_eating",
+    "finish_eating",
+    "apply_toothpaste",
+    "main_brush",
+    "gargle",
+    "brush_teeth_horizontal_30s",
+    "brush_teeth_back_and_forth_30s",
+    "brush_teeth_horizontal_23s",
+    "raise_camera",
+    "brush_teeth_vertical_30s"
+  ];
+  const removedPhotoActions = [
+    "prepare_camera",
+    "camera_stand_3s",
+    "take_photo",
+    "photo_wave_hand",
+    "before_take_photo_fast",
+    "after_take_photo_1_fast",
+    "after_take_photo_2_fast"
+  ];
+
+  for (const name of newActionNames) assert.ok(naviNames.has(name), name);
+  for (const name of removedPhotoActions) assert.ok(!naviNames.has(name), name);
+  assert.ok(!naviNames.has("turn_around"));
 });

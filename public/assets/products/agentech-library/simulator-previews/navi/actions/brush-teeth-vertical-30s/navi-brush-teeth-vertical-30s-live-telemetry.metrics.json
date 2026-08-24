@@ -1,0 +1,20 @@
+{
+  "command": "brush_teeth_vertical_30s",
+  "duration_s": 13.975785636901856,
+  "source_duration_s": 36.95627236366272,
+  "replay_speed": 2.5,
+  "fps": 30,
+  "measured_samples": 15,
+  "median_sample_rate_hz": 0.4040049457640517,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 2.635499954223633,
+  "maximum_body_translation_m": 0.0,
+  "maximum_abs_relative_roll_rad": 0.0,
+  "maximum_abs_relative_pitch_rad": 0.0,
+  "intentionally_lifted_legs": [
+    "front_left"
+  ],
+  "maximum_support_foot_error_m": 1.9609388060010993e-05,
+  "capture_sha256": "1ec3ee8573831216eaea8e4c076d7ded7c336705732496308f64d7b0c2972928",
+  "visual_correction": null
+}

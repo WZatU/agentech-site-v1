@@ -1,0 +1,18 @@
+{
+  "command": "main_brush",
+  "duration_s": 15.509235590696335,
+  "source_duration_s": 124.69279432296753,
+  "replay_speed": 8.0,
+  "fps": 30,
+  "measured_samples": 47,
+  "median_sample_rate_hz": 0.3711729107661103,
+  "source": "physical Navi controller telemetry",
+  "maximum_joint_excursion_rad": 0.1789989471435547,
+  "maximum_body_translation_m": 0.0,
+  "maximum_abs_relative_roll_rad": 0.0,
+  "maximum_abs_relative_pitch_rad": 0.0,
+  "intentionally_lifted_legs": [],
+  "maximum_support_foot_error_m": 1.993704491140525e-05,
+  "capture_sha256": "03beb2ff7c69472bf3e795565cff22f5967ca4c13ab71435c607cda7a484eb18",
+  "visual_correction": "common_abad_motion_rendered_as_planted-feet_body_sway_and_accelerated_for_preview"
+}

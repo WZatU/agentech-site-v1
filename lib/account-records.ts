@@ -3,6 +3,10 @@ import { getUnpaidBalanceLines } from "@/lib/invoices";
 import { getBillingInvoicesForEmail, type BillingInvoice } from "@/lib/billing";
 import { normalizeEmail } from "@/lib/prototype-auth";
 import { normalizeDeviceResults, type DeviceResult } from "@/lib/device-results";
+import {
+  isExclusiveRobotSessionReservation,
+  selectRobotSessionReservationWinner,
+} from "@/lib/robot-session-reservation";
 
 export type AccountRecord = {
   email: string;
@@ -929,6 +933,19 @@ function normalizeRobotSessionDeviceResults(row: RobotSessionRecord): RobotSessi
   return { ...row, device_results: normalizeDeviceResults(row.device_results) };
 }
 
+export async function getRobotSessionsStrict(accountEmail: string) {
+  const rows = await supabaseRequest<Array<Omit<RobotSessionRecord, "device_results" | "device_results_requested" | "device_results_error" | "device_results_updated_at">>>("agentech_robot_sessions", {
+    query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
+  });
+  return rows.map((row) => ({
+    ...row,
+    device_results: [],
+    device_results_requested: false,
+    device_results_error: null,
+    device_results_updated_at: null
+  }));
+}
+
 export async function getRobotSessionsInWindow(startIso: string, endIso: string) {
   try {
     const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
@@ -974,7 +991,25 @@ export async function findRobotSessionConflict(startIso: string, endIso: string)
   }) ?? null;
 }
 
-export async function createRobotSession(input: {
+export async function getRobotSessionConflictsStrict(startIso: string, endIso: string) {
+  const sessions = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    query: `scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc,created_at.asc`
+  });
+  const requestedStart = new Date(startIso).getTime();
+  const requestedEnd = new Date(endIso).getTime();
+
+  return sessions.filter((session) => {
+    if (!isActiveRobotSession(session)) return false;
+    const sessionStart = new Date(session.scheduled_start || "").getTime();
+    const sessionEnd = new Date(session.scheduled_end || session.scheduled_start || "").getTime();
+    return Number.isFinite(sessionStart)
+      && Number.isFinite(sessionEnd)
+      && requestedStart < sessionEnd
+      && requestedEnd > sessionStart;
+  });
+}
+
+export type RobotSessionInput = {
   email: string;
   accessProfileId: number;
   profileUsername: string;
@@ -990,51 +1025,269 @@ export async function createRobotSession(input: {
   codeSubmissionId?: string | null;
   price?: number | null;
   notes?: string | null;
-}) {
-  const marker = input.codeSubmissionId ? `[[agentech_code_submission:${input.codeSubmissionId}]]` : "";
-  const notes = [input.notes?.trim(), marker].filter(Boolean).join("\n") || null;
-  const baseBody = {
-    email: input.email,
-    access_profile_id: input.accessProfileId,
-    profile_username: input.profileUsername,
-    profile_type: input.profileType,
-    session_title: input.sessionTitle,
-    robot_model: input.robotModel,
-    scheduled_start: input.scheduledStart,
-    scheduled_end: input.scheduledEnd,
-    session_status: "requested",
-    requested_run_type: input.requestedRunType,
-    approved_run_type: input.approvedRunType,
-    preset_demo: input.presetDemo,
-    benchmark_status: input.benchmarkStatus,
-    price: input.price ?? null,
-    notes
-  };
-  let rows: RobotSessionRecord[];
+};
+
+const robotSessionReservationLockId = -4_175_000_002;
+const robotSessionReservationLockMaxAgeMs = 5 * 60 * 1000;
+
+async function acquireRobotSessionReservationLock(input: RobotSessionInput) {
+  const staleBefore = new Date(Date.now() - robotSessionReservationLockMaxAgeMs).toISOString();
+  await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "DELETE",
+    query: `id=eq.${robotSessionReservationLockId}&created_at=lt.${encodeURIComponent(staleBefore)}`
+  });
+
+  const token = `robot-session-reservation:${crypto.randomUUID()}`;
+  const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "POST",
+    query: "on_conflict=id",
+    prefer: "resolution=ignore-duplicates,return=representation",
+    body: {
+      id: robotSessionReservationLockId,
+      email: input.email,
+      access_profile_id: input.accessProfileId,
+      profile_username: input.profileUsername,
+      profile_type: input.profileType,
+      session_title: "Internal robot-session reservation lock",
+      robot_model: input.robotModel,
+      scheduled_start: "1970-01-01T00:00:00.000Z",
+      scheduled_end: "1970-01-01T00:00:00.001Z",
+      session_status: "cancelled",
+      requested_run_type: "preset_demo",
+      approved_run_type: "preset_demo",
+      preset_demo: "Internal reservation lock",
+      benchmark_status: "not_started",
+      price: 0,
+      notes: token
+    }
+  });
+
+  return rows[0]?.notes === token ? token : null;
+}
+
+async function releaseRobotSessionReservationLock(token: string) {
+  await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "DELETE",
+    query: `id=eq.${robotSessionReservationLockId}&notes=eq.${encodeURIComponent(token)}`
+  });
+}
+
+async function deleteExactRobotSession(id: number, email: string) {
+  const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "DELETE",
+    query: `id=eq.${id}&email=eq.${encodeURIComponent(email)}`
+  });
+  return rows[0] ?? null;
+}
+
+async function verifyRobotSessionReservation(session: RobotSessionRecord) {
+  if (!session.scheduled_start || !session.scheduled_end) {
+    await deleteExactRobotSession(session.id, session.email);
+    return null;
+  }
+
+  let conflicts: RobotSessionRecord[];
+  try {
+    conflicts = await getRobotSessionConflictsStrict(session.scheduled_start, session.scheduled_end);
+  } catch (error) {
+    await deleteExactRobotSession(session.id, session.email);
+    throw error;
+  }
+
+  const winner = selectRobotSessionReservationWinner(
+    conflicts.some((candidate) => candidate.id === session.id)
+      ? conflicts
+      : [...conflicts, session]
+  );
+  if (winner?.id !== session.id) {
+    await deleteExactRobotSession(session.id, session.email);
+    return null;
+  }
+
+  return session;
+}
+
+export async function createRobotSession(input: RobotSessionInput) {
+  const lockToken = await acquireRobotSessionReservationLock(input);
+  if (!lockToken) return null;
 
   try {
-    rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      method: "POST",
-      body: {
-        ...baseBody,
-        code_submission_id: input.codeSubmissionId ?? null
+    const conflicts = await getRobotSessionConflictsStrict(input.scheduledStart, input.scheduledEnd);
+    if (conflicts.length) return null;
+
+    const marker = input.codeSubmissionId ? `[[agentech_code_submission:${input.codeSubmissionId}]]` : "";
+    const notes = [input.notes?.trim(), marker].filter(Boolean).join("\n") || null;
+    const baseBody = {
+      email: input.email,
+      access_profile_id: input.accessProfileId,
+      profile_username: input.profileUsername,
+      profile_type: input.profileType,
+      session_title: input.sessionTitle,
+      robot_model: input.robotModel,
+      scheduled_start: input.scheduledStart,
+      scheduled_end: input.scheduledEnd,
+      session_status: "requested",
+      requested_run_type: input.requestedRunType,
+      approved_run_type: input.approvedRunType,
+      preset_demo: input.presetDemo,
+      benchmark_status: input.benchmarkStatus,
+      price: input.price ?? null,
+      notes
+    };
+    let rows: RobotSessionRecord[];
+
+    try {
+      rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+        method: "POST",
+        body: {
+          ...baseBody,
+          code_submission_id: input.codeSubmissionId ?? null
+        }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (!/could not find.*code_submission_id.*column|column.*code_submission_id.*does not exist/i.test(message)) {
+        throw error;
       }
+
+      // Keep bookings working while the additive schema migration is rolling out.
+      // The private marker pins the same immutable submission for the local bridge.
+      rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+        method: "POST",
+        body: baseBody
+      }).catch(() => {
+        throw error;
+      });
+    }
+
+    const session = rows[0] ?? null;
+    return session ? await verifyRobotSessionReservation(session) : null;
+  } finally {
+    await releaseRobotSessionReservationLock(lockToken).catch(() => null);
+  }
+}
+
+const masterLiveTestReservationId = -4_175_000_001;
+
+export async function reserveMasterLiveTestSession(input: RobotSessionInput) {
+  if (
+    input.robotModel !== "Master"
+    || input.requestedRunType !== "preset_demo"
+    || input.approvedRunType !== "preset_demo"
+    || input.codeSubmissionId !== null
+  ) {
+    throw new Error("Master live-test reservations must be view-only preset-demo sessions.");
+  }
+
+  const lockToken = await acquireRobotSessionReservationLock(input);
+  if (!lockToken) {
+    const error = new Error("Another robot session reservation is currently being saved. Try the Master live test again.");
+    error.name = "MasterLiveTestConflictError";
+    throw error;
+  }
+
+  try {
+    const staleQueryPrefix = `id=eq.${masterLiveTestReservationId}`;
+    await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      method: "DELETE",
+      query: `${staleQueryPrefix}&scheduled_end=lte.${encodeURIComponent(input.scheduledStart)}`
+    });
+
+    const conflicts = await getRobotSessionConflictsStrict(input.scheduledStart, input.scheduledEnd);
+    const reusable = conflicts.find((session) => (
+      session.id === masterLiveTestReservationId
+      && session.email.trim().toLowerCase() === input.email.trim().toLowerCase()
+      && session.robot_model === "Master"
+      && session.approved_run_type === "preset_demo"
+    ));
+    if (reusable && isExclusiveRobotSessionReservation(conflicts, reusable.id)) {
+      return { session: reusable, created: false };
+    }
+    if (conflicts.length) {
+      const error = new Error("Another active robot session overlaps this 3-minute Master test.");
+      error.name = "MasterLiveTestConflictError";
+      throw error;
+    }
+    await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      method: "DELETE",
+      query: `${staleQueryPrefix}&session_status=in.(cancelled,canceled,voided,rejected,deleted)`
+    });
+
+    const notes = input.notes?.trim() || null;
+    const body = {
+      id: masterLiveTestReservationId,
+      email: input.email,
+      access_profile_id: input.accessProfileId,
+      profile_username: input.profileUsername,
+      profile_type: input.profileType,
+      session_title: input.sessionTitle,
+      robot_model: input.robotModel,
+      scheduled_start: input.scheduledStart,
+      scheduled_end: input.scheduledEnd,
+      session_status: "requested",
+      requested_run_type: input.requestedRunType,
+      approved_run_type: input.approvedRunType,
+      preset_demo: input.presetDemo,
+      benchmark_status: input.benchmarkStatus,
+      code_submission_id: null,
+      price: input.price ?? null,
+      notes
+    };
+
+  let inserted: RobotSessionRecord[];
+  try {
+    inserted = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      method: "POST",
+      query: "on_conflict=id",
+      prefer: "resolution=ignore-duplicates,return=representation",
+      body
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    if (!/could not find.*code_submission_id.*column|column.*code_submission_id.*does not exist/i.test(message)) {
-      throw error;
-    }
-
-    // Keep bookings working while the additive schema migration is rolling out.
-    // The private marker pins the same immutable submission for the local bridge.
-    rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    if (!/could not find.*code_submission_id.*column|column.*code_submission_id.*does not exist/i.test(message)) throw error;
+    const { code_submission_id: _codeSubmissionId, ...legacyBody } = body;
+    void _codeSubmissionId;
+    inserted = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
       method: "POST",
-      body: baseBody
-    }).catch(() => {
-      throw error;
+      query: "on_conflict=id",
+      prefer: "resolution=ignore-duplicates,return=representation",
+      body: legacyBody
     });
   }
+
+  if (inserted[0]) {
+    const verified = await verifyRobotSessionReservation(inserted[0]);
+    if (!verified) {
+      const error = new Error("Another active robot session overlaps this 3-minute Master test.");
+      error.name = "MasterLiveTestConflictError";
+      throw error;
+    }
+    return { session: verified, created: true };
+  }
+
+  const existing = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    query: `${staleQueryPrefix}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&limit=1`
+  });
+  const session = existing[0];
+  if (
+    !session
+    || session.email.trim().toLowerCase() !== input.email.trim().toLowerCase()
+    || session.robot_model !== "Master"
+    || session.approved_run_type !== "preset_demo"
+  ) {
+    throw new Error("Unable to acquire the atomic Master live-test reservation.");
+  }
+  return { session, created: false };
+  } finally {
+    await releaseRobotSessionReservationLock(lockToken).catch(() => null);
+  }
+}
+
+export async function deleteRobotSessionRecord(id: number, email: string) {
+  const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+    method: "DELETE",
+    query: `id=eq.${id}&email=eq.${encodeURIComponent(email)}&approved_run_type=eq.preset_demo`
+  });
 
   return rows[0] ?? null;
 }
