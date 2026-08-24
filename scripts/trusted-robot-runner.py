@@ -2,10 +2,28 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import sys
 from pathlib import Path
 
 from agentech import Agentech
+
+
+def _load_device_results_module():
+    module_path = Path(__file__).with_name("aegis-device-results.py")
+    spec = importlib.util.spec_from_file_location("aegis_device_results", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("unable to load AEGIS device results serializer")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_device_results = _load_device_results_module()
+TELEMETRY_COMMANDS = _device_results.TELEMETRY_COMMANDS
+failure_record = _device_results.failure_record
+success_record = _device_results.success_record
+write_result = _device_results.write_result
 
 LEGACY_LINEAR_COMMANDS = {"forward", "backward", "lateral", "lateral_left", "lateral_right"}
 LOCAL_VELOCITY_COMMANDS = LEGACY_LINEAR_COMMANDS | {"diagonal"}
@@ -30,12 +48,21 @@ def main() -> None:
     if len(sys.argv) == 2 and sys.argv[1] == "--lie-down":
         end_session_lie_down()
         return
-    if len(sys.argv) != 2:
-        raise SystemExit("usage: trusted-robot-runner.py PLAN.json | --lie-down")
-    plan = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    if len(sys.argv) == 2:
+        plan_path = Path(sys.argv[1])
+        results_path = None
+    elif len(sys.argv) == 4 and sys.argv[2] == "--results":
+        plan_path = Path(sys.argv[1])
+        results_path = Path(sys.argv[3])
+    else:
+        raise SystemExit(
+            "usage: trusted-robot-runner.py PLAN.json [--results RESULTS.json] | --lie-down"
+        )
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
     if plan.get("version") != 1 or not isinstance(plan.get("commands"), list):
         raise ValueError("unsupported command plan")
     capture_index = 0
+    records = []
     try:
         for command in plan["commands"]:
             name, args = command.get("name"), command.get("args")
@@ -47,7 +74,7 @@ def main() -> None:
                 if not isinstance(source, str) or not source.strip():
                     raise ValueError("capture_image source must be a non-empty string")
                 translated = {
-                    "output": str(Path(sys.argv[1]).with_name(f"{Path(sys.argv[1]).stem}-capture-{capture_index}.jpg")),
+                    "output": str(plan_path.with_name(f"{plan_path.stem}-capture-{capture_index}.jpg")),
                     "source": source,
                 }
             else:
@@ -63,7 +90,16 @@ def main() -> None:
                     name = "turn"
                     translated.setdefault("angle_deg", angles[command["name"]])
                 translated.setdefault("host", "127.0.0.1")
-            getattr(Agentech, name)(**translated)
+            try:
+                value = getattr(Agentech, name)(**translated)
+                if command["name"] in TELEMETRY_COMMANDS and results_path:
+                    records.append(success_record(command, value))
+                    write_result(results_path, records)
+            except Exception as error:
+                if command["name"] in TELEMETRY_COMMANDS and results_path:
+                    records.append(failure_record(command, error))
+                    write_result(results_path, records)
+                raise
     finally:
         Agentech.stop(host="127.0.0.1")
 
