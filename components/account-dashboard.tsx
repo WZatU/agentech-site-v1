@@ -10,6 +10,7 @@ import { normalizeAgentechRobotModel, robotModelOptions } from "@/lib/agentech-r
 import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 import { buildDeviceResultsViewModel, type DeviceResult } from "@/lib/device-results";
+import { selectSoleProfile } from "@/lib/account-dashboard-profile-selection";
 import {
   externalRobotViewingMaximumMinutes,
   externalRobotViewingMinimumMinutes,
@@ -1094,7 +1095,17 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
   }, [adminCreditTargetEmail, email]);
 
   useEffect(() => {
-    if (selectedDashboardProfileId === null || !data.accessProfiles) {
+    if (!data.accessProfiles) {
+      return;
+    }
+
+    const nextProfileId = selectSoleProfile(selectedDashboardProfileId, data.accessProfiles);
+    if (nextProfileId !== selectedDashboardProfileId) {
+      setSelectedDashboardProfileId(nextProfileId);
+      return;
+    }
+
+    if (selectedDashboardProfileId === null) {
       return;
     }
 
