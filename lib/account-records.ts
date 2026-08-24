@@ -2,6 +2,7 @@ import { supabaseRequest } from "@/lib/supabase-server";
 import { getUnpaidBalanceLines } from "@/lib/invoices";
 import { getBillingInvoicesForEmail, type BillingInvoice } from "@/lib/billing";
 import { normalizeEmail } from "@/lib/prototype-auth";
+import { normalizeDeviceResults, type DeviceResult } from "@/lib/device-results";
 
 export type AccountRecord = {
   email: string;
@@ -151,6 +152,10 @@ export type RobotSessionRecord = {
   price: number | null;
   invoice_number: string | null;
   notes: string | null;
+  device_results: DeviceResult[];
+  device_results_requested: boolean;
+  device_results_error: string | null;
+  device_results_updated_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -889,12 +894,13 @@ export async function getAiRoboticsClubApplications(accountEmail: string) {
 
 export async function getRobotSessions(accountEmail: string) {
   try {
-    return await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
+    const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,device_results,device_results_requested,device_results_error,device_results_updated_at,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
     });
+    return rows.map(normalizeRobotSessionDeviceResults);
   } catch {
     try {
-      const rows = await supabaseRequest<Array<Omit<RobotSessionRecord, "access_profile_id" | "profile_username" | "profile_type" | "requested_run_type" | "approved_run_type" | "preset_demo" | "benchmark_status" | "code_submission_id">>>("agentech_robot_sessions", {
+      const rows = await supabaseRequest<Array<Omit<RobotSessionRecord, "access_profile_id" | "profile_username" | "profile_type" | "requested_run_type" | "approved_run_type" | "preset_demo" | "benchmark_status" | "code_submission_id" | "device_results" | "device_results_requested" | "device_results_error" | "device_results_updated_at">>>("agentech_robot_sessions", {
         query: `email=eq.${encodeURIComponent(accountEmail)}&select=id,email,session_title,robot_model,scheduled_start,scheduled_end,session_status,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.desc.nullslast,created_at.desc`
       });
 
@@ -907,7 +913,11 @@ export async function getRobotSessions(accountEmail: string) {
         approved_run_type: null,
         preset_demo: null,
         benchmark_status: null,
-        code_submission_id: null
+        code_submission_id: null,
+        device_results: [],
+        device_results_requested: false,
+        device_results_error: null,
+        device_results_updated_at: null
       }));
     } catch {
       return [];
@@ -915,11 +925,16 @@ export async function getRobotSessions(accountEmail: string) {
   }
 }
 
+function normalizeRobotSessionDeviceResults(row: RobotSessionRecord): RobotSessionRecord {
+  return { ...row, device_results: normalizeDeviceResults(row.device_results) };
+}
+
 export async function getRobotSessionsInWindow(startIso: string, endIso: string) {
   try {
-    return await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      query: `scheduled_start=gte.${encodeURIComponent(startIso)}&scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
+    const rows = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
+      query: `scheduled_start=gte.${encodeURIComponent(startIso)}&scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,device_results,device_results_requested,device_results_error,device_results_updated_at,created_at,updated_at&order=scheduled_start.asc`
     });
+    return rows.map(normalizeRobotSessionDeviceResults);
   } catch {
     return [];
   }
@@ -934,8 +949,9 @@ export async function findRobotSessionConflict(startIso: string, endIso: string)
   let sessions: RobotSessionRecord[] = [];
   try {
     sessions = await supabaseRequest<RobotSessionRecord[]>("agentech_robot_sessions", {
-      query: `scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,created_at,updated_at&order=scheduled_start.asc`
+      query: `scheduled_start=lt.${encodeURIComponent(endIso)}&select=id,email,access_profile_id,profile_username,profile_type,session_title,robot_model,scheduled_start,scheduled_end,session_status,requested_run_type,approved_run_type,preset_demo,benchmark_status,code_submission_id,price,invoice_number,notes,device_results,device_results_requested,device_results_error,device_results_updated_at,created_at,updated_at&order=scheduled_start.asc`
     });
+    sessions = sessions.map(normalizeRobotSessionDeviceResults);
   } catch {
     sessions = [];
   }

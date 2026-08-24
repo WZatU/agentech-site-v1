@@ -628,6 +628,10 @@ create table if not exists public.agentech_robot_sessions (
   price numeric(10,2) not null default 0,
   invoice_number text references public.agentech_billing_invoices(invoice_number) on delete set null,
   notes text,
+  device_results jsonb not null default '[]'::jsonb,
+  device_results_requested boolean not null default false,
+  device_results_error text,
+  device_results_updated_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -640,6 +644,10 @@ alter table public.agentech_robot_sessions add column if not exists approved_run
 alter table public.agentech_robot_sessions add column if not exists preset_demo text;
 alter table public.agentech_robot_sessions add column if not exists benchmark_status text not null default 'not_started';
 alter table public.agentech_robot_sessions add column if not exists code_submission_id text references public.agentech_code_submissions(id) on delete restrict;
+alter table public.agentech_robot_sessions add column if not exists device_results jsonb not null default '[]'::jsonb;
+alter table public.agentech_robot_sessions add column if not exists device_results_requested boolean not null default false;
+alter table public.agentech_robot_sessions add column if not exists device_results_error text;
+alter table public.agentech_robot_sessions add column if not exists device_results_updated_at timestamptz;
 
 create index if not exists agentech_robot_sessions_email_created_idx
 on public.agentech_robot_sessions (email, created_at desc);
