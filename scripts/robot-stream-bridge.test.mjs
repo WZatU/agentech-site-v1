@@ -46,18 +46,19 @@ test("compiler turns literal Agentech calls into an inert plan", () => {
   assert.equal(result.status, 0);
   const { plan } = result;
 
-  assert.equal(plan.version, 1);
+  assert.equal(plan.version, 2);
+  assert.equal(plan.robot_model, "aegis");
   assert.equal(plan.submission_id, "submission-test");
   assert.equal(plan.source_sha256, createHash("sha256").update(source).digest("hex"));
   assert.deepEqual(plan.commands.map(({ name }) => name), ["stand", "forward", "capture_image"]);
   assert.equal("source" in plan, false);
 });
 
-test("Aegies compiler accepts the exact public sensing and hold calls", () => {
+test("Aegies compiler accepts body sensing and hold but rejects absent battery", () => {
   const source = [
     "from agentech import Agentech",
     "Agentech.stay(duration_s=1.0)",
-    "Agentech.get_battery_status()",
+    "Agentech.get_body_state()",
     "Agentech.capture_image(output=\"capture.jpg\", source=\"default\")"
   ].join("\n");
   const result = compile(source);
@@ -66,9 +67,34 @@ test("Aegies compiler accepts the exact public sensing and hold calls", () => {
 
   assert.deepEqual(plan.commands, [
     { name: "stay", args: { duration_s: 1 }, line: 2 },
-    { name: "get_battery_status", args: {}, line: 3 },
+    { name: "get_body_state", args: {}, line: 3 },
     { name: "capture_image", args: { output: "capture.jpg", source: "default" }, line: 4 }
   ]);
+
+  const battery = compile("from agentech import Agentech\nAgentech.get_battery_status()\n");
+  assert.notEqual(battery.status, 0);
+  assert.match(battery.stderr, /hardware_absent/);
+});
+
+test("Aegies compiler rejects session 37 diagonal before staging", () => {
+  const result = compile(
+    "from agentech import Agentech\nAgentech.diagonal(angle_deg=45, speed_mps=0.10, duration_s=0.50)\n",
+  );
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /lateral component/);
+});
+
+test("Aegies compiler normalizes session 38 left turn and preserves source args", () => {
+  const result = compile(
+    "from agentech import Agentech\nAgentech.turn(angle_deg=-10, turn_rate_deg_s=-10)\n",
+  );
+  assert.equal(result.status, 0);
+  assert.deepEqual(result.plan.commands[0], {
+    name: "turn",
+    args: { angle_deg: -10, turn_rate_deg_s: 10 },
+    source_args: { angle_deg: -10, turn_rate_deg_s: -10 },
+    line: 2,
+  });
 });
 
 test("Aegies compiler rejects removed website-only battery and IMU names", () => {

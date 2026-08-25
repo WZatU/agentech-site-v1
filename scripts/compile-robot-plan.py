@@ -12,15 +12,8 @@ import json
 import sys
 from pathlib import Path
 
+from aegis_gateway_spec import AEGIS_192_168_4_88, validate_aegis_command
 from navi_gateway_spec import validate_navi_command
-
-AEGIS_ALLOWED = {
-    "forward", "backward", "lateral", "lateral_left", "lateral_right", "diagonal",
-    "squat_forward", "squat_backward", "squat_lateral", "squat_diagonal", "squat_turn",
-    "turn", "turn_right", "turn_left", "u_turn", "yaw", "pitch", "roll", "stay",
-    "backflip", "jump", "stand", "squat", "sit", "stop", "emergency_stop",
-    "get_battery_status", "get_body_state", "capture_image",
-}
 ROOTS = {"Agentech", "dog"}
 
 
@@ -61,22 +54,35 @@ def compile_plan(source: str, submission_id: str, robot_model: str = "aegis") ->
             if keyword.arg is None or keyword.arg in args:
                 raise ValueError(f"line {statement.lineno}: invalid command arguments")
             args[keyword.arg] = literal(keyword.value)
-        if selected_model == "navi":
-            validate_navi_command(call.func.attr, args)
-        elif call.func.attr not in AEGIS_ALLOWED:
-            raise ValueError(f"line {statement.lineno}: unapproved command")
-        commands.append({"name": call.func.attr, "args": args, "line": statement.lineno})
+        command = {"name": call.func.attr, "args": args, "line": statement.lineno}
+        try:
+            if selected_model == "navi":
+                validate_navi_command(call.func.attr, args)
+            else:
+                normalized = validate_aegis_command(
+                    call.func.attr,
+                    args,
+                    device_profile=AEGIS_192_168_4_88,
+                )
+                if normalized != args:
+                    command["source_args"] = args
+                    command["args"] = normalized
+        except (TypeError, ValueError) as error:
+            raise type(error)(f"line {statement.lineno}: {error}") from error
+        commands.append(command)
     if not commands:
         raise ValueError("no robot commands found")
     plan = {
-        "version": 1,
+        "version": 2,
         "submission_id": submission_id,
         "source_sha256": hashlib.sha256(source.encode("utf-8")).hexdigest(),
         "commands": commands,
     }
     if selected_model == "navi":
-        plan["version"] = 2
         plan["robot_model"] = "navi"
+    else:
+        plan["robot_model"] = "aegis"
+        plan["device_profile"] = dict(AEGIS_192_168_4_88)
     return plan
 
 
@@ -87,7 +93,10 @@ def main() -> None:
     robot_model = sys.argv[3] if len(sys.argv) == 5 else "aegis"
     output = sys.argv[4] if len(sys.argv) == 5 else sys.argv[3]
     plan = compile_plan(source, sys.argv[2], robot_model)
-    Path(output).write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    output_path = Path(output)
+    temporary = output_path.with_suffix(output_path.suffix + ".tmp")
+    temporary.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(output_path)
 
 
 if __name__ == "__main__":

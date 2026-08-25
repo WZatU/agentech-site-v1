@@ -16,16 +16,15 @@ const linearRules = { speed_mps: num(0.05, 3), duration_s: num(0, 10, true), spe
 export const agentechSdkSpec: Record<string, Spec> = {
   forward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "distance_m"], rules: { ...linearRules, distance_m: num(0, 5, true) } },
   backward: { allowed: ["speed_mps", "duration_s", "speed_percent", "speed_level", "distance_m"], selectors: ["speed_mps", "speed_percent", "speed_level", "distance_m"], rules: { ...linearRules, distance_m: num(0, 3, true) } },
-  lateral: { allowed: ["direction", "speed_mps", "duration_s", "distance_m"], required: ["direction"], selectors: ["speed_mps", "distance_m"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true), distance_m: num(0, 10, true) } },
   lateral_left: { allowed: ["speed_mps", "duration_s", "distance_m"], selectors: ["speed_mps", "distance_m"], rules: { speed_mps: num(0.1, 1), duration_s: num(0, 10, true), distance_m: num(0, 10, true) } },
   lateral_right: { allowed: ["speed_mps", "duration_s", "distance_m"], selectors: ["speed_mps", "distance_m"], rules: { speed_mps: num(0.1, 1), duration_s: num(0, 10, true), distance_m: num(0, 10, true) } },
   diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
-  squat_forward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
-  squat_backward: { allowed: ["speed_mps", "duration_s"], required: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
-  squat_lateral: { allowed: ["direction", "speed_mps", "duration_s"], required: ["direction", "speed_mps", "duration_s"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true) } },
+  squat_forward: { allowed: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
+  squat_backward: { allowed: ["speed_mps", "duration_s"], rules: { speed_mps: num(0.05, 3), duration_s: num(0, 10, true) } },
+  squat_lateral: { allowed: ["direction", "speed_mps", "duration_s"], required: ["direction"], rules: { direction: pick("left", "right"), speed_mps: num(0.1, 1), duration_s: num(0, 10, true) } },
   squat_diagonal: { allowed: ["x_m", "y_m", "angle_deg", "speed_mps", "duration_s"], rules: { x_m: { type: "number" }, y_m: { type: "number" }, angle_deg: num(-180, 180), speed_mps: positiveNumber(), duration_s: num(0, 10, true) } },
   squat_turn: { allowed: ["angle_deg"], required: ["angle_deg"], rules: { angle_deg: { type: "number" } } },
-  turn: { allowed: ["angle_rad", "turn_rate_rad_s", "angle_deg", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, turn_rate_rad_s: num(-3, 3), angle_deg: { type: "number" }, turn_rate_deg_s: num(-171.887339, 171.887339), rate_percentage: integer(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
+  turn: { allowed: ["angle_rad", "angle_deg", "distance_rad", "distance_deg", "turn_rate_rad_s", "turn_rate_deg_s", "rate_percentage", "turn_level", "duration_s"], rules: { angle_rad: { type: "number" }, angle_deg: { type: "number" }, distance_rad: { type: "number" }, distance_deg: { type: "number" }, turn_rate_rad_s: num(-3, 3), turn_rate_deg_s: num(-171.887339, 171.887339), rate_percentage: integer(-100, 100), turn_level: integer(-511, 511), duration_s: positiveNumber() } },
   turn_right: { allowed: [], rules: {} },
   turn_left: { allowed: [], rules: {} },
   u_turn: { allowed: [], rules: {} },
@@ -39,7 +38,7 @@ export const agentechSdkSpec: Record<string, Spec> = {
   squat: { allowed: [], rules: {} },
   sit: { allowed: [], rules: {} },
   stop: { allowed: [], rules: {} },
-  emergency_stop: { allowed: [], rules: {} },
+  emergency_stop: { allowed: ["reason"], rules: { reason: { type: "string" } } },
   get_battery_status: { allowed: [], rules: {} },
   get_body_state: { allowed: [], rules: {} },
   capture_image: { allowed: ["output", "source"], rules: { output: { type: "string" }, source: { type: "string" } } }
@@ -188,27 +187,20 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
           add("PROFILE_MIXED", `turn() parameters do not match one Navi SDK profile: ${provided.join(", ") || "default"}.`, line);
         }
       } else {
-      const profiles = [
-        [],
-        ["angle_rad"],
-        ["angle_rad", "turn_rate_rad_s"],
-        ["angle_deg"],
-        ["angle_deg", "turn_rate_deg_s"],
-        ["duration_s", "rate_percentage"],
-        ["duration_s", "turn_level"],
-        ["duration_s", "turn_rate_deg_s"],
-        ["duration_s", "turn_rate_rad_s"]
-      ].map((profile) => [...profile].sort());
-      const validProfile = profiles.some((profile) => profile.length === provided.length && profile.every((name, index) => name === provided[index]));
-      if (!validProfile) add("PROFILE_MIXED", `turn() parameters do not match one profile: ${provided.join(", ") || "default"}.`, line);
+      const angleSelectors = ["angle_deg", "angle_rad", "distance_deg", "distance_rad"].filter((name) => name in values);
+      const rateSelectors = ["turn_rate_rad_s", "turn_rate_deg_s", "rate_percentage", "turn_level"].filter((name) => name in values);
+      const timed = "duration_s" in values;
+      if (angleSelectors.length > 1 || rateSelectors.length > 1 || (timed && (angleSelectors.length > 0 || rateSelectors.length !== 1))) {
+        add("PROFILE_MIXED", `turn() parameters do not match one SDK profile: ${provided.join(", ") || "default"}.`, line);
+      }
       }
 
       const signedPairs = [["angle_rad", "turn_rate_rad_s"], ["angle_deg", "turn_rate_deg_s"]] as const;
       signedPairs.forEach(([angleName, rateName]) => {
         const angle = values[angleName];
         const rate = values[rateName];
-        if (typeof angle === "number" && typeof rate === "number" && angle * rate < 0) {
-          add("SIGN_CONFLICT", `turn() '${angleName}' and '${rateName}' must use the same sign.`, line);
+        if (typeof angle === "number" && typeof rate === "number" && angle > 0 && rate < 0) {
+          add("SIGN_CONFLICT", `turn() negative '${rateName}' conflicts with positive '${angleName}'. Use a positive speed magnitude.`, line);
         }
       });
     }
@@ -223,13 +215,16 @@ export function checkAgentechSoftware(code: string, robotModel: AgentechRobotMod
       if ((typeof values.x_m === "number" && values.x_m === 0) || (typeof values.y_m === "number" && values.y_m === 0)) {
         add("RANGE_INVALID", `${command}() x_m and y_m must both be nonzero.`, line);
       }
-      if (command === "squat_diagonal" && validProfile) {
+      if (validProfile) {
         if (typeof values.angle_deg === "number" && typeof values.speed_mps === "number" && values.speed_mps > 0) {
           const angleRad = values.angle_deg * Math.PI / 180;
           checkSquatDiagonalComponent(command, "forward", Math.abs(Math.cos(angleRad) * values.speed_mps), 0.05, 3, line, add);
           checkSquatDiagonalComponent(command, "lateral", Math.abs(Math.sin(angleRad) * values.speed_mps), 0.1, 1, line, add);
         }
       }
+    }
+    if (selectedRobotModel === "Aegies" && command === "get_battery_status") {
+      add("CAPABILITY_NOT_SUPPORTED", "get_battery_status() is not supported on this AEGIS because the device has no battery installed (hardware_absent).", line);
     }
     if (command === "yaw") {
       const provided = Object.keys(values).sort();
