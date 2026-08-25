@@ -1,13 +1,11 @@
-# AEGIS EAIC session runbook
+# AEGIS EAIC qualification and evidence runbook
 
-This is the source-to-evidence procedure for AEGIS `192.168.4.88`. Customer
-Python is parsed on the Gateway and is never copied to the robot. Only a
-reviewed, literal, validated JSON plan and trusted runtime files are staged.
+This is the complete source-to-result procedure for AEGIS `192.168.4.88`.
+Customer Python never goes to the robot. The Gateway translator accepts only
+literal supported calls, produces a reviewed JSON plan, hashes it, and stages
+that inert plan plus trusted runner modules.
 
-No step in the offline section sends a robot command. Run the live section
-only in a separately authorized, booked, physically supervised session.
-
-## 1. Obtain exact source versions
+## 1. Pin and verify both repositories
 
 ```powershell
 git clone https://github.com/agent-tech0316/agentech_sdk.git
@@ -18,53 +16,30 @@ git switch main
 git pull --ff-only origin main
 python -m pip install -e ".[aegis]"
 $sdkCommit = git rev-parse HEAD
+python -m unittest discover -s tests -v
 
 cd ..\agentech-site-v1
 git switch main
 git pull --ff-only origin main
 npm ci
 $gatewayCommit = git rev-parse HEAD
-```
-
-Record both commits, the SDK package version, FF SDK version/build, device
-model, session ID, submission ID, correlation ID, and UTC/Pacific timestamps.
-Never commit passwords, service keys or private SSH material.
-
-## 2. Run the complete offline gate
-
-SDK:
-
-```powershell
-cd ..\agentech_sdk
-python -m unittest discover -s tests -v
-```
-
-Website, translator and Gateway:
-
-```powershell
-cd ..\agentech-site-v1
 npm test
 npm run lint
 npm run typecheck
 npm run build
 ```
 
-Expected result: every command exits `0`. Offline success proves validation,
-translation and error handling; it does not prove a physical action.
+Every command must exit `0`. This is an offline gate, not physical evidence.
+Record both commits, package versions, FF build, review ID, submission ID,
+session ID, correlation ID, AEGIS D1 model, and UTC/Pacific timestamps.
 
-## 3. Compile the committed qualification source without robot access
+## 2. Compile tomorrow's canonical source offline
 
 ```powershell
-cd ..\agentech-site-v1
-$source = 'docs/aegis/examples/aegis-28-command-qualification.py'
-$plan = '.robot-stream-runtime/offline-aegis-28.plan.json'
+$source = 'docs/aegis/examples/aegis-29-command-qualification.py'
+$plan = '.robot-stream-runtime/offline-aegis-29.plan.json'
 New-Item -ItemType Directory -Force '.robot-stream-runtime' | Out-Null
-
-python scripts/compile-robot-plan.py `
-  $source `
-  'OFFLINE-REVIEW-ID' `
-  $plan
-
+python scripts/compile-robot-plan.py $source OFFLINE-REVIEW-ID $plan
 python -c "import json; p=json.load(open(r'$plan')); print({'version':p['version'],'model':p['robot_model'],'commands':len(p['commands']),'source_sha256':p['source_sha256'],'profile':p['device_profile']})"
 Get-FileHash -Algorithm SHA256 $source
 Get-FileHash -Algorithm SHA256 $plan
@@ -72,131 +47,118 @@ Get-FileHash -Algorithm SHA256 $plan
 
 Expected output:
 
-- plan version `2` and robot model `aegis`;
-- exactly `28` commands;
-- device `192.168.4.88`, `battery_present=false`, reason
-  `hardware_absent`;
-- the plan source hash equals the source file hash;
-- command 20 uses `angle_deg=-10` and positive
-  `turn_rate_deg_s=10`;
-- no customer source text is present in the JSON plan.
+- plan version `2`, model `aegis`, exactly `29` literal calls;
+- device `192.168.4.88`;
+- `battery_present=true`, source `ecal:battery_state.power`;
+- source hash matches and customer source text is absent from the plan;
+- turn pair is `+90/-90` at positive `60 deg/s` magnitude;
+- yaw/pitch/roll pair is `+0.25/-0.25 rad` at `0.30 rad/s`.
 
-Do not invoke `trusted-robot-runner.py` with this plan as an offline test: that
-program is the physical executor. Its automated tests use a fake SDK instead.
+The translator rejects variables, loops, expressions, unknown names/keywords,
+nonfinite or out-of-range values, invalid resolved diagonals, and conflicting
+turn forms. The trusted runner validates the whole plan again before dispatch.
 
-## 4. What the translator rejects
+## 3. Physical preflight
 
-Compilation must fail before staging for any of these:
+Stop unless every item is true:
 
-- imports or statements other than the allowed `agentech` import and direct
-  `Agentech`/`dog` calls;
-- variables, loops, positional arguments, expressions or non-literal values;
-- unknown command names or keywords;
-- invalid/nonfinite numeric values and out-of-range profiles;
-- diagonal profiles whose resolved forward or lateral component is below the
-  SDK minimum;
-- conflicting turn direction/rate forms;
-- `get_battery_status()` for this battery-less device profile.
+- booked session and explicit operator authorization;
+- flat nonslip marked 2 m by 2 m area, robot near center;
+- OBS and Camo/external camera show changing frames and the complete boundary;
+- no duplicate OBS or Gateway bridge process;
+- handheld controller and separate emergency path ready;
+- no other client owns motion;
+- SDK/Gateway commits match the reviewed versions;
+- Gateway clock shows correct UTC and Pacific conversion.
 
-The robot-side runner validates the complete plan again. A plan edited after
-translation is refused before any SDK dispatch.
+Velocity/time profiles are open-loop; they do not promise exact distance.
+Watch the physical boundary and stop if acceleration, braking or traction makes
+travel larger than expected.
 
-## 5. Live preflight — stop unless every item is true
+## 4. Tomorrow's ordinary 29-call sequence
 
-- The session is booked and an operator explicitly authorizes motion.
-- AEGIS is supervised on a flat, nonslip, obstacle-free test area.
-- Physical emergency control and the recovery procedure are ready.
-- No other controller or process owns the command route.
-- The approved submission is pinned to the session.
-- SDK and Gateway commits equal the recorded versions.
-- A Gateway clock check shows correct UTC and Pacific conversion.
-- OBS, terminal capture and an external camera are recording changing frames.
-- The operator is ready to stop on unexpected state, `STOP`, or `pause`.
+Use [`aegis-29-command-qualification.py`](examples/aegis-29-command-qualification.py)
+without editing it after review. It stands once, qualifies squat, returns to
+stand once, performs paired translations, low-gait pairs, `+90/-90` turns,
+bounded visible attitude pairs, stay, integer battery percentage and final sit.
 
-`jump`, `backflip`, `stop` and `emergency_stop` require separate dedicated
-procedures and video. They are not part of the 28-command qualification source.
+Ordinary actions do not repeatedly call stand. The robot stays upright between
+standing actions. Squat's temporary virtual-controller ownership must restore
+the Xbox/F710 route before success is returned.
 
-## 6. Start the Gateway only during the authorized window
+Jump, backflip, stop and emergency stop are separate supervised recordings:
 
-Configure the existing Gateway environment with the Supabase service role,
-robot host/user, key-based SSH and repository paths. Then, from the deployed
-Gateway checkout:
+- jump/backflip need full landing clearance and individual video;
+- stop must zero velocity while preserving supported posture/controller;
+- emergency stop must send command `90` once, immediately enter DAMPING and
+  latch SDK motion until a successful stand recovery.
+
+Do not express “stop during motion” as two sequential customer calls: the first
+motion call is synchronous and would finish first. Use a separate trusted
+operator safety channel for the interruption capture.
+
+## 5. Gateway and OBS operation
+
+During the authorized window, run the deployed bridge normally. For a bridge
+repair use:
 
 ```powershell
-npm run robot:stream-bridge
+powershell -ExecutionPolicy Bypass -File scripts/restart-robot-stream-gateway.ps1
 ```
 
-Starting the bridge can claim a due booking and execute its approved plan. Do
-not use this command for an offline check or while an unreviewed/due session
-exists. Do not place the SSH password in Git or the command line.
+That script restarts only the exact Gateway bridge process. It never restarts
+Windows, the robot, OBS or Camo. The watchdog retains one bridge and one OBS
+process; duplicate OBS fails closed instead of competing for the camera. The
+default bridge poll is `1000 ms` and may be configured down to `500 ms` without
+creating duplicate capture owners.
 
-For a new AEGIS session the Gateway must:
-
-1. load the pinned, dual-reviewed submission;
-2. compile it into an inert plan and verify its source hash;
-3. stage only the plan and trusted runtime modules;
-4. claim the row atomically and start the trusted runner;
-5. collect the runner's final result and verify all IDs/hashes/counts;
-6. persist `execution_result`, `execution_error`, and
-   `execution_updated_at`;
-7. set the final Hub status from the persisted execution outcome;
-8. publish captures separately without changing execution success.
-
-## 7. Expected successful result
-
-For the 28-command file, the trusted result must contain:
+## 6. Expected trusted result
 
 ```json
 {
   "schema_version": 1,
   "outcome": "completed",
-  "command_count": 28,
-  "completed_count": 28,
+  "command_count": 29,
+  "completed_count": 29,
   "error": null
 }
 ```
 
-The full object must also contain the matching session/submission IDs, source
-and plan SHA-256 values, timestamps, the AEGIS device profile, Diary path and
-28 contiguous per-command records. See
-[`aegis-28-command-expected-results.md`](examples/aegis-28-command-expected-results.md)
-for each action's physical acceptance rule.
+The result must include matching IDs, hashes, timestamps, device profile,
+Diary path and 29 contiguous records. The runner intentionally stops at the
+first exception, preserves it, attempts a normal stop, omits later commands,
+and persists `failed`. It must never mark Hub complete from compilation alone.
 
-On the first command exception, expected behavior is `outcome=failed`, the
-first error and command index are preserved, later commands are absent, stop is
-attempted, and Supabase becomes `failed`. Missing or malformed final JSON is
-also a failure.
+## 7. Evidence index
 
-## 8. Evidence to retain
+For each action retain the exact command/parameters, UTC/Pacific time, model,
+structured `status/result/error/logs`, Diary/raw log, readable screenshot and
+external video. For the chain retain review PASS, schedule, Gateway claim,
+runner start/result, capture return, and Hub `Completed`/Gateway `finished`
+using one ID tuple.
 
-For every physical command, retain the exact call/arguments, UTC and Pacific
-time, AEGIS model, structured record, Diary/raw log, screenshot and video. For
-the whole session retain:
+| Delivery item | Conclusion | Evidence | Time | IDs | Versions |
+| --- | --- | --- | --- | --- | --- |
+| SDK/L0.5 action | PENDING_LIVE | per-action log/JSON/screenshot/video/Diary | TBD | submission/session/correlation | SDK/Gateway commits |
+| EAIC Hub chain | NOT_COVERED until captured | review/schedule/claim/result/Hub/Gateway | TBD | same tuple | Gateway commit |
+| Device model/adapter/wrapper | PENDING_LIVE | connection/state/error/recovery logs + video | TBD | same tuple | SDK commit |
+| Primary 17 rows | PENDING_LIVE | direct links for every conclusion | TBD | same tuple | both commits |
 
-- Hardware Safety and Software Security PASS screenshots plus review ID;
-- scheduling and Gateway claim records;
-- source and plan SHA-256 values;
-- runner start, per-command Diary and final execution JSON;
-- Supabase row showing the same session/submission/correlation identifiers;
-- Hub final status and Gateway `finished` status;
-- SDK and Gateway commit/version values;
-- separate capture-upload/OBS results;
-- explicit `VERIFIED` or `NOT_COVERED` rows for registration, heartbeat,
-  lease, `last_seen` and reconnect.
+Registration, heartbeat, lease, `last_seen` and reconnect remain `NOT_COVERED`
+unless actual platform evidence is attached.
 
-Battery must be reported as `NOT_SUPPORTED / hardware_absent`, never as PASS.
-Until the supervised run and videos exist, physical commands remain
-`PENDING_LIVE`.
+## 8. Session 38 root cause and repairs
 
-## 9. Session 38 diagnosis
+Session 38 proved review, scheduling, compilation, delivery and Diary logging.
+It failed because `stand()` returned before authoritative state stabilized;
+`squat()` then began during the transition, chose the wrong controller state
+and timed out waiting for `18/17`. The fail-fast runner correctly omitted later
+commands, so that session did not test forward/backward.
 
-The old `stand()` route returned at `18:15:09.851`, but authoritative robot
-state did not finish transitioning until `18:15:14.818`. `squat()` began in
-that gap, used command intent as if it were state, selected mode `51`, and
-timed out waiting for `18/17`. The runner then stopped at the first exception.
-
-The repair makes `stand()` wait for stable authoritative `app_state`, makes
-`squat()` wait for stable `1/10` before its chord and stable `18/17` after it,
-allows one bounded rebuild only for an owned stale controller route, validates
-the translator's resolved motion profiles, normalizes the negative-left turn
-compatibility form, and makes the runner result authoritative for Hub status.
+The repairs wait for stable stand/squat state, perform only bounded owned-route
+recovery, restore the physical controller, validate resolved profiles, use the
+working robot-side heading route, separate normal stop from DAMPING, issue only
+one emergency command, read real eCAL battery percentage, and make the trusted
+runner result authoritative for Hub status. Earlier `0.20 m/s` translation was
+also too small to be visually diagnostic after acceleration; tomorrow uses the
+live-visible paired values while external video enforces containment.

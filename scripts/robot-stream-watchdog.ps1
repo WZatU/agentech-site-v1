@@ -40,13 +40,18 @@ $endHour = [double]$endHourRaw
 $now = Get-Date
 $hourValue = $now.Hour + ($now.Minute / 60.0) + ($now.Second / 3600.0)
 
-$existing = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |
-  Where-Object { $_.CommandLine -and $_.CommandLine -like "*robot-stream-bridge.mjs*" } |
-  Select-Object -First 1
+$bridges = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |
+  Where-Object { $_.CommandLine -and $_.CommandLine -like "*robot-stream-bridge.mjs*" })
+$existing = $bridges | Select-Object -First 1
+$duplicates = @($bridges | Select-Object -Skip 1)
+foreach ($duplicate in $duplicates) {
+  Stop-Process -Id $duplicate.ProcessId -ErrorAction SilentlyContinue
+  Add-Content -Path $stdoutLog -Value "[$($now.ToString("o"))] Stopped duplicate bridge PID $($duplicate.ProcessId); retained PID $($existing.ProcessId)."
+}
 
 if (($hourValue -lt $startHour) -or ($hourValue -ge $endHour)) {
   if ($existing) {
-    Stop-Process -Id $existing.ProcessId -Force
+    Stop-Process -Id $existing.ProcessId -ErrorAction SilentlyContinue
     Add-Content -Path $stdoutLog -Value "[$($now.ToString("o"))] Stopped bridge outside operating window $($startHour):00-$($endHour):00."
   }
   exit 0

@@ -116,7 +116,7 @@ class Agentech:
             "robot_model": "aegis",
             "submission_id": "submission-test",
             "source_sha256": "a" * 64,
-            "device_profile": {"device": "192.168.4.88", "battery_present": False, "battery_reason": "hardware_absent"},
+            "device_profile": {"device": "192.168.4.88", "battery_present": True, "battery_source": "ecal:battery_state.power"},
             "commands": [
                 {"name": "get_body_state", "args": {}, "line": 4},
             ],
@@ -145,7 +145,7 @@ class Agentech:
             "robot_model": "aegis",
             "submission_id": "submission-test",
             "source_sha256": "a" * 64,
-            "device_profile": {"device": "192.168.4.88", "battery_present": False, "battery_reason": "hardware_absent"},
+            "device_profile": {"device": "192.168.4.88", "battery_present": True, "battery_source": "ecal:battery_state.power"},
             "commands": [{"name": "get_body_state", "args": {}, "line": 4}],
         }
 

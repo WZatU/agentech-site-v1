@@ -43,7 +43,10 @@ const naviHost = process.env.AGENTECH_NAVI_HOST || "192.168.4.65";
 const naviPort = process.env.AGENTECH_NAVI_PORT || "9090";
 const agentechSdkRoot = process.env.AGENTECH_SDK_ROOT || "";
 const sshKey = process.env.ROBOT_SSH_KEY;
-const pollMs = Number(process.env.ROBOT_STREAM_POLL_MS || 5000);
+const requestedPollMs = Number(process.env.ROBOT_STREAM_POLL_MS || 1000);
+const pollMs = Number.isFinite(requestedPollMs)
+  ? Math.min(60000, Math.max(500, requestedPollMs))
+  : 1000;
 const prepMs = Number(process.env.ROBOT_STREAM_PREP_SECONDS || 120) * 1000;
 const obsUrl = process.env.OBS_WEBSOCKET_URL || "ws://127.0.0.1:4455";
 const obsPassword = process.env.OBS_WEBSOCKET_PASSWORD || undefined;

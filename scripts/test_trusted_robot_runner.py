@@ -58,8 +58,8 @@ class TrustedRobotRunnerTests(unittest.TestCase):
             "source_sha256": "a" * 64,
             "device_profile": {
                 "device": "192.168.4.88",
-                "battery_present": False,
-                "battery_reason": "hardware_absent",
+                "battery_present": True,
+                "battery_source": "ecal:battery_state.power",
             },
             "commands": commands,
         }

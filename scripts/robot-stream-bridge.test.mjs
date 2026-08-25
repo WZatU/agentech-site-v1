@@ -16,7 +16,11 @@ import {
 const scriptsDir = fileURLToPath(new URL(".", import.meta.url));
 const compiler = join(scriptsDir, "compile-robot-plan.py");
 const bridge = join(scriptsDir, "robot-stream-bridge.mjs");
-const qualificationExample = join(scriptsDir, "..", "docs", "aegis", "examples", "aegis-28-command-qualification.py");
+const gatewayRestart = join(scriptsDir, "restart-robot-stream-gateway.ps1");
+const obsLauncher = join(scriptsDir, "ensure-obs-running.ps1");
+const watchdog = join(scriptsDir, "robot-stream-watchdog.ps1");
+const watchdogLoop = join(scriptsDir, "robot-stream-watchdog-loop.ps1");
+const qualificationExample = join(scriptsDir, "..", "docs", "aegis", "examples", "aegis-29-command-qualification.py");
 const naviRunner = join(scriptsDir, "trusted-navi-runner.py");
 const python = process.env.ROBOT_LOCAL_PYTHON || (process.platform === "win32" ? "python" : "python3");
 
@@ -55,7 +59,7 @@ test("compiler turns literal Agentech calls into an inert plan", () => {
   assert.equal("source" in plan, false);
 });
 
-test("Aegies compiler accepts body sensing and hold but rejects absent battery", () => {
+test("Aegies compiler accepts body sensing, hold, and live-proven battery telemetry", () => {
   const source = [
     "from agentech import Agentech",
     "Agentech.stay(duration_s=1.0)",
@@ -73,8 +77,11 @@ test("Aegies compiler accepts body sensing and hold but rejects absent battery",
   ]);
 
   const battery = compile("from agentech import Agentech\nAgentech.get_battery_status()\n");
-  assert.notEqual(battery.status, 0);
-  assert.match(battery.stderr, /hardware_absent/);
+  assert.equal(battery.status, 0, battery.stderr);
+  assert.deepEqual(battery.plan.commands, [
+    { name: "get_battery_status", args: {}, line: 2 },
+  ]);
+  assert.equal(battery.plan.device_profile.battery_present, true);
 });
 
 test("Aegies compiler rejects session 37 diagonal before staging", () => {
@@ -98,18 +105,19 @@ test("Aegies compiler normalizes session 38 left turn and preserves source args"
   });
 });
 
-test("committed corrected AEGIS qualification source compiles to exactly 28 commands", () => {
+test("committed corrected AEGIS qualification source compiles to exactly 29 commands", () => {
   const source = readFileSync(qualificationExample, "utf8");
   const result = compile(source);
 
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.plan.commands.length, 28);
+  assert.equal(result.plan.commands.length, 29);
   assert.equal(result.plan.commands[19].name, "turn");
   assert.deepEqual(result.plan.commands[19].args, {
-    angle_deg: -10,
-    turn_rate_deg_s: 10,
+    angle_deg: -90,
+    turn_rate_deg_s: 60,
   });
-  assert.equal(result.plan.device_profile.battery_present, false);
+  assert.equal(result.plan.commands[27].name, "get_battery_status");
+  assert.equal(result.plan.device_profile.battery_present, true);
 });
 
 test("Aegies compiler rejects removed website-only battery and IMU names", () => {
@@ -205,6 +213,29 @@ test("gateway transfers only trusted runtime files and persists authoritative re
   assert.match(source, /syncExecutionResult/);
   assert.match(source, /parseExecutionResult/);
   assert.match(source, /buildExecutionResultPatch/);
+});
+
+test("Gateway restart is process-only and OBS ownership fails closed", () => {
+  const restartSource = readFileSync(gatewayRestart, "utf8");
+  const obsSource = readFileSync(obsLauncher, "utf8");
+  const watchdogSource = readFileSync(watchdog, "utf8");
+  const watchdogLoopSource = readFileSync(watchdogLoop, "utf8");
+  const combined = [restartSource, obsSource, watchdogSource, watchdogLoopSource].join("\n");
+
+  assert.match(restartSource, /robot-stream-bridge\.mjs/);
+  assert.match(restartSource, /robot-stream-watchdog\.ps1/);
+  assert.doesNotMatch(restartSource, /obs64|CamoStudio/i);
+  assert.doesNotMatch(combined, /Restart-Computer|Stop-Computer|shutdown\.exe|shutdown\s+\/r/i);
+  assert.match(obsSource, /More than one OBS process is running/);
+  assert.match(watchdogSource, /Select-Object -Skip 1/);
+  assert.match(watchdogLoopSource, /Select-Object -Skip 1/);
+});
+
+test("stream bridge uses a bounded one-second default poll without changing OBS encoding", () => {
+  const source = readFileSync(bridge, "utf8");
+  assert.match(source, /ROBOT_STREAM_POLL_MS \|\| 1000/);
+  assert.match(source, /Math\.min\(60000, Math\.max\(500,/);
+  assert.doesNotMatch(source, /SetVideoSettings|SetStreamServiceSettings|SetProfileParameter/);
 });
 
 test("session policy selects model-specific scheduled-end cleanup", () => {

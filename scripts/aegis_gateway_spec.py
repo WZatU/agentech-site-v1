@@ -12,8 +12,8 @@ from typing import Any
 
 AEGIS_192_168_4_88 = {
     "device": "192.168.4.88",
-    "battery_present": False,
-    "battery_reason": "hardware_absent",
+    "battery_present": True,
+    "battery_source": "ecal:battery_state.power",
 }
 
 NO_ARGUMENT_COMMANDS = {

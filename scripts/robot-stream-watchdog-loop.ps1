@@ -47,9 +47,14 @@ while ($true) {
     $hourValue = $now.Hour + ($now.Minute / 60.0) + ($now.Second / 3600.0)
     $insideOperatingWindow = ($hourValue -ge $startHour) -and ($hourValue -lt $endHour)
 
-    $bridge = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |
-      Where-Object { $_.CommandLine -and $_.CommandLine -like "*robot-stream-bridge.mjs*" } |
-      Select-Object -First 1
+    $bridges = @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" |
+      Where-Object { $_.CommandLine -and $_.CommandLine -like "*robot-stream-bridge.mjs*" })
+    $bridge = $bridges | Select-Object -First 1
+    $duplicates = @($bridges | Select-Object -Skip 1)
+    foreach ($duplicate in $duplicates) {
+      Stop-Process -Id $duplicate.ProcessId -ErrorAction SilentlyContinue
+      Add-Content -LiteralPath $watchdogLog -Value "[$($now.ToString('o'))] Stopped duplicate bridge PID $($duplicate.ProcessId); retained PID $($bridge.ProcessId)."
+    }
 
     if ($insideOperatingWindow -and -not $bridge) {
       Start-Process `
@@ -61,7 +66,7 @@ while ($true) {
         -RedirectStandardError $stderrLog
       Add-Content -LiteralPath $watchdogLog -Value "[$($now.ToString('o'))] Robot stream bridge restarted."
     } elseif (-not $insideOperatingWindow -and $bridge) {
-      Stop-Process -Id $bridge.ProcessId -Force
+      Stop-Process -Id $bridge.ProcessId -ErrorAction SilentlyContinue
       Add-Content -LiteralPath $watchdogLog -Value "[$($now.ToString('o'))] Robot stream bridge stopped outside operating window."
     }
   } catch {

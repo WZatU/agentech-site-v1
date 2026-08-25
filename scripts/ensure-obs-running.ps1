@@ -8,7 +8,13 @@ $logPath = Join-Path $logDirectory "ensure-obs-running.log"
 
 New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
 
-if (Get-Process -Name "obs64" -ErrorAction SilentlyContinue) {
+$obsProcesses = @(Get-Process -Name "obs64" -ErrorAction SilentlyContinue)
+if ($obsProcesses.Count -gt 1) {
+  Add-Content -LiteralPath $logPath -Value "[$(Get-Date -Format o)] More than one OBS process is running; refusing to choose an owner. Close all OBS windows once, then rerun this script."
+  exit 2
+}
+
+if ($obsProcesses.Count -eq 1) {
   Add-Content -LiteralPath $logPath -Value "[$(Get-Date -Format o)] OBS is already running."
   exit 0
 }

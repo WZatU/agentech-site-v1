@@ -39,16 +39,16 @@ class AegisGatewaySpecTests(unittest.TestCase):
                 device_profile=AEGIS_192_168_4_88,
             )
 
-    def test_battery_absence_is_rejected_before_plan_output(self) -> None:
-        with self.assertRaises(AegisCapabilityNotSupported) as caught:
+    def test_live_proven_battery_telemetry_is_accepted(self) -> None:
+        self.assertTrue(AEGIS_192_168_4_88["battery_present"])
+        self.assertEqual(
             validate_aegis_command(
                 "get_battery_status",
                 {},
                 device_profile=AEGIS_192_168_4_88,
-            )
-
-        self.assertEqual(caught.exception.reason, "hardware_absent")
-        self.assertEqual(caught.exception.capability, "battery")
+            ),
+            {},
+        )
 
     def test_exact_session_38_commands_are_valid_after_normalization(self) -> None:
         commands = [
