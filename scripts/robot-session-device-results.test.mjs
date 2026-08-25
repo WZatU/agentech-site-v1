@@ -39,6 +39,25 @@ test("parses and allowlists a valid device result", () => {
 });
 
 
+test("preserves explicit hardware absence as not supported", () => {
+  const result = {
+    ...validResult,
+    command: "get_battery_status",
+    status: "not_supported",
+    result: null,
+    error: {
+      type: "CapabilityNotSupportedError",
+      message: "battery is not installed",
+      capability: "battery",
+      reason: "hardware_absent",
+      device: "192.168.4.88",
+    },
+  };
+
+  assert.deepEqual(parseDeviceResults(JSON.stringify([result])), [result]);
+});
+
+
 test("rejects unapproved commands and statuses", () => {
   assert.throws(
     () => parseDeviceResults(JSON.stringify([{ ...validResult, command: "forward" }])),

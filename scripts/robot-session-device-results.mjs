@@ -1,5 +1,5 @@
 const TELEMETRY_COMMANDS = new Set(["get_battery_status", "get_body_state"]);
-const RESULT_STATUSES = new Set(["completed", "failed"]);
+const RESULT_STATUSES = new Set(["completed", "failed", "not_supported"]);
 const DEFAULT_MAX_BYTES = 64 * 1024;
 const DEFAULT_MAX_RESULTS = 16;
 
@@ -89,8 +89,17 @@ function normalizeError(value, status, index) {
   if (typeof value.type !== "string" || typeof value.message !== "string") {
     throw new Error(`device result ${index} error must include type and message`);
   }
-  return {
+  const normalized = {
     type: value.type.slice(0, 120),
     message: value.message.slice(0, 2000),
   };
+  if (status === "not_supported") {
+    for (const key of ["capability", "reason", "device"]) {
+      if (typeof value[key] !== "string" || !value[key]) {
+        throw new Error(`not-supported device result ${index} requires ${key}`);
+      }
+      normalized[key] = value[key].slice(0, 1000);
+    }
+  }
+  return normalized;
 }

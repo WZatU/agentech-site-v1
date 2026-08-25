@@ -42,11 +42,24 @@ def success_record(
     command: dict[str, Any], value: Any, recorded_at: str | None = None
 ) -> dict[str, Any]:
     name, line = _identity(command)
+    result = json_safe(value)
+    if isinstance(result, dict):
+        status = str(result.get("status", "")).strip().lower()
+        returned_error = result.get("error")
+        has_error = returned_error is not None and returned_error != "" and returned_error is not False
+        if has_error or status in {
+            "error",
+            "failed",
+            "not_supported",
+        }:
+            raise ValueError(
+                f"{name} returned an error-shaped value; it cannot be recorded as completed"
+            )
     return {
         "command": name,
         "line": line,
         "status": "completed",
-        "result": json_safe(value),
+        "result": result,
         "error": None,
         "recorded_at": _recorded_at(recorded_at),
     }
@@ -62,6 +75,26 @@ def failure_record(
         "status": "failed",
         "result": None,
         "error": {"type": type(error).__name__, "message": str(error)},
+        "recorded_at": _recorded_at(recorded_at),
+    }
+
+
+def not_supported_record(
+    command: dict[str, Any], error: BaseException, recorded_at: str | None = None
+) -> dict[str, Any]:
+    name, line = _identity(command)
+    return {
+        "command": name,
+        "line": line,
+        "status": "not_supported",
+        "result": None,
+        "error": {
+            "type": type(error).__name__,
+            "message": str(error),
+            "capability": str(getattr(error, "capability", name)),
+            "reason": str(getattr(error, "reason", "not_supported")),
+            "device": str(getattr(error, "device", "unknown")),
+        },
         "recorded_at": _recorded_at(recorded_at),
     }
 

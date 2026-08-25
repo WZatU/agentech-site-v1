@@ -5,6 +5,7 @@ This module has no transport imports and performs no robot I/O.
 from __future__ import annotations
 
 import math
+import re
 from numbers import Integral, Real
 from typing import Any
 
@@ -373,17 +374,49 @@ def validate_aegis_command(
 
 
 def validate_aegis_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(plan, dict):
+        raise TypeError("AEGIS plan must be an object")
+    expected_plan_keys = {
+        "version",
+        "robot_model",
+        "submission_id",
+        "source_sha256",
+        "device_profile",
+        "commands",
+    }
+    if set(plan) != expected_plan_keys:
+        raise ValueError("AEGIS plan has missing or unexpected fields")
     if plan.get("version") != 2 or plan.get("robot_model") != "aegis":
         raise ValueError("unsupported AEGIS plan version or robot model")
+    submission_id = plan.get("submission_id")
+    if (
+        not isinstance(submission_id, str)
+        or not submission_id.strip()
+        or len(submission_id) > 200
+    ):
+        raise ValueError("AEGIS plan submission_id is invalid")
+    source_sha256 = plan.get("source_sha256")
+    if not isinstance(source_sha256, str) or re.fullmatch(
+        r"[0-9a-f]{64}", source_sha256
+    ) is None:
+        raise ValueError("AEGIS plan source_sha256 is invalid")
     commands = plan.get("commands")
-    if not isinstance(commands, list) or not commands:
-        raise ValueError("AEGIS plan must contain commands")
+    if not isinstance(commands, list) or not 1 <= len(commands) <= 256:
+        raise ValueError("AEGIS plan must contain 1 to 256 commands")
     profile = plan.get("device_profile")
     if profile != AEGIS_192_168_4_88:
         raise ValueError("AEGIS plan device profile is missing or does not match the Gateway")
     for index, command in enumerate(commands, start=1):
         if not isinstance(command, dict):
             raise ValueError(f"command {index} must be an object")
+        expected_command_keys = {"name", "args", "line"}
+        if "source_args" in command:
+            expected_command_keys.add("source_args")
+        if set(command) != expected_command_keys:
+            raise ValueError(f"command {index} has missing or unexpected fields")
+        line = command.get("line")
+        if isinstance(line, bool) or not isinstance(line, int) or line < 1:
+            raise ValueError(f"command {index} has an invalid source line")
         normalized = validate_aegis_command(
             command.get("name"),
             command.get("args"),
@@ -391,6 +424,21 @@ def validate_aegis_plan(plan: dict[str, Any]) -> dict[str, Any]:
         )
         if normalized != command.get("args"):
             raise ValueError(f"command {index} contains non-normalized arguments")
+        if "source_args" in command:
+            source_args = command["source_args"]
+            source_normalized = validate_aegis_command(
+                command.get("name"),
+                source_args,
+                device_profile=profile,
+            )
+            if source_normalized != command.get("args"):
+                raise ValueError(
+                    f"command {index} source arguments do not normalize to staged arguments"
+                )
+            if source_args == command.get("args"):
+                raise ValueError(
+                    f"command {index} has redundant source arguments"
+                )
     return plan
 
 

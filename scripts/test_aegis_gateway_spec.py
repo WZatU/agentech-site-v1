@@ -6,6 +6,7 @@ from scripts.aegis_gateway_spec import (
     AEGIS_192_168_4_88,
     AegisCapabilityNotSupported,
     validate_aegis_command,
+    validate_aegis_plan,
 )
 
 
@@ -106,6 +107,53 @@ class AegisGatewaySpecTests(unittest.TestCase):
                     arguments,
                     device_profile=AEGIS_192_168_4_88,
                 )
+
+    def test_plan_requires_identity_hash_lines_and_exact_schema(self) -> None:
+        base = {
+            "version": 2,
+            "robot_model": "aegis",
+            "submission_id": "submission-test",
+            "source_sha256": "a" * 64,
+            "device_profile": dict(AEGIS_192_168_4_88),
+            "commands": [{"name": "stand", "args": {}, "line": 2}],
+        }
+        validate_aegis_plan(base)
+        invalid = [
+            {**base, "submission_id": ""},
+            {**base, "source_sha256": "bad"},
+            {**base, "extra": "ignored"},
+            {**base, "commands": [{"name": "stand", "args": {}, "line": 0}]},
+            {
+                **base,
+                "commands": [
+                    {"name": "stand", "args": {}, "line": 2, "extra": "ignored"}
+                ],
+            },
+        ]
+        for plan in invalid:
+            with self.subTest(plan=plan), self.assertRaises((TypeError, ValueError)):
+                validate_aegis_plan(plan)
+
+    def test_plan_binds_source_arguments_to_compiler_normalization(self) -> None:
+        plan = {
+            "version": 2,
+            "robot_model": "aegis",
+            "submission_id": "submission-test",
+            "source_sha256": "a" * 64,
+            "device_profile": dict(AEGIS_192_168_4_88),
+            "commands": [
+                {
+                    "name": "turn",
+                    "source_args": {"angle_deg": -10, "turn_rate_deg_s": -10},
+                    "args": {"angle_deg": -10, "turn_rate_deg_s": 10},
+                    "line": 2,
+                }
+            ],
+        }
+        validate_aegis_plan(plan)
+        plan["commands"][0]["source_args"]["turn_rate_deg_s"] = -20
+        with self.assertRaisesRegex(ValueError, "source arguments"):
+            validate_aegis_plan(plan)
 
 
 if __name__ == "__main__":

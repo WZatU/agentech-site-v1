@@ -60,6 +60,30 @@ class AegisDeviceResultsTests(unittest.TestCase):
             {"type": "RuntimeError", "message": "status unavailable"},
         )
 
+    def test_error_shaped_telemetry_cannot_be_completed(self) -> None:
+        with self.assertRaisesRegex(ValueError, "error"):
+            self.module.success_record(
+                {"name": "get_battery_status", "line": 3},
+                {"percent": None, "voltage": None, "error": "no feedback"},
+                "2026-08-24T20:00:00.000Z",
+            )
+
+    def test_hardware_absence_is_serialized_as_not_supported(self) -> None:
+        error = RuntimeError("battery is not installed")
+        error.capability = "battery"
+        error.reason = "hardware_absent"
+        error.device = "192.168.4.88"
+
+        record = self.module.not_supported_record(
+            {"name": "get_battery_status", "line": 3},
+            error,
+            "2026-08-24T20:00:00.000Z",
+        )
+
+        self.assertEqual(record["status"], "not_supported")
+        self.assertEqual(record["error"]["reason"], "hardware_absent")
+        self.assertIsNone(record["result"])
+
     def test_write_result_atomically_replaces_the_sidecar(self) -> None:
         record = {
             "command": "get_battery_status",
@@ -77,12 +101,9 @@ class AegisDeviceResultsTests(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), [record])
             self.assertFalse(path.with_suffix(path.suffix + ".tmp").exists())
 
-    def test_trusted_runner_records_battery_and_body_returns(self) -> None:
+    def test_trusted_runner_records_body_return_and_final_result(self) -> None:
         fake_sdk = """
 class Agentech:
-    @staticmethod
-    def get_battery_status(**kwargs):
-        return {"percent": 82, "voltage": 28.4}
     @staticmethod
     def get_body_state(**kwargs):
         return {"mode": "Stand"}
@@ -91,20 +112,23 @@ class Agentech:
         return None
 """
         plan = {
-            "version": 1,
+            "version": 2,
+            "robot_model": "aegis",
+            "submission_id": "submission-test",
+            "source_sha256": "a" * 64,
+            "device_profile": {"device": "192.168.4.88", "battery_present": False, "battery_reason": "hardware_absent"},
             "commands": [
-                {"name": "get_battery_status", "args": {}, "line": 3},
                 {"name": "get_body_state", "args": {}, "line": 4},
             ],
         }
 
-        completed, payload = self.run_trusted_runner(fake_sdk, plan)
+        completed, payload, final = self.run_trusted_runner(fake_sdk, plan)
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(payload[0]["command"], "get_battery_status")
-        self.assertEqual(payload[0]["result"]["percent"], 82)
-        self.assertEqual(payload[1]["command"], "get_body_state")
-        self.assertEqual(payload[1]["result"]["mode"], "Stand")
+        self.assertEqual(payload[0]["command"], "get_body_state")
+        self.assertEqual(payload[0]["result"]["mode"], "Stand")
+        self.assertEqual(final["outcome"], "completed")
+        self.assertEqual(final["completed_count"], 1)
 
     def test_trusted_runner_records_telemetry_failure_before_exiting(self) -> None:
         fake_sdk = """
@@ -117,11 +141,15 @@ class Agentech:
         return None
 """
         plan = {
-            "version": 1,
+            "version": 2,
+            "robot_model": "aegis",
+            "submission_id": "submission-test",
+            "source_sha256": "a" * 64,
+            "device_profile": {"device": "192.168.4.88", "battery_present": False, "battery_reason": "hardware_absent"},
             "commands": [{"name": "get_body_state", "args": {}, "line": 4}],
         }
 
-        completed, payload = self.run_trusted_runner(fake_sdk, plan)
+        completed, payload, final = self.run_trusted_runner(fake_sdk, plan)
 
         self.assertNotEqual(completed.returncode, 0)
         self.assertEqual(payload[0]["status"], "failed")
@@ -129,16 +157,19 @@ class Agentech:
             payload[0]["error"],
             {"type": "RuntimeError", "message": "status unavailable"},
         )
+        self.assertEqual(final["outcome"], "failed")
+        self.assertEqual(final["error"]["command_index"], 1)
 
     def run_trusted_runner(
         self, fake_sdk: str, plan: dict
-    ) -> tuple[subprocess.CompletedProcess[str], list[dict]]:
+    ) -> tuple[subprocess.CompletedProcess[str], list[dict], dict]:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "agentech.py").write_text(fake_sdk, encoding="utf-8")
             plan_path = root / "session.plan.json"
             plan_path.write_text(json.dumps(plan), encoding="utf-8")
             results_path = root / "session.results.json"
+            final_path = root / "session.execution.json"
             environment = os.environ.copy()
             environment["PYTHONPATH"] = str(root)
             completed = subprocess.run(
@@ -148,6 +179,8 @@ class Agentech:
                     str(plan_path),
                     "--results",
                     str(results_path),
+                    "--final-result",
+                    str(final_path),
                 ],
                 capture_output=True,
                 text=True,
@@ -159,7 +192,12 @@ class Agentech:
                 if results_path.exists()
                 else []
             )
-            return completed, payload
+            final = (
+                json.loads(final_path.read_text(encoding="utf-8"))
+                if final_path.exists()
+                else {}
+            )
+            return completed, payload, final
 
 
 if __name__ == "__main__":
