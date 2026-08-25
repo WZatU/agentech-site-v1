@@ -35,6 +35,10 @@ export function keepsStreamActive(item, nowMs) {
 
 export function finalSessionDatabaseStatus(item) {
   if (item?.status !== "finished") return null;
+  if (item.executionResultRequired === true) {
+    if (item.executionResultPersisted !== true) return null;
+    return item.executionStatus === "completed" ? "completed" : "failed";
+  }
   if (item.streamAvailableDuringSession === true) return "completed";
   if (item.streamAvailableDuringSession === false) return "failed";
   // Legacy sessions reached `finished` only after startObs() succeeded and the

@@ -48,6 +48,9 @@ export function parseExecutionResult(
   if (!SHA256.test(value.plan_sha256 ?? "")) {
     throw new Error("execution result plan hash is invalid");
   }
+  if (!SHA256.test(expected?.planSha256 ?? "") || value.plan_sha256 !== expected.planSha256) {
+    throw new Error("execution result plan hash does not match the staged plan");
+  }
   validateTimestamp(value.started_at, "started_at");
   validateTimestamp(value.finished_at, "finished_at");
   if (Date.parse(value.finished_at) < Date.parse(value.started_at)) {

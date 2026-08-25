@@ -165,9 +165,10 @@ test("compiler rejects loops and nonliteral customer execution", () => {
   assert.match(result.stderr, /only direct robot command calls are executable/);
 });
 
-test("gateway transfers only trusted runtime files and persists device results", () => {
+test("gateway transfers only trusted runtime files and persists authoritative results", () => {
   const source = readFileSync(bridge, "utf8");
-  assert.match(source, /run\("scp", \[\.\.\.sshArgs\(\), planPath, trustedRunner, deviceResultsSerializer,/);
+  assert.match(source, /gatewaySpec/);
+  assert.match(source, /runnerResultSerializer/);
   assert.doesNotMatch(source, /run\("scp", \[\.\.\.sshArgs\(\), sourcePath,/);
   assert.match(source, /customer source is never sent to the robot/);
   assert.match(source, /async function claimSession/);
@@ -182,6 +183,11 @@ test("gateway transfers only trusted runtime files and persists device results",
   assert.match(source, /collectDeviceResults/);
   assert.match(source, /syncDeviceResults/);
   assert.match(source, /buildDeviceResultsPatch/);
+  assert.match(source, /remoteExecutionResult/);
+  assert.match(source, /collectExecutionResult/);
+  assert.match(source, /syncExecutionResult/);
+  assert.match(source, /parseExecutionResult/);
+  assert.match(source, /buildExecutionResultPatch/);
 });
 
 test("session policy selects model-specific scheduled-end cleanup", () => {
@@ -223,11 +229,14 @@ test("session policy selects model-specific scheduled-end cleanup", () => {
   );
 });
 
-test("session policy publishes a final database status from stream delivery only", () => {
+test("session policy publishes AEGIS status only from persisted runner outcome", () => {
   assert.equal(finalSessionDatabaseStatus({ status: "running" }), null);
   assert.equal(
     finalSessionDatabaseStatus({
       status: "finished",
+      executionResultRequired: true,
+      executionResultPersisted: true,
+      executionStatus: "completed",
       streamAvailableDuringSession: true,
       endCleanupRequired: true,
       endCleanupStatus: "failed",
@@ -238,18 +247,47 @@ test("session policy publishes a final database status from stream delivery only
   assert.equal(
     finalSessionDatabaseStatus({
       status: "finished",
-      streamAvailableDuringSession: false,
-      endCleanupRequired: false,
+      executionResultRequired: true,
+      executionResultPersisted: true,
+      executionStatus: "failed",
+      streamAvailableDuringSession: true,
     }),
     "failed",
   );
   assert.equal(
     finalSessionDatabaseStatus({
       status: "finished",
-      endCleanupRequired: true,
-      endCleanupStatus: "failed",
-      endCleanupAttempts: 3,
+      executionResultRequired: true,
+      executionResultPersisted: false,
+      executionStatus: "completed",
+    }),
+    null,
+  );
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      executionResultRequired: true,
+      executionResultPersisted: true,
+    }),
+    "failed",
+  );
+});
+
+test("legacy non-AEGIS sessions retain stream-delivery status", () => {
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      executionResultRequired: false,
+      streamAvailableDuringSession: true,
     }),
     "completed",
+  );
+  assert.equal(
+    finalSessionDatabaseStatus({
+      status: "finished",
+      executionResultRequired: false,
+      streamAvailableDuringSession: false,
+    }),
+    "failed",
   );
 });

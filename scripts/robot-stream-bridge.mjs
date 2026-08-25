@@ -14,6 +14,10 @@ import {
   deviceResultsStateForPlan,
   parseDeviceResults,
 } from "./robot-session-device-results.mjs";
+import {
+  buildExecutionResultPatch,
+  parseExecutionResult,
+} from "./robot-session-execution-result.mjs";
 
 for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "ROBOT_HOST", "ROBOT_SSH_USER"]) {
   if (!process.env[key]) throw new Error(`${key} is required.`);
@@ -25,6 +29,8 @@ const stateFile = join(runtimeDir, "state.json");
 const compiler = join(here, "compile-robot-plan.py");
 const trustedRunner = join(here, "trusted-robot-runner.py");
 const deviceResultsSerializer = join(here, "aegis-device-results.py");
+const gatewaySpec = join(here, "aegis_gateway_spec.py");
+const runnerResultSerializer = join(here, "aegis-runner-result.py");
 const trustedNaviRunner = join(here, "trusted-navi-runner.py");
 const captureUploadUrl = process.env.AGENTECH_CAPTURE_UPLOAD_URL || "https://www.agent-tech.ai/api/agentech-capture";
 const supabaseUrl = process.env.SUPABASE_URL.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
@@ -168,7 +174,15 @@ function stage(session, submission) {
   const remoteCaptures = [];
   if (selectedModel === "aegis") {
     run("ssh", [...sshArgs(), robot, "mkdir", "-p", remoteDir]);
-    run("scp", [...sshArgs(), planPath, trustedRunner, deviceResultsSerializer, `${robot}:${remoteDir}/`]);
+    run("scp", [
+      ...sshArgs(),
+      planPath,
+      trustedRunner,
+      deviceResultsSerializer,
+      gatewaySpec,
+      runnerResultSerializer,
+      `${robot}:${remoteDir}/`,
+    ]);
     for (const command of plan.commands) {
       if (command.name !== "capture_image") continue;
       captureIndex += 1;
@@ -178,6 +192,16 @@ function stage(session, submission) {
   state.sessions[session.id] = {
     status: "staged",
     executionModel: selectedModel,
+    executionResultRequired: selectedModel === "aegis",
+    executionResultCollectionAttempted: selectedModel !== "aegis",
+    executionResultPersisted: selectedModel !== "aegis",
+    executionStatus: selectedModel === "aegis" ? "pending" : null,
+    executionSubmissionId: submission.id,
+    executionSourceSha256: plan.source_sha256,
+    executionPlanSha256: createHash("sha256").update(readFileSync(planPath)).digest("hex"),
+    remoteExecutionResult: selectedModel === "aegis"
+      ? `${remoteDir}/${prefix}.execution.json`
+      : null,
     localPlan: planPath,
     remotePlan: selectedModel === "aegis" ? `${remoteDir}/${prefix}.plan.json` : null,
     ...deviceResultsState,
@@ -266,7 +290,8 @@ async function launch(session) {
   const remoteRunner = `${remoteDir}/trusted-robot-runner.py`;
   const remoteLog = `${remoteDir}/session-${session.id}.log`;
   const resultsArgument = item.remoteResults ? ` --results '${item.remoteResults}'` : "";
-  const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}'${resultsArgument} > '${remoteLog}' 2>&1 & echo $!`;
+  const finalResultArgument = ` --final-result '${item.remoteExecutionResult}'`;
+  const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}'${resultsArgument}${finalResultArgument} > '${remoteLog}' 2>&1 & echo $!`;
   item.pid = run("ssh", [...sshArgs(), robot, command]).trim();
   item.status = "running";
   saveState();
@@ -366,6 +391,75 @@ async function syncFinalSessionStatus(id, item) {
   saveState();
 }
 
+function executionErrorMessage(result) {
+  if (result?.outcome !== "failed") return null;
+  const error = result.error || {};
+  const location = error.command_index
+    ? ` at command ${error.command_index}${error.command ? ` (${error.command})` : ""}`
+    : error.command
+      ? ` during ${error.command}`
+      : "";
+  return `${error.type || "ExecutionError"}: ${error.message || "runner reported failure"}${location}`
+    .slice(0, 4000);
+}
+
+function collectExecutionResult(id, item) {
+  if (
+    item.executionResultRequired !== true
+    || item.executionResultCollectionAttempted === true
+  ) return;
+  item.executionResultCollectionAttempted = true;
+  try {
+    const localResult = join(runtimeDir, `session-${id}.execution.json`);
+    run("scp", [...sshArgs(), `${robot}:${item.remoteExecutionResult}`, localResult]);
+    item.executionResult = parseExecutionResult(readFileSync(localResult, "utf8"), {
+      sessionId: id,
+      submissionId: item.executionSubmissionId,
+      sourceSha256: item.executionSourceSha256,
+      planSha256: item.executionPlanSha256,
+    });
+    item.executionStatus = item.executionResult.outcome;
+    item.executionResultError = executionErrorMessage(item.executionResult);
+    console.log(
+      `[robot-stream] collected authoritative ${item.executionStatus} result for session ${id}.`,
+    );
+  } catch (error) {
+    item.executionResult = null;
+    item.executionStatus = "failed";
+    item.executionResultError = `MissingOrInvalidExecutionResult: ${error.message}`.slice(0, 4000);
+    console.error(
+      `[robot-stream] session ${id} has no trustworthy execution result:`,
+      error.message,
+    );
+  }
+  saveState();
+}
+
+async function syncExecutionResult(id, item) {
+  if (
+    item.executionResultRequired !== true
+    || item.executionResultCollectionAttempted !== true
+    || item.executionResultPersisted === true
+  ) return;
+  try {
+    await request(
+      "agentech_robot_sessions",
+      `id=eq.${encodeURIComponent(id)}&select=id`,
+      { method: "PATCH", body: buildExecutionResultPatch(item) },
+    );
+    item.executionResultPersisted = true;
+    delete item.executionResultPersistenceError;
+    console.log(`[robot-stream] synchronized authoritative execution result for session ${id}.`);
+  } catch (error) {
+    item.executionResultPersistenceError = error.message;
+    console.error(
+      `[robot-stream] unable to persist execution result for session ${id}; final status remains unsynchronized:`,
+      error.message,
+    );
+  }
+  saveState();
+}
+
 function collectDeviceResults(id, item) {
   if (item.deviceResultsRequested !== true || item.deviceResultsCollectionAttempted === true) return;
   item.deviceResultsCollectionAttempted = true;
@@ -455,17 +549,15 @@ async function tick() {
     if (item.status === "running" && !processRunning(item)) {
       item.status = "publishing";
       saveState();
+      collectExecutionResult(id, item);
       try {
         await publishCaptures(id, item);
-        item.status = "completed";
-        saveState();
       } catch (error) {
-        item.status = "completed";
-        item.executionStatus = "failed";
-        item.executionError = error.message;
-        saveState();
-        console.error(`[robot-stream] session ${id} execution/capture processing failed:`, error.message);
+        item.capturePublishingError = error.message;
+        console.error(`[robot-stream] session ${id} capture publishing failed:`, error.message);
       }
+      item.status = "completed";
+      saveState();
     }
     if (item.status === "staged" && now >= Date.parse(item.end)) {
       item.status = "finished";
@@ -483,6 +575,8 @@ async function tick() {
     }
   }
   for (const [id, item] of Object.entries(state.sessions)) {
+    if (["completed", "finished"].includes(item.status)) collectExecutionResult(id, item);
+    await syncExecutionResult(id, item);
     if (["completed", "finished"].includes(item.status)) collectDeviceResults(id, item);
     await syncDeviceResults(id, item);
   }
