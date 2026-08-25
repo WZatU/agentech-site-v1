@@ -16,6 +16,7 @@ import {
 const scriptsDir = fileURLToPath(new URL(".", import.meta.url));
 const compiler = join(scriptsDir, "compile-robot-plan.py");
 const bridge = join(scriptsDir, "robot-stream-bridge.mjs");
+const qualificationExample = join(scriptsDir, "..", "docs", "aegis", "examples", "aegis-28-command-qualification.py");
 const naviRunner = join(scriptsDir, "trusted-navi-runner.py");
 const python = process.env.ROBOT_LOCAL_PYTHON || (process.platform === "win32" ? "python" : "python3");
 
@@ -95,6 +96,20 @@ test("Aegies compiler normalizes session 38 left turn and preserves source args"
     source_args: { angle_deg: -10, turn_rate_deg_s: -10 },
     line: 2,
   });
+});
+
+test("committed corrected AEGIS qualification source compiles to exactly 28 commands", () => {
+  const source = readFileSync(qualificationExample, "utf8");
+  const result = compile(source);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.plan.commands.length, 28);
+  assert.equal(result.plan.commands[19].name, "turn");
+  assert.deepEqual(result.plan.commands[19].args, {
+    angle_deg: -10,
+    turn_rate_deg_s: 10,
+  });
+  assert.equal(result.plan.device_profile.battery_present, false);
 });
 
 test("Aegies compiler rejects removed website-only battery and IMU names", () => {
@@ -184,6 +199,8 @@ test("gateway transfers only trusted runtime files and persists authoritative re
   assert.match(source, /syncDeviceResults/);
   assert.match(source, /buildDeviceResultsPatch/);
   assert.match(source, /remoteExecutionResult/);
+  assert.match(source, /const staleOutputs = \[item\.remoteExecutionResult, item\.remoteResults\]/);
+  assert.match(source, /"rm", "-f", \.\.\.staleOutputs/);
   assert.match(source, /collectExecutionResult/);
   assert.match(source, /syncExecutionResult/);
   assert.match(source, /parseExecutionResult/);

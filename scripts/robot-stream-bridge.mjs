@@ -289,6 +289,9 @@ async function launch(session) {
   }
   const remoteRunner = `${remoteDir}/trusted-robot-runner.py`;
   const remoteLog = `${remoteDir}/session-${session.id}.log`;
+  const staleOutputs = [item.remoteExecutionResult, item.remoteResults]
+    .filter(Boolean);
+  run("ssh", [...sshArgs(), robot, "rm", "-f", ...staleOutputs]);
   const resultsArgument = item.remoteResults ? ` --results '${item.remoteResults}'` : "";
   const finalResultArgument = ` --final-result '${item.remoteExecutionResult}'`;
   const command = `cd '${remoteDir}' && PYTHONPATH=/home/firefly/Agentech-SDK nohup ${robotPython} '${remoteRunner}' '${item.remotePlan}'${resultsArgument}${finalResultArgument} > '${remoteLog}' 2>&1 & echo $!`;

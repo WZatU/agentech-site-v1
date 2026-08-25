@@ -3202,14 +3202,14 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                             {deviceResultsView.items.map((item, index) => (
                               <article
                                 key={`${item.label}-${item.recordedAt}-${index}`}
-                                className={`rounded-lg border p-4 ${item.tone === "success" ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}
+                                className={`rounded-lg border p-4 ${item.tone === "success" ? "border-emerald-200 bg-emerald-50" : item.tone === "warning" ? "border-amber-200 bg-amber-50" : "border-red-200 bg-red-50"}`}
                               >
                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                   <div>
                                     <p className="font-semibold text-slate-950">{item.label}</p>
                                     <p className="mt-1 break-words text-sm text-slate-700">{item.summary}</p>
                                   </div>
-                                  <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.1em] ${item.tone === "success" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.1em] ${item.tone === "success" ? "bg-emerald-100 text-emerald-800" : item.tone === "warning" ? "bg-amber-100 text-amber-900" : "bg-red-100 text-red-800"}`}>
                                     {item.status === "completed" ? "Completed" : "Failed"}
                                   </span>
                                 </div>

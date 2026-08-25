@@ -41,6 +41,34 @@ test("accepts and summarizes a completed body-state result", () => {
 });
 
 
+test("shows hardware absence as not supported instead of success or generic failure", () => {
+  const value = [{
+    command: "get_battery_status" as const,
+    line: 3,
+    status: "not_supported" as const,
+    result: null,
+    error: {
+      type: "CapabilityNotSupportedError",
+      message: "battery is not installed",
+      capability: "battery",
+      reason: "hardware_absent",
+      device: "192.168.4.88",
+    },
+    recorded_at: "2026-08-24T20:00:00.000Z",
+  }];
+
+  assert.equal(isDeviceResultArray(value), true);
+  assert.match(summarizeDeviceResult(value[0]), /hardware_absent/);
+  const model = buildDeviceResultsViewModel({
+    requested: true,
+    results: value,
+    collectionError: null,
+  });
+  assert.equal(model.items[0].tone, "warning");
+  assert.equal(model.items[0].status, "not_supported");
+});
+
+
 test("rejects unapproved or malformed result records", () => {
   assert.equal(isDeviceResultArray([{ command: "forward" }]), false);
   assert.equal(isDeviceResultArray([{ command: "get_body_state", status: "running" }]), false);

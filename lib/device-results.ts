@@ -1,9 +1,12 @@
 export type DeviceResultCommand = "get_battery_status" | "get_body_state";
-export type DeviceResultStatus = "completed" | "failed";
+export type DeviceResultStatus = "completed" | "failed" | "not_supported";
 
 export type DeviceResultError = {
   type: string;
   message: string;
+  capability?: string;
+  reason?: string;
+  device?: string;
 };
 
 export type DeviceResult = {
@@ -35,10 +38,17 @@ export function normalizeDeviceResults(value: unknown): DeviceResult[] {
 function isDeviceResult(value: unknown): value is DeviceResult {
   if (!isRecord(value)) return false;
   if (!commands.has(value.command as DeviceResultCommand)) return false;
-  if (value.status !== "completed" && value.status !== "failed") return false;
+  if (!["completed", "failed", "not_supported"].includes(String(value.status))) return false;
   if (value.line !== null && (!Number.isInteger(value.line) || Number(value.line) < 1)) return false;
   if (typeof value.recorded_at !== "string" || !Number.isFinite(Date.parse(value.recorded_at))) return false;
   if (value.status === "completed") return value.error === null;
+  if (value.status === "not_supported") {
+    return value.result === null
+      && isError(value.error)
+      && typeof value.error.capability === "string"
+      && typeof value.error.reason === "string"
+      && typeof value.error.device === "string";
+  }
   return isError(value.error);
 }
 
@@ -61,6 +71,9 @@ export function deviceResultLabel(command: DeviceResultCommand): string {
 
 
 export function summarizeDeviceResult(record: DeviceResult): string {
+  if (record.status === "not_supported") {
+    return `Not supported: ${record.error?.reason || record.error?.message || "capability unavailable"}`;
+  }
   if (record.status === "failed") return record.error?.message || "Device call failed";
   if (!isRecord(record.result)) return record.result == null ? "No result payload" : String(record.result);
 
@@ -94,7 +107,7 @@ export type DeviceResultsViewModel = {
   items: Array<{
     label: string;
     summary: string;
-    tone: "success" | "error";
+    tone: "success" | "warning" | "error";
     status: DeviceResultStatus;
     recordedAt: string;
     sourceLine: number | null;
@@ -114,7 +127,11 @@ export function buildDeviceResultsViewModel(input: {
   const items = input.results.map((record) => ({
     label: deviceResultLabel(record.command),
     summary: summarizeDeviceResult(record),
-    tone: record.status === "completed" ? "success" as const : "error" as const,
+    tone: record.status === "completed"
+      ? "success" as const
+      : record.status === "not_supported"
+        ? "warning" as const
+        : "error" as const,
     status: record.status,
     recordedAt: record.recorded_at,
     sourceLine: record.line,

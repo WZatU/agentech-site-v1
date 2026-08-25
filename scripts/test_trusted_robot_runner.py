@@ -149,6 +149,10 @@ class TrustedRobotRunnerTests(unittest.TestCase):
 
         self.assertEqual(FakeAgentech.calls, [])
 
+    def test_gateway_termination_becomes_a_structured_runner_failure(self) -> None:
+        with self.assertRaisesRegex(runner.SessionTerminated, "terminated by signal 15"):
+            runner._termination_handler(15, None)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import signal
 import sys
 import time
 from datetime import datetime, timezone
@@ -41,6 +42,14 @@ write_final_result = _runner_result.write_final_result
 
 LEGACY_LINEAR_COMMANDS = {"forward", "backward", "lateral_left", "lateral_right"}
 LOCAL_VELOCITY_COMMANDS = LEGACY_LINEAR_COMMANDS | {"diagonal"}
+
+
+class SessionTerminated(RuntimeError):
+    """Raised when the Gateway ends a runner at the booked boundary."""
+
+
+def _termination_handler(signum, _frame) -> None:
+    raise SessionTerminated(f"runner terminated by signal {signum}")
 
 
 def _diary_path(plan_path: Path) -> Path:
@@ -331,11 +340,19 @@ def main() -> None:
     if arguments.lie_down:
         end_session_lie_down()
         return
-    execute(
-        arguments.plan,
-        results_path=arguments.results,
-        final_result_path=arguments.final_result,
-    )
+    previous_handlers = {}
+    for signum in (signal.SIGTERM, signal.SIGINT):
+        previous_handlers[signum] = signal.getsignal(signum)
+        signal.signal(signum, _termination_handler)
+    try:
+        execute(
+            arguments.plan,
+            results_path=arguments.results,
+            final_result_path=arguments.final_result,
+        )
+    finally:
+        for signum, handler in previous_handlers.items():
+            signal.signal(signum, handler)
 
 
 if __name__ == "__main__":
