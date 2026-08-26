@@ -83,8 +83,9 @@ stand once, performs paired translations, low-gait pairs, `+90/-90` turns,
 bounded visible attitude pairs, stay, integer battery percentage and final sit.
 
 Ordinary actions do not repeatedly call stand. The robot stays upright between
-standing actions. Squat's temporary virtual-controller ownership must restore
-the Xbox/F710 route before success is returned.
+standing actions. Squat uses `dog_task`'s localhost command channel without
+replacing `/dev/input/js0` or restarting `dog_task`; success requires unchanged
+physical-controller ownership.
 
 Jump, backflip, stop and emergency stop are separate supervised recordings:
 
@@ -162,3 +163,21 @@ one emergency command, read real eCAL battery percentage, and make the trusted
 runner result authoritative for Hub status. Earlier `0.20 m/s` translation was
 also too small to be visually diagnostic after acceleration; tomorrow uses the
 live-visible paired values while external video enforces containment.
+
+## 9. Session 43 focused squat rerun
+
+Use [`aegis-session-43-squat-qualification.py`](examples/aegis-session-43-squat-qualification.py)
+without retyping it. It compiles to nine calls. `emergency_stop()` is terminal,
+so the runner records `cleanup_skipped` instead of sending a duplicate stop.
+
+Session 43 submission `agentech-20260825233939-p16kmc` compiled correctly and
+completed `stand()`, but `squat()` ended at public state `51/999`. The failure
+was in the SDK Adapter, not the translator: after stand, public state was
+`18/1` while `dog_task`'s private action cache was stale, so action `106`
+selected its `51/0` fallback. The repaired SDK sends native no-motion action
+`138` once to synchronize that cache, then action `106` once to enter `18/17`.
+
+The rerun passes only with stable and retained `18/17`, unchanged controller
+owner PID, `dog_task_restarted=false`, completed squat movements, one final
+e-stop, a complete Diary/result, and synchronized video. The original Session
+43 remains failure evidence and must not be relabeled PASS.

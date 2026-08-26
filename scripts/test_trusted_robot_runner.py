@@ -34,6 +34,11 @@ class FakeAgentech:
     def stop(cls, **arguments) -> None:
         cls.calls.append(("stop", arguments))
 
+    @classmethod
+    def emergency_stop(cls, **arguments):
+        cls.calls.append(("emergency_stop", arguments))
+        return {"damping": True, "interrupted": True}
+
 
 RUNNER_PATH = Path(__file__).with_name("trusted-robot-runner.py")
 SPEC = importlib.util.spec_from_file_location("trusted_robot_runner", RUNNER_PATH)
@@ -128,6 +133,45 @@ class TrustedRobotRunnerTests(unittest.TestCase):
             self.assertEqual(result["completed_count"], 1)
             self.assertEqual(result["error"]["command_index"], 2)
             self.assertEqual(result["error"]["type"], "RuntimeError")
+
+    def test_terminal_emergency_stop_does_not_send_duplicate_cleanup_stop(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plan_path = root / "session-43.plan.json"
+            diary_path = root / "session-43.diary.jsonl"
+            plan_path.write_text(
+                json.dumps(
+                    self.plan(
+                        [
+                            {"name": "sit", "args": {}, "line": 2},
+                            {"name": "emergency_stop", "args": {}, "line": 3},
+                        ]
+                    )
+                ),
+                encoding="utf-8",
+            )
+
+            result = runner.execute(
+                plan_path,
+                agentech=FakeAgentech,
+            )
+
+            self.assertEqual(result["outcome"], "completed")
+            self.assertEqual(
+                FakeAgentech.calls,
+                [
+                    ("sit", {"host": "127.0.0.1"}),
+                    ("emergency_stop", {"host": "127.0.0.1"}),
+                ],
+            )
+            diary = [
+                json.loads(line)
+                for line in diary_path.read_text(encoding="utf-8").splitlines()
+            ]
+            cleanup = [item for item in diary if item["event"] == "cleanup_skipped"]
+            self.assertEqual(len(cleanup), 1)
+            self.assertEqual(cleanup[0]["reason"], "terminal_emergency_stop")
+            self.assertEqual(diary[-1]["event"], "session_completed")
 
     def test_hand_edited_plan_is_refused_before_motion_dispatch(self) -> None:
         plan = self.plan(

@@ -32,6 +32,7 @@ Primary docs:
 README.md
 CONTRIBUTING.md
 docs/software-check-access-policy.md
+docs/aegis-session-43-gateway-runbook.md
 docs/dropbox-news-automation.md
 docs/navi-return-to-home-premium.md
 ```
@@ -62,6 +63,7 @@ Covered topics:
 - Environment variables and server-only secrets.
 - Local development, production build, preview server, and GitHub workflow.
 - Internal/external account identity, Software Check credit policy, persisted review gates, and admin visibility.
+- AEGIS Session 43 translation, execution, evidence, and failure-handling runbook.
 - Navi Return to Home's fixed calibration, cardinal-heading API, premium access rules, and Stripe fulfillment path.
 - Hidden preorder, enroll, grade visibility, and QR route switch points.
 

@@ -155,6 +155,39 @@ class AegisGatewaySpecTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source arguments"):
             validate_aegis_plan(plan)
 
+    def test_emergency_stop_must_be_the_only_final_terminal_command(self) -> None:
+        base = {
+            "version": 2,
+            "robot_model": "aegis",
+            "submission_id": "submission-test",
+            "source_sha256": "a" * 64,
+            "device_profile": dict(AEGIS_192_168_4_88),
+        }
+        validate_aegis_plan(
+            {
+                **base,
+                "commands": [
+                    {"name": "sit", "args": {}, "line": 2},
+                    {"name": "emergency_stop", "args": {}, "line": 3},
+                ],
+            }
+        )
+
+        for commands in (
+            [
+                {"name": "emergency_stop", "args": {}, "line": 2},
+                {"name": "stand", "args": {}, "line": 3},
+            ],
+            [
+                {"name": "emergency_stop", "args": {}, "line": 2},
+                {"name": "emergency_stop", "args": {}, "line": 3},
+            ],
+        ):
+            with self.subTest(commands=commands), self.assertRaisesRegex(
+                ValueError, "final and only"
+            ):
+                validate_aegis_plan({**base, "commands": commands})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -120,6 +120,40 @@ test("committed corrected AEGIS qualification source compiles to exactly 29 comm
   assert.equal(result.plan.device_profile.battery_present, true);
 });
 
+test("Session 43 compiles to the exact ordered AEGIS plan", () => {
+  const source = [
+    "from agentech import Agentech",
+    "Agentech.stand()",
+    "Agentech.squat()",
+    "Agentech.squat_forward(speed_mps=0.20, duration_s=0.75)",
+    "Agentech.squat_backward(speed_mps=0.20, duration_s=0.75)",
+    "Agentech.squat_lateral(direction=\"left\", speed_mps=0.20, duration_s=0.75)",
+    "Agentech.squat_diagonal(angle_deg=45, speed_mps=0.30, duration_s=0.75)",
+    "Agentech.squat_turn(angle_deg=30)",
+    "Agentech.sit()",
+    "Agentech.emergency_stop()",
+  ].join("\n");
+  const result = compile(source, "Aegis");
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.plan.commands, [
+    { name: "stand", args: {}, line: 2 },
+    { name: "squat", args: {}, line: 3 },
+    { name: "squat_forward", args: { speed_mps: 0.2, duration_s: 0.75 }, line: 4 },
+    { name: "squat_backward", args: { speed_mps: 0.2, duration_s: 0.75 }, line: 5 },
+    { name: "squat_lateral", args: { direction: "left", speed_mps: 0.2, duration_s: 0.75 }, line: 6 },
+    { name: "squat_diagonal", args: { angle_deg: 45, speed_mps: 0.3, duration_s: 0.75 }, line: 7 },
+    { name: "squat_turn", args: { angle_deg: 30 }, line: 8 },
+    { name: "sit", args: {}, line: 9 },
+    { name: "emergency_stop", args: {}, line: 10 },
+  ]);
+  assert.equal(requiresEndLieDown(result.plan, "aegis"), false);
+  assert.deepEqual(endSessionCleanupPolicy(result.plan, "aegis"), {
+    required: false,
+    returnHomeRequired: false,
+  });
+});
+
 test("Aegies compiler rejects removed website-only battery and IMU names", () => {
   for (const source of [
     "from agentech import Agentech\nAgentech.battery()\n",
@@ -246,6 +280,10 @@ test("session policy selects model-specific scheduled-end cleanup", () => {
   );
   assert.equal(requiresEndLieDown({ commands: [{ name: "lie_down" }] }, "navi"), false);
   assert.equal(requiresEndLieDown({ commands: [{ name: "sit" }] }, "aegis"), false);
+  assert.equal(
+    requiresEndLieDown({ commands: [{ name: "sit" }, { name: "emergency_stop" }] }, "aegis"),
+    false,
+  );
   assert.deepEqual(
     endSessionCleanupPolicy({ commands: [{ name: "stand" }] }, "navi"),
     { required: true, returnHomeRequired: true },

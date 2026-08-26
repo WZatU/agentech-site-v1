@@ -9,6 +9,9 @@ export function requiresEndLieDown(plan, robotModel) {
     throw new Error("compiled plan must contain commands");
   }
   const finalCommand = plan.commands[plan.commands.length - 1];
+  if (robotModel === "aegis") {
+    return !["sit", "emergency_stop"].includes(finalCommand?.name);
+  }
   return finalCommand?.name !== endSessionPostureCommand(robotModel);
 }
 

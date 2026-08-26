@@ -154,6 +154,7 @@ def execute(
     primary_error: BaseException | None = None
     final_error: dict[str, Any] | None = None
     validated = False
+    terminal_emergency_stop_started = False
     current_index: int | None = None
     current_command: dict[str, Any] | None = None
 
@@ -189,6 +190,8 @@ def execute(
                 args=current_command["args"],
             )
             try:
+                if source_name == "emergency_stop":
+                    terminal_emergency_stop_started = True
                 value = getattr(agentech, name)(**translated)
                 if source_name in TELEMETRY_COMMANDS and results_path is not None:
                     telemetry_records.append(success_record(current_command, value))
@@ -274,7 +277,14 @@ def execute(
                 line=(current_command or {}).get("line"),
             )
     finally:
-        if validated:
+        if validated and terminal_emergency_stop_started:
+            _append_diary(
+                diary_path,
+                "cleanup_skipped",
+                status="completed",
+                reason="terminal_emergency_stop",
+            )
+        elif validated:
             try:
                 agentech.stop(host="127.0.0.1")
                 _append_diary(diary_path, "cleanup_completed", status="completed")

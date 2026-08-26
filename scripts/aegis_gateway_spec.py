@@ -439,6 +439,15 @@ def validate_aegis_plan(plan: dict[str, Any]) -> dict[str, Any]:
                 raise ValueError(
                     f"command {index} has redundant source arguments"
                 )
+    emergency_stop_indices = [
+        index
+        for index, command in enumerate(commands)
+        if command.get("name") == "emergency_stop"
+    ]
+    if emergency_stop_indices and emergency_stop_indices != [len(commands) - 1]:
+        raise ValueError(
+            "emergency_stop must be the final and only emergency-stop command"
+        )
     return plan
 
 

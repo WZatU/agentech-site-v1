@@ -58,6 +58,7 @@ Important documents:
 - [Contributing and repository workflow](CONTRIBUTING.md)
 - [Software Check access policy](docs/software-check-access-policy.md)
 - [Offline website verification matrix](docs/robot-test-matrix.md)
+- [AEGIS Session 43 Gateway runbook](docs/aegis-session-43-gateway-runbook.md)
 - [Dropbox News automation](docs/dropbox-news-automation.md)
 - [Documentation index](docs/documentation-index.md)
 - Hidden product documents page: `/agentech-products/documents`
