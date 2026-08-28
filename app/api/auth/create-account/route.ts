@@ -11,6 +11,7 @@ import {
 } from "@/lib/prototype-auth";
 import { upsertProfile } from "@/lib/account-records";
 import { setSignedAccountSessionCookie } from "@/lib/server-account-session";
+import { ensureSupabaseAuthUser } from "@/lib/supabase-auth-admin";
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as {
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
     account_type: null
   });
   await clearVerificationCode(email);
+  await ensureSupabaseAuthUser(email, password);
 
   const response = NextResponse.json({ ok: true, email });
   setSignedAccountSessionCookie(response, email);
