@@ -30,9 +30,9 @@ const teamMembers = [
     tone: "from-[#91dfff]/[0.18] via-white/[0.03] to-transparent"
   },
   {
-    name: "David Wang",
-    role: "Senior Algorithm Engineer",
-    group: "Algorithm",
+    name: "Victoria Chen",
+    role: "Senior Project Engineer",
+    group: "Robotics",
     tone: "from-[#d6a8ff]/[0.18] via-white/[0.03] to-transparent"
   }
 ] as const;
