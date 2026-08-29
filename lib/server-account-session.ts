@@ -28,13 +28,13 @@ function signPayload(payload: string) {
   return createHmac("sha256", getSessionSecret()).update(payload).digest("base64url");
 }
 
-export function createSignedAccountSession(email: string) {
+export function createSignedAccountSession(email: string, maxAgeSeconds = sessionMaxAgeSeconds) {
   const normalizedEmail = normalizeEmail(email);
   if (!isValidEmail(normalizedEmail)) {
     throw new Error("Cannot create a signed session for an invalid email.");
   }
 
-  const expiresAt = Date.now() + sessionMaxAgeSeconds * 1000;
+  const expiresAt = Date.now() + maxAgeSeconds * 1000;
   const payload = base64UrlEncode(JSON.stringify({ email: normalizedEmail, expiresAt }));
   return `${payload}.${signPayload(payload)}`;
 }

@@ -1,0 +1,44 @@
+import { NextRequest, NextResponse } from "next/server";
+import {
+  createSignedAccountSession,
+  getServerAccountEmail,
+  setSignedAccountSessionCookie,
+  verifySignedAccountSession
+} from "@/lib/server-account-session";
+import { isValidEmail } from "@/lib/prototype-auth";
+
+export const dynamic = "force-dynamic";
+
+const handoffLifetimeSeconds = 120;
+const livePath = "/agentech-products/eaic-hub/watch-live-run";
+
+function siteOrigin(request: NextRequest) {
+  const configured = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  return new URL(configured || request.nextUrl.origin).origin;
+}
+
+// Exchange the CLI's Supabase bearer token for a very short-lived browser handoff.
+export async function POST(request: NextRequest) {
+  const email = await getServerAccountEmail(request);
+  if (!isValidEmail(email)) {
+    return NextResponse.json({ error: "Sign in to the EAIC CLI before watching." }, { status: 401 });
+  }
+
+  const handoff = createSignedAccountSession(email, handoffLifetimeSeconds);
+  const launchUrl = new URL("/api/cli-live-handoff", siteOrigin(request));
+  launchUrl.searchParams.set("handoff", handoff);
+  return NextResponse.json({ launchUrl: launchUrl.toString(), expiresIn: handoffLifetimeSeconds });
+}
+
+// The browser consumes the handoff and immediately redirects, removing it from the address bar.
+export async function GET(request: NextRequest) {
+  const email = verifySignedAccountSession(request.nextUrl.searchParams.get("handoff"));
+  if (!isValidEmail(email)) {
+    return NextResponse.redirect(new URL(`${livePath}?cliHandoff=expired`, siteOrigin(request)));
+  }
+
+  const response = NextResponse.redirect(new URL(livePath, siteOrigin(request)));
+  setSignedAccountSessionCookie(response, email);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}

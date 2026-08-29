@@ -1,17 +1,16 @@
 import { AccessToken } from "livekit-server-sdk";
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { accountSessionCookieName } from "@/lib/account-session";
+import { NextRequest, NextResponse } from "next/server";
 import { getAccountRecord } from "@/lib/account-records";
 import { getActiveRobotViewingSession } from "@/lib/agentech-live-session";
 import { isAgentechCompanyEmail } from "@/lib/company-accounts";
-import { isValidEmail, normalizeEmail } from "@/lib/prototype-auth";
+import { isValidEmail } from "@/lib/prototype-auth";
+import { getServerAccountEmail } from "@/lib/server-account-session";
 
 export const dynamic = "force-dynamic";
 
 const defaultRoomName = process.env.LIVEKIT_ROOM_NAME || "aegis-lab-1";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const apiKey = process.env.LIVEKIT_API_KEY;
   const apiSecret = process.env.LIVEKIT_API_SECRET;
 
@@ -19,8 +18,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "LiveKit is not configured." }, { status: 500 });
   }
 
-  const cookieStore = await cookies();
-  const email = normalizeEmail(cookieStore.get(accountSessionCookieName)?.value);
+  const email = await getServerAccountEmail(request, { allowLegacyCookie: true });
   if (!isValidEmail(email)) {
     return NextResponse.json({ error: "Sign in before viewing the live robot session." }, { status: 401 });
   }
