@@ -29,7 +29,9 @@ async function ensureHeartbeatBucket(url: string, key: string) {
   const headers = storageHeaders(key);
   const existing = await fetch(`${url}/storage/v1/bucket/${HEARTBEAT_BUCKET}`, { headers, cache: "no-store" });
   if (existing.ok) return;
-  if (existing.status !== 404) throw new Error(`Unable to inspect Master heartbeat storage (${existing.status}).`);
+  if (existing.status !== 400 && existing.status !== 404) {
+    throw new Error(`Unable to inspect Master heartbeat storage (${existing.status}).`);
+  }
   const created = await fetch(`${url}/storage/v1/bucket`, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },

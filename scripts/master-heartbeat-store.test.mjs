@@ -57,7 +57,7 @@ test("production store creates a private JSON-only bucket when missing", async (
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url, init });
-    if (url.endsWith("/bucket/robot-heartbeats")) return new Response("missing", { status: 404 });
+    if (url.endsWith("/bucket/robot-heartbeats")) return new Response("missing", { status: 400 });
     return new Response("{}", { status: 200 });
   };
   try { await writeLatestHeartbeat(record); } finally { globalThis.fetch = originalFetch; }
