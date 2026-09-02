@@ -15,6 +15,7 @@ const HEARTBEAT_BUCKET = "robot-captures";
 const HEARTBEAT_OBJECT = "master-heartbeat/latest.json";
 
 function supabaseStorageConfig() {
+  if (process.env.NODE_ENV !== "production") return null;
   const url = process.env.SUPABASE_URL?.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   return url && key ? { url, key } : null;

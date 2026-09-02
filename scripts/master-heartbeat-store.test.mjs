@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const saved = { ...process.env };
+process.env.NODE_ENV = "production";
 process.env.SUPABASE_URL = "https://example.supabase.co/rest/v1";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-test-key";
 
