@@ -63,7 +63,10 @@ export async function POST(request: Request) {
     if (error instanceof SyntaxError || error instanceof TypeError || error instanceof RangeError) {
       return json({ error: "Invalid heartbeat payload." }, 400);
     }
-    console.error("[master-heartbeat] unable to persist heartbeat");
+    console.error(
+      "[master-heartbeat] unable to persist heartbeat",
+      error instanceof Error ? error.message : "unknown storage error",
+    );
     return json({ error: "Unable to persist heartbeat." }, 500);
   }
 }
