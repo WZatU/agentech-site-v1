@@ -192,3 +192,33 @@ export function unavailableMasterHeartbeatResponse(_now = new Date()): MasterHea
     battery: null,
   };
 }
+
+export function toMasterHeartbeatView(response: MasterHeartbeatResponse) {
+  const unavailable = response.condition === "unavailable" || !response.master;
+  const gateway = unavailable ? "Unavailable" : response.fresh ? "Online" : "Stale";
+  const controller = unavailable
+    ? "Unavailable"
+    : response.master.controllerResponsive ? "Connected" : "Unreachable";
+  let battery = "Unavailable";
+  if (response.battery?.available && response.battery.percent !== null) {
+    const charge = response.battery.charging === null
+      ? "Charging unknown"
+      : response.battery.charging ? "Charging" : "Not charging";
+    battery = `${Math.round(response.battery.percent)}% · ${charge}`;
+  }
+  let lastUpdate = "No heartbeat received";
+  if (response.ageMs !== null) {
+    const seconds = Math.floor(response.ageMs / 1000);
+    lastUpdate = seconds < 1
+      ? "Just now"
+      : seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)}m ${seconds % 60}s ago`;
+  }
+  return {
+    gateway,
+    controller,
+    battery,
+    mode: response.master?.posture || "Unavailable",
+    lastUpdate,
+    tone: response.condition,
+  };
+}

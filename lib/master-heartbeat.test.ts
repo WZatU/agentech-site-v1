@@ -5,6 +5,7 @@ import {
   toMasterHeartbeatResponse,
   unavailableMasterHeartbeatResponse,
   type MasterHeartbeatObservation,
+  toMasterHeartbeatView,
 } from "./master-heartbeat.ts";
 
 const now = new Date("2026-09-01T19:00:00.000Z");
@@ -157,4 +158,35 @@ test("returns a sanitized unavailable response before the first observation", ()
     battery: null,
   });
   assert.equal("secret" in response, false);
+});
+
+test("builds customer-facing controller and battery labels", () => {
+  const response = toMasterHeartbeatResponse(validObservation, now, now);
+  assert.deepEqual(toMasterHeartbeatView(response), {
+    gateway: "Online",
+    controller: "Connected",
+    battery: "82% · Not charging",
+    mode: "standard",
+    lastUpdate: "Just now",
+    tone: "online",
+  });
+});
+
+test("renders unavailable data honestly", () => {
+  assert.deepEqual(toMasterHeartbeatView(unavailableMasterHeartbeatResponse(now)), {
+    gateway: "Unavailable",
+    controller: "Unavailable",
+    battery: "Unavailable",
+    mode: "Unavailable",
+    lastUpdate: "No heartbeat received",
+    tone: "unavailable",
+  });
+});
+
+test("renders stale age without losing last known values", () => {
+  const stale = toMasterHeartbeatResponse(validObservation, now, new Date(now.getTime() + 65_000));
+  const view = toMasterHeartbeatView(stale);
+  assert.equal(view.gateway, "Stale");
+  assert.equal(view.lastUpdate, "1m 5s ago");
+  assert.equal(view.battery, "82% · Not charging");
 });

@@ -14,6 +14,7 @@ import { normalizeAgentechRobotModel, robotModelOptions, type AgentechRobotModel
 import { LiveRobotCamera } from "@/features/eaic/05-delivery/live-results/components/live-robot-camera";
 import { MasterMotorMap } from "@/features/eaic/01-clients/eaic-hub/components/master-motor-map";
 import { MasterJointMotionGuide } from "@/features/eaic/01-clients/eaic-hub/components/master-joint-motion-guide";
+import { MasterHeartbeat } from "@/features/eaic/01-clients/eaic-hub/components/master-heartbeat";
 import {
   buildMasterLiveTestPayload,
   getCodeCheckingRobotOptions,
@@ -1849,6 +1850,7 @@ function FocusedBrowseFunctionsSection() {
 
         {selectedRobot === "master" ? (
           <>
+            <MasterHeartbeat />
             <MasterMotorMap />
             <MasterJointMotionGuide />
           </>
