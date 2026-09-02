@@ -1,0 +1,390 @@
+/* Account only: the shared dashboard also serves robot scheduling. Keep its
+   legacy utilities intact there, and adapt them to the site tokens here. */
+[data-account-workspace] {
+  --account-action-bg: #e5edf5;
+  --account-action-text: #07111f;
+  --account-warning-surface: #241d0e;
+  --account-danger-surface: #2b1718;
+  --account-role-text: #c3afff;
+  --account-role-surface: #211c35;
+  background: var(--color-canvas);
+  color: var(--color-title);
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 400;
+}
+
+:root[data-theme="light"] [data-account-workspace] {
+  --account-action-bg: #111111;
+  --account-action-text: #ffffff;
+  --account-warning-surface: #fff7e6;
+  --account-danger-surface: #fceeee;
+  --account-role-text: #6f42c1;
+  --account-role-surface: #f2edf9;
+}
+
+body:has([data-account-workspace]),
+body:has([data-account-workspace]) main.flex-1 {
+  background: var(--color-canvas);
+}
+
+body:has([data-account-workspace])::before,
+body:has([data-account-workspace])::after,
+[data-account-workspace] [data-account-decoration] {
+  display: none;
+}
+
+/* Semantic color adapter for the dashboard's existing tab/form surfaces.
+   Status colors stay distinct; no change to authentication or data handlers. */
+[data-account-workspace] :is(.bg-white, .bg-white\/95) {
+  background-color: var(--color-surface) !important;
+}
+
+[data-account-workspace] :is(.bg-slate-50, .bg-slate-100) {
+  background-color: var(--color-surface-soft) !important;
+}
+
+[data-account-workspace] :is(.text-slate-800, .text-slate-900, .text-slate-950) {
+  color: var(--color-title) !important;
+}
+
+[data-account-workspace] :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700) {
+  color: var(--color-text-muted) !important;
+}
+
+[data-account-workspace] :is(.border-slate-200, .border-slate-300),
+[data-account-workspace] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--color-border) !important;
+}
+
+[data-account-workspace] :is(.text-\[\#2f70c8\], .text-\[\#245da7\], .text-\[\#2563eb\], .text-blue-700, .text-blue-800, .text-sky-600, .text-sky-700) {
+  color: var(--color-accent) !important;
+}
+
+[data-account-workspace] :is(.bg-\[\#f8fbff\], .bg-\[\#eff6ff\], .bg-blue-50, .bg-sky-50, .bg-sky-50\/55, .bg-sky-50\/70) {
+  background-color: var(--color-accent-soft) !important;
+}
+
+[data-account-workspace] :is(.border-\[\#2563eb\], .border-\[\#2f70c8\], .border-\[\#bfdbfe\], .border-blue-200, .border-sky-100, .border-sky-400) {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border)) !important;
+}
+
+[data-account-workspace] :is(.text-indigo-600, .text-indigo-700) {
+  color: var(--account-role-text) !important;
+}
+
+[data-account-workspace] :is(.bg-indigo-50, .bg-indigo-50\/55) {
+  background-color: var(--account-role-surface) !important;
+}
+
+[data-account-workspace] .border-indigo-100 {
+  border-color: color-mix(in srgb, var(--account-role-text) 30%, var(--color-border)) !important;
+}
+
+[data-account-workspace] :is(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900, .text-\[\#008a7a\], .text-\[\#006a5c\]) {
+  color: var(--color-success) !important;
+}
+
+[data-account-workspace] :is(.bg-emerald-50, .bg-emerald-50\/55, .bg-emerald-100, .bg-\[\#e8f7f3\]) {
+  background-color: var(--color-success-soft) !important;
+}
+
+[data-account-workspace] :is(.border-emerald-100, .border-emerald-200, .border-emerald-300, .border-emerald-500) {
+  border-color: color-mix(in srgb, var(--color-success) 40%, var(--color-border)) !important;
+}
+
+[data-account-workspace] :is(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900) {
+  color: var(--color-warning) !important;
+}
+
+[data-account-workspace] :is(.bg-amber-50, .bg-amber-50\/55, .bg-amber-100) {
+  background-color: var(--account-warning-surface) !important;
+}
+
+[data-account-workspace] :is(.border-amber-100, .border-amber-200) {
+  border-color: color-mix(in srgb, var(--color-warning) 40%, var(--color-border)) !important;
+}
+
+[data-account-workspace] :is(.text-red-600, .text-red-700, .text-red-800) {
+  color: var(--color-danger) !important;
+}
+
+[data-account-workspace] :is(.bg-red-50, .bg-red-100) {
+  background-color: var(--account-danger-surface) !important;
+}
+
+[data-account-workspace] :is(.border-red-200, .border-red-300) {
+  border-color: color-mix(in srgb, var(--color-danger) 40%, var(--color-border)) !important;
+}
+
+[data-account-workspace] :is(.font-bold, .font-black) {
+  font-weight: 600;
+}
+
+[data-account-workspace] :is(h1, h2, h3, h4) {
+  font-family: var(--font-sans), sans-serif !important;
+  letter-spacing: -0.02em;
+}
+
+[data-account-workspace] .font-technical,
+[data-account-workspace] .font-mono,
+[data-account-workspace] [data-account-tab-count],
+[data-account-workspace] [data-account-metric-value] {
+  font-family: var(--font-mono), monospace !important;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-account-workspace] :is(dd, input, textarea, select) {
+  font-weight: 400;
+}
+
+[data-account-workspace] :is(.rounded-xl, .rounded-2xl, .rounded-\[24px\], .rounded-\[18px\]) {
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+[data-account-workspace] :is(button, a) {
+  border-radius: 12px;
+}
+
+[data-account-workspace] :is(button, a):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+[data-account-workspace] :is(input, textarea, select):focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+[data-account-workspace] :is(button, a):is(.bg-\[\#2563eb\], .bg-\[\#2f70c8\], .bg-\[\#008a7a\], .bg-slate-950),
+[data-account-workspace] [data-account-action="primary"] {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background-color: var(--account-action-bg) !important;
+  color: var(--account-action-text) !important;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+[data-account-workspace] :is(button, a):is(.bg-\[\#2563eb\], .bg-\[\#2f70c8\], .bg-\[\#008a7a\], .bg-slate-950):hover:not(:disabled),
+[data-account-workspace] [data-account-action="primary"]:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--account-action-bg) 85%, var(--color-surface)) !important;
+}
+
+[data-account-workspace] [data-account-action="secondary"] {
+  border-color: var(--color-title) !important;
+  color: var(--color-title) !important;
+}
+
+[data-account-workspace] button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-account-workspace] [data-account-shell] {
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+  overflow: visible;
+}
+
+[data-account-workspace] [data-account-header] {
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 0 0 28px;
+}
+
+[data-account-workspace] [data-account-title] {
+  color: var(--color-title);
+  font-family: var(--font-brand), sans-serif !important;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+[data-account-workspace] [data-account-header] p {
+  max-width: 42rem;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+[data-account-workspace] [data-account-avatar] {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-title) !important;
+  font-weight: 500;
+}
+
+[data-account-workspace] [data-account-tab-mark],
+[data-account-workspace] [data-account-duplicate-avatar],
+[data-account-workspace] [data-account-local-signout],
+[data-account-workspace] [data-account-metric-icon],
+[data-account-workspace] [data-account-activity-icon] {
+  display: none;
+}
+
+[data-account-workspace] [data-account-tabs] {
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+[data-account-workspace] [data-account-tabs] > div {
+  gap: 28px;
+}
+
+[data-account-workspace] [data-account-tab] {
+  border-radius: 0;
+  color: var(--color-text-muted) !important;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+[data-account-workspace] [data-account-tab][aria-pressed="true"],
+[data-account-workspace] [data-account-tab]:hover {
+  color: var(--color-title) !important;
+}
+
+[data-account-workspace] [data-account-tab]:focus-visible {
+  outline-offset: -3px;
+}
+
+[data-account-workspace] [data-account-tab-count] {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface) !important;
+}
+
+[data-account-workspace] [data-account-tab-indicator] {
+  background-color: var(--color-accent);
+}
+
+[data-account-workspace] [data-account-content] {
+  padding: 28px 0 0;
+}
+
+[data-account-workspace] [data-account-overview] {
+  align-items: start;
+  gap: 24px;
+}
+
+[data-account-workspace] [data-account-panel] {
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: none;
+}
+
+[data-account-workspace] [data-account-panel] h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+[data-account-workspace] [data-account-role] {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--color-surface-soft) !important;
+  color: var(--color-text-muted) !important;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+[data-account-workspace] [data-account-role="developer"] {
+  background: var(--account-role-surface) !important;
+  color: var(--account-role-text) !important;
+}
+
+[data-account-workspace] [data-account-profile-icon] {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft) !important;
+  color: var(--color-text-muted) !important;
+}
+
+[data-account-workspace] [data-account-profile-card][aria-pressed="true"] {
+  border-color: var(--color-accent) !important;
+  box-shadow: none;
+}
+
+[data-account-workspace] [data-account-metrics] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+[data-account-workspace] [data-account-metric] {
+  min-width: 0;
+  padding: 20px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+[data-account-workspace] [data-account-metric]:nth-child(even) {
+  padding-left: 24px;
+  border-left: 1px solid var(--color-border);
+}
+
+[data-account-workspace] [data-account-metric]:nth-child(-n+2) {
+  padding-top: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+[data-account-workspace] [data-account-metric-value] {
+  font-size: 30px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+[data-account-workspace] [data-account-metric-value] + p {
+  margin-top: 8px;
+  color: var(--color-title) !important;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+[data-account-workspace] [data-account-activity-row] {
+  align-items: flex-start;
+  padding: 16px 0;
+}
+
+[data-account-workspace] [data-account-activity-row] .truncate {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+
+@media (max-width: 639px) {
+  [data-account-workspace] [data-account-panel] {
+    padding: 20px;
+  }
+
+  [data-account-workspace] [data-account-activity-row] {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  [data-account-workspace] [data-account-metric]:nth-child(even) {
+    padding-left: 16px;
+  }
+
+  [data-account-workspace] [data-account-metric-value] {
+    font-size: 26px;
+  }
+}
+
+/* The shared off-canvas menu retains a wide shadow when translated offscreen.
+   Suppress that shadow and its hidden links on Account without changing it elsewhere. */
+body:has([data-account-workspace]) [data-site-header]:has(button[aria-expanded="false"]) aside {
+  visibility: hidden;
+  box-shadow: none;
+}

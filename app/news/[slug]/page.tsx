@@ -46,10 +46,10 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   }
 
   return (
-    <article>
+    <article data-news-article className="news-theme-page">
       <NewsSlideshow images={entry.images} media={entry.media} title={entry.title} />
 
-      <div className="mx-auto max-w-4xl px-6 py-12 lg:px-8 lg:py-16">
+      <div data-news-article-copy className="mx-auto max-w-4xl px-6 py-12 lg:px-8 lg:py-16">
         <HistoryBackButton
           fallbackHref="/news"
           className="text-xs font-semibold uppercase tracking-[0.18em] text-slate transition hover:text-white"

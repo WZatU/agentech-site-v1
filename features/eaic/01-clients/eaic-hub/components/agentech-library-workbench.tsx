@@ -1605,9 +1605,25 @@ print(Agentech.get_battery_status())`
         <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="overflow-hidden rounded-[22px] border border-black/8 bg-white/70 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
             <div className="relative h-72 overflow-hidden border-b border-black/8 bg-[#faf9f6]">
+              <svg aria-hidden="true" focusable="false" width="0" height="0" className="absolute pointer-events-none">
+                <defs>
+                  <filter id="eaic-start-clean-blueprint" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+                    {/* Isolate blue ink from pale neutral extraction residue,
+                        then preserve the original transparency and geometry. */}
+                    <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3 0 3 0 -0.14" />
+                    <feComponentTransfer result="blue-ink">
+                      <feFuncA type="gamma" amplitude="1" exponent="0.65" offset="0" />
+                    </feComponentTransfer>
+                    <feComposite in="blue-ink" in2="SourceAlpha" operator="in" result="ink-mask" />
+                    <feFlood floodColor="#91cffa" />
+                    <feComposite in2="ink-mask" operator="in" />
+                  </filter>
+                </defs>
+              </svg>
               <Image
                 src="/assets/products/agentech-library/dog-blueprint-transparent-v4.png"
                 alt="Aegis robot dog blueprint"
+                data-eaic-start-blueprint="true"
                 fill
                 priority
                 sizes="(min-width: 1024px) 520px, 100vw"
@@ -1845,15 +1861,15 @@ function FocusedBrowseFunctionsSection() {
                 return (
                   <div
                     key={limit.label}
-                    data-safety-limit-kind={limit.temporary ? "temporary-boundary" : "standard"}
-                    className={limit.temporary
-                      ? "border border-[#d1a832] bg-[#fff7d6] px-3 py-2.5 text-[#55430a] shadow-[inset_3px_0_0_#c99a00]"
+                    data-safety-limit-kind={limit.temporary ? "temporary-boundary" : emphasizesCompletionVerification ? "completion-verification" : "standard"}
+                    className={limit.temporary || emphasizesCompletionVerification
+                      ? `border border-[#d1a832] bg-[#fff7d6] px-3 ${limit.temporary ? "py-2.5" : "py-2"} text-[#55430a] shadow-[inset_3px_0_0_#c99a00]`
                       : "border border-[#d8d3ca] bg-[#faf9f6] px-3 py-2 text-sm font-semibold text-[#31312f]"}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold">
                         {emphasizesCompletionVerification ? (
-                          <strong data-safety-limit-emphasis="completion-verification" className="font-bold">!<SafetyLimitLabel label={limit.label} />!</strong>
+                          <strong data-safety-limit-emphasis="completion-verification" className="font-bold"><SafetyLimitLabel label={limit.label} /></strong>
                         ) : (
                           <SafetyLimitLabel label={limit.label} />
                         )}

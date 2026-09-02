@@ -2019,12 +2019,12 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
   return (
     <>
       {selectedDashboardProfileType === "student" ? (
-        <div className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(180deg,rgba(5,8,25,0.08),rgba(5,8,25,0.18)),url('/assets/backgrounds/account-dashboard-background.png')] bg-cover bg-[right_center]" />
+        <div data-account-decoration className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(180deg,rgba(5,8,25,0.08),rgba(5,8,25,0.18)),url('/assets/backgrounds/account-dashboard-background.png')] bg-cover bg-[right_center]" />
       ) : null}
-    <div className="relative z-[1] overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-      <div className="relative z-[1] flex flex-col gap-5 px-5 pb-4 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
+    <div data-account-shell className="relative z-[1] overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <div data-account-header className="relative z-[1] flex flex-col gap-5 px-5 pb-4 pt-5 sm:px-7 md:flex-row md:items-start md:justify-between md:px-8 md:pt-7">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">
+          <h1 data-account-title className="text-[28px] font-bold leading-tight text-slate-950 sm:text-4xl">
             {focusedRobotScheduling ? "Schedule Robot Time" : "Account"}
           </h1>
           <p className="mt-2 text-sm font-medium text-slate-500">
@@ -2034,10 +2034,11 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
+          <div data-account-avatar aria-hidden="true" className={`grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br text-base font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
             {profileInitial}
           </div>
           <button
+            data-account-local-signout
             type="button"
             onClick={() => {
               clearAccountSession();
@@ -2054,7 +2055,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
       </div>
 
       {!focusedRobotScheduling ? (
-      <div className="relative z-[1] overflow-x-auto border-b border-slate-200 px-5 sm:px-7 md:px-8">
+      <div data-account-tabs aria-label="Account sections" className="relative z-[1] overflow-x-auto border-b border-slate-200 px-5 sm:px-7 md:px-8">
         <div className="flex min-w-max items-center gap-5">
           {visibleDashboardTabs.map((tab) => {
             const selected = currentTab === tab.id;
@@ -2062,6 +2063,8 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
             return (
               <button
                 key={tab.id}
+                data-account-tab
+                aria-pressed={selected}
                 type="button"
                 onClick={() => {
                   if (tab.id === "profile") {
@@ -2073,14 +2076,14 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                   selected ? "text-[#2f70c8]" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
-                <span className={`grid h-5 w-5 place-items-center rounded-full border text-[11px] ${selected ? "border-[#2f70c8] bg-[#eff6ff]" : "border-slate-300 bg-white"}`}>
+                <span data-account-tab-mark aria-hidden="true" className={`grid h-5 w-5 place-items-center rounded-full border text-[11px] ${selected ? "border-[#2f70c8] bg-[#eff6ff]" : "border-slate-300 bg-white"}`}>
                   {tab.mark}
                 </span>
                 {tab.label}
                 {typeof count === "number" && count > 0 ? (
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">{count}</span>
+                  <span data-account-tab-count className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">{count}</span>
                 ) : null}
-                {selected ? <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#2f70c8]" /> : null}
+                {selected ? <span data-account-tab-indicator className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#2f70c8]" /> : null}
               </button>
             );
           })}
@@ -2095,18 +2098,18 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
         </div>
       )}
 
-      <div className="relative z-[1] space-y-6 p-5 sm:p-7 md:p-8">
+      <div data-account-content className="relative z-[1] space-y-6 p-5 sm:p-7 md:p-8">
         {currentTab === "profile" ? (
-          <section className="grid gap-5 lg:grid-cols-[0.82fr_1.35fr]">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+          <section data-account-overview className="grid gap-5 lg:grid-cols-[0.82fr_1.35fr]">
+            <div data-account-panel="information" className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-slate-950">Account Information</h2>
-                  <p className={`mt-2 text-xs font-bold uppercase ${selectedVisual?.accent ?? "text-slate-500"}`}>
+                  <p data-account-role={selectedDashboardProfileType ?? "owner"} className={`mt-2 text-xs font-bold uppercase ${selectedVisual?.accent ?? "text-slate-500"}`}>
                     {selectedDashboardProfile ? `${getProfileOptionLabel(selectedDashboardProfile.profile_type)} selected` : "Account owner"}
                   </p>
                 </div>
-                <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br text-xl font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
+                <div data-account-duplicate-avatar className={`grid h-16 w-16 shrink-0 place-items-center rounded-full bg-gradient-to-br text-xl font-bold ${selectedVisual?.avatar ?? accountAvatar}`}>
                   {profileInitial}
                 </div>
               </div>
@@ -2166,6 +2169,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                     <button
                       type="button"
                       onClick={saveAccount}
+                      data-account-action="primary"
                       disabled={savingAccount}
                       className="flex-1 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
@@ -2174,6 +2178,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                     <button
                       type="button"
                       onClick={cancelEditingAccount}
+                      data-account-action="secondary"
                       className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-[#2f70c8] hover:text-[#2f70c8]"
                     >
                       Cancel
@@ -2216,6 +2221,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                   <button
                     type="button"
                     onClick={startEditingAccount}
+                    data-account-action="primary"
                     className="mt-7 w-full rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
                   >
                     Edit Account
@@ -2224,21 +2230,21 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
               )}
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+            <div data-account-panel="overview" className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
               <h2 className="text-base font-bold text-slate-950">Account Overview</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div data-account-metrics className="mt-4 grid gap-4 sm:grid-cols-2">
                 {[
                   { icon: "$", label: "credits", value: Math.max(0, Math.floor(creditBalance)).toLocaleString(), helper: `${formatUsd(creditBalance / 100)} USD`, visual: profileVisuals.teacher },
                   roleMetric,
                   { icon: "I", label: "Invoices", value: invoiceTotal.toLocaleString(), helper: hasInvoices ? "Official records" : "No invoices yet", visual: profileVisuals.talent },
                   { icon: "B", label: "Total Spent", value: formatUsd(totalSpent), helper: (data.unpaidBalance?.total ?? 0) > 0 ? `${formatUsd(data.unpaidBalance?.total ?? 0)} in cart` : "No amount due", visual: profileVisuals.student }
                 ].map((card) => (
-                  <div key={card.label} className="flex min-h-24 items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                    <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-lg font-bold ${card.visual.iconBg} ${card.visual.iconText}`}>
+                  <div data-account-metric key={card.label} className="flex min-h-24 items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                    <div data-account-metric-icon aria-hidden="true" className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-lg font-bold ${card.visual.iconBg} ${card.visual.iconText}`}>
                       {card.icon}
                     </div>
                     <div>
-                      <p className="font-technical text-2xl font-bold leading-none text-slate-950">{card.value}</p>
+                      <p data-account-metric-value className="font-technical text-2xl font-bold leading-none text-slate-950">{card.value}</p>
                       <p className="mt-1 text-sm font-bold text-slate-600">{card.label}</p>
                       <p className="mt-1 text-xs font-medium text-slate-500">{card.helper}</p>
                     </div>
@@ -2246,14 +2252,14 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                 ))}
               </div>
 
-              <div className="mt-6">
+              <div data-account-activity className="mt-6">
                 <h3 className="text-sm font-bold text-slate-950">Recent Activity</h3>
                 <div className="mt-3 divide-y divide-slate-100">
                   {recentActivity.length ? (
                     recentActivity.map((activity) => (
-                      <div key={activity.key} className="flex items-center justify-between gap-4 py-3">
+                      <div data-account-activity-row key={activity.key} className="flex items-center justify-between gap-4 py-3">
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-bold ${activity.visual.iconBg} ${activity.visual.iconText}`}>
+                          <span data-account-activity-icon aria-hidden="true" className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-bold ${activity.visual.iconBg} ${activity.visual.iconText}`}>
                             {activity.icon}
                           </span>
                           <div className="min-w-0">
@@ -3395,6 +3401,8 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
             return (
               <button
                 key={profile.id}
+                data-account-profile-card
+                aria-pressed={selected}
                 type="button"
                 onClick={() => {
                   setSelectedDashboardProfileId(profile.id);
@@ -3407,10 +3415,10 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className={`grid h-14 w-14 place-items-center rounded-2xl text-sm font-black ${visual.iconBg} ${visual.iconText}`}>
+                  <div data-account-profile-icon aria-hidden="true" className={`grid h-14 w-14 place-items-center rounded-2xl text-sm font-black ${visual.iconBg} ${visual.iconText}`}>
                     {getProfileMark(profile.profile_type)}
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${visual.iconBg} ${visual.iconText}`}>
+                  <span data-account-role={profile.profile_type} className={`rounded-full px-3 py-1 text-xs font-bold ${visual.iconBg} ${visual.iconText}`}>
                     {getProfileOptionLabel(profile.profile_type)}
                   </span>
                 </div>

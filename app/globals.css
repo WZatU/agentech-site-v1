@@ -728,6 +728,11 @@ select {
   background: #11151b !important;
 }
 
+/* Keep the original light artwork; on dark, show blue ink without white/gray residue. */
+:root[data-theme="dark"] .eaic-task-theme [data-eaic-start-blueprint] {
+  filter: url("#eaic-start-clean-blueprint");
+}
+
 :root[data-theme="dark"] .eaic-task-theme [class*="bg-[#efede8]"] {
   background: #1e252d !important;
 }
@@ -775,7 +780,8 @@ select {
   color: #e5edf5 !important;
 }
 
-:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=temporary-boundary] {
+:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=temporary-boundary],
+:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=completion-verification] {
   background-color: #20190a !important;
   border-color: #7a5d1f !important;
   color: #f2cf67 !important;
@@ -866,6 +872,143 @@ select {
 :root[data-theme="dark"] .eaic-task-theme textarea,
 :root[data-theme="dark"] .eaic-task-theme select {
   color-scheme: dark;
+}
+
+/* Team: retain the original dark gradients while providing a complete light palette. */
+:root[data-theme="light"] .about-theme-page {
+  background: #f5f4f1;
+  color: #111111;
+}
+
+:root[data-theme="light"] .about-theme-page [data-about-ambient] {
+  opacity: 0.45;
+}
+
+:root[data-theme="light"] .about-theme-page [data-about-heading] {
+  color: #111111;
+}
+
+:root[data-theme="light"] .about-theme-page [data-about-kicker] {
+  color: #1a73e8;
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-card] {
+  background-color: #ffffff;
+  border-color: #d8d3ca;
+  box-shadow: 0 12px 36px rgba(17, 17, 17, 0.06);
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-card]:hover {
+  border-color: #91b9e8;
+  box-shadow: 0 18px 42px rgba(17, 17, 17, 0.09);
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-group] {
+  color: #526174;
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-role] {
+  color: #007d6f;
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-orbit] {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: #cbd5e1;
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-card]:hover [data-team-orbit] {
+  border-color: #91b9e8;
+}
+
+:root[data-theme="light"] .about-theme-page [data-team-spark] {
+  background: #1a73e8;
+  box-shadow: 0 0 14px rgba(26, 115, 232, 0.14);
+}
+
+/* News: keep the existing light list, and theme the article reading controls in both modes. */
+:root[data-theme="dark"] .news-theme-page {
+  background: #040607;
+  border-color: #2a3440;
+  color: #d8e1ef;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-card] {
+  background: #0d1117;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24), inset 0 0 0 1px #2a3440;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-card]:hover,
+:root[data-theme="dark"] .news-theme-page [data-news-card]:focus-visible {
+  background: #11151b;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3), inset 0 0 0 1px #425365;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-title] {
+  color: #e5edf5;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-kicker],
+:root[data-theme="dark"] .news-theme-page [data-news-meta] {
+  color: #aeb8c2;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-author],
+:root[data-theme="dark"] .news-theme-page [data-news-read-more] {
+  color: #91dfff;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-excerpt] {
+  color: #c1cbd7;
+}
+
+:root[data-theme="dark"] .news-theme-page [data-news-thumbnail] {
+  background: #11151b;
+}
+
+.news-theme-page[data-news-article] {
+  background: var(--color-canvas);
+  color: var(--color-text);
+}
+
+.news-theme-page [data-news-article-copy] [data-news-title] {
+  color: var(--color-title);
+}
+
+.news-theme-page [data-news-article-copy] [data-news-meta] {
+  color: var(--color-text-secondary);
+}
+
+.news-theme-page [data-news-article-copy] [data-news-author] {
+  color: var(--color-accent);
+}
+
+.news-theme-page [data-news-body] {
+  color: var(--color-text);
+}
+
+.news-theme-page [data-news-language-group] {
+  background: var(--color-surface-soft);
+  border-color: var(--color-border-strong);
+}
+
+.news-theme-page [data-news-language] {
+  background: transparent;
+  color: var(--color-text) !important;
+}
+
+.news-theme-page [data-news-language]:hover {
+  background: var(--color-surface-hover);
+}
+
+.news-theme-page [data-news-language][aria-pressed="true"] {
+  background: var(--color-title);
+  color: var(--color-canvas) !important;
+}
+
+.news-theme-page [data-news-language]:focus-visible,
+.news-theme-page [data-news-card]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .theme-switcher {

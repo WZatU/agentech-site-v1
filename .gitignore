@@ -5,6 +5,8 @@
 .tmp
 node_modules
 out
+output/
+*.blend1
 dist
 .DS_Store
 *.log

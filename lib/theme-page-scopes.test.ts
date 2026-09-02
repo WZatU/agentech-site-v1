@@ -135,6 +135,26 @@ test("the light theme keeps the global navigation solid and crisp", async () => 
   );
 });
 
+test("EAIC workflow SDK accent stays as vivid and readable as the other dark steps", async () => {
+  const { workflowAccentPalette, contrastRatio } = await import("./eaic-workflow-palette.ts");
+  const sdkAccent = workflowAccentPalette[1].dark;
+  const peerAccents = workflowAccentPalette.filter((_, index) => index !== 1).map(({ dark }) => dark);
+  const channelSpread = (hex: string) => {
+    const channels = hex.slice(1).match(/../g)!.map((channel) => Number.parseInt(channel, 16));
+    return Math.max(...channels) - Math.min(...channels);
+  };
+
+  // Keep the blue accent in the existing steps' intensity range, not washed out or overpowering.
+  const peerSpreads = peerAccents.map(channelSpread);
+  assert.ok(channelSpread(sdkAccent) >= Math.min(...peerSpreads), "Step 02 must not look grayer than every peer");
+  assert.ok(channelSpread(sdkAccent) <= Math.max(...peerSpreads), "Step 02 must not overpower the other accents");
+
+  const peerContrast = peerAccents.map((color) => contrastRatio(color, "#050b10"));
+  const sdkContrast = contrastRatio(sdkAccent, "#050b10");
+  assert.ok(sdkContrast >= Math.min(...peerContrast), "Step 02 must not be dimmer than every peer");
+  assert.ok(sdkContrast <= Math.max(...peerContrast), "Step 02 must stay within the existing brightness range");
+});
+
 test("EAIC workflow light accents keep their hues while meeting AA contrast on white", async () => {
   const [paletteModule, css] = await Promise.all([
     import("./eaic-workflow-palette.ts").catch(() => null),

@@ -4,6 +4,7 @@ import { once } from "node:events";
 import { createServer } from "node:net";
 import test from "node:test";
 import postcss from "postcss";
+import sharp from "sharp";
 
 const taskRoutes = [
   ["Start Coding", "/agentech-products/eaic-hub/start-coding"],
@@ -284,11 +285,34 @@ test("keeps Code Certification error and locked states dark and legible", async 
   );
 });
 
-test("emphasizes the live-gesture completion warning with bold bookending exclamation marks", () => {
+test("emphasizes the live-gesture completion warning without bookending exclamation marks", () => {
   const html = (pages.get("/agentech-products/eaic-hub/view-sdk") ?? "").replaceAll("<!-- -->", "");
   assert.match(
     html,
-    /data-safety-limit-emphasis="completion-verification"[^>]*font-bold[^>]*>!Every live gesture waits for completion and verifies stable standing again!<\/strong>/,
+    /data-safety-limit-emphasis="completion-verification"[^>]*font-bold[^>]*>Every live gesture waits for completion and verifies stable standing again<\/strong>/,
+  );
+});
+
+test("highlights the completion warning with the boundary palette while keeping ordinary limits neutral", async () => {
+  const { html, stylesheet } = await loadPageStylesheet("/agentech-products/eaic-hub/view-sdk");
+  const warning = html.match(/<div\b[^>]*data-safety-limit-kind="completion-verification"[^>]*>/)?.[0] ?? "";
+
+  assert.notEqual(warning, "", "the completion warning should have its own highlighted row");
+  assert.match(warning, /border-\[#d1a832\]/);
+  assert.match(warning, /bg-\[#fff7d6\]/);
+  assert.match(warning, /text-\[#55430a\]/);
+  assert.match(warning, /shadow-\[inset_3px_0_0_#c99a00\]/);
+  assert.match(warning, /\bpy-2\b(?!\.)/, "the completion row should keep its original vertical padding");
+  assert.equal((html.match(/data-safety-limit-kind="standard"/g) ?? []).length, 3);
+  assert.doesNotMatch(html, /data-safety-limit-kind="temporary-boundary"/, "the Master completion warning is not a temporary boundary");
+
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-safety-limit-kind=completion-verification]"]),
+    {
+      "background-color": "#20190a",
+      "border-color": "#7a5d1f",
+      color: "#f2cf67",
+    },
   );
 });
 
@@ -297,6 +321,46 @@ test("renders Start Coding with the regenerated transparent Aegis blueprint", ()
   assert.match(html, /dog-blueprint-transparent-v4\.png/);
   assert.doesNotMatch(html, /dog-blueprint\.png/);
   assert.match(html, /<link rel="preload" as="image"[^>]*dog-blueprint-transparent-v4\.png/, "the above-the-fold robot image should be preloaded");
+});
+
+test("cleans Start Coding blueprint ink only in dark mode", async () => {
+  const { html, stylesheet } = await loadPageStylesheet(taskRoutes[0][1]);
+  const imageTag = [...html.matchAll(/<img\b[^>]*>/g)]
+    .map(([tag]) => tag)
+    .find((tag) => tag.includes("dog-blueprint-transparent-v4.png"));
+  assert.ok(imageTag?.includes('data-eaic-start-blueprint="true"'), "the Start Coding blueprint needs a scoped rendering hook");
+
+  const { filter } = darkRuleDeclarations(stylesheet, [".eaic-task-theme", "[data-eaic-start-blueprint]"]);
+  const filterId = filter?.match(/url\(["']?#([^"')]+)["']?\)/)?.[1];
+  assert.ok(filterId, "dark mode should apply the clean-linework filter");
+  stylesheet.walkRules((rule) => {
+    if (!rule.selector.includes("[data-eaic-start-blueprint]")) return;
+    assert.match(rule.selector, /\[data-theme=(?:"dark"|dark)\]/, "light mode must keep the original image rendering");
+  });
+
+  const filterMarkup = [...html.matchAll(/<filter\b[^>]*>[\s\S]*?<\/filter>/g)]
+    .map(([markup]) => markup)
+    .find((markup) => markup.includes(`id="${filterId}"`));
+  assert.ok(filterMarkup, "the referenced filter must be rendered with the blueprint");
+
+  // Exercise the actual emitted filter with representative source pixels, not
+  // duplicated filter constants. Alpha is the visibility on the dark canvas.
+  const inks = [
+    ["#1d73a2", 1], // Primary robot outline.
+    ["#84c1dc", 0.8], // Lighter mechanical detail.
+    ["#ffffff", 0.5], // White reflection / extraction residue.
+    ["#e4eaef", 0.7], // Near-neutral pale sketch line.
+    ["#c6dce8", 0.45], // Subtle blue ground grid.
+    ["#1d73a2", 0], // Fully transparent source must stay transparent.
+  ];
+  const fixture = `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="10"><defs>${filterMarkup}</defs><g filter="url(#${filterId})">${inks.map(([color, opacity], index) => `<rect x="${index * 10}" width="10" height="10" fill="${color}" fill-opacity="${opacity}"/>`).join("")}</g></svg>`;
+  const { data, info } = await sharp(Buffer.from(fixture)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const alpha = (index) => data[(5 * info.width + index * 10 + 5) * info.channels + 3];
+  assert.ok(alpha(0) >= 180, "primary blue outlines must stay prominent");
+  assert.ok(alpha(1) >= 55, "lighter mechanical detail must remain visible");
+  assert.ok(alpha(2) <= 5 && alpha(3) <= 5, "white and gray sketch residue must disappear");
+  assert.ok(alpha(4) >= 5 && alpha(4) < alpha(0) * 0.25, "the ground grid should remain faint, below the robot outline");
+  assert.equal(alpha(5), 0, "transparent areas must remain transparent");
 });
 
 test("renders the EAIC Hub hero with the approved refined Aegis blueprint", async () => {

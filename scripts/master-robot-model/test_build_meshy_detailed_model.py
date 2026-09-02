@@ -281,5 +281,76 @@ class MeshyDetailedModelBuildTest(unittest.TestCase):
         self.assertFalse(manifest["rigged"])
 
 
+class HeadReferenceContourTest(unittest.TestCase):
+    """Catch the square-box silhouette and flat screen seen in the old head."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if not BLENDER.is_file():
+            raise unittest.SkipTest("Blender is not installed")
+        expression = f"""
+import bpy, importlib.util, json
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
+spec = importlib.util.spec_from_file_location('robot_builder', {str(SCRIPT)!r})
+builder = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(builder)
+builder.add_head_details(builder.build_materials())
+bpy.context.view_layer.update()
+result = {{obj.name: {{'vertices': [list(obj.matrix_world @ vertex.co) for vertex in obj.data.vertices],
+                      'minimum_face_area': min(poly.area for poly in obj.data.polygons),
+                      'smooth': all(poly.use_smooth for poly in obj.data.polygons)}}
+          for obj in bpy.context.scene.objects if obj.type == 'MESH'}}
+print('HEAD_GEOMETRY=' + json.dumps(result))
+"""
+        result = subprocess.run(
+            [str(BLENDER), "--background", "--factory-startup", "--python-expr", expression],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode:
+            raise AssertionError(result.stdout + result.stderr)
+        cls.geometry = json.loads(next(line.split("=", 1)[1] for line in result.stdout.splitlines()
+                                      if line.startswith("HEAD_GEOMETRY=")))
+
+    def test_crown_is_a_continuous_dome_instead_of_a_flat_box(self) -> None:
+        vertices = self.geometry["Head_Housing_Rounded"]["vertices"]
+        top = max(point[2] for point in vertices)
+        crown = [point[0] for point in vertices if point[2] > top - 0.001]
+        self.assertLess(max(crown) - min(crown), 0.055,
+                        "the crown still has the broad flat top of a beveled cube")
+        self.assertTrue(self.geometry["Head_Housing_Rounded"]["smooth"],
+                        "head-shell faces must shade smoothly")
+
+    def test_chin_tapers_and_rear_shell_curves_in_under_the_crown(self) -> None:
+        vertices = self.geometry["Head_Housing_Rounded"]["vertices"]
+        middle = [point for point in vertices if 0.495 <= point[2] <= 0.615]
+        lower = [point for point in vertices if point[2] < 0.492]
+        upper = [point for point in vertices if point[2] > 0.623]
+        middle_width = max(point[1] for point in middle) - min(point[1] for point in middle)
+        lower_width = max(point[1] for point in lower) - min(point[1] for point in lower)
+        self.assertLess(lower_width, middle_width - 0.020,
+                        "the chin must narrow rather than retain square-box width")
+        self.assertGreater(min(point[0] for point in upper),
+                           min(point[0] for point in middle) + 0.020,
+                           "the rear profile must round forward into the crown")
+
+    def test_screen_is_convex_and_side_insets_follow_the_shell(self) -> None:
+        screen = self.geometry["Face_Screen"]["vertices"]
+        center = [point[0] for point in screen if abs(point[1]) < 0.012 and abs(point[2] - 0.553) < 0.014]
+        edge = [point[0] for point in screen if abs(point[1]) > 0.048]
+        self.assertTrue(center, "the screen needs a curved surface, not one flat n-gon")
+        self.assertGreater(max(center), max(edge) + 0.002)
+        for name in ("Head_Side_Inset_Left", "Head_Side_Inset_Right"):
+            self.assertIn(name, self.geometry)
+            points = self.geometry[name]["vertices"]
+            self.assertLess(max(abs(point[1]) for point in points), 0.081,
+                            "side insets must sit flush, not protrude as ear cups")
+
+    def test_face_surfaces_have_no_collapsed_corner_faces(self) -> None:
+        for name in ("Face_Screen", "Eye_Left", "Eye_Right", "Top_Sensor_Brow", "Face_Lower_Groove"):
+            self.assertGreater(self.geometry[name]["minimum_face_area"], 1e-12,
+                               f"{name} contains collapsed faces that pinch the highlights")
+
+
 if __name__ == "__main__":
     unittest.main()

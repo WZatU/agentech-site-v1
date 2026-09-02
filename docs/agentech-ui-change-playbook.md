@@ -125,3 +125,14 @@ Success means HTTP `200`, the effective URL remains the Agentech URL, the expect
 - Treating HTTP `200` as sufficient when the response body is actually a Vercel login page.
 - Redeploying the same anonymous alias without checking its remaining expiration time.
 - Running a stale server on port `3000` and assuming it contains the latest code.
+
+## Account Workspace Styling (2026-09-02)
+
+- Route: `/account`; scope: `[data-account-workspace]`; styles: `app/account/account-workspace.css`.
+- Shared markup remains in `components/account-dashboard.tsx`. Its `data-account-*` hooks have no styling effect on the separate robot-scheduling route.
+- Use the site's existing theme tokens: light canvas `#f5f4f1`, white surface, `#d8d3ca` border, black title/action, blue active underline. The theme adapter covers existing account-tab utilities without editing their business logic.
+- Oxanium 600: Account heading only. Manrope 400/500/600: interface, subheadings and personal information. IBM Plex Mono 500: metrics, balances, counts and identifiers (only 400/500 are loaded).
+- Controls use 12px corners. Overview metrics are a flat 2×2 grid; hide redundant avatars, dashboard sign-out and letter icons. Developer purple is a small role badge, not a metric-tile palette.
+- Focused regression: `node --test scripts/account-workspace-theme.test.mjs` plus `lib/account-dashboard-profile-selection.test.ts`.
+- Browser fixture: `/account?previewProfile=teacher` on a **development** server, then select the Developer Lab profile to inspect developer tabs. The existing `developer` fixture uses a gateway-owner email and redirects to the admin console. Never submit/save preview forms. Production must ignore `previewProfile`.
+- Test desktop/mobile, Light/Dark, edit/cancel, horizontal tab scrolling, and ensure the closed mobile drawer has no residual shadow. If parallel work is rebuilding `.next`, stage a temporary source copy for the production build instead of interrupting another process.

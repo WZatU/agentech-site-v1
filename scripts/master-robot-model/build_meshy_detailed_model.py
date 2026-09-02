@@ -456,65 +456,202 @@ def prepare_source_robot(materials: dict[str, bpy.types.Material]) -> bpy.types.
     return root
 
 
+# Height, rear X, front X, half-width.  Front is +X.  The reference has a
+# nearly upright face and a swept occiput, not a symmetric rounded cuboid.
+HEAD_SECTIONS = (
+    (0.464, 0.001, 0.030, 0.020),
+    (0.471, -0.025, 0.056, 0.041),
+    (0.482, -0.048, 0.078, 0.055),
+    (0.494, -0.064, 0.088, 0.065),
+    (0.518, -0.080, 0.092, 0.074),
+    (0.546, -0.088, 0.094, 0.077),
+    (0.570, -0.087, 0.094, 0.077),
+    (0.594, -0.078, 0.094, 0.074),
+    (0.614, -0.058, 0.092, 0.069),
+    (0.630, -0.033, 0.086, 0.057),
+    (0.641, -0.006, 0.072, 0.041),
+    (0.647, 0.015, 0.052, 0.022),
+    (0.649, 0.031, 0.033, 0.001),
+)
+HEAD_FRONT_EXPONENT = 0.60
+HEAD_REAR_EXPONENT = 0.92
+
+
+def head_section(z: float) -> tuple[float, float, float]:
+    """Monotone cubic loft: continuous slopes without overshoot at the chin."""
+    rows = HEAD_SECTIONS
+    z = max(rows[0][0], min(rows[-1][0], z))
+    index = next((i for i in range(len(rows) - 1) if z <= rows[i + 1][0]), len(rows) - 2)
+    h = rows[index + 1][0] - rows[index][0]
+    t = (z - rows[index][0]) / h
+    values = []
+    for column in (1, 2, 3):
+        slopes = [(b[column] - a[column]) / (b[0] - a[0]) for a, b in zip(rows, rows[1:])]
+        tangents = [slopes[0]]
+        for i in range(1, len(rows) - 1):
+            left, right = slopes[i - 1], slopes[i]
+            if left * right <= 0.0:
+                tangents.append(0.0)
+            else:
+                h0, h1 = rows[i][0] - rows[i - 1][0], rows[i + 1][0] - rows[i][0]
+                w0, w1 = 2 * h1 + h0, h1 + 2 * h0
+                tangents.append((w0 + w1) / (w0 / left + w1 / right))
+        tangents.append(slopes[-1])
+        values.append((2*t**3 - 3*t**2 + 1)*rows[index][column]
+                      + (t**3 - 2*t**2 + t)*h*tangents[index]
+                      + (-2*t**3 + 3*t**2)*rows[index + 1][column]
+                      + (t**3 - t**2)*h*tangents[index + 1])
+    return tuple(values)
+
+
+def head_front_x(y: float, z: float) -> float:
+    rear, front, width = head_section(z)
+    center = (rear + front) * 0.5
+    sine = min(abs(y) / width, 1.0) ** (1.0 / HEAD_FRONT_EXPONENT)
+    return center + (front - center) * max(0.0, 1.0 - sine*sine) ** (HEAD_FRONT_EXPONENT * 0.5)
+
+
+def add_head_surface(name, vertices, faces, material, parent):
+    mesh = bpy.data.meshes.new(f"{name}_Rounded_Profile_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    for polygon in mesh.polygons:
+        polygon.use_smooth = True
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    assign_material(obj, material)
+    parent_keep_world(obj, parent)
+    return obj
+
+
+def add_head_housing(materials, parent):
+    segments = 96
+    heights = [a[0] + (b[0] - a[0]) * step / 6
+               for a, b in zip(HEAD_SECTIONS, HEAD_SECTIONS[1:]) for step in range(6)]
+    heights.append(HEAD_SECTIONS[-1][0])
+    vertices = []
+    for z in heights:
+        rear, front, width = head_section(z)
+        center = (rear + front) * 0.5
+        for segment in range(segments):
+            angle = math.tau * segment / segments
+            cosine, sine = math.cos(angle), math.sin(angle)
+            exponent = HEAD_FRONT_EXPONENT if cosine >= 0 else HEAD_REAR_EXPONENT
+            x = center + (front - rear) * 0.5 * math.copysign(abs(cosine)**exponent, cosine)
+            y = width * math.copysign(abs(sine)**exponent, sine)
+            vertices.append((x, y, z))
+    faces = []
+    for row in range(len(heights) - 1):
+        for segment in range(segments):
+            a = row * segments + segment
+            b = row * segments + (segment + 1) % segments
+            faces.append((a, b, b + segments, a + segments))
+    faces.append(tuple(reversed(range(segments))))
+    faces.append(tuple((len(heights) - 1) * segments + i for i in range(segments)))
+    shell = add_head_surface("Head_Housing_Rounded", vertices, faces, materials["black"], parent)
+    shell["reference_shape"] = "D-profile: arched crown, rounded rear, tapered chin"
+
+    # Small flush rounded-triangular side panels, projected onto the actual
+    # shell rather than attached cylinders or floating planar ear pieces.
+    outline = ((-.059, .544), (-.053, .568), (-.032, .594), (.000, .609),
+               (.030, .603), (.054, .581), (.061, .549), (.056, .515),
+               (.039, .500), (.010, .504), (-.027, .522))
+    boundary = []
+    for i, p1 in enumerate(outline):
+        p0, p2, p3 = outline[i - 1], outline[(i + 1) % len(outline)], outline[(i + 2) % len(outline)]
+        for step in range(8):
+            t = step / 8
+            boundary.append(tuple(0.5 * ((2*p1[k]) + (-p0[k] + p2[k])*t
+                                  + (2*p0[k] - 5*p1[k] + 4*p2[k] - p3[k])*t*t
+                                  + (-p0[k] + 3*p1[k] - 3*p2[k] + p3[k])*t**3) for k in (0, 1)))
+    for sign, name in ((1, "Left"), (-1, "Right")):
+        def project(x, z):
+            rear, front, width = head_section(z)
+            center = (rear + front) * 0.5
+            exponent = HEAD_FRONT_EXPONENT if x >= center else HEAD_REAR_EXPONENT
+            cosine = min(abs((x - center) / ((front - rear) * 0.5)), 1.0)**(1.0/exponent)
+            y = width * max(0.0, 1.0 - cosine*cosine)**(exponent*0.5)
+            return (x, sign*(y + 0.00065), z)
+        points = [project(.003, .553)]
+        for ring in range(1, 9):
+            r = ring / 8
+            points.extend(project(.003 + (x - .003)*r, .553 + (z - .553)*r) for x, z in boundary)
+        count = len(boundary)
+        panels = [(0, 1 + i, 1 + (i + 1) % count) for i in range(count)]
+        for ring in range(7):
+            for i in range(count):
+                a, b = 1 + ring*count + i, 1 + ring*count + (i + 1) % count
+                panels.append((a, a + count, b + count, b))
+        if sign < 0:
+            panels = [tuple(reversed(face)) for face in panels]
+        add_head_surface(f"Head_Side_Inset_{name}", points, panels, materials["rubber"], parent)
+
+
+def add_curved_face_panel(name, center_y, center_z, width, height, radius, lift, material, parent):
+    """Tessellate a rounded rectangular patch that follows the curved face."""
+    outline = []
+    for cy, cz, angle in ((width/2-radius, height/2-radius, 0),
+                          (-width/2+radius, height/2-radius, math.pi/2),
+                          (-width/2+radius, -height/2+radius, math.pi),
+                          (width/2-radius, -height/2+radius, 3*math.pi/2)):
+        # Exclude each arc endpoint: capsule corners can share a center, and
+        # duplicate endpoints otherwise create zero-area faces after solidify.
+        for step in range(12):
+            a = angle + math.pi/2*step/12
+            outline.append((cy + radius*math.cos(a), cz + radius*math.sin(a)))
+    vertices = [(head_front_x(center_y, center_z) + lift, center_y, center_z)]
+    radial_rings = 16
+    for ring in range(1, radial_rings + 1):
+        r = ring/radial_rings
+        for dy, dz in outline:
+            y, z = center_y + dy*r, center_z + dz*r
+            vertices.append((head_front_x(y, z) + lift, y, z))
+    count = len(outline)
+    faces = [(0, 1+i, 1+(i+1) % count) for i in range(count)]
+    for ring in range(radial_rings - 1):
+        for i in range(count):
+            a, b = 1+ring*count+i, 1+ring*count+(i+1) % count
+            faces.append((a, a+count, b+count, b))
+    panel = add_head_surface(name, vertices, faces, material, parent)
+    thickness = panel.modifiers.new("Inset panel thickness", "SOLIDIFY")
+    thickness.thickness = 0.0008
+    thickness.offset = -1.0
+    apply_modifier(panel, thickness)
+    return panel
+
+
 def add_head_details(materials: dict[str, bpy.types.Material]) -> None:
     parent = bpy.data.objects.get("head_pitch_link")
-    add_rounded_box(
-        "Head_Housing_Rounded",
-        (0.006, 0.0, 0.554),
-        (0.172, 0.154, 0.178),
-        materials["black"],
-        0.034,
-        parent,
-    )
-    add_rounded_panel(
-        "Face_Screen",
-        (0.0915, 0.0, 0.553),
-        (0.006, 0.112, 0.088),
-        0.020,
-        materials["glass"],
-        parent,
-    )
-    add_rounded_panel(
-        "Eye_Left",
-        (0.095, 0.026, 0.561),
-        (0.005, 0.020, 0.042),
-        0.010,
-        materials["eye"],
-        parent,
-    )
-    add_rounded_panel(
-        "Eye_Right",
-        (0.095, -0.026, 0.561),
-        (0.005, 0.020, 0.042),
-        0.010,
-        materials["eye"],
-        parent,
-    )
-
-    add_rounded_panel(
-        "Top_Sensor_Brow",
-        (0.089, 0.0, 0.612),
-        (0.008, 0.104, 0.026),
-        0.010,
-        materials["black"],
-        parent,
-    )
-
-    for name, y in (
-        ("Top_Camera_Left", 0.034),
-        ("Top_Camera_Center", 0.0),
-        ("Top_Camera_Right", -0.034),
-    ):
-        add_cylinder(name, (0.095, y, 0.613), 0.006, 0.004, materials["glass"], parent)
-
-    add_rounded_panel(
-        "Face_Lower_Groove",
-        (0.092, 0.0, 0.505),
-        (0.006, 0.060, 0.009),
-        0.0045,
-        materials["metal"],
-        parent,
-    )
+    # Keep the rest of the robot's palette unchanged.  The head reference has
+    # a satin molded shell, not the highly reflective metal of the mechanisms.
+    materials = dict(materials)
+    materials["black"] = make_material("Meshy Head Satin Graphite", {
+        "Base Color": (.007, .009, .013, 1.0), "Metallic": .20,
+        "Roughness": .34, "Specular IOR Level": .30,
+        "Coat Weight": .15, "Coat Roughness": .20,
+    })
+    materials["rubber"] = make_material("Meshy Head Matte Inset", {
+        "Base Color": (.0015, .0018, .0025, 1.0), "Metallic": 0.0,
+        "Roughness": .78, "Specular IOR Level": .12,
+    })
+    # Replace the outer shell in this derived scene; preserve the articulated
+    # head/neck transforms and leave the original source .blend untouched.
+    for name in ("head_pitch_link__visual", "rgb_head_center__visual", "rgb_head_rear__visual",
+                 "rgbd_head_front__visual", "stereo_head_front__visual"):
+        old = bpy.data.objects.get(name)
+        if old is not None:
+            bpy.data.objects.remove(old, do_unlink=True)
+    add_head_housing(materials, parent)
+    add_curved_face_panel("Face_Screen", 0.0, 0.553, .112, .088, .020, .0028, materials["glass"], parent)
+    for name, y in (("Eye_Left", .026), ("Eye_Right", -.026)):
+        add_curved_face_panel(name, y, .561, .020, .038, .010, .0043, materials["eye"], parent)
+    add_curved_face_panel("Top_Sensor_Brow", 0.0, .613, .104, .026, .011, .0020, materials["rubber"], parent)
+    for name, y, radius in (("Top_Camera_Left", .034, .0075),
+                            ("Top_Camera_Center", 0.0, .004),
+                            ("Top_Camera_Right", -.034, .0075)):
+        add_uv_sphere(name, (head_front_x(y, .613) + .002, y, .613),
+                      (.0030, radius, radius), materials["glass"], parent)
+    add_curved_face_panel("Face_Lower_Groove", 0.0, .500, .062, .010, .005, .0011, materials["rubber"], parent)
 
 
 def add_chest_details(materials: dict[str, bpy.types.Material]) -> None:
