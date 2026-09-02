@@ -3361,6 +3361,8 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   </button>
                 ) : null}
                 <label
+                  data-code-upload-zone="true"
+                  data-code-upload-state={isDraggingCodeFile ? "dragging" : reviewInputError ? "error" : "idle"}
                   onDragEnter={(event) => {
                     event.preventDefault();
                     setIsDraggingCodeFile(true);
@@ -3384,11 +3386,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         : "border-black/10 bg-[#faf9f6] hover:border-[#1a73e8]"
                   }`}
                 >
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">Upload code file</span>
-                  <span className="mt-2 block text-sm font-semibold text-[#111111]">
+                  <span data-code-upload-label="true" className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">Upload code file</span>
+                  <span data-code-upload-primary="true" className="mt-2 block text-sm font-semibold text-[#111111]">
                     {isDraggingCodeFile ? "Drop the file here" : "Drag a .py or .txt file here, or choose a file"}
                   </span>
                   <input
+                    data-code-upload-input="true"
                     key={reviewResetKey}
                     type="file"
                     accept=".py,.txt"
@@ -3398,12 +3401,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     }}
                     className="mt-3 w-full rounded-[10px] border border-black/10 bg-white px-3 py-2 text-sm text-[#303134] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[#eaf2fd] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#1a73e8] focus:border-[#1a73e8]"
                   />
-                  <span className="mt-2 block text-xs leading-5 text-[#526174]">
+                  <span data-code-upload-helper="true" className="mt-2 block text-xs leading-5 text-[#526174]">
                     {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
                   </span>
                 </label>
                 {reviewInputError ? (
-                  <div role="alert" className="rounded-[12px] border border-[#c93434] bg-[#fff1f1] px-3 py-2 text-xs leading-5 text-[#a51f1f]">
+                  <div data-code-review-alert="true" role="alert" className="rounded-[12px] border border-[#c93434] bg-[#fff1f1] px-3 py-2 text-xs leading-5 text-[#a51f1f]">
                     {reviewInputError}
                   </div>
                 ) : null}
@@ -3473,7 +3476,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     </div>
                   ) : null}
                 </div>
-                <div className={`rounded-[14px] border p-3 ${step4PanelClass}`}>
+                <div data-code-review-stage="software-security" className={`rounded-[14px] border p-3 ${step4PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Stage 2 - Execution Isolation" : "Stage 2 - Software Security"}</p>
                     {isLoadingReviewGate ? (
@@ -3496,12 +3499,12 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         Next
                       </span>
                     ) : (
-                      <span className="border border-[#d5e0ec] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7d8b9c]">
+                      <span data-code-review-locked-badge="true" className="border border-[#d5e0ec] bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7d8b9c]">
                         Locked
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 text-xs leading-5 text-[#23304a]">
+                  <p data-code-review-stage-description="true" className="mt-2 text-xs leading-5 text-[#23304a]">
                     {masterLiveTestSelected && softwarePassed
                       ? "Execution isolation passed. The active session grants camera viewing only."
                       : isLoadingReviewGate
@@ -3562,9 +3565,9 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         ? "Run Software Security"
                         : "Software Security Used"}
                 </button> : null}
-                <div className={`rounded-[14px] border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-black/8 bg-[#faf9f6]"}`}>
+                <div data-code-review-schedule-gate="true" className={`rounded-[14px] border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-black/8 bg-[#faf9f6]"}`}>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Master live gate" : "Schedule gate"}</p>
-                  <p className="mt-2 text-sm leading-6 text-[#23304a]">
+                  <p data-code-review-schedule-description="true" className="mt-2 text-sm leading-6 text-[#23304a]">
                     {masterLiveTestSelected
                       ? canScheduleRobotSlot
                         ? `Master view-only livestream is unlocked${masterLiveTestExpiresAt ? ` until ${new Date(masterLiveTestExpiresAt).toLocaleTimeString()}` : " for the active session"}.`
@@ -3580,6 +3583,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     </Link>
                   ) : (
                     <button
+                      data-code-review-locked-action="true"
                       type="button"
                       disabled
                       className="mt-3 w-full cursor-not-allowed rounded-full border border-black/10 bg-[#efede8] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"

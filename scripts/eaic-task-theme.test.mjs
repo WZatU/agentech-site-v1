@@ -93,6 +93,49 @@ test.after(async () => {
   await once(serverProcess, "exit");
 });
 
+async function loadPageStylesheet(route) {
+  const response = await fetch(`${baseUrl}${route}`);
+  assert.equal(response.status, 200, `${route} should load`);
+  const html = await response.text();
+  const stylesheetHrefs = [...html.matchAll(/<link\b[^>]*>/g)]
+    .map(([tag]) => ({
+      href: tag.match(/\bhref="([^"]+)"/)?.[1],
+      rel: tag.match(/\brel="([^"]+)"/)?.[1],
+    }))
+    .filter(({ href, rel }) => href && rel === "stylesheet")
+    .map(({ href }) => href);
+
+  assert.ok(stylesheetHrefs.length > 0, `${route} should load at least one stylesheet`);
+  const stylesheets = await Promise.all(
+    stylesheetHrefs.map(async (href) => {
+      const stylesheetResponse = await fetch(new URL(href, baseUrl));
+      assert.equal(stylesheetResponse.status, 200, `${href} should load`);
+      return stylesheetResponse.text();
+    }),
+  );
+
+  return { html, stylesheet: postcss.parse(stylesheets.join("\n")) };
+}
+
+function darkRuleDeclarations(stylesheet, selectorFragments) {
+  const declarations = {};
+
+  stylesheet.walkRules((rule) => {
+    const isDarkThemeRule = /\[data-theme=(?:"dark"|dark)\]/.test(rule.selector);
+    if (!isDarkThemeRule || !selectorFragments.every((fragment) => rule.selector.includes(fragment))) {
+      return;
+    }
+
+    for (const node of rule.nodes) {
+      if (node.type === "decl") {
+        declarations[node.prop] = node.value;
+      }
+    }
+  });
+
+  return declarations;
+}
+
 test("renders all four EAIC tasks with the approved warm immersion theme", () => {
   for (const [title, route] of taskRoutes) {
     const html = pages.get(route) ?? "";
@@ -177,6 +220,70 @@ test("renders Safety Limits with the engineering-yellow hierarchy", () => {
   );
 });
 
+test("keeps Safety Limits and live heartbeat readable on the dark EAIC task canvas", async () => {
+  const { html, stylesheet } = await loadPageStylesheet("/agentech-products/eaic-hub/view-sdk");
+
+  assert.match(html, /data-safety-limit-kind="standard"/);
+  assert.match(html, /data-master-heartbeat="true"/);
+  assert.match(html, /data-master-heartbeat-field="true"/);
+
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-safety-limit-kind=standard]"]),
+    {
+      "background-color": "#11151b",
+      "border-color": "#2a3440",
+      color: "#e5edf5",
+    },
+  );
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-master-heartbeat=true]"]),
+    {
+      "background-color": "#0d1117",
+      "border-color": "#2a3440",
+      color: "#e5edf5",
+    },
+  );
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-master-heartbeat-field=true]"]),
+    {
+      "background-color": "#11151b",
+      "border-color": "#2a3440",
+    },
+  );
+});
+
+test("keeps Code Certification error and locked states dark and legible", async () => {
+  const { html, stylesheet } = await loadPageStylesheet("/agentech-products/eaic-hub/software-check");
+
+  assert.match(html, /data-code-upload-zone="true"[^>]*data-code-upload-state="idle"/);
+  assert.match(html, /data-code-review-stage="software-security"/);
+  assert.match(html, /data-code-review-schedule-gate="true"/);
+
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-code-upload-zone=true]", "[data-code-upload-state=error]"]),
+    {
+      "background-color": "#211315",
+      "border-color": "#c95e5e",
+    },
+  );
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-code-review-alert=true]"]),
+    {
+      "background-color": "#241416",
+      "border-color": "#ef6b6b",
+      color: "#ffb4b4",
+    },
+  );
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-code-review-stage-description=true]"]),
+    { color: "#aeb8c2" },
+  );
+  assert.deepEqual(
+    darkRuleDeclarations(stylesheet, ["[data-code-review-schedule-description=true]"]),
+    { color: "#aeb8c2" },
+  );
+});
+
 test("emphasizes the live-gesture completion warning with bold bookending exclamation marks", () => {
   const html = (pages.get("/agentech-products/eaic-hub/view-sdk") ?? "").replaceAll("<!-- -->", "");
   assert.match(
@@ -230,8 +337,10 @@ test("keeps the EAIC Hub blueprint linework legible in light mode", async () => 
   let desktopLightOverlay = "";
 
   stylesheet.walkRules((rule) => {
+    const isLightThemeRule = /\[data-theme=(?:"light"|light)\]/.test(rule.selector);
+
     if (
-      rule.selector.includes('[data-theme="light"]') &&
+      isLightThemeRule &&
       rule.selector.includes("[data-eaic-hero-blueprint]")
     ) {
       lightBlueprintFilter = rule.nodes.find(
@@ -240,7 +349,7 @@ test("keeps the EAIC Hub blueprint linework legible in light mode", async () => 
     }
 
     if (
-      rule.selector.includes('[data-theme="light"]') &&
+      isLightThemeRule &&
       rule.selector.includes("[data-eaic-hero-overlay]") &&
       rule.parent?.type === "atrule" &&
       rule.parent.name === "media" &&

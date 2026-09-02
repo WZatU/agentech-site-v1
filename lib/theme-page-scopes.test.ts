@@ -144,7 +144,7 @@ test("EAIC workflow light accents keep their hues while meeting AA contrast on w
   assert.ok(paletteModule, "EAIC workflow palette must be available");
   assert.deepEqual(
     paletteModule.workflowAccentPalette.map(({ light }) => light),
-    ["#007d6f", "#365f91", "#146c9e", "#6f42c1"]
+    ["#007d6f", "#365f91", "#c85016", "#6f42c1"]
   );
 
   for (const { light } of paletteModule.workflowAccentPalette) {

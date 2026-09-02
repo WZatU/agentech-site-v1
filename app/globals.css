@@ -769,6 +769,99 @@ select {
   border-color: #2a3440 !important;
 }
 
+:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=standard] {
+  background-color: #11151b !important;
+  border-color: #2a3440 !important;
+  color: #e5edf5 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=temporary-boundary] {
+  background-color: #20190a !important;
+  border-color: #7a5d1f !important;
+  color: #f2cf67 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=temporary-boundary] code {
+  background-color: #2b210b !important;
+  border-color: #9a7624 !important;
+  color: #f2cf67 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-safety-limit-kind=temporary-boundary] p {
+  color: #d8bd72 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-master-heartbeat=true] {
+  background-color: #0d1117 !important;
+  border-color: #2a3440 !important;
+  color: #e5edf5 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-master-heartbeat-field=true] {
+  background-color: #11151b !important;
+  border-color: #2a3440 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-master-heartbeat-title=true],
+:root[data-theme="dark"] .eaic-task-theme [data-master-heartbeat-value=true] {
+  color: #e5edf5 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-master-heartbeat-label=true] {
+  color: #aeb8c2 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-upload-zone=true][data-code-upload-state=error] {
+  background-color: #211315 !important;
+  border-color: #c95e5e !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-upload-zone=true][data-code-upload-state=dragging] {
+  background-color: #0d201d !important;
+  border-color: #34b9a7 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-upload-input=true] {
+  background-color: #0d1117 !important;
+  border-color: #2a3440 !important;
+  color: #e5edf5 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-upload-label=true],
+:root[data-theme="dark"] .eaic-task-theme [data-code-upload-helper=true] {
+  color: #aeb8c2 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-upload-primary=true] {
+  color: #e5edf5 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-review-alert=true] {
+  background-color: #241416 !important;
+  border-color: #ef6b6b !important;
+  color: #ffb4b4 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-review-stage-description=true] {
+  color: #aeb8c2 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-review-schedule-description=true] {
+  color: #aeb8c2 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-review-locked-badge=true] {
+  background-color: #11151b !important;
+  border-color: #566574 !important;
+  color: #c4ced8 !important;
+}
+
+:root[data-theme="dark"] .eaic-task-theme [data-code-review-locked-action=true] {
+  background-color: #20262d !important;
+  border-color: #394554 !important;
+  color: #b7c1cb !important;
+}
+
 :root[data-theme="dark"] .eaic-task-theme input,
 :root[data-theme="dark"] .eaic-task-theme textarea,
 :root[data-theme="dark"] .eaic-task-theme select {

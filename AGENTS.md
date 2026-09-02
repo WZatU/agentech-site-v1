@@ -7,3 +7,9 @@ For Agentech UI, theme, screenshot-matching, navigation, browser verification, o
 - Keep light and dark theme changes inside a page-specific scope. Prefer stable `data-*` hooks over selectors that depend on generated markup.
 - Add a failing regression test before a visual behavior fix, then run the focused test, typecheck, and a production build.
 - Verify the exact route and theme in a real browser. A public review URL is not complete until an unauthenticated request reaches the site rather than a Vercel login page.
+
+## Git workflow
+
+- Do not create pull requests or merge branches for this project unless the user explicitly reverses this rule.
+- Do not merge remote changes into the working branch. Use `git fetch` followed by `git rebase` when synchronization is required so the history remains linear.
+- A request to change the website does not automatically authorize a push. When the user explicitly requests publication, push the verified commit directly to the requested branch without force-pushing.
