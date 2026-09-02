@@ -16,18 +16,6 @@ type ApiResult = {
   message?: string;
 };
 
-type AccountSummaryResult = {
-  account?: unknown;
-  accessProfiles?: unknown[];
-  profile?: unknown;
-  children?: unknown[];
-  requests?: unknown[];
-  enrollments?: unknown[];
-  unpaidBalance?: {
-    lines?: unknown[];
-  };
-};
-
 export function UniversalAuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -86,7 +74,7 @@ export function UniversalAuthForm() {
     };
   }, []);
 
-  async function getPostAuthDestination(accountEmail: string, isNewAccount: boolean) {
+  function getPostAuthDestination(isNewAccount: boolean) {
     if (explicitNext && !isNewAccount) {
       return explicitNext;
     }
@@ -95,32 +83,12 @@ export function UniversalAuthForm() {
       return getNewAccountDestination();
     }
 
-    try {
-      const response = await fetch(`/api/account?email=${encodeURIComponent(accountEmail)}`);
-      if (!response.ok) {
-        return "/account";
-      }
-
-      const result = (await response.json()) as AccountSummaryResult;
-      const hasAccountData = Boolean(
-        result.account ||
-        result.accessProfiles?.length ||
-        result.profile ||
-        result.children?.length ||
-        result.requests?.length ||
-        result.enrollments?.length ||
-        result.unpaidBalance?.lines?.length
-      );
-
-      return hasAccountData ? "/account" : "/account";
-    } catch {
-      return "/account";
-    }
+    return "/account";
   }
 
   async function rememberAndContinue(accountEmail: string, isNewAccount: boolean) {
     setAccountSession(accountEmail);
-    router.push(await getPostAuthDestination(accountEmail, isNewAccount));
+    router.push(getPostAuthDestination(isNewAccount));
   }
 
   function signOut() {
@@ -182,24 +150,38 @@ export function UniversalAuthForm() {
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (status === "loading") return;
     setStatus("loading");
     setMessage("");
 
-    const response = await fetch("/api/auth/sign-in", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-    const result = (await response.json()) as ApiResult;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    try {
+      const response = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        signal: controller.signal
+      });
+      const result = await response.json().catch(() => null) as ApiResult | null;
+      if (controller.signal.aborted) throw new Error("Sign-in timed out.");
 
-    if (!response.ok || !result.email) {
+      if (!response.ok || typeof result?.email !== "string" || !result.email) {
+        setStatus("error");
+        setMessage(typeof result?.error === "string" ? result.error : "Sign-in is temporarily unavailable. Please try again shortly.");
+        return;
+      }
+
+      setStatus("success");
+      await rememberAndContinue(result.email, false);
+    } catch {
       setStatus("error");
-      setMessage(result.error || "Unable to sign in.");
-      return;
+      setMessage(controller.signal.aborted
+        ? "Sign-in timed out. Please try again."
+        : "Unable to complete sign-in. Check your connection and try again.");
+    } finally {
+      clearTimeout(timeout);
     }
-
-    setStatus("success");
-    await rememberAndContinue(result.email, false);
   }
 
   async function sendPasswordResetCode(event: FormEvent<HTMLFormElement>) {
@@ -266,7 +248,7 @@ export function UniversalAuthForm() {
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={async () => router.push(await getPostAuthDestination(signedInEmail, false))}
+              onClick={() => router.push(getPostAuthDestination(false))}
               className="rounded-full bg-[#0b1220] px-5 py-2.5 text-white"
             >
               Continue
@@ -283,6 +265,7 @@ export function UniversalAuthForm() {
           <button
             key={option}
             type="button"
+            disabled={mode === "signin" && status === "loading"}
             onClick={() => {
               setMode(option);
               setStatus("idle");
@@ -418,11 +401,12 @@ export function UniversalAuthForm() {
               required
             />
           </label>
-          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+          <button type="submit" disabled={status === "loading"} className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-70">
             {status === "loading" ? "Signing in..." : "Sign In"}
           </button>
           <button
             type="button"
+            disabled={status === "loading"}
             onClick={() => {
               setMode("forgot");
               setResetStep("email");
@@ -513,7 +497,7 @@ export function UniversalAuthForm() {
       ) : null}
 
       {message ? (
-        <p className={`mt-5 text-sm ${status === "error" ? "text-red-600" : "text-emerald-700"}`}>{message}</p>
+        <p role={status === "error" ? "alert" : "status"} className={`mt-5 text-sm ${status === "error" ? "text-red-600" : "text-emerald-700"}`}>{message}</p>
       ) : null}
       {devCode ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
