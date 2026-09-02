@@ -11,8 +11,8 @@ export type StoredMasterHeartbeat = {
   receivedAt: string;
 };
 
-const HEARTBEAT_BUCKET = "robot-captures";
-const HEARTBEAT_OBJECT = "master-heartbeat/latest.json";
+const HEARTBEAT_BUCKET = "robot-heartbeats";
+const HEARTBEAT_OBJECT = "latest.json";
 
 function supabaseStorageConfig() {
   if (process.env.NODE_ENV !== "production") return null;
@@ -23,6 +23,28 @@ function supabaseStorageConfig() {
 
 function storageHeaders(key: string) {
   return { apikey: key, Authorization: `Bearer ${key}` };
+}
+
+async function ensureHeartbeatBucket(url: string, key: string) {
+  const headers = storageHeaders(key);
+  const existing = await fetch(`${url}/storage/v1/bucket/${HEARTBEAT_BUCKET}`, { headers, cache: "no-store" });
+  if (existing.ok) return;
+  if (existing.status !== 404) throw new Error(`Unable to inspect Master heartbeat storage (${existing.status}).`);
+  const created = await fetch(`${url}/storage/v1/bucket`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: HEARTBEAT_BUCKET,
+      name: HEARTBEAT_BUCKET,
+      public: false,
+      file_size_limit: 65_536,
+      allowed_mime_types: ["application/json"],
+    }),
+    cache: "no-store",
+  });
+  if (!created.ok && created.status !== 409) {
+    throw new Error(`Unable to create Master heartbeat storage (${created.status}).`);
+  }
 }
 
 function runtimeDirectory() {
@@ -36,6 +58,7 @@ function storagePath() {
 export async function writeLatestHeartbeat(record: StoredMasterHeartbeat): Promise<void> {
   const supabase = supabaseStorageConfig();
   if (supabase) {
+    await ensureHeartbeatBucket(supabase.url, supabase.key);
     const response = await fetch(`${supabase.url}/storage/v1/object/${HEARTBEAT_BUCKET}/${HEARTBEAT_OBJECT}`, {
       method: "POST",
       headers: {
