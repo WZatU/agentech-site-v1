@@ -73,7 +73,7 @@ export function PreorderForm({ product }: PreorderFormProps) {
     <form onSubmit={submitPreorder} className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 shadow-panel md:p-8">
       <div className="mb-7">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Invoice Request</p>
-        <h1 className="mt-3 text-3xl font-semibold text-white md:text-5xl">{product}</h1>
+        <h1 className="font-display mt-3 text-3xl font-semibold text-white md:text-5xl">{product}</h1>
         <p className="mt-4 text-sm leading-6 text-slate">
           Submit this request and Agentech will send an invoice to your email. Card payment is available when online payment is enabled.
         </p>

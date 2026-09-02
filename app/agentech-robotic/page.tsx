@@ -128,11 +128,12 @@ const runtimeLevels = [
 
 export default function AgentechRoboticPage() {
   return (
-    <div className="overflow-x-hidden bg-[#030506] text-white">
+    <div className="robotics-theme-page overflow-x-hidden bg-[#030506] text-white">
       <div id="top" />
 
-      <section className="relative isolate min-h-[430px] overflow-hidden border-b border-white/10 bg-[#030506] lg:min-h-[500px]">
+      <section data-robotics-hero className="relative isolate min-h-[430px] overflow-hidden border-b border-white/10 bg-[#030506] lg:min-h-[500px]">
         <Image
+          data-robotics-hero-image
           src="/assets/ff-robotics/ff-master-x2-hero.jpg"
           alt="FF Master humanoid robot"
           fill
@@ -140,8 +141,8 @@ export default function AgentechRoboticPage() {
           className="object-cover object-[68%_center] opacity-88"
           priority
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,#030506_0%,rgba(3,5,6,0.98)_26%,rgba(3,5,6,0.48)_58%,rgba(3,5,6,0.10)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#030506] to-transparent" />
+        <div data-robotics-hero-overlay className="absolute inset-0 bg-[linear-gradient(90deg,#030506_0%,rgba(3,5,6,0.98)_26%,rgba(3,5,6,0.48)_58%,rgba(3,5,6,0.10)_100%)]" />
+        <div data-robotics-hero-fade className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#030506] to-transparent" />
 
         <div className="relative mx-auto flex min-h-[430px] max-w-7xl items-center px-6 py-14 lg:min-h-[500px] lg:px-8">
           <div className="min-w-0 max-w-2xl">
@@ -150,12 +151,11 @@ export default function AgentechRoboticPage() {
               alt="Agentech Robotics"
               width={1000}
               height={247}
-              className="h-auto w-full max-w-[280px] opacity-95 sm:max-w-[340px] lg:max-w-[380px]"
+              className="robotics-theme-logo h-auto w-full max-w-[280px] opacity-95 sm:max-w-[340px] lg:max-w-[380px]"
               priority
             />
             <p
-              className="mt-10 text-xs font-semibold uppercase tracking-[0.34em] text-[#91dfff]"
-              style={{ fontFamily: "var(--font-sans)" }}
+              className="font-interface mt-10 text-xs font-semibold uppercase tracking-[0.34em] text-[#91dfff]"
             >
               Physical AI Robotics Platform
             </p>
@@ -167,14 +167,12 @@ export default function AgentechRoboticPage() {
         <div className="flex justify-end">
           <div className="min-w-0 max-w-xl text-right">
             <p
-              className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#91dfff]"
-              style={{ fontFamily: "var(--font-sans)" }}
+              className="font-interface text-[11px] font-medium uppercase tracking-[0.32em] text-[#91dfff]"
             >
               Robot Lineup
             </p>
             <h2
-              className="mt-4 break-words text-2xl font-semibold leading-[1.12] tracking-[0.04em] text-white md:text-3xl"
-              style={{ fontFamily: "var(--font-brand)" }}
+              className="font-display mt-4 break-words text-2xl font-semibold leading-[1.12] tracking-[0.04em] text-white md:text-3xl"
             >
               Choose the body, sensors, and access level for the build.
             </h2>
@@ -189,7 +187,10 @@ export default function AgentechRoboticPage() {
               className="group relative min-w-0 xl:px-4"
             >
               <div className="relative flex min-h-[26rem] flex-col">
-                <div className="relative h-56 min-w-0 overflow-hidden rounded-sm bg-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition duration-500 group-hover:shadow-[0_24px_70px_rgba(0,0,0,0.34)] md:h-64">
+                <div
+                  data-robotics-product-image
+                  className="relative h-56 min-w-0 overflow-hidden rounded-lg bg-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition duration-500 group-hover:shadow-[0_24px_70px_rgba(0,0,0,0.34)] md:h-64"
+                >
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -202,8 +203,7 @@ export default function AgentechRoboticPage() {
 
                 <div className="mt-6 flex min-w-0 flex-1 flex-col">
                   <p
-                    className={`min-h-9 text-xs font-semibold leading-[1.45] tracking-[0.18em] ${accentText[product.accent]}`}
-                    style={{ fontFamily: "var(--font-brand)" }}
+                    className={`font-technical min-h-9 text-xs font-semibold leading-[1.45] tracking-[0.18em] ${accentText[product.accent]}`}
                   >
                     {product.package.map((line) => (
                       <span key={line} className="block">
@@ -212,20 +212,18 @@ export default function AgentechRoboticPage() {
                     ))}
                   </p>
                   <h3
-                    className="mt-3 break-words text-2xl font-semibold tracking-[0.04em] text-white"
-                    style={{ fontFamily: "var(--font-brand)" }}
+                    className="font-display mt-3 break-words text-2xl font-semibold tracking-[0.04em] text-white"
                   >
                     {product.name}
                   </h3>
                   <p
-                    className="mt-3 text-2xl font-semibold tracking-[0.03em] text-slate-100"
-                    style={{ fontFamily: "var(--font-brand)" }}
+                    data-robotics-product-price
+                    className="font-technical mt-3 text-2xl font-semibold tracking-[0.03em] text-slate-100"
                   >
                     {product.price}
                   </p>
                   <p
-                    className="mt-4 break-words text-sm leading-6 text-slate-400"
-                    style={{ fontFamily: "var(--font-sans)" }}
+                    className="font-interface mt-4 break-words text-sm leading-6 text-slate-400"
                   >
                     {product.summary}
                   </p>
@@ -258,8 +256,8 @@ export default function AgentechRoboticPage() {
                     {values.map((value, index) => (
                       <td
                         key={`${label}-${products[index]?.name ?? index}`}
-                        className={`w-1/5 break-words border-l border-white/10 px-4 py-4 text-center text-sm font-medium leading-[1.62] tracking-normal lg:px-6 lg:py-5 ${accentText[products[index]?.accent ?? "aegis"]}`}
-                        style={{ fontFamily: "var(--font-mono)" }}
+                        data-robotics-spec-value
+                        className={`font-technical w-1/5 break-words border-l border-white/10 px-4 py-4 text-center text-xs font-normal leading-[1.62] tracking-[0.08em] lg:px-6 lg:py-5 ${accentText[products[index]?.accent ?? "aegis"]}`}
                       >
                         {value}
                       </td>
@@ -277,14 +275,13 @@ export default function AgentechRoboticPage() {
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#91dfff]">Agentech Runtime Layer</p>
             <h2
-              className="mt-3 break-words text-3xl font-semibold tracking-[0.02em] text-white md:text-4xl"
-              style={{ fontFamily: "var(--font-brand)" }}
+              className="font-display mt-3 break-words text-3xl font-semibold tracking-[0.02em] text-white md:text-4xl"
             >
               Robot bodies become systems when the skill graph sits above them.
             </h2>
             <p
-              className="mt-5 max-w-2xl text-xs leading-6 tracking-[0.02em] text-slate-400 md:text-sm md:leading-7"
-              style={{ fontFamily: "var(--font-mono)" }}
+              data-robotics-runtime-copy
+              className="font-interface mt-5 max-w-2xl text-xs leading-6 tracking-[0.02em] text-slate-400 md:text-sm md:leading-7"
             >
               The platforms above are the physical layer. Agentech focuses on the runtime, skill graph, and agentic workflow that turn hardware into controllable, repeatable, and increasingly autonomous work.
             </p>
@@ -293,8 +290,8 @@ export default function AgentechRoboticPage() {
             {runtimeLevels.map((level) => (
               <div
                 key={level}
-                className="rounded-sm border border-white/10 bg-white/[0.035] px-4 py-3 text-xs uppercase tracking-[0.14em] text-[#9fe8d2]"
-                style={{ fontFamily: "var(--font-mono)" }}
+                data-robotics-runtime-level
+                className="font-technical rounded-lg border border-white/10 bg-white/[0.035] px-4 py-3 text-xs uppercase tracking-[0.14em] text-[#9fe8d2]"
               >
                 {level}
               </div>
@@ -311,6 +308,7 @@ export default function AgentechRoboticPage() {
       <a
         href="#top"
         aria-label="Back to top"
+        data-robotics-back-top
         className="fixed right-4 z-[60] hidden h-12 w-12 place-items-center rounded-full border border-white/15 bg-black/80 text-xs font-semibold tracking-[0.16em] text-white shadow-[0_16px_45px_rgba(0,0,0,0.45)] backdrop-blur transition hover:bg-white hover:text-black sm:right-6 md:grid"
         style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
       >

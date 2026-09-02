@@ -1,0 +1,85 @@
+.visual {
+  --dog-light-x: 68%;
+  --dog-light-y: 42%;
+  --dog-rotate-x: 0deg;
+  --dog-rotate-y: 0deg;
+  --dog-translate-x: 0px;
+  --dog-translate-y: 0px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 40%;
+  transform: perspective(1200px)
+    translate3d(var(--dog-translate-x), var(--dog-translate-y), 0)
+    rotateX(var(--dog-rotate-x))
+    rotateY(var(--dog-rotate-y))
+    scale(0.9);
+  transform-origin: 56% 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.image {
+  object-fit: cover;
+  object-position: 62% center;
+  filter: brightness(0.64) contrast(0.92) saturate(0.45);
+  -webkit-mask-image: radial-gradient(
+    ellipse 78% 50% at 68% 50%,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, 0.94) 66%,
+    rgba(0, 0, 0, 0.58) 80%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 78% 50% at 68% 50%,
+    #000 0%,
+    #000 54%,
+    rgba(0, 0, 0, 0.94) 66%,
+    rgba(0, 0, 0, 0.58) 80%,
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.sheen {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--dog-light-x) var(--dog-light-y),
+    rgba(210, 236, 247, 0.16),
+    rgba(210, 236, 247, 0) 34%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .visual {
+    inset: 0;
+    height: auto;
+    transform: perspective(1200px)
+      translate3d(calc(18% + var(--dog-translate-x)), var(--dog-translate-y), 0)
+      rotateX(var(--dog-rotate-x))
+      rotateY(var(--dog-rotate-y))
+      scale(0.78);
+  }
+
+  .image {
+    object-position: 68% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visual {
+    will-change: auto;
+  }
+
+  .sheen {
+    display: none;
+  }
+}

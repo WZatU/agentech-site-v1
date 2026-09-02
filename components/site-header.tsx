@@ -1,50 +1,30 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { navigation } from "@/lib/site-data";
+import { shouldHideSiteHeader, shouldShowAuthControls, shouldShowThemeToggle } from "@/lib/site-header-visibility";
 
 function NavWordmark({
   active,
-  activeImage,
   alt,
-  image,
-  imageClassName
+  mobile = false
 }: {
   active: boolean;
-  activeImage?: string;
   alt: string;
-  image?: string;
-  imageClassName: string;
+  mobile?: boolean;
 }) {
-  if (!image) {
-    return <span>{alt}</span>;
-  }
-
-  const highlightedImage = activeImage ?? image;
-
   return (
-    <span className="agent-nav-logo relative grid place-items-center">
-      <Image
-        src={image}
-        alt={active ? "" : alt}
-        aria-hidden={active ? "true" : undefined}
-        width={1000}
-        height={247}
-        className={`${imageClassName} agent-nav-logo-base col-start-1 row-start-1 ${active ? "opacity-0" : "opacity-100"}`}
-      />
-      <Image
-        src={highlightedImage}
-        alt={active ? alt : ""}
-        aria-hidden={active ? undefined : "true"}
-        width={1000}
-        height={247}
-        className={`${imageClassName} agent-nav-logo-active col-start-1 row-start-1 ${active ? "opacity-100" : "opacity-0"}`}
-      />
+    <span
+      data-site-nav-wordmark
+      aria-label={alt}
+      className={`agent-nav-wordmark ${active ? "is-active" : ""} ${mobile ? "is-mobile" : ""}`}
+    >
+      <span aria-hidden="true">{alt.toUpperCase()}</span>
     </span>
   );
 }
@@ -54,8 +34,16 @@ export function SiteHeader() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountEmail, setAccountEmail] = useState("");
+  const [showAuthControls, setShowAuthControls] = useState(false);
 
   useEffect(() => {
+    setShowAuthControls(
+      shouldShowAuthControls(
+        window.location.hostname,
+        process.env.NEXT_PUBLIC_HIDE_SIGN_IN === "1"
+      )
+    );
+
     function refreshSession() {
       setAccountEmail(getAccountSession()?.email ?? "");
     }
@@ -109,17 +97,17 @@ export function SiteHeader() {
   }
 
   const loginHref = getLoginHref();
+  const showThemeToggle = shouldShowThemeToggle(pathname);
 
-  if (
-    pathname.startsWith("/field-interest") ||
-    pathname.startsWith("/agentech-products/agentech-library") ||
-    pathname.startsWith("/agentech-products/eaic-hub")
-  ) {
+  if (shouldHideSiteHeader(pathname)) {
     return null;
   }
 
   return (
-    <header className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/80 backdrop-blur-xl">
+    <header
+      data-site-header
+      className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/80 backdrop-blur-xl"
+    >
       <div className="relative mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-2 sm:px-3 lg:px-4">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-3" onClick={closeMobileNav}>
           <BrandMark />
@@ -139,11 +127,10 @@ export function SiteHeader() {
           </span>
         </button>
 
-        <nav className={`ml-auto hidden flex-nowrap items-center justify-end gap-1 text-sm text-slate md:flex ${accountEmail ? "pr-[152px]" : ""}`}>
+        <nav className={`ml-auto hidden flex-nowrap items-center justify-end gap-1 text-sm text-slate md:flex ${showAuthControls && accountEmail ? "pr-[152px]" : ""}`}>
           {navigation.map((item) => {
-            const linkClassName = "agent-nav-link px-3 py-2";
+            const linkClassName = "agent-nav-link rounded-xl px-3 py-2";
             const isActive = isActiveNavItem(item.href);
-            const navImageClassName = "max-h-7 w-auto max-w-44 object-contain";
 
             if (item.children?.length) {
               return (
@@ -153,13 +140,7 @@ export function SiteHeader() {
                     className={`${linkClassName} flex items-center gap-2 ${isActive ? "is-active" : ""}`}
                     data-cursor-intent="nav"
                   >
-                    <NavWordmark
-                      active={isActive}
-                      activeImage={item.activeImage}
-                      alt={item.label}
-                      image={item.image}
-                      imageClassName={navImageClassName}
-                    />
+                    <NavWordmark active={isActive} alt={item.label} />
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 12 12"
@@ -204,24 +185,19 @@ export function SiteHeader() {
                 className={`${linkClassName} ${isActive ? "is-active" : ""}`}
                 data-cursor-intent="nav"
               >
-                <NavWordmark
-                  active={isActive}
-                  activeImage={item.activeImage}
-                  alt={item.label}
-                  image={item.image}
-                  imageClassName={navImageClassName}
-                />
+                <NavWordmark active={isActive} alt={item.label} />
               </Link>
             );
           })}
-          {!accountEmail ? (
+          {showThemeToggle ? <ThemeToggle /> : null}
+          {showAuthControls && !accountEmail ? (
             <Link href={loginHref} className="ml-2 rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-slate transition hover:bg-white/5 hover:text-white">
               Sign In
             </Link>
           ) : null}
         </nav>
 
-        {accountEmail ? (
+        {showAuthControls && accountEmail ? (
         <div className="absolute right-2 top-1/2 hidden w-[140px] -translate-y-1/2 items-center justify-end gap-1 sm:right-3 md:flex lg:right-4">
           <Link href="/account" className="rounded-full border border-white/10 px-2 py-2 text-[11px] font-semibold leading-none text-slate transition hover:bg-white/5 hover:text-white">
             Account
@@ -252,7 +228,6 @@ export function SiteHeader() {
         <nav className="flex flex-col gap-2">
           {navigation.map((item) => {
             const isActive = isActiveNavItem(item.href);
-            const navImageSrc = isActive && item.activeImage ? item.activeImage : item.image;
             return (
               <Link
                 key={item.href}
@@ -260,17 +235,7 @@ export function SiteHeader() {
                 onClick={closeMobileNav}
                 className="rounded-xl px-4 py-4 text-sm font-semibold text-white"
               >
-                {navImageSrc ? (
-                  <Image
-                    src={navImageSrc}
-                    alt={item.label}
-                    width={1000}
-                    height={247}
-                    className="max-h-8 w-auto max-w-56 object-contain"
-                  />
-                ) : (
-                  item.label
-                )}
+                <NavWordmark active={isActive} alt={item.label} mobile />
               </Link>
             );
           })}
@@ -282,7 +247,9 @@ export function SiteHeader() {
             News
           </Link>
           <div className="my-3 h-px bg-white/10" />
-          {accountEmail ? (
+          {showThemeToggle ? <ThemeToggle mobile /> : null}
+          {showThemeToggle && showAuthControls ? <div className="my-3 h-px bg-white/10" /> : null}
+          {showAuthControls && accountEmail ? (
             <>
               <Link href="/account" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
                 Account
@@ -291,11 +258,11 @@ export function SiteHeader() {
                 Sign Out
               </button>
             </>
-          ) : (
+          ) : showAuthControls ? (
             <Link href={loginHref} onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">
               Sign In
             </Link>
-          )}
+          ) : null}
         </nav>
       </aside>
     </header>

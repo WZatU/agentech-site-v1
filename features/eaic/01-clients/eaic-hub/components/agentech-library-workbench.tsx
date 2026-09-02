@@ -15,6 +15,7 @@ import { LiveRobotCamera } from "@/features/eaic/05-delivery/live-results/compon
 import { MasterMotorMap } from "@/features/eaic/01-clients/eaic-hub/components/master-motor-map";
 import { MasterJointMotionGuide } from "@/features/eaic/01-clients/eaic-hub/components/master-joint-motion-guide";
 import { MasterHeartbeat } from "@/features/eaic/01-clients/eaic-hub/components/master-heartbeat";
+import { HistoryBackButton } from "@/components/history-back-button";
 import {
   buildMasterLiveTestPayload,
   getCodeCheckingRobotOptions,
@@ -826,7 +827,7 @@ function CopyCodeButton({ value, className = "" }: { value: string; className?: 
     <button
       type="button"
       onClick={copyCode}
-      className={`grid h-9 w-9 place-items-center border border-[#008a7a] bg-[#e6fbf6] text-[#007d6f] shadow-sm transition hover:bg-[#008a7a] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#008a7a] focus-visible:ring-offset-2 ${className}`}
+      className={`grid h-9 w-9 place-items-center rounded-[10px] border border-[#1a73e8]/35 bg-white/80 text-[#1a73e8] shadow-sm transition hover:border-[#1a73e8] hover:bg-[#1a73e8] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1a73e8] focus-visible:ring-offset-2 ${className}`}
       aria-label="Copy code"
       title={copied ? "Copied" : "Copy code"}
     >
@@ -1439,35 +1440,23 @@ const taskFeatureNotes: Record<AgentechLibraryTaskSlug, string> = {
 };
 
 function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAgentechLibraryTask>> }) {
-  const isLightTask = true;
-
   return (
-    <section className={isLightTask ? "border-b border-[#dce7f2] bg-[#fbfdff]" : "border-b border-[#2a3440] bg-[#0f1318]"}>
-      <div className="mx-auto max-w-7xl px-6 py-7 lg:px-8">
+    <section className="border-b border-black/8 bg-[#f5f4f1]">
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-10">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link
-            href={eaicHubPath}
-            className={
-              isLightTask
-                ? "border border-[#dce7f2] bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#07142e] shadow-sm transition hover:border-[#008a7a] hover:text-[#008a7a]"
-                : "border border-[#2a3440] bg-[#0d1117] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#cdd6df] transition hover:border-[#8fdc8f] hover:text-white"
-            }
-          >
-            &lt;- Library Flow
-          </Link>
+          <HistoryBackButton
+            fallbackHref={eaicHubPath}
+            className="rounded-full border border-black/10 bg-white/70 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#111111] shadow-sm transition hover:border-[#1a73e8]/50 hover:text-[#1a73e8]"
+          />
           <div className="flex flex-wrap gap-2">
             {agentechLibraryTasks.map((item) => (
               <Link
                 key={item.slug}
                 href={getEaicHubTaskPath(item.slug)}
-                className={`border px-2.5 py-1.5 font-mono text-xs transition ${
+                className={`rounded-[10px] border px-3 py-2 font-mono text-xs transition ${
                   item.slug === task.slug
-                    ? isLightTask
-                      ? "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c]"
-                      : "border-[#8fdc8f] bg-[#17351f] text-[#dfffe0]"
-                    : isLightTask
-                      ? "border-[#dce7f2] bg-white text-[#526174] hover:border-[#008a7a] hover:text-[#008a7a]"
-                      : "border-[#2a3440] bg-[#0d1117] text-[#7f8c99] hover:border-[#93c5fd] hover:text-white"
+                    ? "border-[#1a73e8]/45 bg-[#1a73e8] text-white shadow-[0_8px_20px_rgba(26,115,232,0.2)]"
+                    : "border-black/10 bg-white/65 text-[#5f6368] hover:border-[#1a73e8]/45 hover:text-[#1a73e8]"
                 }`}
               >
                 {item.number}
@@ -1475,14 +1464,17 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
             ))}
           </div>
         </div>
-        <div className="mt-6 grid gap-5 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
-          <div className="grid h-20 w-20 place-items-center rounded-[8px] font-mono text-3xl font-bold text-white" style={{ background: task.accent }}>
-            {task.number}
+        <div className="mt-7 grid gap-5 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
+          <div
+            data-task-number-badge="true"
+            className="grid h-20 w-20 place-items-center rounded-full bg-[#111111] font-mono text-3xl font-medium text-white shadow-[0_14px_34px_rgba(17,17,17,0.14)]"
+          >
+            {Number.parseInt(task.number, 10)}
           </div>
           <div>
-            <p className={`font-mono text-xs font-semibold uppercase tracking-[0.16em] ${isLightTask ? "text-[#008a7a]" : "text-[#8fdc8f]"}`}>Command Library Task</p>
-            <h1 className={`mt-2 text-4xl font-semibold tracking-tight md:text-5xl ${isLightTask ? "text-[#07142e]" : "text-white"}`}>{task.title}</h1>
-            <p className={`mt-3 max-w-3xl text-sm leading-7 ${isLightTask ? "text-[#23304a]" : "text-[#b8c2cc]"}`}>{taskFeatureNotes[task.slug]}</p>
+            <p className="font-interface text-xs font-semibold uppercase tracking-[0.18em] text-[#1a73e8]">Command Library Task</p>
+            <h1 className="font-display mt-2 text-4xl font-semibold tracking-tight text-[#111111] md:text-5xl">{task.title}</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-[#5f6368]">{taskFeatureNotes[task.slug]}</p>
           </div>
         </div>
       </div>
@@ -1492,28 +1484,28 @@ function TaskDetailHeader({ task }: { task: NonNullable<ReturnType<typeof getAge
 
 function FocusedLiveRunSection() {
   return (
-    <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="bg-[#f5f4f1] px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
-        <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce7f2] px-4 py-3">
+        <div className="overflow-hidden rounded-[22px] border border-black/8 bg-white/70 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/8 px-5 py-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Live Stream Camera</p>
-              <p className="mt-1 text-xs leading-5 text-[#526174]">Live video appears here. Saved Aegies captures remain available for download.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1a73e8]">Live Stream Camera</p>
+              <p className="mt-1 text-xs leading-5 text-[#5f6368]">Live video appears here. Saved Aegies captures remain available for download.</p>
             </div>
             <div className="flex items-center gap-3">
               <Link
                 href={robotSchedulingPath}
-                className="border border-[#008a7a] bg-[#e5fff7] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#006b5f] transition hover:bg-[#008a7a] hover:text-white"
+                className="rounded-full border border-[#1a73e8]/40 bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#1a73e8] transition hover:bg-[#1a73e8] hover:text-white"
               >
                 Schedule Time
               </Link>
-              <span className="h-3 w-3 bg-[#9aa8b8]" aria-hidden="true" />
+              <span className="h-3 w-3 rounded-full bg-[#9aa0a6]" aria-hidden="true" />
             </div>
           </div>
-          <div className="border-b border-[#dce7f2] bg-[#f5fbff] px-4 py-3 text-sm leading-6 text-[#23304a]">
+          <div className="border-b border-black/8 bg-[#faf9f6] px-5 py-4 text-sm leading-6 text-[#5f6368]">
             Aegies supports paid display captures and a persistent download archive. Navi sessions show live video only because the Navi SDK has no image-capture command.
           </div>
-          <div className="bg-[#0d1117] p-4">
+          <div className="bg-[#111111] p-4">
             <LiveRobotCamera roomName={process.env.NEXT_PUBLIC_LIVEKIT_ROOM_NAME || "aegis-lab-1"} />
           </div>
         </div>
@@ -1608,28 +1600,29 @@ print(Agentech.get_battery_status())`
   ];
 
   return (
-    <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="bg-[#f5f4f1] px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <div className="relative h-72 overflow-hidden border-b border-[#dce7f2] bg-white">
+          <div className="overflow-hidden rounded-[22px] border border-black/8 bg-white/70 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+            <div className="relative h-72 overflow-hidden border-b border-black/8 bg-[#faf9f6]">
               <Image
-                src="/assets/products/agentech-library/dog-blueprint.png"
+                src="/assets/products/agentech-library/dog-blueprint-transparent-v4.png"
                 alt="Aegis robot dog blueprint"
                 fill
+                priority
                 sizes="(min-width: 1024px) 520px, 100vw"
-                className="object-contain p-4"
+                className="object-contain p-3"
               />
             </div>
             <div className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#008a7a]">Beginner Path</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#07142e]">Your first Aegis script in four moves.</h2>
-              <p className="mt-3 text-sm leading-7 text-[#23304a]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1a73e8]">Beginner Path</p>
+              <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight text-[#111111]">Your first Aegis script in four moves.</h2>
+              <p className="mt-3 text-sm leading-7 text-[#5f6368]">
                 Start with one safe motion. Keep the file small, preview the command, then move to review once the sequence is readable.
               </p>
-              <div className="mt-5 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] sm:grid-cols-3">
+              <div className="mt-5 grid gap-px overflow-hidden rounded-[14px] border border-black/8 bg-black/8 sm:grid-cols-3">
                 {["Install", "Write", "Preview"].map((item) => (
-                  <div key={item} className="bg-[#f8fbff] p-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[#005bd6]">
+                  <div key={item} className="font-interface bg-[#faf9f6] p-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#1a73e8]">
                     {item}
                   </div>
                 ))}
@@ -1639,15 +1632,15 @@ print(Agentech.get_battery_status())`
 
           <div className="grid gap-3">
             {setupSteps.map((step) => (
-              <div key={step.label} className="relative grid gap-4 border border-[#dce7f2] bg-white p-4 pr-16 shadow-[0_12px_30px_rgba(12,31,58,0.06)] sm:grid-cols-[72px_minmax(0,1fr)]">
+              <div key={step.label} className="relative grid gap-4 rounded-[22px] border border-black/8 bg-white/70 p-4 pr-16 shadow-[0_20px_55px_rgba(17,17,17,0.06)] sm:grid-cols-[72px_minmax(0,1fr)]">
                 <CopyCodeButton value={step.code} className="absolute right-4 top-4 z-10" />
-                <div className="grid h-14 w-14 place-items-center rounded-[8px] bg-[#008a6c] font-mono text-xl font-bold text-white">
+                <div className="grid h-14 w-14 place-items-center rounded-[14px] bg-[#1a73e8] font-mono text-xl font-bold text-white shadow-[0_12px_30px_rgba(26,115,232,0.2)]">
                   {step.label}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xl font-semibold text-[#07142e]">{step.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-[#23304a]">{step.body}</p>
-                  <pre className="mt-3 overflow-x-auto border border-[#dce7f2] bg-[#f8fbff] p-3 font-mono text-xs leading-6 text-[#006a5c]">{step.code}</pre>
+                  <h3 className="font-display text-xl font-semibold text-[#111111]">{step.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-[#5f6368]">{step.body}</p>
+                  <pre className="mt-3 overflow-x-auto rounded-[12px] border border-black/8 bg-[#faf9f6] p-3 font-mono text-xs leading-6 text-[#303134]">{step.code}</pre>
                 </div>
               </div>
             ))}
@@ -1656,25 +1649,25 @@ print(Agentech.get_battery_status())`
 
         <div className="mt-6 grid gap-5 lg:grid-cols-3">
           {recipes.map((recipe) => (
-            <div key={recipe.title} className="border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
-              <div className="border-b border-[#dce7f2] px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{recipe.title}</p>
+            <div key={recipe.title} className="overflow-hidden rounded-[22px] border border-black/8 bg-white/70 shadow-[0_20px_55px_rgba(17,17,17,0.06)]">
+              <div className="border-b border-black/8 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">{recipe.title}</p>
               </div>
-              <pre className="min-h-56 overflow-x-auto bg-[#fbfdff] p-4 font-mono text-xs leading-6 text-[#07142e]">{recipe.code}</pre>
+              <pre className="min-h-56 overflow-x-auto bg-[#faf9f6] p-4 font-mono text-xs leading-6 text-[#303134]">{recipe.code}</pre>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 border border-[#dce7f2] bg-white p-5 shadow-[0_12px_30px_rgba(12,31,58,0.06)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a35d00]">Starter Rules</p>
-          <div className="mt-4 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] md:grid-cols-4">
+        <div className="mt-6 rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_20px_55px_rgba(17,17,17,0.06)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">Starter Rules</p>
+          <div className="mt-4 grid gap-px overflow-hidden rounded-[14px] border border-black/8 bg-black/8 md:grid-cols-4">
             {[
               "Use stand before motion",
               "Keep motion under 10 seconds",
               "Preview before review",
               "Stop at the end"
             ].map((rule) => (
-              <div key={rule} className="bg-[#f8fbff] p-4 text-sm font-semibold leading-6 text-[#23304a]">
+              <div key={rule} className="bg-[#faf9f6] p-4 text-sm font-semibold leading-6 text-[#303134]">
                 {rule}
               </div>
             ))}
@@ -1682,6 +1675,23 @@ print(Agentech.get_battery_status())`
         </div>
       </div>
     </section>
+  );
+}
+
+function SafetyLimitLabel({ label }: { label: string }) {
+  const measurement = ["10s", "2 m x 2 m"].find((token) => label.includes(token));
+
+  if (!measurement) {
+    return label;
+  }
+
+  const [before, after] = label.split(measurement);
+  return (
+    <>
+      {before}
+      <code className="font-mono">{measurement}</code>
+      {after}
+    </>
   );
 }
 
@@ -1766,17 +1776,17 @@ function FocusedBrowseFunctionsSection() {
   ];
 
   return (
-    <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="bg-[#f5f4f1] px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-6 border border-[#b9d7f6] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+        <div className="mb-6 rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
           <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Robot SDK Reference</p>
-              <h2 className="mt-2 text-3xl font-semibold text-[#07142e]">Choose the robot. Use its real capabilities.</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#334155]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1a73e8]">Robot SDK Reference</p>
+              <h2 className="mt-2 text-3xl font-semibold text-[#111111]">Choose the robot. Use its real capabilities.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f6368]">
                 The import and setup pattern stay the same. Each robot shows only the functions and limits its public SDK supports.
               </p>
-              <div className="mt-5 inline-grid grid-cols-3 border border-[#93bce8] bg-[#eef6ff] p-1" role="group" aria-label="Select robot SDK">
+              <div className="mt-5 inline-grid grid-cols-3 rounded-full border border-black/10 bg-[#efede8] p-1" role="group" aria-label="Select robot SDK">
                 {(["master", "aegis", "navi"] as const).map((robot) => {
                   const selected = selectedRobot === robot;
                   return (
@@ -1785,7 +1795,7 @@ function FocusedBrowseFunctionsSection() {
                       type="button"
                       aria-pressed={selected}
                       onClick={() => setSelectedRobot(robot)}
-                      className={`min-w-28 px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005bd6] ${selected ? "bg-[#005bd6] text-white" : "bg-white text-[#17436f] hover:bg-[#e5f1ff]"}`}
+                      className={`min-w-28 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a73e8] ${selected ? "bg-[#1a73e8] text-white shadow-sm" : "text-[#5f6368] hover:bg-white/75 hover:text-[#111111]"}`}
                     >
                       {robot === "aegis" ? "Aegis" : robot === "navi" ? "Navi" : "Master"}
                     </button>
@@ -1793,57 +1803,71 @@ function FocusedBrowseFunctionsSection() {
                 })}
               </div>
               <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">{selectedFunctions.length} reference cards</span>
+                <span className="rounded-full border border-[#1a73e8]/25 bg-[#eaf2fd] px-3 py-1.5 font-semibold text-[#1a73e8]">{selectedFunctions.length} reference cards</span>
                 {selectedRobot === "navi" ? (
-                  <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Navi-specific API</span>
+                  <span className="rounded-full border border-[#1a73e8]/25 bg-[#eaf2fd] px-3 py-1.5 font-semibold text-[#1a73e8]">Navi-specific API</span>
                 ) : null}
                 {selectedRobot === "master" ? (
-                  <span className="border border-[#9cc9be] bg-[#e8f7f3] px-3 py-1.5 font-semibold text-[#006a5c]">Standing upper-body API</span>
+                  <span className="rounded-full border border-[#1a73e8]/25 bg-[#eaf2fd] px-3 py-1.5 font-semibold text-[#1a73e8]">Standing upper-body API</span>
                 ) : null}
               </div>
             </div>
-            <div className="relative min-w-0 border border-[#dce7f2] bg-[#0d1726] p-4 pr-14">
+            <div className="relative min-w-0 rounded-[16px] border border-black/8 bg-[#faf9f6] p-4 pr-14">
               <CopyCodeButton value={selectedStarterCode} className="absolute right-3 top-3" />
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8fc5ff]">{selectedRobotLabel} setup</p>
-              <pre className="mt-3 max-h-52 min-w-0 overflow-auto whitespace-pre-wrap font-mono text-xs leading-6 text-[#dff7ed] [overflow-wrap:anywhere]">{selectedStarterCode}</pre>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a73e8]">{selectedRobotLabel} setup</p>
+              <pre className="mt-3 max-h-52 min-w-0 overflow-auto whitespace-pre-wrap font-mono text-xs leading-6 text-[#303134] [overflow-wrap:anywhere]">{selectedStarterCode}</pre>
             </div>
           </div>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">SDK Tutorial</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#07142e]">Browse {selectedRobotLabel} commands and parameters.</h2>
-            <div className="mt-5 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] md:grid-cols-3">
+          <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">SDK Tutorial</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#111111]">Browse {selectedRobotLabel} commands and parameters.</h2>
+            <div className="mt-5 grid gap-px overflow-hidden rounded-[14px] border border-black/8 bg-black/8 md:grid-cols-3">
               {tutorialCards.map((card) => (
-                <div key={card.title} className="bg-[#f8fbff] p-4">
-                  <p className="text-sm font-semibold text-[#07142e]">{card.title}</p>
-                  <p className="mt-2 text-xs leading-5 text-[#334155]">{card.body}</p>
+                <div key={card.title} className="bg-[#faf9f6] p-4">
+                  <p className="text-sm font-semibold text-[#111111]">{card.title}</p>
+                  <p className="mt-2 text-xs leading-5 text-[#5f6368]">{card.body}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="border border-[#ffd3bd] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#c85016]">Safety Limits</p>
+          <div
+            data-safety-limits-theme="engineering-yellow"
+            className="rounded-[22px] border border-[#d8d3ca] bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6b12]">Safety Limits</p>
             <div className="mt-4 grid gap-2">
-              {safetyLimits.map((limit) => (
-                <div
-                  key={limit.label}
-                  className={limit.temporary
-                    ? "border border-[#ff7a1a] bg-[#fff0e6] px-3 py-2.5 text-[#8a2c0d] shadow-[inset_3px_0_0_#ff5a1f]"
-                    : "border border-[#ffd3bd] bg-[#fff7f2] px-3 py-2 text-sm font-semibold text-[#7b2b0d]"}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-semibold">{limit.label}</span>
-                    {limit.temporary ? (
-                      <span className="border border-[#ff9b63] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#b83a0b]">
-                        Temporary
+              {safetyLimits.map((limit) => {
+                const emphasizesCompletionVerification = limit.label === "Every live gesture waits for completion and verifies stable standing again";
+
+                return (
+                  <div
+                    key={limit.label}
+                    data-safety-limit-kind={limit.temporary ? "temporary-boundary" : "standard"}
+                    className={limit.temporary
+                      ? "border border-[#d1a832] bg-[#fff7d6] px-3 py-2.5 text-[#55430a] shadow-[inset_3px_0_0_#c99a00]"
+                      : "border border-[#d8d3ca] bg-[#faf9f6] px-3 py-2 text-sm font-semibold text-[#31312f]"}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold">
+                        {emphasizesCompletionVerification ? (
+                          <strong data-safety-limit-emphasis="completion-verification" className="font-bold">!<SafetyLimitLabel label={limit.label} />!</strong>
+                        ) : (
+                          <SafetyLimitLabel label={limit.label} />
+                        )}
                       </span>
-                    ) : null}
+                      {limit.temporary ? (
+                        <code className="border border-[#d1a832] bg-[#fffdf2] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6d5200]">
+                          Temporary
+                        </code>
+                      ) : null}
+                    </div>
+                    {limit.detail ? <p className="mt-1 text-xs font-medium leading-5 text-[#6a5620]">{limit.detail}</p> : null}
                   </div>
-                  {limit.detail ? <p className="mt-1 text-xs font-medium leading-5 text-[#9a3412]">{limit.detail}</p> : null}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1856,12 +1880,16 @@ function FocusedBrowseFunctionsSection() {
           </>
         ) : null}
 
-        <div className={`mt-6 grid gap-px overflow-hidden border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_30px_rgba(12,31,58,0.06)] ${selectedRobot === "master" ? "md:grid-cols-2" : "md:grid-cols-4"}`}>
+        <div
+          data-sdk-overview-grid="true"
+          data-sdk-overview-count={groupedFunctions.length}
+          className={`mt-6 grid gap-px overflow-hidden rounded-[22px] border border-black/8 bg-black/8 shadow-[0_20px_55px_rgba(17,17,17,0.06)] ${selectedRobot === "master" ? "md:grid-cols-3" : "md:grid-cols-4"}`}
+        >
           {groupedFunctions.map((group) => (
-            <a key={group.category} href={`#function-${group.category.toLowerCase().replaceAll(" ", "-")}`} className="bg-white p-4 transition hover:bg-[#f3f8ff]">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">{group.category}</p>
-              <p className="mt-2 text-3xl font-semibold text-[#07142e]">{group.items.length}</p>
-              <p className="mt-1 text-xs leading-5 text-[#334155]">commands</p>
+            <a key={group.category} href={`#function-${group.category.toLowerCase().replaceAll(" ", "-")}`} className="bg-white/75 p-4 transition hover:bg-white">
+              <p className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">{group.category}</p>
+              <p className="mt-2 text-3xl font-semibold text-[#111111]">{group.items.length}</p>
+              <p className="mt-1 text-xs leading-5 text-[#5f6368]">commands</p>
             </a>
           ))}
         </div>
@@ -1871,12 +1899,22 @@ function FocusedBrowseFunctionsSection() {
             <details
               key={group.category}
               id={`function-${group.category.toLowerCase().replaceAll(" ", "-")}`}
-              className="group/category min-w-0 scroll-mt-6 overflow-hidden border border-[#dce7f2] bg-white shadow-[0_12px_30px_rgba(12,31,58,0.06)]"
+              className="group/category min-w-0 scroll-mt-6 overflow-hidden rounded-[22px] border border-black/8 bg-white/70 shadow-[0_20px_55px_rgba(17,17,17,0.06)]"
             >
-              <summary className="flex cursor-pointer list-none flex-col items-stretch gap-4 px-5 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#008a7a]">{group.category}</p>
-                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#07142e]">{group.category === "Actions" ? "Action" : group.category === "Joint Adjustments" ? "Joint Adjustment" : group.category} Commands</h2>
+              <summary
+                data-sdk-category-summary="true"
+                className="grid cursor-pointer list-none grid-cols-[32px_minmax(0,1fr)] items-center gap-x-4 gap-y-4 px-5 py-4 outline-none transition hover:bg-white/70 focus-visible:ring-2 focus-visible:ring-[#1a73e8]/25 [&::-webkit-details-marker]:hidden sm:grid-cols-[32px_minmax(0,1fr)_auto]"
+              >
+                <span
+                  data-sdk-category-arrow="true"
+                  aria-hidden="true"
+                  className="grid h-8 w-8 place-items-center text-sm text-[#111111] transition-transform group-open/category:rotate-90"
+                >
+                  ▶
+                </span>
+                <div data-sdk-category-copy="true" className="min-w-0">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#1a73e8]">{group.category}</p>
+                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#111111]">{group.category === "Actions" ? "Action" : group.category === "Joint Adjustments" ? "Joint Adjustment" : group.category} Commands</h2>
                   {group.category === "Movement" ? (
                     <p className="mt-2 text-sm leading-6 text-[#526174]">All commands in this section move the robot by moving its four feet.</p>
                   ) : null}
@@ -1907,20 +1945,23 @@ function FocusedBrowseFunctionsSection() {
                     <p className="mt-2 text-sm leading-6 text-[#526174]">Stop active movement normally or trigger Navi&apos;s software emergency-stop posture.</p>
                   ) : null}
                 </div>
-                <div className="flex w-full shrink-0 items-center justify-between gap-3 sm:w-auto sm:justify-start">
-                  <span className="font-mono text-sm text-[#005bd6]">{group.items.length} functions</span>
-                  <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#006a5c] group-open/category:hidden">View functions</span>
-                  <span className="hidden border border-[#008a7a] bg-[#e8f7f3] px-3 py-1 font-mono text-xs text-[#006a5c] group-open/category:inline">Hide functions</span>
+                <div className="col-start-2 flex w-full shrink-0 items-center justify-between gap-3 sm:col-start-3 sm:row-start-1 sm:w-auto sm:justify-start">
+                  <span className="font-mono text-sm text-[#1a73e8]">{group.items.length} functions</span>
+                  <span className="font-interface rounded-full border border-black/10 px-3 py-1 text-xs text-[#5f6368] group-open/category:hidden">View functions</span>
+                  <span className="font-interface hidden rounded-full border border-[#1a73e8]/35 bg-[#eaf2fd] px-3 py-1 text-xs text-[#1a73e8] group-open/category:inline">Hide functions</span>
                 </div>
               </summary>
-              <div className="divide-y divide-[#dce7f2]">
+              <div className="divide-y divide-black/8">
                 {group.items.map((item) => (
-                  <details key={item.name} className="group min-w-0 bg-white">
-                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#005bd6]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_260px]">
-                      <p className="min-w-0 break-words font-mono text-xs leading-5 text-[#006a5c] [overflow-wrap:anywhere]">
+                  <details key={item.name} className="group min-w-0 bg-white/55">
+                    <summary className="grid min-w-0 cursor-pointer list-none items-center gap-3 px-4 py-4 outline-none transition hover:bg-white/70 focus-visible:ring-2 focus-visible:ring-[#1a73e8]/25 md:grid-cols-[minmax(220px,0.8fr)_minmax(0,1fr)_260px]">
+                      <p
+                        data-sdk-function-signature="true"
+                        className="min-w-0 justify-self-start break-words text-left font-mono text-xs leading-5 text-[#1a73e8] [overflow-wrap:anywhere]"
+                      >
                         {compactFunctionSignature(item.signature)}
                       </p>
-                      <p className="min-w-0 text-sm leading-6 text-[#111d35]">{item.summary}</p>
+                      <p className="min-w-0 text-sm leading-6 text-[#303134]">{item.summary}</p>
                       <div className="flex flex-wrap items-center gap-2 justify-self-start md:justify-self-end">
                         {item.status === "development" || item.params.some((param) => param.status === "development") ? (
                           <span className="border border-[#d99a00] bg-[#fff8df] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under development</span>
@@ -1928,13 +1969,13 @@ function FocusedBrowseFunctionsSection() {
                         {item.creditUsage === "high" ? (
                           <span className="border border-[#d97706] bg-[#fff7e6] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9a4d00]">High credit usage</span>
                         ) : null}
-                        <span className="border border-[#c9d8e8] px-3 py-1 font-mono text-xs text-[#005bd6] group-open:border-[#008a7a] group-open:text-[#006a5c]">details</span>
+                        <span className="font-interface rounded-full border border-black/10 px-3 py-1 text-xs text-[#1a73e8] group-open:border-[#1a73e8]/35">details</span>
                       </div>
                     </summary>
-                    <div className={`grid gap-px border-t border-[#dce7f2] bg-[#dce7f2] ${shouldHideReferencePreview(item, selectedRobot) ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
-                      <div className="min-w-0 bg-[#fbfdff] p-4">
-                        <p className="text-xs uppercase tracking-[0.14em] text-[#334155]">Definition</p>
-                        <p className="mt-2 text-sm leading-6 text-[#111d35]">{item.summary}</p>
+                    <div className={`grid gap-px border-t border-black/8 bg-black/8 ${shouldHideReferencePreview(item, selectedRobot) ? "" : "lg:grid-cols-[minmax(0,1fr)_360px]"}`}>
+                      <div className="min-w-0 bg-[#faf9f6] p-4">
+                        <p className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">Definition</p>
+                        <p className="mt-2 text-sm leading-6 text-[#303134]">{item.summary}</p>
                         {item.verification ? (
                           <div className="mt-3 border border-[#9cc9be] bg-[#e8f7f3] p-3">
                             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">Verification</p>
@@ -1958,8 +1999,8 @@ function FocusedBrowseFunctionsSection() {
                               {item.profiles.map((profile, profileIndex) => (
                                 <div key={profile.name} className={`border p-3 ${profile.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : "border-[#dce7f2] bg-white"}`}>
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <span className="grid h-5 w-5 place-items-center bg-[#e8f1fb] font-mono text-[10px] font-bold text-[#005bd6]">{profile.number ?? profileIndex + 1}</span>
-                                    <span className="text-xs font-semibold text-[#07142e]">{profile.name}</span>
+                                    <span className="grid h-5 w-5 place-items-center rounded-[6px] bg-[#eaf2fd] font-mono text-[10px] font-bold text-[#1a73e8]">{profile.number ?? profileIndex + 1}</span>
+                                    <span className="text-xs font-semibold text-[#111111]">{profile.name}</span>
                                     {profile.status === "development" ? <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span> : null}
                                   </div>
                                   <p className="mt-2 whitespace-pre-wrap overflow-x-auto font-mono text-xs leading-5 text-[#006a5c]">{profileSyntaxWithPlaceholders(profile.syntax)}</p>
@@ -1981,7 +2022,7 @@ function FocusedBrowseFunctionsSection() {
                               <details key={param.name} className={`group/param border ${param.status === "development" ? "border-[#e1ad32] bg-[#fffaf0]" : param.status === "unsupported" ? "border-[#d88b8b] bg-[#fff5f5]" : "border-[#dce7f2] bg-white"}`}>
                                 <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-3 outline-none transition hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#005bd6]/25">
                                   <span className="font-mono text-xs text-[#006a5c]">{param.name}</span>
-                                  <span className="font-mono text-xs text-[#005bd6]">{param.type}</span>
+                                  <span className="font-mono text-xs text-[#1a73e8]">{param.type}</span>
                                   {param.defaultValue ? <span className="font-mono text-xs text-[#a35d00]">default {param.defaultValue}</span> : null}
                                   {param.status === "development" ? (
                                     <span className="border border-[#d99a00] bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8a5b00]">Under Development</span>
@@ -1990,7 +2031,7 @@ function FocusedBrowseFunctionsSection() {
                                   ) : (
                                     <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#006a5c]">Available</span>
                                   )}
-                                  <span className="ml-auto border border-[#c9d8e8] bg-white px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-[#005bd6] group-open/param:border-[#008a7a] group-open/param:text-[#006a5c]">
+                                  <span className="font-interface ml-auto border border-[#c9d8e8] bg-white px-2 py-0.5 text-[10px] uppercase tracking-[0.1em] text-[#005bd6] group-open/param:border-[#008a7a] group-open/param:text-[#006a5c]">
                                     <span className="group-open/param:hidden">Details</span>
                                     <span className="hidden group-open/param:inline">Hide</span>
                                   </span>
@@ -2007,16 +2048,16 @@ function FocusedBrowseFunctionsSection() {
                         {item.name === "lateral" ? null : (
                           <>
                             <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#334155]">Example</p>
-                            <div className="relative mt-2 border border-[#dce7f2] bg-white">
+                            <div className="relative mt-2 rounded-[12px] border border-black/8 bg-white/70">
                               <CopyCodeButton value={item.example} className="absolute right-2 top-2 z-10" />
-                              <pre className="min-h-14 overflow-x-auto p-3 pr-16 font-mono text-xs leading-6 text-[#07142e]">{item.example}</pre>
+                              <pre className="min-h-14 overflow-x-auto p-3 pr-16 font-mono text-xs leading-6 text-[#303134]">{item.example}</pre>
                             </div>
                           </>
                         )}
                       </div>
                       {shouldHideReferencePreview(item, selectedRobot) ? null : (
-                        <div className="min-w-0 bg-white p-4">
-                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#006a5c]">
+                        <div className="min-w-0 bg-white/70 p-4">
+                          <p className="mb-3 font-mono text-xs uppercase tracking-[0.12em] text-[#1a73e8]">
                             {selectedRobot === "navi" && item.name === "lateral" ? "lateral_left" : item.name} {selectedRobot === "navi" ? "on Navi" : "preview"}
                           </p>
                           {selectedRobot === "master" ? (
@@ -2107,13 +2148,13 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
   }, [passed, result.resultId, result.simulationClips.length]);
 
   return (
-    <section className="bg-[#fbfdff] px-4 pb-10 sm:px-6 lg:px-8">
+    <section className="bg-[#f5f4f1] px-4 pb-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-5">
-        <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
+        <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Validation Result</p>
-              <h2 className="mt-2 text-2xl font-semibold text-[#07142e]">Validation Checklist</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">Validation Result</p>
+              <h2 className="mt-2 text-2xl font-semibold text-[#111111]">Validation Checklist</h2>
             </div>
             <span className={`px-3 py-1.5 text-sm font-bold ${
               passed ? "bg-[#e7f7ef] text-[#087a43]" : warning ? "bg-[#fff7d6] text-[#9a6700]" : "bg-[#fdeceb] text-[#b42318]"
@@ -2122,7 +2163,7 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
             </span>
           </div>
 
-          <div className="mt-5 overflow-hidden border border-[#dce7f2]">
+          <div className="mt-5 overflow-hidden rounded-[14px] border border-black/8">
             <table className="w-full text-left text-sm">
               <thead className="bg-[#eef5fb] text-xs uppercase tracking-[0.14em] text-[#526174]">
                 <tr>
@@ -2151,8 +2192,8 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{isNavi ? "Navi SDK Hardware Preview" : "MuJoCo Simulation Video"}</p>
+          <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">{isNavi ? "Navi SDK Hardware Preview" : "MuJoCo Simulation Video"}</p>
             <p className="mt-2 text-sm leading-6 text-[#334155]">
               {isNavi
                 ? "The app validates the uploaded commands against the latest reviewed Navi SDK. Navi execution uses the exact SDK calls after scheduling."
@@ -2204,8 +2245,8 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
           </div>
 
           <div className="space-y-5">
-            <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Selected Company Robot</p>
+            <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">Selected Company Robot</p>
               <div className="mt-4 divide-y divide-[#dce7f2] border border-[#dce7f2] text-sm">
                 <div className="grid grid-cols-[120px_minmax(0,1fr)]">
                   <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Robot</div>
@@ -2218,8 +2259,8 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
               </div>
             </div>
 
-            <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Code Validation</p>
+            <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">Code Validation</p>
               <div className="mt-4 divide-y divide-[#dce7f2] border border-[#dce7f2] text-sm">
                 <div className="grid grid-cols-[100px_minmax(0,1fr)] sm:grid-cols-[120px_minmax(0,1fr)]">
                   <div className="bg-[#f8fbff] px-3 py-3 font-semibold text-[#526174]">Uploaded</div>
@@ -2245,8 +2286,8 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Agentech Movement List</p>
+          <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">Agentech Movement List</p>
             <div className="mt-4 overflow-hidden border border-[#dce7f2]">
               <table className="w-full text-left text-sm">
                 <thead className="bg-[#eef5fb] text-xs uppercase tracking-[0.14em] text-[#526174]">
@@ -2267,8 +2308,8 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
             </div>
           </div>
 
-          <div className="border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">Final Status</p>
+          <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#1a73e8]">Final Status</p>
             <p className="mt-4">
               <span className={`px-3 py-1.5 text-sm font-bold ${
                 passed ? "bg-[#e7f7ef] text-[#087a43]" : warning ? "bg-[#fff7d6] text-[#9a6700]" : "bg-[#fdeceb] text-[#b42318]"
@@ -2280,7 +2321,7 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
             {passed ? (
               <button
                 type="button"
-                className="mt-4 w-full border border-[#008a7a] bg-[#008a7a] px-4 py-3 text-sm font-semibold text-white"
+                className="mt-4 w-full rounded-full border border-[#1a73e8] bg-[#1a73e8] px-4 py-3 text-sm font-semibold text-white"
               >
                 Submit for Further Review
               </button>
@@ -2288,7 +2329,7 @@ function HardwareResultPanel({ result }: { result: HardwareResult }) {
               <button
                 type="button"
                 disabled
-                className="mt-4 w-full cursor-not-allowed border border-[#d5e0ec] bg-[#edf2f7] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
+                className="mt-4 w-full cursor-not-allowed rounded-full border border-black/10 bg-[#efede8] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
               >
                 Submit for Further Review
               </button>
@@ -2384,14 +2425,14 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       ? "border-[#d99a00] bg-[#fff8df]"
     : hardwareFailed
       ? "border-[#c93434] bg-[#fff1f1]"
-      : "border-[#dce7f2] bg-[#f8fbff]";
+      : "border-black/8 bg-[#faf9f6]";
   const step4PanelClass = softwarePassed
     ? "border-[#008a7a] bg-[#e8f7f3]"
     : softwareFailed
       ? "border-[#c93434] bg-[#fff1f1]"
     : hardwarePassed
       ? "border-[#008a7a] bg-white"
-      : "border-[#dce7f2] bg-[#f8fbff]";
+      : "border-black/8 bg-[#faf9f6]";
   const showFocusedStartCoding = selectedTask?.slug === "start-coding";
   const showFocusedBrowseFunctions = selectedTask?.slug === "view-sdk";
   const showFocusedLiveRun = selectedTask?.slug === "watch-live-run";
@@ -3157,7 +3198,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
   }
 
   return (
-    <div className={`agentech-library-page min-h-screen ${useLightTaskPage ? "bg-[#fbfdff] text-[#07142e]" : "bg-[#0b0d10] text-white"}`}>
+    <div className={`agentech-library-page min-h-screen ${useLightTaskPage ? "eaic-task-theme bg-[#f5f4f1] text-[#111111]" : "bg-[#0b0d10] text-white"}`}>
       <style>{`
         nextjs-portal,
         [data-nextjs-toast],
@@ -3253,17 +3294,17 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
       {showFocusedBrowseFunctions ? <FocusedBrowseFunctionsSection /> : null}
       {showFocusedLiveRun ? <FocusedLiveRunSection /> : null}
       {showFocusedReview ? (
-        <section className="bg-[#fbfdff] px-4 py-8 sm:px-6 lg:px-8">
+        <section className="bg-[#f5f4f1] px-4 py-10 sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="flex h-full flex-col border border-[#dce7f2] bg-white shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-              <div className="border-b border-[#dce7f2] bg-[#f3f7fb] px-4 py-3">
+            <div className="flex h-full flex-col overflow-hidden rounded-[22px] border border-black/8 bg-white/70 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+              <div className="border-b border-black/8 bg-[#faf9f6] px-5 py-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-mono text-sm font-semibold text-[#23304a]">submission_code.py</p>
-                  <span className="border border-[#008a7a] bg-[#e8f7f3] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#006a5c]">
+                  <p className="font-mono text-sm font-semibold text-[#111111]">submission_code.py</p>
+                  <span className="rounded-full border border-[#1a73e8]/35 bg-[#eaf2fd] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1a73e8]">
                     Type or paste here
                   </span>
                 </div>
-                <p className="mt-2 text-xs leading-5 text-[#526174]">
+                <p className="mt-2 text-xs leading-5 text-[#5f6368]">
                   You do not need to upload a file. Type or paste your Python code below, then run Code Certification.
                 </p>
               </div>
@@ -3274,47 +3315,47 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                 onChange={(event) => masterLiveTestSelected ? updateMasterLiveTestText(event.target.value) : updateCode(event.target.value)}
                 disabled={softwarePassed}
                 spellCheck={false}
-                className="min-h-[520px] w-full flex-1 resize-none border-0 bg-[#fbfdff] p-5 font-mono text-sm leading-7 text-[#07142e] outline-none selection:bg-[#bfe8d8] disabled:cursor-not-allowed disabled:bg-[#f1f7f5] disabled:text-[#526174] lg:min-h-[760px]"
+                className="min-h-[520px] w-full flex-1 resize-none border-0 bg-[#fdfcf9] p-5 font-mono text-sm leading-7 text-[#303134] outline-none selection:bg-[#d8e8fd] disabled:cursor-not-allowed disabled:bg-[#efede8] disabled:text-[#5f6368] lg:min-h-[760px]"
               />
             </div>
-            <div className="border border-[#dce7f2] bg-white p-4 shadow-[0_18px_42px_rgba(12,31,58,0.08)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#005bd6]">{focusedReviewStep}</p>
-              <p className="mt-2 text-xs leading-5 text-[#526174]">{focusedReviewCopy}</p>
+            <div className="rounded-[22px] border border-black/8 bg-white/70 p-5 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1a73e8]">{focusedReviewStep}</p>
+              <p className="mt-2 text-xs leading-5 text-[#5f6368]">{focusedReviewCopy}</p>
               <div className="mt-4 space-y-4">
-                <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
+                <div className="rounded-[14px] border border-black/8 bg-[#faf9f6] p-3">
                   <label className="block">
-                    <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Robot model</span>
+                    <span className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">Robot model</span>
                     <select
                       value={displayedRobotModel}
                       onChange={(event) => changeCodeCheckingRobotModel(event.target.value)}
                       disabled={softwarePassed || isRunningPhysicalCheck || isRunningSoftwareCheck}
-                      className="mt-2 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm font-semibold text-[#07142e] outline-none focus:border-[#008a7a] disabled:cursor-not-allowed disabled:bg-[#edf2f7]"
+                      className="mt-2 w-full rounded-[10px] border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-[#111111] outline-none focus:border-[#1a73e8] disabled:cursor-not-allowed disabled:bg-[#efede8]"
                     >
                       {codeCheckingRobotOptions.map((model) => <option key={model} value={model}>{model}</option>)}
                     </select>
                   </label>
-                  <p className="mt-2 text-xs leading-5 text-[#526174]">
+                  <p className="mt-2 text-xs leading-5 text-[#5f6368]">
                     {masterLiveTestSelected
                       ? masterPresentation.viewOnlyNotice
                       : robotModel === "Navi" ? "Checks this submission against the latest Navi SDK." : "Checks this submission against the Aegies SDK."}
                   </p>
                 </div>
-                <div className="border border-[#c9d8e8] bg-[#f8fbff] p-3">
-                  <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">Test type</p>
-                  <p className="mt-2 text-sm font-semibold text-[#07142e]">{runMode}</p>
-                  <p className="mt-1 text-xs leading-5 text-[#526174]">{runModeDescription}</p>
+                <div className="rounded-[14px] border border-black/8 bg-[#faf9f6] p-3">
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">Test type</p>
+                  <p className="mt-2 text-sm font-semibold text-[#111111]">{runMode}</p>
+                  <p className="mt-1 text-xs leading-5 text-[#5f6368]">{runModeDescription}</p>
                 </div>
                 <div className="flex items-center gap-3" aria-hidden="true">
-                  <span className="h-px flex-1 bg-[#dce7f2]" />
+                  <span className="h-px flex-1 bg-black/8" />
                   <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7d8b9c]">Or upload a file</span>
-                  <span className="h-px flex-1 bg-[#dce7f2]" />
+                  <span className="h-px flex-1 bg-black/8" />
                 </div>
                 {(physicalSubmissionId || hardwareResult || softwareReviewStatus !== "locked" || softwarePassed) ? (
                   <button
                     type="button"
                     onClick={checkAnotherCode}
                     disabled={isRunningPhysicalCheck || isRunningSoftwareCheck}
-                    className="w-full border border-[#526174] bg-white px-4 py-3 text-sm font-semibold text-[#23304a] transition hover:border-[#2f70c8] hover:bg-[#eaf3ff] hover:text-[#194f92] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-full border border-black/15 bg-white px-4 py-3 text-sm font-semibold text-[#303134] transition hover:border-[#1a73e8] hover:text-[#1a73e8] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Check Another Code
                   </button>
@@ -3335,16 +3376,16 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     }
                   }}
                   onDrop={handleCodeFileDrop}
-                  className={`block border border-dashed p-3 transition ${
+                  className={`block rounded-[14px] border border-dashed p-3 transition ${
                     isDraggingCodeFile
                       ? "border-[#008a7a] bg-[#e8f7f3]"
                       : reviewInputError
                         ? "border-[#c93434] bg-[#fff8f8]"
-                        : "border-[#c9d8e8] bg-[#f8fbff] hover:border-[#008a7a]"
+                        : "border-black/10 bg-[#faf9f6] hover:border-[#1a73e8]"
                   }`}
                 >
-                  <span className="text-xs uppercase tracking-[0.14em] text-[#526174]">Upload code file</span>
-                  <span className="mt-2 block text-sm font-semibold text-[#07142e]">
+                  <span className="text-xs uppercase tracking-[0.14em] text-[#5f6368]">Upload code file</span>
+                  <span className="mt-2 block text-sm font-semibold text-[#111111]">
                     {isDraggingCodeFile ? "Drop the file here" : "Drag a .py or .txt file here, or choose a file"}
                   </span>
                   <input
@@ -3355,18 +3396,18 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     onChange={(event) => {
                       void loadUploadedCodeFile(event.target.files?.[0] ?? null);
                     }}
-                    className="mt-3 w-full border border-[#c9d8e8] bg-white px-3 py-2 text-sm text-[#23304a] outline-none file:mr-3 file:border-0 file:bg-[#e8f7f3] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#006a5c] focus:border-[#008a7a]"
+                    className="mt-3 w-full rounded-[10px] border border-black/10 bg-white px-3 py-2 text-sm text-[#303134] outline-none file:mr-3 file:rounded-full file:border-0 file:bg-[#eaf2fd] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-[#1a73e8] focus:border-[#1a73e8]"
                   />
                   <span className="mt-2 block text-xs leading-5 text-[#526174]">
                     {uploadedFileName ? `${uploadedFileName} loaded into the editor.` : "Upload a .py file or paste code directly into the editor."}
                   </span>
                 </label>
                 {reviewInputError ? (
-                  <div role="alert" className="border border-[#c93434] bg-[#fff1f1] px-3 py-2 text-xs leading-5 text-[#a51f1f]">
+                  <div role="alert" className="rounded-[12px] border border-[#c93434] bg-[#fff1f1] px-3 py-2 text-xs leading-5 text-[#a51f1f]">
                     {reviewInputError}
                   </div>
                 ) : null}
-                <div className={`border p-3 ${step3PanelClass}`}>
+                <div className={`rounded-[14px] border p-3 ${step3PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Stage 1 - View-Only Access" : "Stage 1 - Hardware Safety"}</p>
                     {hardwarePassed ? (
@@ -3432,7 +3473,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     </div>
                   ) : null}
                 </div>
-                <div className={`border p-3 ${step4PanelClass}`}>
+                <div className={`rounded-[14px] border p-3 ${step4PanelClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Stage 2 - Execution Isolation" : "Stage 2 - Software Security"}</p>
                     {isLoadingReviewGate ? (
@@ -3493,7 +3534,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   type="button"
                   onClick={() => void runPhysicalSafetyCheck()}
                   disabled={isLoadingReviewGate || isRunningPhysicalCheck || isRunningSoftwareCheck}
-                  className="w-full border border-[#2f70c8] bg-[#eaf3ff] px-4 py-3 text-sm font-semibold text-[#194f92] transition hover:bg-[#2f70c8] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-full border border-[#1a73e8] bg-[#1a73e8] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#155fc0] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRunningPhysicalCheck
                     ? masterLiveTestSelected ? "Starting Master Live Test..." : "Running Hardware Safety..."
@@ -3507,10 +3548,10 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   type="button"
                   onClick={() => void runSoftwareCheck()}
                   disabled={isLoadingReviewGate || !hardwarePassed || isRunningPhysicalCheck || isRunningSoftwareCheck || softwareReviewStatus !== "locked"}
-                  className={`w-full border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-[#d5e0ec] disabled:bg-[#edf2f7] disabled:text-[#7d8b9c] ${
+                  className={`w-full rounded-full border px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:border-black/10 disabled:bg-[#efede8] disabled:text-[#7d8b9c] ${
                     hardwarePassed && softwareReviewStatus === "locked"
-                      ? "border-[#008a7a] bg-[#008a7a] text-white hover:bg-[#006a5c]"
-                      : "border-[#008a7a] bg-[#e8f7f3] text-[#006a5c]"
+                      ? "border-[#1a73e8] bg-[#1a73e8] text-white hover:bg-[#155fc0]"
+                      : "border-[#1a73e8]/35 bg-[#eaf2fd] text-[#1a73e8]"
                   }`}
                 >
                   {isRunningSoftwareCheck
@@ -3521,7 +3562,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                         ? "Run Software Security"
                         : "Software Security Used"}
                 </button> : null}
-                <div className={`border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-[#dce7f2] bg-[#f8fbff]"}`}>
+                <div className={`rounded-[14px] border p-3 ${canScheduleRobotSlot ? "border-[#008a7a] bg-[#e8f7f3]" : "border-black/8 bg-[#faf9f6]"}`}>
                   <p className="text-xs uppercase tracking-[0.14em] text-[#526174]">{masterLiveTestSelected ? "Master live gate" : "Schedule gate"}</p>
                   <p className="mt-2 text-sm leading-6 text-[#23304a]">
                     {masterLiveTestSelected
@@ -3533,7 +3574,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                   {canScheduleRobotSlot ? (
                     <Link
                       href={masterLiveTestSelected ? masterPresentation.livePath : robotSchedulingPath}
-                      className="mt-3 block border border-[#008a7a] bg-[#008a7a] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#006a5c]"
+                      className="mt-3 block rounded-full border border-[#1a73e8] bg-[#1a73e8] px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#155fc0]"
                     >
                       {masterLiveTestSelected ? masterPresentation.liveLinkLabel : "Request Time Slot"}
                     </Link>
@@ -3541,7 +3582,7 @@ export function AgentechLibraryWorkbench({ task }: AgentechLibraryWorkbenchProps
                     <button
                       type="button"
                       disabled
-                      className="mt-3 w-full cursor-not-allowed border border-[#d5e0ec] bg-[#edf2f7] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
+                      className="mt-3 w-full cursor-not-allowed rounded-full border border-black/10 bg-[#efede8] px-4 py-3 text-sm font-semibold text-[#7d8b9c]"
                     >
                       {masterLiveTestSelected ? "Master Live Stream Locked" : "Request Time Slot Locked"}
                     </button>

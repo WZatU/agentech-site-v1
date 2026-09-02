@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { isAgentechPrimaryOwnerEmail } from "@/lib/company-accounts";
 import {
   OFFICIAL_X2_LIMIT_GROUPS,
@@ -72,12 +72,10 @@ export default async function MasterRobotReferencePage() {
             <div className="space-y-3 lg:text-right">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Signed-in owner</p>
               <p className="font-bold text-white">{email}</p>
-              <Link
-                href="/admin/ai-gateway"
+              <HistoryBackButton
+                fallbackHref="/admin/ai-gateway"
                 className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-black text-slate-950 transition hover:bg-slate-200"
-              >
-                Back to Admin
-              </Link>
+              />
             </div>
           </div>
         </header>

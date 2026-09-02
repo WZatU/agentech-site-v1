@@ -1,21 +1,19 @@
 import Image from "next/image";
-import Link from "next/link";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { TechEducationForm } from "@/components/tech-education-form";
 
 export default function TechEducationPage() {
   return (
     <section className="min-h-screen bg-white px-6 py-16 text-slate-950 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <Link
-          href="/talents"
+        <HistoryBackButton
+          fallbackHref="/talents"
           className="talent-back-button mb-10 inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-        >
-          Back to Agentech Talents
-        </Link>
+        />
 
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm uppercase tracking-[0.24em] !text-black">WORKSHOP</p>
-          <h1 className="mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
+          <h1 className="font-display mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
             APPLY FOR WORKSHOP
           </h1>
           <p className="mt-5 text-base leading-8 !text-black md:text-lg">
@@ -38,12 +36,10 @@ export default function TechEducationPage() {
         <TechEducationForm />
 
         <div className="mt-8">
-          <Link
-            href="/talents"
+          <HistoryBackButton
+            fallbackHref="/talents"
             className="talent-back-button inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-          >
-            Back to Agentech Talents
-          </Link>
+          />
         </div>
       </div>
     </section>

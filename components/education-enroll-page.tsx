@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { getAccountSession } from "@/lib/account-session";
 import { eaiImmersionCourseCode, getEducationCourseByCode, getEligibleGradesForEducationCourse } from "@/lib/education-courses";
 import { eaiInterestOptions, eaiPriceSummary, type EaiInterestOptionId } from "@/lib/eai-immersion-options";
@@ -219,9 +220,7 @@ export function EducationEnrollPage() {
           </div>
         ) : null}
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/agentech-education" className="education-enroll-button rounded-full px-6 py-3 text-sm font-semibold transition">
-            Back to Education
-          </Link>
+          <HistoryBackButton fallbackHref="/agentech-education" className="education-enroll-button rounded-full px-6 py-3 text-sm font-semibold transition" />
           {status === "success" && !isEaiInterest ? (
             <Link href="/account" className="education-enroll-button rounded-full px-6 py-3 text-sm font-semibold transition">
               View Account

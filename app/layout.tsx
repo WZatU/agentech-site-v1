@@ -5,6 +5,7 @@ import { AgentCursor } from "@/components/agent-cursor";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { gaMeasurementId, siteUrl } from "@/lib/site-config";
+import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -16,11 +17,6 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-mono"
-});
-
-const manropeDisplay = Manrope({
-  subsets: ["latin"],
-  variable: "--font-display"
 });
 
 const oxanium = Oxanium({
@@ -61,9 +57,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${plexMono.variable} ${manropeDisplay.variable} ${oxanium.variable}`}
+      suppressHydrationWarning
+      className={`${manrope.variable} ${plexMono.variable} ${oxanium.variable}`}
     >
-      <body className="font-[var(--font-sans)] text-mist antialiased">
+      <body className="font-interface antialiased">
+        <Script
+          id="agentech-theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeBootScript }}
+        />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
           strategy="afterInteractive"

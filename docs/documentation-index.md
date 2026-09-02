@@ -31,6 +31,7 @@ Primary docs:
 ```text
 README.md
 CONTRIBUTING.md
+docs/agentech-ui-change-playbook.md
 docs/software-check-access-policy.md
 docs/aegis-session-43-gateway-runbook.md
 docs/dropbox-news-automation.md

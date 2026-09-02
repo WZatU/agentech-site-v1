@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentech Master Robot · GLB Preview</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; }
+      body { overflow: hidden; background: radial-gradient(circle at 50% 22%, #263c62, #09111f 58%, #03060c); color: #fff; font-family: Arial, sans-serif; }
+      model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+      .label { position: fixed; left: 34px; top: 28px; z-index: 2; letter-spacing: .26em; font-size: 13px; color: #7fd5ff; }
+      .hint { position: fixed; left: 34px; bottom: 28px; z-index: 2; color: #b6c2d4; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="label">AGENTECH MASTER · WEB GLB</div>
+    <div class="hint">Drag to rotate · Scroll to zoom</div>
+    <model-viewer
+      src="/public/assets/products/eaic-hub/master-robot-3d/agentech-master-web.glb"
+      alt="Agentech Master humanoid robot"
+      camera-controls
+      auto-rotate
+      auto-rotate-delay="0"
+      rotation-per-second="4deg"
+      shadow-intensity="1.3"
+      shadow-softness=".8"
+      exposure="1.15"
+      camera-orbit="0deg 78deg 6.8m"
+      min-camera-orbit="auto auto 4.4m"
+      max-camera-orbit="auto auto 9m"
+      interaction-prompt="none"
+    ></model-viewer>
+  </body>
+</html>

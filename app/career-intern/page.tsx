@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { internshipRoles } from "@/lib/internship-roles";
 
 export const metadata = {
@@ -11,16 +12,14 @@ export default function CareerInternPage() {
   return (
     <section className="internship-light-page internship-list-page min-h-screen bg-white px-6 py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <Link
-          href="/talents"
+        <HistoryBackButton
+          fallbackHref="/talents"
           className="talent-back-button mb-10 inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-        >
-          Back to Agentech Talents
-        </Link>
+        />
 
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm uppercase tracking-[0.24em] !text-black">INTERNSHIP</p>
-          <h1 className="mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
+          <h1 className="font-display mt-5 text-4xl font-semibold uppercase tracking-[0.14em] !text-black md:text-6xl">
             Choose Your Track
           </h1>
           <p className="mt-5 text-base leading-8 !text-black md:text-lg">
@@ -41,7 +40,7 @@ export default function CareerInternPage() {
         </div>
 
         <section className="mt-14">
-          <h2 className="text-2xl font-semibold !text-black md:text-3xl">Related to your work experience</h2>
+          <h2 className="font-display text-2xl font-semibold !text-black md:text-3xl">Related to your work experience</h2>
           <div className="mt-7 grid gap-5">
             {internshipRoles.map((role, index) => (
               <Link
@@ -58,8 +57,8 @@ export default function CareerInternPage() {
                         {role.schedule}
                       </span>
                     </div>
-                    <h3 className="mt-4 text-2xl font-bold leading-tight !text-black underline decoration-slate-400 underline-offset-4 transition group-hover:decoration-slate-950">
-                      {index + 1}. {role.title}
+                    <h3 className="font-display mt-4 text-2xl font-bold leading-tight !text-black underline decoration-slate-400 underline-offset-4 transition group-hover:decoration-slate-950">
+                      <span className="font-technical">{index + 1}.</span> {role.title}
                     </h3>
                     <p className="mt-4 text-lg leading-7 !text-black">{role.eyebrow}</p>
                     <p className="mt-4 max-w-3xl text-sm leading-6 !text-black md:text-base">{role.summary}</p>
@@ -89,12 +88,10 @@ export default function CareerInternPage() {
           >
             Apply Now
           </Link>
-          <Link
-            href="/talents"
+          <HistoryBackButton
+            fallbackHref="/talents"
             className="talent-back-button inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-          >
-            Back to Agentech Talents
-          </Link>
+          />
         </div>
       </div>
     </section>

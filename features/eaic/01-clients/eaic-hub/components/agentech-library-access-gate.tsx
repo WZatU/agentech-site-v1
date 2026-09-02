@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { getAccountSession } from "@/lib/account-session";
+import { isLocalHostname } from "@/lib/local-auth-bypass";
 import { eaicHubPath } from "@/features/eaic/01-clients/eaic-hub/contracts/eaic-hub";
 
 type AccessStatus = "checking" | "allowed" | "signed-out" | "locked" | "error";
@@ -43,7 +44,7 @@ function LibraryGateShell({
       `}</style>
       <main className="mx-auto flex min-h-[78vh] w-full max-w-4xl items-center">
         <section className="w-full rounded-[8px] border border-[#dce7f2] bg-white p-8 shadow-[0_22px_70px_rgba(12,31,58,0.08)] sm:p-10">
-          <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-[#008a7a]">{eyebrow}</p>
+          <p className="font-interface text-xs font-bold uppercase tracking-[0.18em] text-[#008a7a]">{eyebrow}</p>
           <h1 className="mt-4 text-4xl font-extrabold tracking-normal text-[#07142e] sm:text-5xl">{title}</h1>
           <div className="mt-5 text-base font-semibold leading-7 text-[#23304a]">{children}</div>
         </section>
@@ -81,7 +82,7 @@ export function AgentechLibraryAccessGate({ children }: { children: ReactNode })
         return;
       }
 
-      if (process.env.NODE_ENV !== "production") {
+      if (process.env.NODE_ENV !== "production" || isLocalHostname(window.location.hostname)) {
         setEmail("developer.preview@agentech.local");
         setStatus("allowed");
         return;

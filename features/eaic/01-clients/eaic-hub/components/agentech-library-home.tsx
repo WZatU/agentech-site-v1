@@ -1,181 +1,224 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
+import { InteractiveDogHero } from "@/features/eaic/01-clients/eaic-hub/components/interactive-dog-hero";
 import { aegisFunctions } from "@/features/eaic/02-unified-api/projects-validation/aegis-sdk-reference";
 import { agentechLibraryTasks } from "@/features/eaic/01-clients/eaic-hub/contracts/agentech-library-tasks";
 import { getEaicHubTaskPath } from "@/features/eaic/01-clients/eaic-hub/contracts/eaic-hub";
+import { workflowAccentPalette } from "@/lib/eaic-workflow-palette";
 
 const footerStats = [
-  ["Dry-run first", "Test safely before execution"],
-  ["10s max per command", "Keep commands short and stable"],
-  ["Emergency stop available", "You can stop the robot anytime"],
-  ["Speed capped", "Built-in limits for safety"]
+  ["Dry-run first", "Validate movement before hardware execution"],
+  ["10s max", "Per linear motion command"],
+  ["Emergency stop", "Available throughout supervised runs"],
+  ["Speed capped", "Safety limits enforced by the platform"]
 ];
 
 function StepIcon({ index }: { index: number }) {
   const icons = [
-    <svg key="code" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="8" y="10" width="48" height="40" rx="4" />
+    <svg key="code" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="8" y="10" width="48" height="40" rx="3" />
       <path d="M20 32l8-8M20 32l8 8M44 24l-8 8M44 40l-8-8" />
       <path d="M14 18h4M24 18h4M34 18h4" />
     </svg>,
-    <svg key="cube" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg key="cube" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M32 6l24 13v27L32 58 8 46V19L32 6z" />
       <path d="M8 19l24 13 24-13M32 32v26" />
       <path d="M20 13l24 13M44 13L20 26" />
     </svg>,
-    <svg key="upload" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M32 8v32M20 20l12-12 12 12" />
-      <path d="M14 38v12h36V38" />
-      <path d="M10 50h44" />
-    </svg>,
-    <svg key="shield" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg key="shield" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M32 6l21 8v15c0 14-8.5 23-21 29-12.5-6-21-15-21-29V14l21-8z" />
       <path d="M22 33l7 7 14-16" />
     </svg>,
-    <svg key="live" viewBox="0 0 64 64" className="h-14 w-14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="9" y="16" width="38" height="32" rx="5" />
+    <svg key="live" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="16" width="38" height="32" rx="4" />
       <path d="M47 27l8-5v20l-8-5" />
       <circle cx="28" cy="32" r="8" />
       <path d="M25 29l7 3-7 3v-6z" fill="currentColor" stroke="none" />
-      <path d="M42 49h13v7H42z" />
     </svg>
   ];
 
+  return <div className="h-12 w-12">{icons[index]}</div>;
+}
+
+function ArrowIcon() {
   return (
-    <div className="grid h-20 w-20 shrink-0 place-items-center rounded-[8px] border border-current/30 bg-white text-center transition group-hover:bg-current/10 group-hover:ring-4 group-hover:ring-current/20">
-      {icons[index]}
-    </div>
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14M14 7l5 5-5 5" />
+    </svg>
   );
 }
 
 export function AgentechLibraryHome() {
   return (
-    <div className="agentech-library-page min-h-screen bg-[#fbfdff] text-[#07142e]">
-      <style>{`
-        body:has(.agentech-library-page) {
-          background: #fbfdff !important;
-          color: #07142e;
-        }
+    <div className="agentech-library-page eaic-engineering-theme min-h-screen overflow-hidden bg-[#020609] text-[#dbe7f2]">
+      <section
+        aria-labelledby="eaic-hub-title"
+        data-eaic-hero
+        className="relative isolate min-h-[calc(100svh-72px)] overflow-hidden border-b border-white/10 bg-[#a3a6a6]"
+      >
+        <InteractiveDogHero />
+        <div
+          data-eaic-hero-overlay
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#020609_0%,#020609_48%,rgba(2,6,9,0.72)_67%,rgba(2,6,9,0.18)_100%)] md:bg-[linear-gradient(90deg,#020609_0%,rgba(2,6,9,0.98)_14%,rgba(2,6,9,0.72)_36%,rgba(2,6,9,0.18)_68%,rgba(2,6,9,0.08)_100%)]"
+          aria-hidden="true"
+        />
+        <div
+          data-eaic-hero-sheen
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_26%,rgba(0,0,0,0.28)_100%)]"
+          aria-hidden="true"
+        />
 
-        body:has(.agentech-library-page)::before,
-        body:has(.agentech-library-page)::after {
-          display: none;
-        }
-
-        body:has(.agentech-library-page) main.flex-1 {
-          background: #fbfdff;
-        }
-      `}</style>
-      <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
-        <header className="flex items-start justify-between gap-5">
-          <Link href="/" aria-label="Go to Agentech homepage" className="inline-flex items-center py-1">
-            <Image
-              src="/assets/logo/AGENTECH.png"
-              alt="Agentech"
-              width={1000}
-              height={101}
-              sizes="(min-width: 640px) 184px, 168px"
-              className="h-auto w-[10.5rem] sm:w-[11.5rem]"
-              priority
-            />
-          </Link>
-          <Link
-            href="/account"
-            className="rounded-[8px] border border-[#9cd9df] bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#008a7a] shadow-sm transition hover:border-[#008a7a]"
-          >
-            Developer Access
-          </Link>
-        </header>
-
-        <section className="mt-10 grid items-center gap-8 lg:grid-cols-[0.86fr_1.14fr]">
-          <div>
-            <h1 className="font-extrabold tracking-normal text-[#07142e]">
-              <span className="block w-[min(84vw,20rem)] sm:w-[22rem] lg:w-[23rem]">
+        <div className="relative mx-auto flex min-h-[calc(100svh-72px)] w-full max-w-7xl items-start px-5 pb-[38vh] pt-14 sm:px-8 md:items-center md:py-20">
+          <div className="max-w-2xl">
+            <p className="font-interface text-[11px] font-medium uppercase tracking-[0.28em] text-[#80d8f4] sm:text-xs">
+              Embodied AI command infrastructure
+            </p>
+            <h1 id="eaic-hub-title" className="mt-8">
+              <span className="block w-[min(78vw,30rem)]">
                 <Image
-                  src="/assets/products/agentech-library/eaic-logo.png"
+                  data-hero-optical-align="image-mark"
+                  src="/assets/products/agentech-library/eaic-logo-white.png"
                   alt="EAIC"
                   width={1880}
                   height={434}
-                  sizes="(min-width: 1024px) 368px, (min-width: 640px) 352px, 84vw"
-                  className="h-auto w-full"
+                  sizes="(min-width: 1024px) 480px, 78vw"
+                  className="eaic-hub-logo h-auto w-full"
                   priority
                 />
               </span>
-              <span className="mt-3 block text-[3.5rem] leading-[0.94] sm:text-[4.6rem] lg:text-[5.25rem]">HUB.</span>
+              <span data-eaic-hub-word data-hero-optical-align="display-title" className="font-display eaic-hub-word mt-3 block text-5xl font-medium tracking-[-0.075em] text-white sm:text-7xl lg:text-8xl">
+                HUB
+              </span>
             </h1>
-            <p className="mt-5 max-w-sm text-lg font-semibold leading-8 text-[#111d35]">
-              Developer tools for Aegis, Navi, and Master SDK references, plus supported previews, submissions, and supervised live runs.
+            <p className="mt-7 max-w-lg text-sm leading-7 text-[#a7b2bd] sm:text-base sm:leading-8">
+              One technical workspace for robot SDK references, code certification, scheduling, and supervised live execution.
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href={getEaicHubTaskPath("start-coding")}
+                data-eaic-primary-action
+                className="font-interface inline-flex min-h-11 items-center gap-3 rounded-xl bg-[#e6edf2] px-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#071017] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83c8ef]"
+              >
+                Enter workflow <ArrowIcon />
+              </Link>
+              <Link
+                href={getEaicHubTaskPath("view-sdk")}
+                data-eaic-secondary-action
+                className="font-interface inline-flex min-h-11 items-center gap-3 rounded-xl border border-white/25 bg-black/10 px-5 text-xs font-semibold uppercase tracking-[0.1em] text-[#c3ced8] backdrop-blur-sm transition hover:border-[#83c8ef] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83c8ef]"
+              >
+                View SDK <ArrowIcon />
+              </Link>
+            </div>
           </div>
-          <div className="relative min-h-[330px] overflow-hidden rounded-[8px] bg-white lg:min-h-[390px]">
-            <Image
-              src="/assets/products/agentech-library/dog-blueprint.png"
-              alt="Blueprint sketch of the Aegis robot dog"
-              fill
-              sizes="(min-width: 1024px) 650px, 100vw"
-              className="object-contain object-center"
-              priority
-            />
+        </div>
+      </section>
+
+      <div className="mx-auto w-full max-w-7xl px-5 pb-16 pt-14 sm:px-8 lg:pb-24 lg:pt-20">
+        <section className="mt-14 overflow-hidden rounded-xl border border-[#174766] bg-[#02070b] shadow-[0_36px_100px_rgba(0,0,0,0.36)]" aria-labelledby="workflow-title">
+          <div className="border-b border-[#284354] bg-[#061722] px-6 py-7 sm:px-8">
+            <p id="workflow-title" className="font-interface text-sm font-medium uppercase tracking-[0.22em] text-[#80d8f4]">Developer workflow</p>
           </div>
+          <ol data-workflow-flow className="bg-[#03070a] p-4 sm:p-6 lg:p-8">
+            {agentechLibraryTasks.map((task, index) => {
+              const accent = workflowAccentPalette[index];
+              const nextAccent = workflowAccentPalette[index + 1] ?? accent;
+              return (
+                <li
+                  key={task.slug}
+                  data-workflow-step={task.number}
+                  style={{
+                    "--workflow-accent-dark": accent.dark,
+                    "--workflow-accent-light": accent.light,
+                    "--workflow-next-accent-dark": nextAccent.dark,
+                    "--workflow-next-accent-light": nextAccent.light
+                  } as CSSProperties}
+                >
+                  <Link
+                    data-flow-card
+                    href={getEaicHubTaskPath(task.slug)}
+                    className="group grid overflow-hidden rounded-xl border border-[#223947] bg-[#050b10] transition duration-300 hover:-translate-y-0.5 hover:border-[#4c7087] hover:bg-[#08131b] hover:shadow-[0_22px_60px_rgba(0,0,0,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83c8ef] md:min-h-[190px] md:grid-cols-[13rem_minmax(0,1fr)_20rem] md:items-stretch"
+                  >
+                    <div className="flex items-center gap-5 border-b border-[#24323b] p-6 md:border-b-0 md:border-r">
+                      <span
+                        data-eaic-step-number
+                        data-workflow-accent-box
+                        className="font-technical grid h-16 w-16 shrink-0 place-items-center rounded-lg border text-2xl font-semibold shadow-[0_12px_30px_rgba(0,0,0,0.28)]"
+                      >
+                        {task.number}
+                      </span>
+                      <div data-workflow-accent className="h-14 w-14 shrink-0">
+                        <StepIcon index={index} />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col justify-center p-6 md:p-8">
+                      <p data-workflow-accent className="font-technical text-[10px] uppercase tracking-[0.18em]">
+                        Step {task.number}
+                      </p>
+                      <h2 className="font-display mt-3 text-2xl font-semibold tracking-[-0.04em] text-[#e4edf5]">
+                        {task.title}
+                      </h2>
+                      <p className="mt-3 max-w-2xl text-sm leading-7 text-[#91a2b5]">{task.summary}</p>
+                    </div>
+
+                    <div className="flex flex-col justify-center border-t border-[#24323b] p-6 md:border-l md:border-t-0 md:p-7">
+                      <p className="font-interface text-sm font-semibold uppercase leading-5 tracking-[-0.01em] text-[#e4edf5]">
+                        {task.ctaTitle}
+                      </p>
+                      <p className="mt-2 max-w-sm text-xs leading-5 text-[#8193a6]">{task.ctaSummary}</p>
+                      <span
+                        data-workflow-accent-box
+                        className="font-interface mt-4 inline-flex w-fit items-center gap-3 rounded-xl border px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition group-hover:border-current"
+                      >
+                        {task.ctaLabel} <ArrowIcon />
+                        <span className="sr-only">Open {task.title}</span>
+                      </span>
+                    </div>
+                  </Link>
+
+                  {index < agentechLibraryTasks.length - 1 ? (
+                    <div data-flow-connector className="relative flex h-16 items-center justify-center" aria-hidden="true">
+                      <span data-workflow-accent-background className="absolute top-0 h-10 w-px" />
+                      <span
+                        data-workflow-next-accent
+                        className="absolute bottom-3 h-4 w-4 rotate-45 border-b-2 border-r-2"
+                      />
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ol>
         </section>
 
-        <section className="relative mt-10">
-          <div className="pointer-events-none absolute left-0 right-0 top-10 hidden h-[calc(100%-4rem)] lg:block">
-            <div className="absolute left-10 top-0 h-[2px] w-28 bg-[#008a6c]" />
-            <div className="absolute right-6 top-8 h-28 w-20 rounded-r-[36px] border-y-4 border-r-4 border-[#008a6c]" />
-            <div className="absolute left-6 top-[13.5rem] h-28 w-20 rounded-l-[36px] border-y-4 border-l-4 border-[#145cff]" />
-            <div className="absolute right-6 top-[26.5rem] h-28 w-20 rounded-r-[36px] border-y-4 border-r-4 border-[#6c2bd9]" />
+        <section className="mt-14 overflow-hidden rounded-xl border border-[#174766] bg-[#02070b]" aria-labelledby="safety-title">
+          <div className="border-b border-[#284354] bg-[#061722] px-6 py-7 sm:px-8">
+            <p id="safety-title" className="font-interface text-sm font-medium uppercase tracking-[0.22em] text-[#80d8f4]">Safety envelope</p>
           </div>
-
-          <div className="relative mx-auto grid max-w-[860px] gap-0">
-            {agentechLibraryTasks.map((task, index) => (
-              <div key={task.slug} className="relative pb-9 last:pb-0">
-                <Link
-                  href={getEaicHubTaskPath(task.slug)}
-                  className="group relative z-10 grid min-h-[142px] grid-cols-1 items-center gap-5 rounded-[8px] border border-[#dce7f2] bg-white p-5 shadow-[0_18px_42px_rgba(12,31,58,0.08)] transition hover:-translate-y-1 hover:border-current sm:grid-cols-[auto_1fr_auto] sm:gap-6 sm:p-6"
-                  style={{ color: task.accent }}
-                >
-                  <div className="grid h-14 w-14 place-items-center rounded-[8px] font-mono text-2xl font-bold text-white shadow-lg" style={{ background: task.accent }}>
-                    {task.number}
-                  </div>
-                  <div className="flex min-w-0 items-center gap-5 sm:gap-6">
-                    <StepIcon index={index} />
-                    <div className="min-w-0">
-                      <h2 className="text-2xl font-extrabold tracking-normal text-[#07142e] sm:text-3xl">{task.title}</h2>
-                      <p className="mt-2 max-w-md text-base font-semibold leading-7 text-[#17243b] sm:text-lg">{task.summary}</p>
-                    </div>
-                  </div>
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full border-2 border-current text-2xl font-bold transition group-hover:bg-current/10 group-hover:text-current">
-                    -&gt;
-                  </div>
-                </Link>
-                {index < agentechLibraryTasks.length - 1 ? (
-                  <div className="absolute bottom-1 left-1/2 z-0 flex -translate-x-1/2 flex-col items-center" aria-hidden="true">
-                    <span className="h-8 w-[3px] rounded-full" style={{ background: task.accent }} />
-                    <span
-                      className="mt-[-2px] h-4 w-4 rotate-45 border-b-[3px] border-r-[3px]"
-                      style={{ borderColor: agentechLibraryTasks[index + 1].accent }}
-                    />
-                  </div>
-                ) : null}
+          <div className="grid md:grid-cols-4">
+            {footerStats.map(([title, body], index) => (
+              <div
+                key={title}
+                data-workflow-step={`stat-${index + 1}`}
+                className="border-b border-[#24323b] p-6 last:border-b-0 md:min-h-40 md:border-b-0 md:border-r md:last:border-r-0"
+                style={{
+                  "--workflow-accent-dark": workflowAccentPalette[index].dark,
+                  "--workflow-accent-light": workflowAccentPalette[index].light
+                } as CSSProperties}
+              >
+                <p data-workflow-accent className="font-technical text-sm font-medium">{title}</p>
+                <p className="mt-4 text-sm leading-6 text-[#8293a7]">{body}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-8 grid gap-px overflow-hidden rounded-[8px] border border-[#dce7f2] bg-[#dce7f2] shadow-[0_12px_28px_rgba(12,31,58,0.06)] md:grid-cols-4">
-          {footerStats.map(([title, body], index) => (
-            <div key={title} className="bg-white p-5">
-              <p className={`font-mono text-sm font-bold uppercase ${index === 2 ? "text-[#ff5a1f]" : "text-[#005bd6]"}`}>{title}</p>
-              <p className="mt-3 text-sm font-semibold leading-6 text-[#23304a]">{body}</p>
-            </div>
-          ))}
-        </section>
-
-        <p className="mt-5 text-center font-mono text-xs uppercase tracking-[0.16em] text-[#6b7a90]">
-          {aegisFunctions.length} Aegis reference cards, with Navi and Master in View SDK.
-        </p>
-      </main>
+        <div className="mt-8 flex flex-col gap-3 border-t border-[#173245] pt-6 text-[10px] uppercase tracking-[0.17em] text-[#5f7185] sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-technical">{aegisFunctions.length} Aegis reference cards · Navi and Master SDK included</p>
+          <p>EAIC / Agentech developer systems</p>
+        </div>
+      </div>
     </div>
   );
 }

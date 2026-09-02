@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
+import { HistoryBackButton } from "@/components/history-back-button";
 
 type Language = "en" | "zh";
 
@@ -18,7 +18,6 @@ type NaviLesson = {
 const copy = {
   en: {
     languageLabel: "Switch page language to Chinese",
-    back: "Back to Education",
     pill: "AI natives grow up with Navi",
     title: "What can we learn from Navi?",
     body: "Navi turns AI into something children can see, touch, remix, and grow with: games, stories, robot motion, 3D printed personalities, and Agentech AI Skill Graphs built on top.",
@@ -35,7 +34,6 @@ const copy = {
   },
   zh: {
     languageLabel: "Switch page language to English",
-    back: "返回 Education",
     pill: "AI 原住民和 Navi 一起长大",
     title: "我们能从 Navi 学到什么？",
     body: "Navi 把 AI 变成孩子能看见、摸到、改造并一起成长的东西：游戏、故事、机器人动作、3D 打印个性外壳，以及 Agentech 构建在其上的 AI Skill Graphs。",
@@ -401,11 +399,9 @@ export function NaviLearningPage() {
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,31,0.94)_0%,rgba(6,16,31,0.78)_42%,rgba(6,16,31,0.24)_100%)]" />
         <div className="relative z-10 mx-auto flex min-h-[clamp(580px,86svh,760px)] max-w-7xl flex-col justify-center px-5 py-14 sm:px-8 lg:px-10">
-          <Link href="/agentech-education" className="navi-back-link mb-8 w-fit">
-            {text.back}
-          </Link>
+          <HistoryBackButton fallbackHref="/agentech-education" className="navi-back-link mb-8 w-fit" />
           <p className="navi-pill w-fit">{text.pill}</p>
-          <h1 className="navi-hero-title mt-5 max-w-4xl font-[var(--font-display)] font-extrabold text-white">
+          <h1 className="font-display navi-hero-title mt-5 max-w-4xl font-extrabold text-white">
             {text.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">
@@ -424,7 +420,7 @@ export function NaviLearningPage() {
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
         <div className="max-w-3xl">
           <p className="navi-section-kicker">{text.introKicker}</p>
-          <h2 className="mt-3 font-[var(--font-display)] text-4xl font-extrabold leading-tight text-[#14213d] sm:text-5xl">
+          <h2 className="font-display mt-3 text-4xl font-extrabold leading-tight text-[#14213d] sm:text-5xl">
             {text.introTitle}
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#526178]">
@@ -456,7 +452,7 @@ export function NaviLearningPage() {
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="navi-section-kicker navi-section-kicker-dark">{text.finalKicker}</p>
-            <h2 className="mt-3 font-[var(--font-display)] text-4xl font-extrabold leading-tight text-white sm:text-5xl">
+            <h2 className="font-display mt-3 text-4xl font-extrabold leading-tight text-white sm:text-5xl">
               {text.finalTitle}
             </h2>
             <p className="mt-5 text-lg leading-8 text-white/[0.76]">

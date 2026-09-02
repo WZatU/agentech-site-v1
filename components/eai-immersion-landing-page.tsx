@@ -409,7 +409,11 @@ export function EaiImmersionLandingPage() {
   }
 
   return (
-    <div lang={language === "zh" ? "zh-CN" : "en"} className={`ff-immersion min-h-screen bg-[#f5f4f1] text-[#111111] ${language === "zh" ? "ff-zh" : ""}`}>
+    <div
+      lang={language === "zh" ? "zh-CN" : "en"}
+      data-ff-theme-page
+      className={`ff-immersion min-h-screen bg-[#f5f4f1] text-[#111111] ${language === "zh" ? "ff-zh" : ""}`}
+    >
       <AgentechCursorTrace />
       <LanguageToggle language={language} onToggle={toggleLanguage} label={text.languageLabel} />
       <HeroSection language={language} text={text.hero} guideHref={guideHref} guideDownloadName={guideDownloadName} />
@@ -612,13 +616,15 @@ function HeroSection({
   guideDownloadName: string;
 }) {
   return (
-    <section className="relative isolate min-h-[calc(100svh-120px)] overflow-hidden bg-black text-white">
+    <section className="ff-hero relative isolate min-h-[calc(100svh-120px)] overflow-hidden bg-black text-white">
       <div
-        className="ff-hero-media absolute inset-0 bg-no-repeat opacity-[0.68]"
+        data-ff-hero-media
+        className="ff-hero-media absolute inset-0 bg-no-repeat"
         style={{ backgroundImage: `url(${heroMedia.mediaUrl})` }}
         aria-hidden="true"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.58)_42%,rgba(0,0,0,0.18)_100%)]" />
+      <div data-ff-hero-depth className="ff-hero-depth absolute inset-0" aria-hidden="true" />
+      <div data-ff-hero-overlay className="ff-hero-overlay absolute inset-0" aria-hidden="true" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent" />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-120px)] max-w-7xl flex-col justify-center px-6 py-20 lg:px-8">
@@ -632,7 +638,7 @@ function HeroSection({
             {text.kicker}
           </p>
           <h1
-            className={`max-w-5xl font-[var(--font-display)] font-extrabold tracking-normal text-white ${
+            className={`font-display max-w-5xl font-bold tracking-normal text-white ${
               language === "zh"
                 ? "text-[3.15rem] leading-[1.02] sm:text-[4.6rem] lg:text-[5.7rem]"
                 : "text-5xl leading-[0.95] sm:text-7xl lg:text-8xl"
@@ -659,7 +665,7 @@ function HeroSection({
 
       <div className="relative z-10 mx-auto grid max-w-7xl gap-px bg-white/12 px-6 lg:grid-cols-3 lg:px-8">
         {text.stats.map((item) => (
-          <div key={item} className={`bg-black/52 px-1 py-5 text-[0.7rem] font-semibold uppercase leading-5 text-white/64 backdrop-blur sm:text-sm ${language === "zh" ? "tracking-[0.08em]" : "tracking-[0.08em] sm:tracking-[0.18em]"}`}>
+          <div key={item} className={`font-technical bg-black/52 px-1 py-5 text-[0.7rem] font-medium uppercase leading-5 text-white/64 backdrop-blur sm:text-sm ${language === "zh" ? "tracking-[0.08em]" : "tracking-[0.08em] sm:tracking-[0.18em]"}`}>
             {item}
           </div>
         ))}
@@ -689,7 +695,7 @@ function ProgramOverview({ language, text }: { language: Language; text: typeof 
           {text.highlights.map((highlight) => (
             <article key={highlight.title} className="ff-reveal rounded-[22px] border border-black/8 bg-white/68 p-7 shadow-[0_28px_80px_rgba(17,17,17,0.08)]">
               <p className={`text-xs font-semibold uppercase text-[#1a73e8] ${language === "zh" ? "tracking-[0.12em]" : "tracking-[0.22em]"}`}>{text.pillarLabel}</p>
-              <h3 className={`${language === "zh" ? "text-[1.65rem] leading-snug" : "text-2xl leading-tight"} mt-5 font-semibold text-[#111111]`}>{highlight.title}</h3>
+              <h3 className={`${language === "zh" ? "text-[1.65rem] leading-snug" : "text-2xl leading-tight"} font-display mt-5 font-semibold text-[#111111]`}>{highlight.title}</h3>
               <p className={`${language === "zh" ? "leading-8" : "leading-7"} mt-4 text-sm text-[#5f6368]`}>{highlight.body}</p>
             </article>
           ))}
@@ -770,7 +776,7 @@ function SignatureMomentsSection({ language, text }: { language: Language; text:
                         {item.eyebrow}
                       </p>
                       <h3
-                        className={`${language === "zh" ? "text-4xl leading-[1.12] md:text-[3.35rem]" : "text-5xl leading-[1.02] md:text-6xl"} mt-6 max-w-2xl font-[var(--font-display)] font-extrabold tracking-normal ${
+                        className={`${language === "zh" ? "text-4xl leading-[1.12] md:text-[3.35rem]" : "text-5xl leading-[1.02] md:text-6xl"} font-display mt-6 max-w-2xl font-bold tracking-normal ${
                           item.dark ? "text-white" : "text-[#111111]"
                         }`}
                       >
@@ -1037,7 +1043,7 @@ function DarkDayCard({ day, language, text }: { day: ProgramDay; language: Langu
       <div className="relative min-h-[420px] p-5 sm:p-8 lg:p-10">
         <MediaPanel day={day} className="h-full min-h-[420px] rounded-[24px]" dark />
         <div className="absolute right-10 top-10 rounded-[18px] border border-white/16 bg-black/46 px-5 py-4 text-right backdrop-blur-md">
-          <p className="font-[var(--font-display)] text-4xl font-extrabold tracking-normal text-white">{text.countdownNumber}</p>
+          <p className="font-technical text-4xl font-medium tracking-normal text-white">{text.countdownNumber}</p>
           <p className={`text-xs font-semibold uppercase text-white/56 ${language === "zh" ? "tracking-[0.08em]" : "tracking-[0.22em]"}`}>{text.countdownLabel}</p>
         </div>
       </div>
@@ -1072,7 +1078,7 @@ function DayText({ day, language, dark = false, compact = false }: { day: Progra
         {day.day}
       </p>
       <h3
-        className={`mt-4 font-[var(--font-display)] font-extrabold ${
+        className={`font-display mt-4 font-bold ${
           language === "zh" ? "leading-[1.12] tracking-normal" : "leading-[1.02] tracking-normal"
         } ${dark ? "text-white" : "text-[#111111]"} ${
           compact
@@ -1174,7 +1180,7 @@ function ProgramGuideSection({
             </div>
             <div className="mt-14 border-t border-black/14 pt-14">
               <p className={`text-xs font-semibold uppercase text-[#1a73e8] ${language === "zh" ? "tracking-[0.12em]" : "tracking-[0.24em]"}`}>{text.coverKicker}</p>
-              <h3 className={`${language === "zh" ? "text-4xl leading-[1.12] tracking-normal" : "text-5xl leading-[0.98] tracking-normal"} mt-5 font-[var(--font-display)] font-extrabold`}>
+              <h3 className={`${language === "zh" ? "text-4xl leading-[1.12] tracking-normal" : "text-5xl leading-[0.98] tracking-normal"} font-display mt-5 font-bold`}>
                 {text.coverTitle}
               </h3>
             </div>
@@ -1236,9 +1242,9 @@ function FinalCTA({ language, text }: { language: Language; text: typeof copy.en
 }
 
 function sectionHeadingClass(language: Language) {
-  return `${language === "zh" ? "text-4xl leading-[1.12] tracking-normal md:text-6xl" : "text-4xl leading-[1.02] tracking-normal md:text-6xl"} max-w-3xl font-[var(--font-display)] font-extrabold text-[#111111]`;
+  return `${language === "zh" ? "text-4xl leading-[1.12] tracking-normal md:text-6xl" : "text-4xl leading-[1.02] tracking-normal md:text-6xl"} font-display max-w-3xl font-bold text-[#111111]`;
 }
 
 function largeHeadingClass(language: Language) {
-  return `${language === "zh" ? "leading-[1.12] tracking-normal" : "leading-[1.02] tracking-normal"} mt-5 font-[var(--font-display)] text-5xl font-extrabold text-[#111111] md:text-7xl`;
+  return `${language === "zh" ? "leading-[1.12] tracking-normal" : "leading-[1.02] tracking-normal"} font-display mt-5 text-5xl font-bold text-[#111111] md:text-7xl`;
 }

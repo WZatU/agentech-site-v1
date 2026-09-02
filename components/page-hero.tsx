@@ -21,7 +21,7 @@ export function PageHero({
       <div className="relative mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
         <div className="max-w-4xl animate-rise">
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate">{eyebrow}</p>
-          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-white md:text-6xl">{title}</h1>
+          <h1 className="font-display mt-5 text-4xl font-semibold tracking-tight text-white md:text-6xl">{title}</h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate">{description}</p>
           {(primaryCta || secondaryCta) && (
             <div className="mt-8 flex flex-wrap gap-4">

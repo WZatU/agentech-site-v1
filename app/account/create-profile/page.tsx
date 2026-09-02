@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { getAccountSession } from "@/lib/account-session";
 
 type AccessProfileType = "developer" | "student" | "teacher" | "talent";
@@ -141,9 +141,7 @@ export default function CreateProfilePage() {
     <main className="account-white-page min-h-screen bg-[#f6f8fc] px-4 py-8 text-slate-950 sm:px-6 lg:px-8 lg:py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-5 flex items-center justify-between gap-4">
-          <Link href="/account" className="text-sm font-bold text-[#2563eb]">
-            Back to account
-          </Link>
+          <HistoryBackButton fallbackHref="/account" className="text-sm font-bold text-[#2563eb]" />
           <p className="text-sm font-semibold text-slate-500">{email}</p>
         </div>
 

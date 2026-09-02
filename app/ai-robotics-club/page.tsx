@@ -1,5 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ClubFaq,
+  ClubHeroFacts,
+  ClubMobileApply,
+  ClubQuickApplication,
+  ClubSectionNavigation,
+} from "@/components/ai-robotics-club-experience";
+import { HistoryBackButton } from "@/components/history-back-button";
 
 const clubImages = [
   "/assets/talents/club/club-1.png",
@@ -358,15 +366,29 @@ const featuredLearningTopics = [
   }
 ];
 
-function TopicList({ title, items }: { title: string; items: readonly string[] }) {
+function TopicList({
+  title,
+  items,
+  variant,
+}: {
+  title: string;
+  items: readonly string[];
+  variant: "topics" | "projects";
+}) {
   return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.2em] !text-[#475569]">{title}</p>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+    <div data-topic-list={variant} className="topic-list-group">
+      <div className="topic-list-heading flex items-center justify-between gap-3">
+        <p className="topic-list-label text-xs font-bold uppercase tracking-[0.2em]">{title}</p>
+        <span className="topic-list-kicker" aria-hidden="true">
+          {variant === "topics" ? "Learn" : "Build"}
+        </span>
+      </div>
+      <div className="topic-list-grid mt-3 grid gap-2 sm:grid-cols-2">
         {items.map((item) => (
           <div
             key={item}
-            className="rounded-2xl border border-[#d9e1ea] bg-[#f8fafc] px-4 py-3 text-sm font-semibold leading-6 !text-[#0b1220]"
+            data-topic-list-item={variant}
+            className="topic-list-item rounded-2xl border px-4 py-3 text-sm font-semibold leading-6"
           >
             {item}
           </div>
@@ -385,52 +407,18 @@ const projectOutputs = [
   "Project presentation materials"
 ];
 
-function FormPreview() {
-  return (
-    <aside className="rounded-[30px] border border-[#d9e1ea] bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
-      <div className="rounded-[24px] border border-[#dbe3ed] bg-[#f8fafc] p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] !text-[#334155]">Club Application Preview</p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight !text-[#0b1220]">AI & Robotics Club</h2>
-        <div className="mt-5 grid gap-3">
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-[#475569]">Student Name</p>
-            <div className="h-10 rounded-xl border border-[#cbd5e1] bg-white" />
-          </div>
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-[#475569]">Grade</p>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-full bg-[#0b1220] px-3 py-2 text-center text-xs font-semibold text-white">9</div>
-              <div className="rounded-full border border-[#cbd5e1] bg-white px-3 py-2 text-center text-xs font-semibold !text-[#0b1220]">10</div>
-              <div className="rounded-full border border-[#cbd5e1] bg-white px-3 py-2 text-center text-xs font-semibold !text-[#0b1220]">11</div>
-            </div>
-          </div>
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-[#475569]">Project Experience</p>
-            <div className="h-20 rounded-xl border border-[#cbd5e1] bg-white" />
-          </div>
-        </div>
-      </div>
-      <Link
-        href="/ai-robotics-club/apply"
-        className="mt-5 inline-flex w-full justify-center rounded-full border border-[#0b1220] bg-white px-6 py-3 text-sm font-bold !text-black transition hover:bg-black hover:!text-white"
-      >
-        Apply Now
-      </Link>
-    </aside>
-  );
-}
-
 export default function AiRoboticsClubPage() {
   return (
-    <section className="min-h-screen bg-white px-6 py-16 text-[#0b1220] lg:px-8 lg:py-20">
+    <section
+      data-club-page-theme="warm-off-white"
+      className="min-h-screen bg-[#f5f4f1] px-6 py-16 pb-28 text-[#0b1220] md:pb-16 lg:px-8 lg:py-20"
+    >
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link
-            href="/talents"
+          <HistoryBackButton
+            fallbackHref="/talents"
             className="talent-back-button inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-          >
-            Back to Agentech Talents
-          </Link>
+          />
           <div className="inline-flex rounded-full border border-[#d9e1ea] bg-white p-1 text-sm font-bold shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
             <Link href="/ai-robotics-club" className="rounded-full bg-[#0b1220] px-4 py-2 text-white">
               English
@@ -441,10 +429,12 @@ export default function AiRoboticsClubPage() {
           </div>
         </div>
 
+        <ClubSectionNavigation locale="en" />
+
         <div className="mt-14 grid items-start gap-10 lg:grid-cols-[1fr_390px]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#334155]">AI Robotics Club</p>
-            <h1 className="mt-5 max-w-5xl text-4xl font-semibold uppercase tracking-[0.1em] !text-black md:text-6xl">
+            <h1 data-club-hero-title className="font-display mt-5 max-w-5xl text-4xl font-semibold uppercase tracking-[0.05em] !text-black md:text-6xl">
               Robotics Competition & Engineering Membership Program
             </h1>
             <p className="mt-6 max-w-3xl text-xl font-semibold leading-8 !text-[#111827]">
@@ -453,26 +443,37 @@ export default function AiRoboticsClubPage() {
             <p className="mt-4 max-w-4xl text-base leading-8 !text-[#334155] md:text-lg">
               From robot construction to algorithms, testing, and competition, students learn how real robots work. This is not just a robotics class. It is a long-term engineering training program.
             </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="#quick-apply" className="inline-flex rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#33312d]">
+                Apply Now
+              </Link>
+              <Link href="#program-details" className="inline-flex rounded-full border border-[#111111] bg-[#fbfaf7] px-6 py-3 text-sm font-bold !text-[#111111] transition hover:bg-[#111111] hover:!text-white">
+                View Program Details
+              </Link>
+            </div>
+            <ClubHeroFacts locale="en" />
           </div>
 
-          <FormPreview />
+          <ClubQuickApplication locale="en" />
         </div>
 
-        <div className="mt-14 overflow-hidden rounded-[28px] border border-[#d9e1ea] bg-[#f8fafc] shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
+        <div className="mt-14 bg-[#f5f4f1]">
           <Image
+            data-club-image-blend="hero"
+            data-club-image-blend-shape="rectangular"
             src={clubImages[0]}
             alt="AI Robotics Club project preview"
             width={1800}
             height={1100}
             priority
-            className="h-auto w-full object-cover"
+            className="club-hero-image block h-auto w-full object-cover"
           />
         </div>
 
-        <section className="mt-16 grid gap-10 lg:grid-cols-[0.82fr_1.18fr]">
+        <section id="program-details" className="mt-16 scroll-mt-32 grid gap-10 lg:grid-cols-[0.82fr_1.18fr]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">Main Introduction</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
+            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
               Students learn to understand why robots work, why they fail, and how to improve them.
             </h2>
           </div>
@@ -489,11 +490,11 @@ export default function AiRoboticsClubPage() {
           </div>
         </section>
 
-        <section className="mt-16 rounded-[30px] bg-[#0b1220] p-8 text-white md:p-10">
+        <section id="skills" className="mt-16 scroll-mt-32 rounded-[30px] bg-[#0b1220] p-8 text-white md:p-10">
           <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#cbd5e1]">Student Growth & Skill Development</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-white md:text-5xl">
+              <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-white md:text-5xl">
                 Six core abilities students will develop.
               </h2>
               <p className="mt-5 text-base leading-8 !text-[#dbe4ef]">
@@ -511,10 +512,10 @@ export default function AiRoboticsClubPage() {
           </div>
         </section>
 
-        <section className="mt-24 md:mt-32">
+        <section id="curriculum" className="mt-24 scroll-mt-32 md:mt-32">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">Featured Learning Topic</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
+            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
               AI skills students can explain, build, and show.
             </h2>
           </div>
@@ -523,41 +524,64 @@ export default function AiRoboticsClubPage() {
             {featuredLearningTopics.map((topic, index) => (
               <article
                 key={topic.title}
+                data-club-topic-layout="desktop-fit"
                 className="topic-feature-row grid overflow-hidden rounded-[30px] border border-[#d9e1ea] bg-white shadow-[0_26px_70px_rgba(15,23,42,0.09)] lg:grid-cols-[1.05fr_0.95fr]"
               >
-                <div className={`topic-image-panel flex min-h-[360px] items-center justify-center bg-[#12164a] p-6 sm:min-h-[460px] sm:p-8 lg:min-h-full ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+                <div
+                  data-club-topic-image-stage="seamless"
+                  className={`topic-image-panel relative isolate flex min-h-[360px] items-center justify-center overflow-hidden bg-[#020617] sm:min-h-[460px] lg:min-h-full ${index % 2 === 1 ? "lg:order-2" : ""}`}
+                >
                   <Image
+                    data-club-image-layer="backdrop"
+                    src={topic.image}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    sizes="(min-width: 1024px) 48vw, 100vw"
+                    className="topic-image-backdrop pointer-events-none object-cover"
+                  />
+                  <Image
+                    data-club-image-layer="foreground"
+                    data-club-image-blend="topic"
+                    data-club-image-blend-shape="rectangular"
                     src={topic.image}
                     alt={topic.alt}
                     width={1200}
                     height={1200}
                     sizes="(min-width: 1024px) 48vw, 100vw"
-                    className="topic-image h-auto max-h-[760px] w-full object-contain"
+                    className="topic-image relative z-10 h-auto max-h-[760px] w-full object-contain"
                   />
                 </div>
-                <div className={`flex flex-col justify-center p-7 md:p-10 ${index % 2 === 1 ? "lg:order-1" : ""}`}>
+                <div className={`topic-feature-content flex flex-col justify-center p-7 md:p-10 ${index % 2 === 1 ? "lg:order-1" : ""}`}>
                   <p className="text-xs font-bold uppercase tracking-[0.22em] !text-[#475569]">{topic.category}</p>
-                  <h3 className="mt-3 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
+                  <h3 className="font-display topic-feature-title mt-3 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
                     {topic.title}
                   </h3>
-                  <p className="mt-2 text-lg font-semibold !text-[#334155]">{topic.titleZh}</p>
-                  <p className="mt-5 text-xl font-semibold leading-8 !text-[#0b1220]">{topic.intro}</p>
-                  <p className="mt-4 text-base leading-8 !text-[#334155]">{topic.body}</p>
-                  <div className="mt-6 space-y-6">
-                    <TopicList title="Topics" items={topic.topics} />
-                    <TopicList title="Projects" items={topic.projects} />
+                  <p className="topic-feature-subtitle mt-2 text-lg font-semibold !text-[#334155]">{topic.titleZh}</p>
+                  <p className="topic-feature-intro mt-5 text-xl font-semibold leading-8 !text-[#0b1220]">{topic.intro}</p>
+                  <p className="topic-feature-copy mt-4 text-base leading-8 !text-[#334155]">{topic.body}</p>
+                  <div className="topic-list-stack mt-6 space-y-6">
+                    <TopicList title="Topics" items={topic.topics} variant="topics" />
+                    <TopicList title="Projects" items={topic.projects} variant="projects" />
                   </div>
-                  <p className="mt-6 text-base leading-8 !text-[#334155]">{topic.outcome}</p>
+                  <p
+                    data-topic-outcome-accent="blue-gold"
+                    className="topic-feature-outcome topic-outcome-accent mt-6 text-base leading-8 !text-[#334155]"
+                  >
+                    {topic.outcome}
+                  </p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
+        <ClubFaq locale="en" />
+
         <section className="mt-14 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[28px] border border-[#d9e1ea] bg-white p-8 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">Engineering Documentation</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black">Projects become portfolio-ready work.</h2>
+            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black">Projects become portfolio-ready work.</h2>
             <p className="mt-5 text-base leading-8 !text-[#334155]">
               Students continuously document designs, testing results, failures, improvements, and data analysis. Final outcomes may include materials that can be showcased for competitions, interviews, science showcases, and future academic opportunities.
             </p>
@@ -575,7 +599,7 @@ export default function AiRoboticsClubPage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">Call to Action</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
+              <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
                 Help your child build the future with AI.
               </h2>
               <p className="mt-5 max-w-3xl text-base leading-8 !text-[#334155]">
@@ -593,6 +617,7 @@ export default function AiRoboticsClubPage() {
           </div>
         </section>
       </div>
+      <ClubMobileApply locale="en" />
     </section>
   );
 }

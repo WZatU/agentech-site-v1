@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Official AgiBot X2 Ultra · Web GLB Preview</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; }
+      body {
+        overflow: hidden;
+        color: #f6f8fb;
+        background:
+          radial-gradient(circle at 58% 25%, rgba(39, 88, 130, .34), transparent 36%),
+          linear-gradient(145deg, #111821, #06090d 60%, #020305);
+        font-family: Manrope, Arial, sans-serif;
+      }
+      model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+      .eyebrow {
+        position: fixed; left: 34px; top: 29px; z-index: 2;
+        color: #7fd5ff; font-size: 12px; font-weight: 700;
+        letter-spacing: .24em; text-transform: uppercase;
+      }
+      .title {
+        position: fixed; left: 32px; top: 53px; z-index: 2;
+        margin: 0; font-size: clamp(24px, 3vw, 46px); font-weight: 650;
+      }
+      .hint {
+        position: fixed; left: 34px; bottom: 28px; z-index: 2;
+        color: #9cabbc; font-size: 13px;
+      }
+      .badge {
+        position: fixed; right: 28px; top: 28px; z-index: 2;
+        padding: 9px 13px; border: 1px solid rgba(127, 213, 255, .34);
+        border-radius: 999px; color: #d7f3ff; background: rgba(6, 15, 23, .7);
+        font-size: 11px; letter-spacing: .12em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="eyebrow">Official mesh conversion</div>
+    <h1 class="title">AgiBot X2 Ultra</h1>
+    <div class="badge">39 OFFICIAL MESHES · 40 JOINTS</div>
+    <div class="hint">Drag to rotate · Scroll or pinch to zoom</div>
+    <model-viewer
+      src="/public/assets/products/eaic-hub/master-robot-3d/agibot-x2-official-web.glb"
+      alt="Official-derived AgiBot X2 Ultra humanoid robot"
+      camera-controls
+      interaction-prompt="none"
+      shadow-intensity="1.35"
+      shadow-softness=".82"
+      exposure="1.25"
+      environment-image="neutral"
+      camera-orbit="26deg 78deg 2.8m"
+      min-camera-orbit="auto auto 1.45m"
+      max-camera-orbit="auto auto 5.5m"
+      bounds="tight"
+    ></model-viewer>
+  </body>
+</html>

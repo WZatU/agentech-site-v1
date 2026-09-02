@@ -25,22 +25,26 @@ export function MasterJointMotionGuide() {
   const selected = jointDemos.find((demo) => demo.id === selectedId) ?? jointDemos[0];
 
   return (
-    <section className="overflow-hidden border border-[#263e63] bg-[#06162f] text-white" aria-labelledby="master-joint-motion-title">
+    <section
+      data-master-joint-motion-theme="warm-neutral"
+      className="overflow-hidden border border-[#d8d3ca] bg-[#eeece7] text-[#171717]"
+      aria-labelledby="master-joint-motion-title"
+    >
       <div className="grid lg:grid-cols-[0.82fr_1.18fr]">
-        <div className="border-b border-[#263e63] p-5 sm:p-7 lg:border-b-0 lg:border-r">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#65b9ed]">Master motion guide</p>
+        <div className="border-b border-[#d8d3ca] p-5 sm:p-7 lg:border-b-0 lg:border-r">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#1a73e8]">Master motion guide</p>
           <h2 id="master-joint-motion-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
             See how every joint axis moves.
           </h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[#b9c8dc]">
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#62615d]">
             Select a joint to view an isolated MuJoCo demonstration. The highlighted blue section is active, while the arm uses a solid-body clearance pose to stay outside the torso.
           </p>
 
-          <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden border border-[#263e63] bg-[#263e63]">
+          <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden border border-[#d8d3ca] bg-[#d8d3ca]">
             {axisNotes.map((note) => (
-              <div key={note.axis} className="bg-[#0a1d3a] p-3">
-                <p className="text-xs font-semibold text-white">{note.axis}</p>
-                <p className="mt-1 text-[10px] leading-4 text-[#9fb1c9]">{note.detail}</p>
+              <div key={note.axis} className="bg-[#fbfaf7] p-3">
+                <p className="text-xs font-semibold text-[#171717]">{note.axis}</p>
+                <p className="mt-1 text-[10px] leading-4 text-[#62615d]">{note.detail}</p>
               </div>
             ))}
           </div>
@@ -54,31 +58,31 @@ export function MasterJointMotionGuide() {
                   type="button"
                   onClick={() => setSelectedId(demo.id)}
                   aria-pressed={active}
-                  className={`min-h-16 border p-3 text-left transition ${active ? "border-[#55b8f3] bg-[#12365c] shadow-[inset_3px_0_0_#55b8f3]" : "border-[#263e63] bg-[#091b36] hover:border-[#4f739d] hover:bg-[#0d2444]"}`}
+                  className={`min-h-16 border p-3 text-left transition ${active ? "border-[#1a73e8]/45 bg-[#eaf2fd] shadow-[inset_3px_0_0_#1a73e8]" : "border-[#d8d3ca] bg-[#fbfaf7] hover:border-[#1a73e8]/45 hover:bg-white"}`}
                 >
-                  <span className={`block text-[9px] font-semibold uppercase tracking-[0.14em] ${active ? "text-[#65c4fa]" : "text-[#7891af]"}`}>{demo.group}</span>
-                  <span className="mt-1 block text-xs font-semibold text-white">{demo.axis}</span>
-                  <span className="mt-0.5 block text-[10px] text-[#aebdd0]">{demo.motion}</span>
+                  <span className={`block text-[9px] font-semibold uppercase tracking-[0.14em] ${active ? "text-[#1a73e8]" : "text-[#7a746c]"}`}>{demo.group}</span>
+                  <span className="mt-1 block text-xs font-semibold text-[#171717]">{demo.axis}</span>
+                  <span className="mt-0.5 block text-[10px] text-[#62615d]">{demo.motion}</span>
                 </button>
               );
             })}
           </div>
 
-          <p className="mt-5 border-l-2 border-[#55b8f3] pl-3 text-xs leading-5 text-[#aebdd0]">
+          <p className="mt-5 border-l-2 border-[#1a73e8] pl-3 text-xs leading-5 text-[#62615d]">
             Left-arm joints use the same axes, mirrored. This is an educational simulation—not a live robot command.
           </p>
         </div>
 
-        <div className="flex min-h-[430px] flex-col bg-[#071a34] p-4 sm:p-6">
+        <div className="flex min-h-[430px] flex-col bg-[#fbfaf7] p-4 sm:p-6">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#65b9ed]">{selected.group} · {selected.axis}</p>
-              <p className="mt-1 text-lg font-semibold">{selected.motion}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#1a73e8]">{selected.group} · {selected.axis}</p>
+              <p className="mt-1 text-lg font-semibold text-[#171717]">{selected.motion}</p>
             </div>
-            <code className="border border-[#29476d] bg-[#091c37] px-2 py-1 text-[10px] text-[#91a9c5]">{selected.joint}</code>
+            <code className="border border-[#d8d3ca] bg-[#eeece7] px-2 py-1 text-[10px] text-[#62615d]">{selected.joint}</code>
           </div>
 
-          <div className="relative flex flex-1 items-center justify-center overflow-hidden border border-[#29476d] bg-[#0b203b]">
+          <div className="relative flex flex-1 items-center justify-center overflow-hidden border border-[#d8d3ca] bg-[#fbfaf7]">
             <video
               key={selected.id}
               className="h-full max-h-[610px] w-full object-contain"
@@ -91,7 +95,7 @@ export function MasterJointMotionGuide() {
               aria-label={`MuJoCo simulation of Master ${selected.group.toLowerCase()} ${selected.axis.toLowerCase()} motion`}
             />
           </div>
-          <div className="mt-3 flex flex-wrap justify-between gap-2 text-[10px] uppercase tracking-[0.12em] text-[#7189a7]">
+          <div className="mt-3 flex flex-wrap justify-between gap-2 text-[10px] uppercase tracking-[0.12em] text-[#7a746c]">
             <span>Official AgiBot X2 MuJoCo model</span>
             <span>Looped axis preview</span>
           </div>

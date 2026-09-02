@@ -175,7 +175,7 @@ export function InvoiceDetail({ invoiceNumber }: InvoiceDetailProps) {
       <div className="rounded-[8px] border border-slate-200 bg-white p-8 shadow-[0_24px_80px_rgba(15,23,42,0.10)] print:border-0 print:shadow-none md:p-12">
         <div className="flex flex-col justify-between gap-8 sm:flex-row">
           <div>
-            <div className="text-2xl font-black tracking-[0.08em]">AGENTECH</div>
+            <div className="font-display text-2xl font-black tracking-[0.08em]">AGENTECH</div>
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Robotics & Education</p>
           </div>
           <div className="sm:text-right">
@@ -200,8 +200,8 @@ export function InvoiceDetail({ invoiceNumber }: InvoiceDetailProps) {
             </div>
           </div>
           <div className="md:text-right">
-            <p className="font-bold">Invoice no: {invoice.invoice_number}</p>
-            <p className="mt-2 text-slate-600">{formatDate(invoice.created_at)}</p>
+            <p className="font-technical font-bold">Invoice no: {invoice.invoice_number}</p>
+            <p className="font-technical mt-2 text-slate-600">{formatDate(invoice.created_at)}</p>
             <p className="mt-2 text-slate-600">
               Status: <span className="font-bold text-slate-950">{formatStatus(invoice.status)}</span>
             </p>
@@ -222,11 +222,11 @@ export function InvoiceDetail({ invoiceNumber }: InvoiceDetailProps) {
             <tbody>
               {invoice.lines.map((line, index) => (
                 <tr key={line.id} className={index % 2 === 0 ? "bg-white" : "bg-[#d9edf8]"}>
-                  <td className="px-3 py-2 text-center">{index + 1}</td>
+                  <td className="font-technical px-3 py-2 text-center">{index + 1}</td>
                   <td className="px-3 py-2">{line.description}</td>
-                  <td className="px-3 py-2 text-center">{line.quantity}</td>
-                  {hasAmountDue ? <td className="px-3 py-2 text-right">{formatUsd(toAmount(line.unit_price))}</td> : null}
-                  {hasAmountDue ? <td className="px-3 py-2 text-right">{formatUsd(toAmount(line.amount))}</td> : null}
+                  <td className="font-technical px-3 py-2 text-center">{line.quantity}</td>
+                  {hasAmountDue ? <td className="font-technical px-3 py-2 text-right">{formatUsd(toAmount(line.unit_price))}</td> : null}
+                  {hasAmountDue ? <td className="font-technical px-3 py-2 text-right">{formatUsd(toAmount(line.amount))}</td> : null}
                 </tr>
               ))}
             </tbody>
@@ -238,23 +238,23 @@ export function InvoiceDetail({ invoiceNumber }: InvoiceDetailProps) {
             <div className="w-full max-w-sm space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Sub Total:</span>
-                <span>{formatUsd(totals.subtotal)}</span>
+                <span className="font-technical">{formatUsd(totals.subtotal)}</span>
               </div>
               {totals.tax > 0 ? (
                 <div className="flex justify-between">
                   <span>Tax:</span>
-                  <span>{formatUsd(totals.tax)}</span>
+                  <span className="font-technical">{formatUsd(totals.tax)}</span>
                 </div>
               ) : null}
               {totals.discount > 0 ? (
                 <div className="flex justify-between">
                   <span>Discount:</span>
-                  <span>-{formatUsd(totals.discount)}</span>
+                  <span className="font-technical">-{formatUsd(totals.discount)}</span>
                 </div>
               ) : null}
               <div className="flex justify-between bg-[#2f70c8] px-4 py-3 text-base font-black text-white">
                 <span>GRAND TOTAL:</span>
-                <span>{formatUsd(totals.total)}</span>
+                <span className="font-technical">{formatUsd(totals.total)}</span>
               </div>
             </div>
           </div>

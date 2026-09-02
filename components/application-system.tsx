@@ -12,7 +12,7 @@ export function ApplicationSystem({ mode = "full" }: ApplicationSystemProps) {
     <section className="mx-auto max-w-5xl px-6 py-20 lg:px-8">
       <div className="max-w-2xl">
         <p className="text-sm uppercase tracking-[0.24em] text-slate">{applicationIntro.eyebrow}</p>
-        <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">{applicationIntro.title}</h2>
+        <h2 className="font-display mt-4 text-3xl font-semibold text-white md:text-5xl">{applicationIntro.title}</h2>
         <p className="mt-5 text-base leading-8 text-slate md:text-lg">{applicationIntro.body}</p>
       </div>
 
@@ -32,7 +32,7 @@ export function ApplicationSystem({ mode = "full" }: ApplicationSystemProps) {
           <article key={track.id} id={track.id} className="scroll-mt-28">
             <div className="max-w-2xl">
               <p className="data-label">{track.title}</p>
-              <h3 className="mt-4 text-3xl font-semibold text-white md:text-4xl">{track.title}</h3>
+              <h3 className="font-display mt-4 text-3xl font-semibold text-white md:text-4xl">{track.title}</h3>
               <p className="mt-4 text-base text-slate">{track.summary}</p>
             </div>
 

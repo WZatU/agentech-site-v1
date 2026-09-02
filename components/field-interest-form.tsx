@@ -42,7 +42,7 @@ export function FieldInterestForm() {
     <div className="rounded-[28px] border border-white/10 bg-white/[0.06] p-5 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur md:p-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">Workshop Interest</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">Connect with Agentech.</h1>
+        <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">Connect with Agentech.</h1>
         <p className="mt-3 text-sm leading-6 text-slate-300">
           Leave your email if you are interested in our workshop. No account needed.
         </p>

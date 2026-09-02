@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agibot X2 · Meshy Detailed</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
+    <style>
+      html, body { margin: 0; width: 100%; height: 100%; background: #070a10; color: #eaf2ff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      model-viewer { width: 100%; height: 100%; background: radial-gradient(circle at 55% 42%, #1b2c48 0%, #0b111b 44%, #05070b 100%); }
+      .label { position: fixed; left: 26px; top: 22px; z-index: 2; letter-spacing: .18em; font-size: 12px; color: #9fd3ff; }
+      .hint { position: fixed; left: 26px; bottom: 22px; z-index: 2; font-size: 12px; color: #8290a6; }
+    </style>
+  </head>
+  <body>
+    <div class="label">AGIBOT X2 · MESHY DETAILED</div>
+    <div class="hint">DRAG TO ROTATE · SCROLL TO ZOOM</div>
+    <model-viewer
+      src="../../public/assets/products/eaic-hub/master-robot-3d/agibot-x2-meshy-detailed.glb"
+      alt="Agibot X2 Meshy detailed robot"
+      camera-controls
+      auto-rotate
+      rotation-per-second="14deg"
+      camera-orbit="28deg 78deg 2.55m"
+      min-camera-orbit="auto auto 1.35m"
+      max-camera-orbit="auto auto 5m"
+      shadow-intensity="1.15"
+      shadow-softness="0.72"
+      exposure="1.05"
+      tone-mapping="agx"
+    ></model-viewer>
+  </body>
+</html>

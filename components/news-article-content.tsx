@@ -25,7 +25,7 @@ export function NewsArticleContent({ entry }: NewsArticleContentProps) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold leading-tight text-white md:text-5xl">
+        <h1 className="font-display text-3xl font-semibold leading-tight text-white md:text-5xl">
           {active.title || entry.title}
         </h1>
 

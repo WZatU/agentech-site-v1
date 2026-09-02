@@ -81,7 +81,7 @@ export function ProfileBlueprint({ code }: { code: string }) {
         <div className="relative h-44 w-32 rounded-[28px] border border-dashed border-[#57c8ff]/35">
           <span className="absolute left-1/2 top-1/2 h-[1px] w-24 -translate-x-1/2 bg-[#57c8ff]/28" />
           <span className="absolute left-1/2 top-1/2 h-24 w-[1px] -translate-y-1/2 bg-[#57c8ff]/28" />
-          <div className="absolute inset-x-0 bottom-8 text-center font-[var(--font-display)] text-2xl tracking-[0.18em] text-[#dff7ff]">
+          <div className="font-display absolute inset-x-0 bottom-8 text-center text-2xl tracking-[0.18em] text-[#dff7ff]">
             {code}
           </div>
         </div>

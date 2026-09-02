@@ -55,7 +55,7 @@ export default function ProductDocumentsPage() {
           <div className="mt-12 grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1fb7ff]">Agentech Docs</p>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white md:text-6xl">
+              <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight text-white md:text-6xl">
                 Product Documentation
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/68">
@@ -63,15 +63,15 @@ export default function ProductDocumentsPage() {
               </p>
               <div className="mt-8 grid max-w-xl grid-cols-3 border border-white/10 bg-black/45">
                 <div className="border-r border-white/10 p-4">
-                  <p className="text-2xl font-semibold text-white">03</p>
+                  <p className="font-technical text-2xl font-semibold text-white">03</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/45">Doc Areas</p>
                 </div>
                 <div className="border-r border-white/10 p-4">
-                  <p className="text-2xl font-semibold text-white">24+</p>
+                  <p className="font-technical text-2xl font-semibold text-white">24+</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/45">Sections</p>
                 </div>
                 <div className="p-4">
-                  <p className="text-2xl font-semibold text-white">MD</p>
+                  <p className="font-technical text-2xl font-semibold text-white">MD</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/45">Source</p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function ProductDocumentsPage() {
               <summary className={`relative grid cursor-pointer list-none gap-6 bg-gradient-to-br ${accent.bg} to-black p-6 marker:hidden md:p-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch`}>
                 <div className="max-w-3xl">
                   <p className={`font-mono text-xs uppercase tracking-[0.18em] ${accent.text}`}>{repo.repository}</p>
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">{repo.name}</h2>
+                  <h2 className="font-display mt-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">{repo.name}</h2>
                   <p className="mt-4 text-base leading-8 text-white/72">{repo.summary}</p>
                   <div className="mt-8 flex items-center gap-3">
                     <a

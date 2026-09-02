@@ -11,6 +11,7 @@ import { formatFullName, formatInvoiceItemName } from "@/lib/name-format";
 import { formatUsd } from "@/lib/pricing";
 import { buildDeviceResultsViewModel, type DeviceResult } from "@/lib/device-results";
 import { selectSoleProfile } from "@/lib/account-dashboard-profile-selection";
+import { HistoryBackButton } from "@/components/history-back-button";
 import {
   externalRobotViewingMaximumMinutes,
   externalRobotViewingMinimumMinutes,
@@ -2087,12 +2088,10 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
       </div>
       ) : (
         <div className="relative z-[1] border-b border-slate-200 px-5 py-4 sm:px-7 md:px-8">
-          <Link
-            href={getEaicHubTaskPath("watch-live-run")}
+          <HistoryBackButton
+            fallbackHref={getEaicHubTaskPath("watch-live-run")}
             className="inline-flex border border-slate-300 bg-white px-4 py-2 text-xs font-bold uppercase text-slate-700 transition hover:border-[#008a7a] hover:text-[#006a5c]"
-          >
-            &lt;- Live Stream
-          </Link>
+          />
         </div>
       )}
 
@@ -2239,7 +2238,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                       {card.icon}
                     </div>
                     <div>
-                      <p className="text-2xl font-bold leading-none text-slate-950">{card.value}</p>
+                      <p className="font-technical text-2xl font-bold leading-none text-slate-950">{card.value}</p>
                       <p className="mt-1 text-sm font-bold text-slate-600">{card.label}</p>
                       <p className="mt-1 text-xs font-medium text-slate-500">{card.helper}</p>
                     </div>
@@ -2282,16 +2281,16 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
               <p className="text-xs font-bold uppercase text-[#2f70c8]">Billing</p>
-              <h2 className="mt-2 text-3xl font-bold text-slate-950">{formatCredits(creditBalance)}</h2>
+              <h2 className="font-technical mt-2 text-3xl font-bold text-slate-950">{formatCredits(creditBalance)}</h2>
               <p className="mt-2 text-sm font-medium text-slate-500">Credit balance, recharge controls, cart items, and account billing status live here.</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-bold text-slate-500">Paid Credits</p>
-                  <p className="mt-2 text-xl font-bold text-slate-950">{formatCredits(paidCredits)}</p>
+                  <p className="font-technical mt-2 text-xl font-bold text-slate-950">{formatCredits(paidCredits)}</p>
                 </div>
                 <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                   <p className="text-xs font-bold text-emerald-700">Bonus Credits</p>
-                  <p className="mt-2 text-xl font-bold text-slate-950">{formatCredits(bonusCredits)}</p>
+                  <p className="font-technical mt-2 text-xl font-bold text-slate-950">{formatCredits(bonusCredits)}</p>
                 </div>
               </div>
               {data.creditSummary?.rechargeRequired ? (
@@ -2314,7 +2313,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                 </div>
                 <div className="rounded-xl bg-slate-50 px-4 py-3 text-right">
                   <p className="text-xs font-bold text-slate-500">{isInternalCompanyAccount ? "Account Charge" : "Card Charge"}</p>
-                  <p className="mt-1 text-lg font-bold text-slate-950">{isInternalCompanyAccount ? "$0.00" : formatUsd(selectedCardChargeCents / 100)}</p>
+                  <p className="font-technical mt-1 text-lg font-bold text-slate-950">{isInternalCompanyAccount ? "$0.00" : formatUsd(selectedCardChargeCents / 100)}</p>
                 </div>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -2344,7 +2343,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
               <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
                 <p>{isInternalCompanyAccount ? "Credits added" : "Credit value"}: {isInternalCompanyAccount ? formatCredits(selectedRechargeCredits) : formatUsd(selectedRechargeCredits / 100)}</p>
                 <p>{isInternalCompanyAccount ? "Payment" : "Card processing"}: {isInternalCompanyAccount ? "Not charged" : formatUsd(selectedProcessingFeeCents / 100)}</p>
-                <p className="font-bold text-slate-950">Total charge: {isInternalCompanyAccount ? "$0.00" : formatUsd(selectedCardChargeCents / 100)}</p>
+                <p className="font-technical font-bold text-slate-950">Total charge: {isInternalCompanyAccount ? "$0.00" : formatUsd(selectedCardChargeCents / 100)}</p>
               </div>
               {rechargeMessage ? (
                 <p className={`mt-3 text-sm font-bold ${rechargeMessageType === "success" ? "text-emerald-700" : "text-red-600"}`}>
@@ -2366,7 +2365,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                 </div>
                 <div className="rounded-xl bg-slate-50 px-4 py-3 text-right">
                   <p className="text-xs font-bold text-slate-500">Open Cart Balance</p>
-                  <p className="mt-1 text-lg font-bold text-slate-950">{(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}</p>
+                  <p className="font-technical mt-1 text-lg font-bold text-slate-950">{(data.unpaidBalance?.total ?? 0) > 0 ? formatUsd(data.unpaidBalance?.total ?? 0) : "No amount due"}</p>
                 </div>
               </div>
               {actionMessage ? <p className="mt-3 text-sm font-semibold text-[#2f70c8]">{actionMessage}</p> : null}
@@ -2377,7 +2376,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                       <div>
                         <p className="font-semibold text-slate-950">{formatInvoiceItemName(line.itemName)}</p>
                         <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{line.sourceType.replace(/_/g, " ")}</p>
-                        {line.amount > 0 ? <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{formatUsd(line.amount)}</p> : null}
+                        {line.amount > 0 ? <p className="font-technical mt-1 text-sm font-semibold text-[#2f70c8]">{formatUsd(line.amount)}</p> : null}
                       </div>
                       {line.id.startsWith("item-") ? (
                         pendingRemovalId === line.id ? (
@@ -3274,8 +3273,8 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
               </p>
             </div>
             <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700">
-              <p>{purchaseHistoryItems.length} records</p>
-              <p className="mt-1 text-xs text-slate-500">Paid total: {formatUsd(totalSpent)}</p>
+              <p className="font-technical">{purchaseHistoryItems.length} records</p>
+              <p className="font-technical mt-1 text-xs text-slate-500">Paid total: {formatUsd(totalSpent)}</p>
             </div>
           </div>
 
@@ -3288,13 +3287,13 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#2f70c8]">{item.category}</span>
-                        <span className="text-xs font-semibold text-slate-500">{formatDate(item.date)}</span>
+                        <span className="font-technical text-xs font-semibold text-slate-500">{formatDate(item.date)}</span>
                       </div>
                       <p className="mt-3 font-semibold text-slate-950">{item.title}</p>
                       <p className="mt-1 text-sm text-slate-600">{item.meta}</p>
                     </div>
                     <div className="text-left md:text-right">
-                      <p className="text-sm font-bold text-slate-950">{amount !== null && Number.isFinite(amount) && amount > 0 ? formatUsd(amount) : "No charge shown"}</p>
+                      <p className="font-technical text-sm font-bold text-slate-950">{amount !== null && Number.isFinite(amount) && amount > 0 ? formatUsd(amount) : "No charge shown"}</p>
                       <p className="mt-1 text-sm font-semibold text-[#2f70c8]">{item.status}</p>
                     </div>
                   </div>
@@ -3341,11 +3340,11 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
               return (
                 <div key={invoice.invoice_number} className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
                   <div>
-                    <p className="font-semibold text-slate-950">{invoice.invoice_number}</p>
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="font-technical font-semibold text-slate-950">{invoice.invoice_number}</p>
+                    <p className="font-technical mt-1 text-sm text-slate-600">
                       {formatDate(invoice.created_at)} - {formatInvoiceStatus(invoice.status)}
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-[#2f70c8]">
+                    <p className="font-technical mt-1 text-sm font-semibold text-[#2f70c8]">
                       {Number.isFinite(total) && total > 0 ? formatUsd(total) : "No amount due"}
                     </p>
                   </div>
@@ -3419,7 +3418,7 @@ export function AccountDashboard({ mode = "account" }: AccountDashboardProps) {
                 <p className="mt-1 text-sm font-semibold text-slate-500">@{profile.username}</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{visual.tone}</p>
                 <div className="mt-4 flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                  <span>{formatCredits(remainingCredits)} left</span>
+                  <span className="font-technical">{formatCredits(remainingCredits)} left</span>
                   <span className={selected ? "text-[#2563eb]" : "text-slate-400"}>{selected ? "Selected" : "Open"}</span>
                 </div>
               </button>

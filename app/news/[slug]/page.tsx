@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { NewsArticleContent } from "@/components/news-article-content";
 import { NewsSlideshow } from "@/components/news-slideshow";
 import { accountSessionCookieName } from "@/lib/account-session";
@@ -50,12 +50,10 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
       <NewsSlideshow images={entry.images} media={entry.media} title={entry.title} />
 
       <div className="mx-auto max-w-4xl px-6 py-12 lg:px-8 lg:py-16">
-        <Link
-          href="/news"
+        <HistoryBackButton
+          fallbackHref="/news"
           className="text-xs font-semibold uppercase tracking-[0.18em] text-slate transition hover:text-white"
-        >
-          Back to News
-        </Link>
+        />
         <div className="mt-6">
           <NewsArticleContent entry={entry} />
         </div>

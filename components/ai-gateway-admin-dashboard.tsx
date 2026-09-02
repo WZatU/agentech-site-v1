@@ -577,8 +577,8 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                       ].map((metric) => (
                         <div key={metric.label} className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                           <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">{metric.label}</p>
-                          <p className="mt-2 break-words text-base font-black text-slate-950">{metric.value}</p>
-                          <p className="mt-1 break-words text-xs font-semibold text-slate-500">{metric.helper}</p>
+                          <p className="font-technical mt-2 break-words text-base font-black text-slate-950">{metric.value}</p>
+                          <p className="font-technical mt-1 break-words text-xs font-semibold text-slate-500">{metric.helper}</p>
                         </div>
                       ))}
                     </div>
@@ -621,7 +621,7 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
               </p>
             </div>
             <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-              {data.codeSubmissions.length.toLocaleString()} recent submissions
+              <span className="font-technical">{data.codeSubmissions.length.toLocaleString()}</span> recent submissions
             </p>
           </div>
 
@@ -669,11 +669,11 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                         <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Commands</p>
-                        <p className="mt-2 text-sm font-black text-slate-950">{commands.length.toLocaleString()}</p>
+                        <p className="font-technical mt-2 text-sm font-black text-slate-950">{commands.length.toLocaleString()}</p>
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                         <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Credits Charged</p>
-                        <p className="mt-2 text-sm font-black text-slate-950">{formatCreditsWithUsd(submission.credits_charged)}</p>
+                        <p className="font-technical mt-2 text-sm font-black text-slate-950">{formatCreditsWithUsd(submission.credits_charged)}</p>
                       </div>
                     </div>
 
@@ -763,22 +763,22 @@ export function AiGatewayAdminDashboard({ adminEmail = "" }: { adminEmail?: stri
             {data.usage.length ? data.usage.slice(0, 20).map((row) => (
               <div key={row.id} className="grid gap-3 px-5 py-4 text-sm md:grid-cols-[minmax(220px,1fr)_140px_120px_120px_120px_150px] md:items-center">
                 <div>
-                  <p className="break-all font-bold text-slate-950">{row.user_id}</p>
-                  <p className="mt-1 text-xs text-slate-500">{row.endpoint} - {row.model}</p>
+                  <p className="font-technical break-all font-bold text-slate-950">{row.user_id}</p>
+                  <p className="font-technical mt-1 text-xs text-slate-500">{row.endpoint} - {row.model}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-700">{formatTokenCount(row.total_tokens)} tokens</p>
-                  <p className="mt-1 text-xs font-semibold text-slate-500">
+                  <p className="font-technical font-semibold text-slate-700">{formatTokenCount(row.total_tokens)} tokens</p>
+                  <p className="font-technical mt-1 text-xs font-semibold text-slate-500">
                     {formatTokenCount(row.prompt_tokens)} input + {formatTokenCount(row.completion_tokens)} output
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-700">{formatGatewayCost(getDisplayedUsageCost(row))}</p>
+                  <p className="font-technical font-semibold text-slate-700">{formatGatewayCost(getDisplayedUsageCost(row))}</p>
                   <p className="mt-1 text-xs font-semibold text-slate-500">Standard run cost</p>
                 </div>
-                <p className="font-semibold text-slate-700">{formatDurationMs(row.latency_ms)}</p>
-                <p className="font-semibold text-slate-700">HTTP {row.status_code ?? "n/a"}</p>
-                <p className="text-slate-500">{formatDateTime(row.created_at)}</p>
+                <p className="font-technical font-semibold text-slate-700">{formatDurationMs(row.latency_ms)}</p>
+                <p className="font-technical font-semibold text-slate-700">HTTP {row.status_code ?? "n/a"}</p>
+                <p className="font-technical text-slate-500">{formatDateTime(row.created_at)}</p>
               </div>
             )) : (
               <p className="px-5 py-8 text-center text-sm font-semibold text-slate-500">No AI gateway calls logged yet.</p>

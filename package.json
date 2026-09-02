@@ -28,16 +28,20 @@
     "test:session-device-results": "node --test scripts/robot-session-device-results.test.mjs",
     "test:device-results-ui": "node --experimental-strip-types --test lib/device-results.test.ts",
     "test:account-profile-selection": "node --experimental-strip-types --test lib/account-dashboard-profile-selection.test.ts",
+    "test:site-header-visibility": "node --experimental-strip-types --test lib/site-header-visibility.test.ts",
+    "test:login-bypass": "node --experimental-strip-types --test lib/login-bypass.test.ts",
+    "test:theme": "node --experimental-strip-types --test lib/theme.test.ts lib/theme-page-scopes.test.ts",
+    "test:talents-page": "node --test scripts/talents-page.test.mjs",
     "test:master-motor-map": "node --test scripts/master-motor-map.test.mjs",
     "test:master-live-camera": "node --test scripts/master-live-camera.test.mjs scripts/master-live-camera-state.test.mjs scripts/master-live-camera-ui.test.mjs scripts/master-livekit-track-state.test.mjs scripts/master-camera-web-service.test.mjs",
     "test:master-live-camera-gateway": "node --test scripts/master-live-camera-gateway.test.mjs",
     "test:master-live-test": "node --test scripts/master-live-test-access.test.mjs scripts/master-live-test-route.test.mjs scripts/master-live-test-ui.test.mjs",
     "test:master-heartbeat": "node --experimental-strip-types --test lib/master-heartbeat.test.ts scripts/master-heartbeat-route.test.mjs scripts/master-heartbeat-store.test.mjs scripts/master-heartbeat-ui.test.mjs",
-    "test": "npm run test:aegis-gateway-spec && npm run test:aegis-device-results && npm run test:aegis-runner && npm run test:session-device-results && npm run test:device-results-ui && npm run test:account-profile-selection && npm run test:robot-stream-bridge && npm run test:navi-cli-gateway && npm run test:return-to-home-access && npm run test:sdk-reference && npm run test:master-simulation-previews && npm run test:master-motor-map && npm run test:master-live-camera && npm run test:master-live-test && npm run test:master-heartbeat",
+    "test": "npm run test:aegis-gateway-spec && npm run test:aegis-device-results && npm run test:aegis-runner && npm run test:session-device-results && npm run test:device-results-ui && npm run test:account-profile-selection && npm run test:site-header-visibility && npm run test:robot-stream-bridge && npm run test:navi-cli-gateway && npm run test:return-to-home-access && npm run test:sdk-reference && npm run test:master-simulation-previews && npm run test:master-motor-map && npm run test:master-live-camera && npm run test:master-live-test && npm run test:master-heartbeat",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run build && npm run test:talents-page"
   },
   "dependencies": {
     "@foxglove/rosmsg": "5.0.5",

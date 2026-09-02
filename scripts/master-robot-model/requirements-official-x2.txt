@@ -1,0 +1,2 @@
+trimesh==4.8.3
+fast-simplification==0.1.12

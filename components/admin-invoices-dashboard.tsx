@@ -148,15 +148,15 @@ export function AdminInvoicesDashboard() {
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <div className="rounded-xl bg-slate-950 p-5 text-white">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-300">Total invoiced</p>
-            <p className="mt-2 text-2xl font-semibold">{formatUsd(totals.total)}</p>
+            <p className="font-technical mt-2 text-2xl font-semibold">{formatUsd(totals.total)}</p>
           </div>
           <div className="rounded-xl bg-emerald-700 p-5 text-white">
             <p className="text-xs uppercase tracking-[0.16em] text-emerald-100">Paid</p>
-            <p className="mt-2 text-2xl font-semibold">{formatUsd(totals.paid)}</p>
+            <p className="font-technical mt-2 text-2xl font-semibold">{formatUsd(totals.paid)}</p>
           </div>
           <div className="rounded-xl bg-[#2f70c8] p-5 text-white">
             <p className="text-xs uppercase tracking-[0.16em] text-blue-100">Open</p>
-            <p className="mt-2 text-2xl font-semibold">{formatUsd(totals.open)}</p>
+            <p className="font-technical mt-2 text-2xl font-semibold">{formatUsd(totals.open)}</p>
           </div>
         </div>
       </section>
@@ -179,7 +179,7 @@ export function AdminInvoicesDashboard() {
               {filteredInvoices.length ? (
                 filteredInvoices.map((invoice, index) => (
                   <tr key={invoice.invoice_number} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                    <td className="px-4 py-3 font-semibold">
+                    <td className="font-technical px-4 py-3 font-semibold">
                       <Link href={`/invoice/${invoice.invoice_number}`} className="text-[#2f70c8] hover:underline">
                         {invoice.invoice_number}
                       </Link>
@@ -187,9 +187,9 @@ export function AdminInvoicesDashboard() {
                     <td className="px-4 py-3">{invoice.customer_name || "-"}</td>
                     <td className="px-4 py-3">{invoice.email}</td>
                     <td className="px-4 py-3">{formatStatus(invoice.status)}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{formatUsd(toAmount(invoice.total_amount))}</td>
-                    <td className="px-4 py-3">{formatDate(invoice.created_at)}</td>
-                    <td className="px-4 py-3">{formatDate(invoice.paid_at)}</td>
+                    <td className="font-technical px-4 py-3 text-right font-semibold">{formatUsd(toAmount(invoice.total_amount))}</td>
+                    <td className="font-technical px-4 py-3">{formatDate(invoice.created_at)}</td>
+                    <td className="font-technical px-4 py-3">{formatDate(invoice.paid_at)}</td>
                   </tr>
                 ))
               ) : (

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { PreorderForm } from "@/components/preorder-form";
 
 type PreorderPageProps = {
@@ -13,9 +13,7 @@ export default async function PreorderPage({ searchParams }: PreorderPageProps) 
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12 lg:px-8 lg:py-16">
-      <Link href="/agentech-robotic" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate transition hover:text-white">
-        Back to Robotic
-      </Link>
+      <HistoryBackButton fallbackHref="/agentech-robotic" className="text-xs font-semibold uppercase tracking-[0.18em] text-slate transition hover:text-white" />
       <div className="mt-8">
         <PreorderForm product={selectedProduct} />
       </div>

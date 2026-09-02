@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EducationCourseButton } from "@/components/education-course-button";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { educationGradePages, getEducationGradePage } from "@/lib/education-grade-pages";
 import { educationCourses, getEducationCourse } from "@/lib/education-courses";
 import { formatUsd } from "@/lib/pricing";
@@ -49,19 +49,17 @@ export default async function EducationCoursePage({ params }: CoursePageProps) {
     <main className="education-black min-h-screen bg-white text-black">
       <section className="mx-auto max-w-6xl px-6 py-10 lg:px-8 lg:py-14">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link href={`/agentech-education/${gradePage.slug}`} className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
-            Back to {gradePage.grade}
-          </Link>
+          <HistoryBackButton fallbackHref={`/agentech-education/${gradePage.slug}`} className="text-sm font-semibold text-slate-600 transition hover:text-slate-950" />
           <EducationCourseButton courseCode={courseData.courseCode} />
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{courseData.courseCode}</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">{courseData.title}</h1>
+            <p className="font-technical text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{courseData.courseCode}</p>
+            <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl">{courseData.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">{courseData.description}</p>
-            {courseData.price > 0 ? <p className="mt-5 text-2xl font-semibold text-slate-950">{formatUsd(courseData.price)}</p> : null}
-            {courseData.priceNote ? <p className="mt-5 text-2xl font-semibold text-slate-950">{courseData.priceNote}</p> : null}
+            {courseData.price > 0 ? <p className="font-technical mt-5 text-2xl font-semibold text-slate-950">{formatUsd(courseData.price)}</p> : null}
+            {courseData.priceNote ? <p className="font-technical mt-5 text-2xl font-semibold text-slate-950">{courseData.priceNote}</p> : null}
           </div>
           <div className="flex lg:min-w-64 lg:justify-center">
             <EducationCourseButton

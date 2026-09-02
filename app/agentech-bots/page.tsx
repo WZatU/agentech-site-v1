@@ -20,7 +20,7 @@ export default function AgentechBotsPage() {
     <>
       <section>
         <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 lg:px-8 lg:pb-10 lg:pt-20">
-          <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl">
+          <h1 className="font-display text-4xl font-semibold tracking-tight text-white md:text-6xl">
             Agentech Bots
           </h1>
         </div>

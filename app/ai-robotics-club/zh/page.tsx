@@ -1,5 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ClubFaq,
+  ClubHeroFacts,
+  ClubMobileApply,
+  ClubQuickApplication,
+  ClubSectionNavigation,
+} from "@/components/ai-robotics-club-experience";
 
 const clubImages = [
   "/assets/talents/club/club-1.png",
@@ -355,15 +362,29 @@ const featuredLearningTopics = [
   }
 ];
 
-function TopicList({ title, items }: { title: string; items: readonly string[] }) {
+function TopicList({
+  title,
+  items,
+  variant,
+}: {
+  title: string;
+  items: readonly string[];
+  variant: "topics" | "projects";
+}) {
   return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.2em] !text-[#475569]">{title}</p>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+    <div data-topic-list={variant} className="topic-list-group">
+      <div className="topic-list-heading flex items-center justify-between gap-3">
+        <p className="topic-list-label text-xs font-bold uppercase tracking-[0.2em]">{title}</p>
+        <span className="topic-list-kicker" aria-hidden="true">
+          {variant === "topics" ? "Learn" : "Build"}
+        </span>
+      </div>
+      <div className="topic-list-grid mt-3 grid gap-2 sm:grid-cols-2">
         {items.map((item) => (
           <div
             key={item}
-            className="rounded-2xl border border-[#d9e1ea] bg-[#f8fafc] px-4 py-3 text-sm font-semibold leading-6 !text-[#0b1220]"
+            data-topic-list-item={variant}
+            className="topic-list-item rounded-2xl border px-4 py-3 text-sm font-semibold leading-6"
           >
             {item}
           </div>
@@ -382,44 +403,12 @@ const projectOutputs = [
   "项目展示材料"
 ];
 
-function FormPreview() {
-  return (
-    <aside className="rounded-[30px] border border-[#d9e1ea] bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
-      <div className="rounded-[24px] border border-[#dbe3ed] bg-[#f8fafc] p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] !text-[#334155]">俱乐部申请预览</p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight !text-[#0b1220]">AI & Robotics Club</h2>
-        <div className="mt-5 grid gap-3">
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-[#475569]">学生姓名</p>
-            <div className="h-10 rounded-xl border border-[#cbd5e1] bg-white" />
-          </div>
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-[#475569]">年级</p>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-full bg-[#0b1220] px-3 py-2 text-center text-xs font-semibold text-white">9</div>
-              <div className="rounded-full border border-[#cbd5e1] bg-white px-3 py-2 text-center text-xs font-semibold !text-[#0b1220]">10</div>
-              <div className="rounded-full border border-[#cbd5e1] bg-white px-3 py-2 text-center text-xs font-semibold !text-[#0b1220]">11</div>
-            </div>
-          </div>
-          <div>
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-[#475569]">项目经验</p>
-            <div className="h-20 rounded-xl border border-[#cbd5e1] bg-white" />
-          </div>
-        </div>
-      </div>
-      <Link
-        href="/ai-robotics-club/apply"
-        className="mt-5 inline-flex w-full justify-center rounded-full border border-[#0b1220] bg-white px-6 py-3 text-sm font-bold !text-black transition hover:bg-black hover:!text-white"
-      >
-        立即申请
-      </Link>
-    </aside>
-  );
-}
-
 export default function AiRoboticsClubChinesePage() {
   return (
-    <section className="min-h-screen bg-white px-6 py-16 text-[#0b1220] lg:px-8 lg:py-20">
+    <section
+      data-club-page-theme="warm-off-white"
+      className="min-h-screen bg-[#f5f4f1] px-6 py-16 pb-28 text-[#0b1220] md:pb-16 lg:px-8 lg:py-20"
+    >
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
@@ -438,10 +427,12 @@ export default function AiRoboticsClubChinesePage() {
           </div>
         </div>
 
+        <ClubSectionNavigation locale="zh" />
+
         <div className="mt-14 grid items-start gap-10 lg:grid-cols-[1fr_390px]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#334155]">AI Robotics Club</p>
-            <h1 className="mt-5 max-w-5xl text-4xl font-semibold tracking-[0.04em] !text-black md:text-6xl">
+            <h1 className="font-display mt-5 max-w-5xl text-4xl font-semibold tracking-[0.04em] !text-black md:text-6xl">
               机器人竞赛与工程会员项目
             </h1>
             <p className="mt-6 max-w-3xl text-xl font-semibold leading-8 !text-[#111827]">
@@ -450,26 +441,37 @@ export default function AiRoboticsClubChinesePage() {
             <p className="mt-4 max-w-4xl text-base leading-8 !text-[#334155] md:text-lg">
               从机器人搭建到算法、测试和竞赛，学生将学习真实机器人如何工作。这不只是机器人兴趣课，而是一套长期工程训练项目。
             </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="#quick-apply" className="inline-flex rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#33312d]">
+                立即申请
+              </Link>
+              <Link href="#program-details" className="inline-flex rounded-full border border-[#111111] bg-[#fbfaf7] px-6 py-3 text-sm font-bold !text-[#111111] transition hover:bg-[#111111] hover:!text-white">
+                查看项目详情
+              </Link>
+            </div>
+            <ClubHeroFacts locale="zh" />
           </div>
 
-          <FormPreview />
+          <ClubQuickApplication locale="zh" />
         </div>
 
-        <div className="mt-14 overflow-hidden rounded-[28px] border border-[#d9e1ea] bg-[#f8fafc] shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
+        <div className="mt-14 bg-[#f5f4f1]">
           <Image
+            data-club-image-blend="hero"
+            data-club-image-blend-shape="rectangular"
             src={clubImages[0]}
             alt="AI Robotics Club 项目预览"
             width={1800}
             height={1100}
             priority
-            className="h-auto w-full object-cover"
+            className="club-hero-image block h-auto w-full object-cover"
           />
         </div>
 
-        <section className="mt-16 grid gap-10 lg:grid-cols-[0.82fr_1.18fr]">
+        <section id="program-details" className="mt-16 scroll-mt-32 grid gap-10 lg:grid-cols-[0.82fr_1.18fr]">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">项目介绍</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
+            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
               学生将理解机器人为什么能工作、为什么会失败，以及如何持续改进。
             </h2>
           </div>
@@ -486,11 +488,11 @@ export default function AiRoboticsClubChinesePage() {
           </div>
         </section>
 
-        <section className="mt-16 rounded-[30px] bg-[#0b1220] p-8 text-white md:p-10">
+        <section id="skills" className="mt-16 scroll-mt-32 rounded-[30px] bg-[#0b1220] p-8 text-white md:p-10">
           <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#cbd5e1]">学生成长与能力发展</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-white md:text-5xl">
+              <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-white md:text-5xl">
                 学生将发展的六项核心能力。
               </h2>
               <p className="mt-5 text-base leading-8 !text-[#dbe4ef]">
@@ -508,10 +510,10 @@ export default function AiRoboticsClubChinesePage() {
           </div>
         </section>
 
-        <section className="mt-24 md:mt-32">
+        <section id="curriculum" className="mt-24 scroll-mt-32 md:mt-32">
           <div className="mx-auto max-w-4xl text-center">
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">核心学习主题</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
+            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black md:text-5xl">
               学生能够理解、构建并展示的 AI 能力。
             </h2>
           </div>
@@ -520,41 +522,64 @@ export default function AiRoboticsClubChinesePage() {
             {featuredLearningTopics.map((topic, index) => (
               <article
                 key={topic.title}
+                data-club-topic-layout="desktop-fit"
                 className="topic-feature-row grid overflow-hidden rounded-[30px] border border-[#d9e1ea] bg-white shadow-[0_26px_70px_rgba(15,23,42,0.09)] lg:grid-cols-[1.05fr_0.95fr]"
               >
-                <div className={`topic-image-panel flex min-h-[360px] items-center justify-center bg-[#12164a] p-6 sm:min-h-[460px] sm:p-8 lg:min-h-full ${index % 2 === 1 ? "lg:order-2" : ""}`}>
+                <div
+                  data-club-topic-image-stage="seamless"
+                  className={`topic-image-panel relative isolate flex min-h-[360px] items-center justify-center overflow-hidden bg-[#020617] sm:min-h-[460px] lg:min-h-full ${index % 2 === 1 ? "lg:order-2" : ""}`}
+                >
                   <Image
+                    data-club-image-layer="backdrop"
+                    src={topic.image}
+                    alt=""
+                    aria-hidden="true"
+                    fill
+                    sizes="(min-width: 1024px) 48vw, 100vw"
+                    className="topic-image-backdrop pointer-events-none object-cover"
+                  />
+                  <Image
+                    data-club-image-layer="foreground"
+                    data-club-image-blend="topic"
+                    data-club-image-blend-shape="rectangular"
                     src={topic.image}
                     alt={topic.alt}
                     width={1200}
                     height={1200}
                     sizes="(min-width: 1024px) 48vw, 100vw"
-                    className="topic-image h-auto max-h-[760px] w-full object-contain"
+                    className="topic-image relative z-10 h-auto max-h-[760px] w-full object-contain"
                   />
                 </div>
-                <div className={`flex flex-col justify-center p-7 md:p-10 ${index % 2 === 1 ? "lg:order-1" : ""}`}>
+                <div className={`topic-feature-content flex flex-col justify-center p-7 md:p-10 ${index % 2 === 1 ? "lg:order-1" : ""}`}>
                   <p className="text-xs font-bold uppercase tracking-[0.22em] !text-[#475569]">{topic.category}</p>
-                  <h3 className="mt-3 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
+                  <h3 className="font-display topic-feature-title mt-3 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
                     {topic.title}
                   </h3>
-                  <p className="mt-2 text-lg font-semibold !text-[#334155]">{topic.titleZh}</p>
-                  <p className="mt-5 text-xl font-semibold leading-8 !text-[#0b1220]">{topic.intro}</p>
-                  <p className="mt-4 text-base leading-8 !text-[#334155]">{topic.body}</p>
-                  <div className="mt-6 space-y-6">
-                    <TopicList title="学习内容" items={topic.topics} />
-                    <TopicList title="项目实践" items={topic.projects} />
+                  <p className="topic-feature-subtitle mt-2 text-lg font-semibold !text-[#334155]">{topic.titleZh}</p>
+                  <p className="topic-feature-intro mt-5 text-xl font-semibold leading-8 !text-[#0b1220]">{topic.intro}</p>
+                  <p className="topic-feature-copy mt-4 text-base leading-8 !text-[#334155]">{topic.body}</p>
+                  <div className="topic-list-stack mt-6 space-y-6">
+                    <TopicList title="学习内容" items={topic.topics} variant="topics" />
+                    <TopicList title="项目实践" items={topic.projects} variant="projects" />
                   </div>
-                  <p className="mt-6 text-base leading-8 !text-[#334155]">{topic.outcome}</p>
+                  <p
+                    data-topic-outcome-accent="blue-gold"
+                    className="topic-feature-outcome topic-outcome-accent mt-6 text-base leading-8 !text-[#334155]"
+                  >
+                    {topic.outcome}
+                  </p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
+        <ClubFaq locale="zh" />
+
         <section className="mt-14 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[28px] border border-[#d9e1ea] bg-white p-8 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">工程文档</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black">项目会成为可展示的作品集成果。</h2>
+            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black">项目会成为可展示的作品集成果。</h2>
             <p className="mt-5 text-base leading-8 !text-[#334155]">
               学生将持续记录设计、测试结果、失败原因、改进方案和数据分析。最终成果可以用于竞赛、面试、科学展示和未来学术机会。
             </p>
@@ -572,7 +597,7 @@ export default function AiRoboticsClubChinesePage() {
           <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">行动召唤</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
+              <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black md:text-4xl">
                 帮助孩子用 AI 建设未来。
               </h2>
               <p className="mt-5 max-w-3xl text-base leading-8 !text-[#334155]">
@@ -590,6 +615,7 @@ export default function AiRoboticsClubChinesePage() {
           </div>
         </section>
       </div>
+      <ClubMobileApply locale="zh" />
     </section>
   );
 }

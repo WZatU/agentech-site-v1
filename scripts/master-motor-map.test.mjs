@@ -127,6 +127,16 @@ test("Master joint markers are compact dots without visible J-number labels", ()
   assert.doesNotMatch(component, />\s*\{marker\.jointNumber\}\s*<\/button>/);
 });
 
+test("Master joint reference uses Manrope instead of a serif font", () => {
+  const component = fs.readFileSync(
+    path.join(repositoryRoot, "features/eaic/01-clients/eaic-hub/components/master-motor-map.tsx"),
+    "utf8"
+  );
+
+  assert.doesNotMatch(component, /font-serif/);
+  assert.equal(component.match(/font-interface/g)?.length, 3);
+});
+
 test("Master motor boxes identify the SDK function for each controllable joint", () => {
   const marker = (name) => motorMap.MASTER_MOTOR_MARKERS.find((candidate) => candidate.runtimeJoint === name);
 

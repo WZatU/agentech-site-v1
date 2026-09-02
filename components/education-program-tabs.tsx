@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type EducationProgram = {
   slug: string;
@@ -21,6 +22,8 @@ type HighSchoolSlide = {
 
 type EducationProgramTabsProps = {
   programs: readonly EducationProgram[];
+  initialTab: TabId;
+  initialAutoRotate: boolean;
 };
 
 type TabId = "high-school" | "grade-k-8";
@@ -37,9 +40,10 @@ const tabAutoRotateDurationCss = "9s";
 const highSchoolCampImage = "/assets/ff-robotics/future-robotics-founder-program-group.png";
 const k8LearningImage = "/assets/education/navi-learning-banner.png";
 
-export function EducationProgramTabs({ programs }: EducationProgramTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("high-school");
-  const [autoRotate, setAutoRotate] = useState(true);
+export function EducationProgramTabs({ programs, initialTab, initialAutoRotate }: EducationProgramTabsProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+  const [autoRotate, setAutoRotate] = useState(initialAutoRotate);
 
   const immersionProgram = useMemo(
     () => programs.find((program) => program.slug === immersionSlug),
@@ -50,26 +54,43 @@ export function EducationProgramTabs({ programs }: EducationProgramTabsProps) {
     [programs]
   );
 
+  const rememberPathway = useCallback((tabId: TabId) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("pathway", tabId);
+    url.hash = "program-pathways";
+    router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
+  }, [router]);
+
   useEffect(() => {
     if (!autoRotate) {
       return;
     }
 
     const timer = window.setTimeout(() => {
-      setActiveTab((current) => (current === "high-school" ? "grade-k-8" : "high-school"));
+      const nextTab = activeTab === "high-school" ? "grade-k-8" : "high-school";
+      setActiveTab(nextTab);
+      rememberPathway(nextTab);
     }, tabAutoRotateDurationMs);
 
     return () => window.clearTimeout(timer);
-  }, [activeTab, autoRotate]);
+  }, [activeTab, autoRotate, rememberPathway]);
 
   function selectTab(tabId: TabId) {
     setActiveTab(tabId);
     setAutoRotate(false);
+    rememberPathway(tabId);
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24 lg:pt-10">
-      <div className="border-b border-[#e5e5e5]">
+    <section
+      id="program-pathways"
+      data-education-pathway={activeTab}
+      className="relative z-10 mx-auto max-w-7xl px-4 pb-16 pt-12 sm:px-6 lg:px-8 lg:pb-24 lg:pt-16"
+    >
+      <div className="overflow-hidden rounded-xl border border-[#174766] bg-[#02070b] shadow-[0_30px_90px_rgba(0,0,0,0.34)]">
+        <div className="border-b border-[#284354] bg-[#061722] px-6 py-5 sm:px-8">
+          <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[#80d8f4]">Program pathways</p>
+        </div>
         <div className="grid grid-cols-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -78,16 +99,16 @@ export function EducationProgramTabs({ programs }: EducationProgramTabsProps) {
                 key={tab.id}
                 type="button"
                 onClick={() => selectTab(tab.id)}
-                className={`relative px-4 pb-5 pt-2 text-center text-sm font-semibold transition sm:text-base md:text-xl ${
-                  isActive ? "text-[#202124]" : "text-[#6b7280] hover:text-[#202124]"
+                className={`relative min-h-20 border-r border-[#24323b] px-4 py-5 text-center text-xs font-semibold uppercase tracking-[0.15em] transition last:border-r-0 sm:text-sm ${
+                  isActive ? "bg-[#07131b] text-[#e4edf5]" : "bg-[#03070a] text-[#6f8193] hover:bg-[#061019] hover:text-[#b8c6d2]"
                 }`}
               >
                 {tab.label}
                 {isActive ? (
-                  <span className="absolute inset-x-0 bottom-[-1px] h-1 overflow-hidden bg-[#dfe1e5]">
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-[#122c3d]">
                     <span
                       key={`${tab.id}-${autoRotate ? "auto" : "manual"}`}
-                      className="block h-full origin-left bg-[#1a73e8]"
+                      className="block h-full origin-left bg-[#80d8f4] shadow-[0_0_12px_rgba(128,216,244,0.8)]"
                       style={{
                         animation: autoRotate ? `education-tab-progress ${tabAutoRotateDurationCss} linear forwards` : "none",
                         transform: autoRotate ? undefined : "scaleX(1)"
@@ -101,7 +122,7 @@ export function EducationProgramTabs({ programs }: EducationProgramTabsProps) {
         </div>
       </div>
 
-      <div className="pt-14 lg:pt-20">
+      <div className="pt-10 lg:pt-14">
         {activeTab === "high-school" && immersionProgram ? (
           <HighSchoolPanel program={immersionProgram} />
         ) : (
@@ -114,16 +135,16 @@ export function EducationProgramTabs({ programs }: EducationProgramTabsProps) {
 
 function HighSchoolPanel({ program }: { program: EducationProgram }) {
   return (
-    <div className="grid items-stretch gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.75fr)] lg:gap-16">
+    <div className="grid overflow-hidden rounded-xl border border-[#174766] bg-[#03070a] shadow-[0_30px_90px_rgba(0,0,0,0.3)] lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)]">
       <HighSchoolMediaCarousel program={program} />
 
-      <div className="flex flex-col lg:min-h-[520px]">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5f6368]">{program.grade}</p>
-        <h2 className="mt-4 text-3xl font-semibold leading-[1.12] text-[#202124] md:text-[2.65rem]">
+      <div className="flex flex-col border-t border-[#24323b] p-7 sm:p-9 lg:min-h-[520px] lg:border-l lg:border-t-0 lg:p-10">
+        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#80d8f4]">{program.grade}</p>
+        <h2 className="font-display mt-5 text-3xl font-semibold leading-[1.12] tracking-[-0.055em] text-[#e4edf5] md:text-[2.65rem]">
           EAI Robotics Future Founder Immersion Program
         </h2>
 
-        <div className="mt-7 grid gap-4 text-base leading-7 text-[#3c4043]">
+        <div className="mt-7 grid gap-4 text-sm leading-7 text-[#91a2b5] sm:text-base">
           <p>
             An immersive robotics and AI founder-track program for high school students ready to build,
             lead, and think beyond the classroom.
@@ -136,9 +157,10 @@ function HighSchoolPanel({ program }: { program: EducationProgram }) {
         <div className="pt-11 lg:mt-auto lg:flex lg:justify-end lg:pt-12">
           <Link
             href={`/agentech-education/${program.slug}`}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-[10px] bg-[#1a73e8] px-5 py-3 text-base font-semibold text-white shadow-[0_2px_6px_rgba(26,115,232,0.34)] transition hover:bg-[#185abc] hover:shadow-[0_3px_9px_rgba(26,115,232,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8] active:translate-y-px"
+            data-theme-primary-action
+            className="inline-flex min-h-11 items-center justify-center gap-3 whitespace-nowrap rounded-xl bg-[#e6edf2] px-5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#071017] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83c8ef]"
           >
-            Explore high school program
+            Explore program <span aria-hidden="true">→</span>
           </Link>
         </div>
       </div>
@@ -154,7 +176,7 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
     {
       src: program.image,
       alt: `${program.title} logo`,
-      imageClassName: "object-contain p-8 invert sm:p-10"
+      imageClassName: "object-contain p-8 sm:p-10"
     },
     {
       src: highSchoolCampImage,
@@ -192,7 +214,7 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
 
   return (
     <div
-      className="group relative min-h-[360px] overflow-hidden rounded-[28px] bg-[#f5f5f7] transition hover:bg-[#f0f0f2] sm:min-h-[440px] lg:min-h-[520px]"
+      className="group relative min-h-[360px] overflow-hidden bg-[#06131c] transition sm:min-h-[440px] lg:min-h-[520px]"
       aria-roledescription="carousel"
       aria-label="High school program media"
     >
@@ -207,6 +229,7 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
           key={slide.src}
           src={slide.src}
           alt={slide.alt}
+          data-education-program-logo={index === 0 ? "true" : undefined}
           fill
           sizes="(min-width: 1024px) 52vw, 92vw"
           className={`${slide.imageClassName} transition duration-700 ease-out ${
@@ -224,8 +247,8 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
             aria-label={`Show slide ${index + 1}`}
             aria-current={activeSlide === index}
             onClick={() => selectSlide(index)}
-            className={`h-2.5 rounded-full transition ${
-              activeSlide === index ? "w-7 bg-[#202124]/45" : "w-2.5 bg-[#202124]/20 hover:bg-[#202124]/36"
+            className={`h-2.5 rounded-full border border-[#31566d] transition ${
+              activeSlide === index ? "w-7 bg-[#80d8f4]" : "w-2.5 bg-[#07131b] hover:bg-[#123247]"
             }`}
           />
         ))}
@@ -233,11 +256,11 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
           type="button"
           aria-label="Resume high school image autoplay"
           onClick={resumeAutoplay}
-          className={`grid h-7 w-7 place-items-center rounded-full bg-[#202124]/10 transition hover:bg-[#202124]/16 ${
+          className={`grid h-7 w-7 place-items-center rounded-full border border-[#31566d] bg-[#07131b] transition hover:border-[#80d8f4] hover:bg-[#0b1d29] ${
             isAutoplaying ? "opacity-25" : "opacity-55 hover:opacity-85"
           }`}
         >
-          <span className="ml-0.5 h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-[#202124]" />
+          <span className="ml-0.5 h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-[#80d8f4]" />
         </button>
       </div>
     </div>
@@ -250,43 +273,46 @@ function GradeK8Panel({ programs }: { programs: readonly EducationProgram[] }) {
       <Link
         href="/agentech-education/what-can-we-learn-from-navi"
         aria-label="Explore what K-8 students can learn from Navi"
-        className="group relative block min-h-[178px] overflow-hidden rounded-[24px] bg-black shadow-[0_16px_45px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.16)]"
+        data-education-navi-card
+        className="group relative block min-h-[190px] overflow-hidden rounded-xl border border-[#174766] bg-black shadow-[0_24px_70px_rgba(0,0,0,0.32)] transition duration-300 hover:-translate-y-0.5 hover:border-[#31566d] hover:shadow-[0_30px_90px_rgba(0,0,0,0.46)]"
       >
         <Image
+          data-education-navi-media
           src={k8LearningImage}
           alt="K-8 students exploring AI, coding, and robotics projects"
           fill
           sizes="(min-width: 1024px) 1180px, 100vw"
           className="object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.94)_0%,rgba(0,0,0,0.88)_26%,rgba(0,0,0,0.56)_52%,rgba(0,0,0,0.18)_78%,rgba(0,0,0,0)_100%)]" />
+        <div data-education-navi-overlay className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.94)_0%,rgba(0,0,0,0.88)_26%,rgba(0,0,0,0.56)_52%,rgba(0,0,0,0.18)_78%,rgba(0,0,0,0)_100%)]" />
         <div className="relative z-10 flex min-h-[178px] max-w-2xl flex-col justify-center px-6 py-6 sm:px-8 lg:px-10">
-          <h3 className="text-3xl font-semibold leading-tight !text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)] md:text-4xl">
+          <p data-education-navi-kicker className="mb-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[#80d8f4]">Navi learning system</p>
+          <h3 data-education-navi-title className="font-display text-3xl font-semibold leading-tight tracking-[-0.05em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.72)] md:text-4xl">
             What can we learn from Navi?
           </h3>
         </div>
       </Link>
 
-      <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16">
-        <div className="lg:pt-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5f6368]">Summer camps</p>
-          <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-[-0.01em] text-[#202124] md:text-5xl">
+      <div className="grid overflow-hidden rounded-xl border border-[#174766] bg-[#03070a] lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="border-b border-[#24323b] p-7 sm:p-9 lg:border-b-0 lg:border-r lg:p-10">
+          <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#80d8f4]">Summer camps</p>
+          <h2 className="font-display mt-5 text-4xl font-semibold leading-tight tracking-[-0.055em] text-[#e4edf5] md:text-5xl">
             Hands-on AI learning for younger builders.
           </h2>
-          <p className="mt-6 text-lg leading-8 text-[#5f6368]">
+          <p className="mt-6 text-base leading-8 text-[#91a2b5]">
             Creativity, coding, robotics, and teamwork programs that help K-8 students turn curiosity
             into real projects.
           </p>
         </div>
 
-        <div className="space-y-5">
+        <div className="divide-y divide-[#24323b]">
           {programs.map((program) => (
             <Link
               key={program.slug}
               href={`/agentech-education/${program.slug}`}
-              className="group grid overflow-hidden rounded-[24px] bg-[#f5f5f7] transition hover:bg-[#f0f0f2] sm:grid-cols-[240px_1fr]"
+              className="group grid overflow-hidden bg-[#02070b] transition hover:bg-[#07131b] sm:grid-cols-[220px_1fr]"
             >
-              <div className="relative aspect-[4/3] bg-[#f5f5f7] sm:aspect-auto sm:min-h-[190px]">
+              <div className="relative aspect-[4/3] border-b border-[#24323b] bg-[#06131c] sm:aspect-auto sm:min-h-[190px] sm:border-b-0 sm:border-r">
                 <Image
                   src={program.cardImage ?? program.image}
                   alt={`${program.grade} class advertisement`}
@@ -296,10 +322,12 @@ function GradeK8Panel({ programs }: { programs: readonly EducationProgram[] }) {
                 />
               </div>
               <div className="flex flex-col justify-center px-6 py-7 sm:px-8">
-                <p className="text-sm font-semibold text-[#5f6368]">{program.grade}</p>
-                <h3 className="mt-2 text-2xl font-semibold leading-tight text-[#202124]">{program.title}</h3>
-                <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#5f6368]">{program.subtitle}</p>
-                <span className="mt-5 text-sm font-semibold text-[#1a73e8]">View program</span>
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#80d8f4]">{program.grade}</p>
+                <h3 className="font-display mt-3 text-2xl font-semibold leading-tight tracking-[-0.045em] text-[#e4edf5]">{program.title}</h3>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#8193a6]">{program.subtitle}</p>
+                <span className="mt-5 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.13em] text-[#83c8ef]">
+                  View program <span aria-hidden="true">→</span>
+                </span>
               </div>
             </Link>
           ))}

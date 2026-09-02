@@ -17,7 +17,7 @@ export default async function NewsPage() {
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#64748b]">Agentech Updates</p>
-          <h1 className="mt-4 text-4xl font-semibold uppercase tracking-[0.16em] text-[#0b1220] md:text-6xl">
+          <h1 className="font-display mt-4 text-4xl font-semibold uppercase tracking-[0.16em] text-[#0b1220] md:text-6xl">
             News
           </h1>
         </div>
@@ -34,7 +34,7 @@ export default async function NewsPage() {
                   <span className="font-semibold text-[#4666a1]">{entry.author || "Agentech"}</span>
                   <span className="text-[#a3aab5]">{entry.displayDate}</span>
                 </div>
-                <h2 className="mt-3 line-clamp-2 text-xl font-semibold leading-snug text-[#111827] sm:text-2xl">
+                <h2 className="font-display mt-3 line-clamp-2 text-xl font-semibold leading-snug text-[#111827] sm:text-2xl">
                   {entry.title}
                 </h2>
                 <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#4b5563] sm:text-base">

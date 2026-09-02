@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { HistoryBackButton } from "@/components/history-back-button";
 import { InternshipRoleDetail } from "@/components/internship-role-detail";
 import { getInternshipRole, internshipRoles } from "@/lib/internship-roles";
 
@@ -65,18 +65,10 @@ export default async function InternshipRolePage({ params }: InternshipRolePageP
     <section className="internship-light-page min-h-screen bg-white px-6 py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/career-intern"
+          <HistoryBackButton
+            fallbackHref="/career-intern"
             className="talent-back-button inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-          >
-            Back to Internship Roles
-          </Link>
-          <Link
-            href="/talents"
-            className="talent-back-button inline-flex rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-          >
-            Back to Agentech Talents
-          </Link>
+          />
         </div>
 
         <div className="relative mt-10 overflow-hidden rounded-[30px] border border-[#b7c8df] bg-[radial-gradient(circle_at_82%_20%,rgba(56,189,248,0.36),transparent_30%),radial-gradient(circle_at_92%_76%,rgba(99,102,241,0.28),transparent_34%),linear-gradient(135deg,#f8fbff_0%,#e8f1ff_48%,#d9e8f8_100%)] shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
@@ -84,7 +76,7 @@ export default async function InternshipRolePage({ params }: InternshipRolePageP
           <div className="relative grid min-h-[460px] gap-8 p-7 md:p-9 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div className="rounded-[24px] border border-white/70 bg-white/86 p-6 shadow-[0_18px_55px_rgba(15,23,42,0.12)] backdrop-blur md:p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.28em] !text-black">{role.eyebrow}</p>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight !text-black md:text-6xl">{role.title}</h1>
+              <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight !text-black md:text-6xl">{role.title}</h1>
               <p className="mt-5 max-w-3xl text-base leading-8 !text-black md:text-lg">{role.summary}</p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <span className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold !text-black ring-1 ring-[#93b4ff]">

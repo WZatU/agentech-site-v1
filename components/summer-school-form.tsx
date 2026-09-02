@@ -28,6 +28,8 @@ type FormState = {
   website: string;
 };
 
+type SummerSchoolFormInitialValues = Partial<Pick<FormState, "name" | "grade" | "projects">>;
+
 const initialState: FormState = {
   name: "",
   email: "",
@@ -79,9 +81,13 @@ function ChoiceButton({
   );
 }
 
-export function SummerSchoolForm() {
+export function SummerSchoolForm({ initialValues = {} }: { initialValues?: SummerSchoolFormInitialValues }) {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(initialState);
+  const [form, setForm] = useState<FormState>(() => ({
+    ...initialState,
+    ...initialValues,
+    grade: initialValues.grade ?? "",
+  }));
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

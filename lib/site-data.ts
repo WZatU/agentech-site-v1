@@ -11,25 +11,25 @@ export type NavItem = {
 
 export const navigation: NavItem[] = [
   {
-    label: "Agentech Robotic",
-    href: "/agentech-robotic",
-    image: "/assets/logo/AGENTECH-robotic-grey191.png",
-    activeImage: "/assets/logo/AGENTECH-robotic-solid.png"
-  },
-  {
-    label: "Agentech Education",
-    href: "/agentech-education",
-    image: "/assets/logo/AGENTECH-education-grey191.png",
-    activeImage: "/assets/logo/AGENTECH-education-solid.png"
-  },
-  {
-    label: "Agentech Products",
+    label: "Platform",
     href: "/agentech-products/eaic-hub",
     image: "/assets/logo/AGENTECH-products-grey191.png",
     activeImage: "/assets/logo/AGENTECH-products-solid.png"
   },
   {
-    label: "Agentech Talents",
+    label: "Robotics",
+    href: "/agentech-robotic",
+    image: "/assets/logo/AGENTECH-robotic-grey191.png",
+    activeImage: "/assets/logo/AGENTECH-robotic-solid.png"
+  },
+  {
+    label: "Education",
+    href: "/agentech-education",
+    image: "/assets/logo/AGENTECH-education-grey191.png",
+    activeImage: "/assets/logo/AGENTECH-education-solid.png"
+  },
+  {
+    label: "Talents",
     href: "/talents",
     image: "/assets/logo/AGENTECH-talents-grey191.png",
     activeImage: "/assets/logo/AGENTECH-talents-solid.png"

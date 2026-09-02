@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1000" role="img" aria-labelledby="title desc">
+  <title id="title">AGENTECH MASTER web robot preview</title>
+  <desc id="desc">Stylized black and white humanoid robot with blue lights and yellow feet.</desc>
+  <defs>
+    <linearGradient id="black" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#242c38"/><stop offset=".55" stop-color="#090d14"/><stop offset="1" stop-color="#010205"/></linearGradient>
+    <linearGradient id="white" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#d9dde1"/><stop offset="1" stop-color="#8c949d"/></linearGradient>
+    <linearGradient id="yellow" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd43b"/><stop offset="1" stop-color="#f08a00"/></linearGradient>
+    <radialGradient id="glass"><stop stop-color="#16345d"/><stop offset=".45" stop-color="#071426"/><stop offset="1" stop-color="#01040a"/></radialGradient>
+    <filter id="blueGlow" x="-200%" y="-200%" width="400%" height="400%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <ellipse cx="450" cy="920" rx="250" ry="42" fill="#081224" opacity=".22" filter="url(#shadow)"/>
+  <g stroke="#111722" stroke-width="5" stroke-linejoin="round">
+    <g id="left-leg">
+      <ellipse cx="345" cy="585" rx="73" ry="93" fill="url(#black)"/>
+      <rect x="292" y="636" width="106" height="190" rx="48" fill="url(#white)"/>
+      <ellipse cx="345" cy="650" rx="55" ry="42" fill="url(#black)"/>
+      <rect x="310" y="710" width="70" height="92" rx="22" fill="#b9c0c8" opacity=".72"/>
+      <ellipse cx="345" cy="835" rx="48" ry="38" fill="url(#black)"/>
+      <path d="M268 854 Q345 824 424 858 L415 912 Q342 946 265 908Z" fill="url(#yellow)"/>
+    </g>
+    <g id="right-leg">
+      <ellipse cx="555" cy="585" rx="73" ry="93" fill="url(#black)"/>
+      <rect x="502" y="636" width="106" height="190" rx="48" fill="url(#white)"/>
+      <ellipse cx="555" cy="650" rx="55" ry="42" fill="url(#black)"/>
+      <rect x="520" y="710" width="70" height="92" rx="22" fill="#b9c0c8" opacity=".72"/>
+      <ellipse cx="555" cy="835" rx="48" ry="38" fill="url(#black)"/>
+      <path d="M478 858 Q555 824 634 854 L637 908 Q560 946 487 912Z" fill="url(#yellow)"/>
+    </g>
+    <path d="M320 480 Q450 420 580 480 L590 580 Q450 640 310 580Z" fill="url(#black)"/>
+    <rect x="390" y="426" width="120" height="92" rx="45" fill="url(#black)"/>
+    <g id="torso">
+      <path d="M278 230 Q450 158 622 230 L650 405 Q585 492 450 505 Q315 492 250 405Z" fill="url(#black)"/>
+      <path d="M340 304 Q450 246 560 304 L575 415 Q450 454 325 415Z" fill="#182131" opacity=".95"/>
+      <path d="M345 338 Q450 302 555 338" fill="none" stroke="#1175ff" stroke-width="20" stroke-linecap="round" filter="url(#blueGlow)"/>
+      <rect x="420" y="350" width="60" height="95" rx="16" fill="#050912" stroke="#657080"/>
+      <circle cx="450" cy="374" r="9" fill="#34a4ff"/><circle cx="450" cy="400" r="9" fill="#34a4ff"/><circle cx="450" cy="426" r="9" fill="#34a4ff"/>
+    </g>
+    <g id="left-arm">
+      <ellipse cx="230" cy="292" rx="78" ry="75" fill="url(#black)"/>
+      <rect x="179" y="322" width="102" height="176" rx="48" fill="url(#white)" transform="rotate(5 230 410)"/>
+      <ellipse cx="225" cy="492" rx="49" ry="45" fill="url(#black)"/>
+      <rect x="187" y="520" width="82" height="155" rx="39" fill="url(#white)" transform="rotate(2 228 598)"/>
+      <ellipse cx="225" cy="690" rx="43" ry="58" fill="url(#white)"/>
+    </g>
+    <g id="right-arm">
+      <ellipse cx="670" cy="292" rx="78" ry="75" fill="url(#black)"/>
+      <rect x="619" y="322" width="102" height="176" rx="48" fill="url(#white)" transform="rotate(-5 670 410)"/>
+      <ellipse cx="675" cy="492" rx="49" ry="45" fill="url(#black)"/>
+      <rect x="631" y="520" width="82" height="155" rx="39" fill="url(#white)" transform="rotate(-2 672 598)"/>
+      <ellipse cx="675" cy="690" rx="43" ry="58" fill="url(#white)"/>
+    </g>
+    <ellipse cx="450" cy="205" rx="112" ry="42" fill="url(#black)"/>
+    <g id="head">
+      <rect x="342" y="45" width="216" height="207" rx="92" fill="url(#black)"/>
+      <rect x="368" y="82" width="164" height="128" rx="55" fill="url(#glass)" stroke="#25364e"/>
+      <rect x="405" y="127" width="34" height="58" rx="17" fill="#7fd5ff" stroke="none" filter="url(#blueGlow)"/>
+      <rect x="461" y="127" width="34" height="58" rx="17" fill="#7fd5ff" stroke="none" filter="url(#blueGlow)"/>
+      <circle cx="402" cy="80" r="10" fill="#071426" stroke="#43536a"/><circle cx="450" cy="72" r="10" fill="#071426" stroke="#43536a"/><circle cx="498" cy="80" r="10" fill="#071426" stroke="#43536a"/>
+    </g>
+  </g>
+  <text x="450" y="982" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="8" fill="#0b1728">AGENTECH MASTER</text>
+</svg>

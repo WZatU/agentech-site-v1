@@ -46,7 +46,7 @@ export function ProductShowcaseCard({
               {status}
             </span>
           </div>
-          <h3 className="mt-4 text-3xl font-semibold text-white">{name}</h3>
+          <h3 className="font-display mt-4 text-3xl font-semibold text-white">{name}</h3>
           <p className="mt-4 text-base leading-7 text-white">{summary}</p>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate">{details}</p>
         </div>
