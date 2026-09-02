@@ -140,11 +140,25 @@ test("GET treats corrupt runtime storage as unavailable", async () => {
 
 test("POST fails closed when the server secret is absent", async () => {
   const saved = process.env.ROBOT_RUNNER_SECRET;
+  const savedMaster = process.env.MASTER_HEARTBEAT_SECRET;
   delete process.env.ROBOT_RUNNER_SECRET;
+  delete process.env.MASTER_HEARTBEAT_SECRET;
   try {
     const response = await POST(postRequest(observation(), "test-master-heartbeat-secret"));
     assert.equal(response.status, 503);
   } finally {
     process.env.ROBOT_RUNNER_SECRET = saved;
+    if (savedMaster === undefined) delete process.env.MASTER_HEARTBEAT_SECRET;
+    else process.env.MASTER_HEARTBEAT_SECRET = savedMaster;
+  }
+});
+
+test("POST prefers the dedicated Master heartbeat secret", async () => {
+  process.env.MASTER_HEARTBEAT_SECRET = "dedicated-master-secret";
+  try {
+    assert.equal((await POST(postRequest(observation(), "test-master-heartbeat-secret"))).status, 401);
+    assert.equal((await POST(postRequest(observation(), "dedicated-master-secret"))).status, 202);
+  } finally {
+    delete process.env.MASTER_HEARTBEAT_SECRET;
   }
 });

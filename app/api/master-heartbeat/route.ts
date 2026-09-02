@@ -41,7 +41,7 @@ async function readBoundedBody(request: Request): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const secret = process.env.ROBOT_RUNNER_SECRET;
+  const secret = process.env.MASTER_HEARTBEAT_SECRET || process.env.ROBOT_RUNNER_SECRET;
   if (!secret) return json({ error: "Heartbeat receiver is not configured." }, 503);
   if (!hasValidSecret(request, secret)) return json({ error: "Unauthorized." }, 401);
 
