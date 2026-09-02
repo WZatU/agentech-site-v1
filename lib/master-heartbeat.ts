@@ -198,7 +198,7 @@ export function toMasterHeartbeatView(response: MasterHeartbeatResponse) {
   const gateway = unavailable ? "Unavailable" : response.fresh ? "Online" : "Stale";
   const controller = unavailable
     ? "Unavailable"
-    : response.master.controllerResponsive ? "Connected" : "Unreachable";
+    : response.master?.controllerResponsive ? "Connected" : "Unreachable";
   let battery = "Unavailable";
   if (response.battery?.available && response.battery.percent !== null) {
     const charge = response.battery.charging === null

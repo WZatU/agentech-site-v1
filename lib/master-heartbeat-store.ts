@@ -11,6 +11,19 @@ export type StoredMasterHeartbeat = {
   receivedAt: string;
 };
 
+const HEARTBEAT_BUCKET = "robot-captures";
+const HEARTBEAT_OBJECT = "master-heartbeat/latest.json";
+
+function supabaseStorageConfig() {
+  const url = process.env.SUPABASE_URL?.replace(/\/$/, "").replace(/\/rest\/v1$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return url && key ? { url, key } : null;
+}
+
+function storageHeaders(key: string) {
+  return { apikey: key, Authorization: `Bearer ${key}` };
+}
+
 function runtimeDirectory() {
   return resolve(process.env.MASTER_HEARTBEAT_RUNTIME_DIR || ".master-heartbeat-runtime");
 }
@@ -20,6 +33,21 @@ function storagePath() {
 }
 
 export async function writeLatestHeartbeat(record: StoredMasterHeartbeat): Promise<void> {
+  const supabase = supabaseStorageConfig();
+  if (supabase) {
+    const response = await fetch(`${supabase.url}/storage/v1/object/${HEARTBEAT_BUCKET}/${HEARTBEAT_OBJECT}`, {
+      method: "POST",
+      headers: {
+        ...storageHeaders(supabase.key),
+        "Content-Type": "application/json",
+        "x-upsert": "true",
+      },
+      body: JSON.stringify(record),
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`Unable to persist Master heartbeat (${response.status}).`);
+    return;
+  }
   const directory = runtimeDirectory();
   const destination = storagePath();
   const temporary = join(directory, `.latest-${randomBytes(8).toString("hex")}.tmp`);
@@ -35,12 +63,26 @@ export async function writeLatestHeartbeat(record: StoredMasterHeartbeat): Promi
 
 export async function readLatestHeartbeat(): Promise<StoredMasterHeartbeat | null> {
   let raw: string;
+  const supabase = supabaseStorageConfig();
+  if (supabase) {
+    const response = await fetch(`${supabase.url}/storage/v1/object/authenticated/${HEARTBEAT_BUCKET}/${HEARTBEAT_OBJECT}`, {
+      headers: storageHeaders(supabase.key),
+      cache: "no-store",
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      console.error("[master-heartbeat] unable to read Supabase status");
+      return null;
+    }
+    raw = await response.text();
+  } else {
   try {
     raw = await readFile(storagePath(), "utf8");
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
     console.error("[master-heartbeat] unable to read runtime status");
     return null;
+  }
   }
   try {
     const value = JSON.parse(raw) as Record<string, unknown>;

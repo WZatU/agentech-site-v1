@@ -7,6 +7,8 @@ import test from "node:test";
 const runtimeDir = await mkdtemp(join(tmpdir(), "master-heartbeat-route-"));
 process.env.MASTER_HEARTBEAT_RUNTIME_DIR = runtimeDir;
 process.env.ROBOT_RUNNER_SECRET = "test-master-heartbeat-secret";
+delete process.env.SUPABASE_URL;
+delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const { GET, POST } = await import("../app/api/master-heartbeat/route.ts");
 
