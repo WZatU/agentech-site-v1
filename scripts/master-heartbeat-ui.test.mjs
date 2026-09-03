@@ -12,13 +12,16 @@ test("Master SDK mounts the live heartbeat next to the existing motor map", () =
   assert.match(workbench, /<MasterJointMotionGuide \/>/);
 });
 
-test("heartbeat panel exposes accessible labeled telemetry", () => {
-  for (const label of ["Gateway", "Master controller", "Battery", "Mode", "Last update"]) {
+test("heartbeat panel exposes only gateway, availability and last update", () => {
+  for (const label of ["Gateway", "Robot availability", "Last updated"]) {
     assert.match(component, new RegExp(`\\["${label}"`));
   }
   assert.match(component, /role="status"/);
   assert.match(component, /aria-live="polite"/);
-  assert.match(component, /setInterval\(refresh, 5_000\)/);
+  assert.doesNotMatch(component, /\["(?:Battery|Mode|Master controller)"/);
+  assert.match(component, /setInterval\(refresh, 60_000\)/);
+  assert.match(component, /sm:grid-cols-3/);
+  assert.match(component, /<p data-master-heartbeat-label="true"[^>]*>Checked hourly/);
 });
 
 test("front and back joint artwork remains present", () => {

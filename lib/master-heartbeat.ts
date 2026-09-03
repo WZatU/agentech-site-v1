@@ -41,7 +41,26 @@ const OBSERVATION_KEYS = ["schemaVersion", "gatewayId", "observedAt", "master", 
 const MASTER_KEYS = ["host", "controllerResponsive", "connection", "posture", "action", "state"] as const;
 const BATTERY_KEYS = ["available", "percent", "voltage", "charging", "sourceTopic"] as const;
 const MAX_CLOCK_SKEW_MS = 30_000;
-const FRESH_FOR_MS = 15_000;
+// The PC checks availability hourly. Allow five minutes for a delayed report.
+const FRESH_FOR_MS = 65 * 60_000;
+const PACIFIC_HOUR = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Los_Angeles", hour: "numeric", hourCycle: "h23",
+});
+
+function reportingAgeMs(receivedAt: Date, now: Date): number {
+  let age = 0;
+  let cursor = receivedAt.getTime();
+  const end = now.getTime();
+  // Pacific quiet hours are 10 pm–8 am. UTC hour boundaries also handle the
+  // skipped/repeated daylight-saving hour without assuming a fixed UTC offset.
+  while (cursor < end && age < FRESH_FOR_MS) {
+    const next = Math.min(end, (Math.floor(cursor / 3_600_000) + 1) * 3_600_000);
+    const hour = Number(PACIFIC_HOUR.format(new Date(cursor)));
+    if (hour >= 8 && hour < 22) age += next - cursor;
+    cursor = next;
+  }
+  return age;
+}
 
 function requireRecord(value: unknown, path: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -160,7 +179,7 @@ export function toMasterHeartbeatResponse(
   now = new Date(),
 ): MasterHeartbeatResponse {
   const ageMs = Math.max(0, now.getTime() - receivedAt.getTime());
-  const fresh = ageMs < FRESH_FOR_MS;
+  const fresh = reportingAgeMs(receivedAt, now) < FRESH_FOR_MS;
   const condition: HeartbeatCondition = !fresh
     ? "stale"
     : observation.master.controllerResponsive
@@ -195,29 +214,22 @@ export function unavailableMasterHeartbeatResponse(_now = new Date()): MasterHea
 
 export function toMasterHeartbeatView(response: MasterHeartbeatResponse) {
   const unavailable = response.condition === "unavailable" || !response.master;
-  const gateway = unavailable ? "Unavailable" : response.fresh ? "Online" : "Stale";
-  const controller = unavailable
-    ? "Unavailable"
-    : response.master?.controllerResponsive ? "Connected" : "Unreachable";
-  let battery = "Unavailable";
-  if (response.battery?.available && response.battery.percent !== null) {
-    const charge = response.battery.charging === null
-      ? "Charging unknown"
-      : response.battery.charging ? "Charging" : "Not charging";
-    battery = `${Math.round(response.battery.percent)}% · ${charge}`;
-  }
+  const gateway = unavailable ? "Unavailable" : response.fresh ? "Online" : "Offline";
+  const availability = !unavailable && response.fresh && response.master?.controllerResponsive
+    ? "Available"
+    : "Unavailable";
   let lastUpdate = "No heartbeat received";
   if (response.ageMs !== null) {
     const seconds = Math.floor(response.ageMs / 1000);
     lastUpdate = seconds < 1
       ? "Just now"
-      : seconds < 60 ? `${seconds}s ago` : `${Math.floor(seconds / 60)}m ${seconds % 60}s ago`;
+      : seconds < 60 ? `${seconds}s ago`
+        : seconds < 3600 ? `${Math.floor(seconds / 60)}m ago`
+          : `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m ago`;
   }
   return {
     gateway,
-    controller,
-    battery,
-    mode: response.master?.posture || "Unavailable",
+    availability,
     lastUpdate,
     tone: response.condition,
   };

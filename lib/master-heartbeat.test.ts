@@ -113,26 +113,26 @@ test("rejects observations more than thirty seconds from server time", () => {
   }
 });
 
-test("marks a responsive controller online before fifteen seconds", () => {
+test("keeps an hourly availability report online with five minutes of grace", () => {
   const response = toMasterHeartbeatResponse(
     validObservation,
     now,
-    new Date("2026-09-01T19:00:14.999Z"),
+    new Date("2026-09-01T20:04:59.999Z"),
   );
   assert.equal(response.fresh, true);
   assert.equal(response.condition, "online");
-  assert.equal(response.ageMs, 14_999);
+  assert.equal(response.ageMs, 3_899_999);
 });
 
-test("marks the receipt stale at fifteen seconds", () => {
+test("expires an availability report after sixty-five minutes", () => {
   const response = toMasterHeartbeatResponse(
     validObservation,
     now,
-    new Date("2026-09-01T19:00:15.000Z"),
+    new Date("2026-09-01T20:05:00.000Z"),
   );
   assert.equal(response.fresh, false);
   assert.equal(response.condition, "stale");
-  assert.equal(response.ageMs, 15_000);
+  assert.equal(response.ageMs, 3_900_000);
 });
 
 test("distinguishes a fresh controller failure", () => {
@@ -160,13 +160,11 @@ test("returns a sanitized unavailable response before the first observation", ()
   assert.equal("secret" in response, false);
 });
 
-test("builds customer-facing controller and battery labels", () => {
+test("shows availability without battery or motion state", () => {
   const response = toMasterHeartbeatResponse(validObservation, now, now);
   assert.deepEqual(toMasterHeartbeatView(response), {
     gateway: "Online",
-    controller: "Connected",
-    battery: "82% · Not charging",
-    mode: "standard",
+    availability: "Available",
     lastUpdate: "Just now",
     tone: "online",
   });
@@ -175,18 +173,48 @@ test("builds customer-facing controller and battery labels", () => {
 test("renders unavailable data honestly", () => {
   assert.deepEqual(toMasterHeartbeatView(unavailableMasterHeartbeatResponse(now)), {
     gateway: "Unavailable",
-    controller: "Unavailable",
-    battery: "Unavailable",
-    mode: "Unavailable",
+    availability: "Unavailable",
     lastUpdate: "No heartbeat received",
     tone: "unavailable",
   });
 });
 
-test("renders stale age without losing last known values", () => {
-  const stale = toMasterHeartbeatResponse(validObservation, now, new Date(now.getTime() + 65_000));
+test("an expired report no longer claims the robot is available", () => {
+  const stale = toMasterHeartbeatResponse(validObservation, now, new Date(now.getTime() + 3_900_000));
   const view = toMasterHeartbeatView(stale);
-  assert.equal(view.gateway, "Stale");
-  assert.equal(view.lastUpdate, "1m 5s ago");
-  assert.equal(view.battery, "82% · Not charging");
+  assert.equal(view.gateway, "Offline");
+  assert.equal(view.lastUpdate, "1h 5m ago");
+  assert.equal(view.availability, "Unavailable");
+});
+
+test("a fresh unreachable robot keeps the gateway online", () => {
+  const response = toMasterHeartbeatResponse({
+    ...validObservation,
+    master: { ...validObservation.master, controllerResponsive: false },
+  }, now, now);
+  const view = toMasterHeartbeatView(response);
+  assert.equal(view.gateway, "Online");
+  assert.equal(view.availability, "Unavailable");
+});
+
+test("the planned Pacific overnight pause does not expire availability", () => {
+  const receivedAt = new Date("2026-09-03T04:45:00Z"); // 9:45 pm Pacific
+  for (const current of ["2026-09-03T14:59:00Z", "2026-09-03T15:49:00Z"]) {
+    const response = toMasterHeartbeatResponse(validObservation, receivedAt, new Date(current));
+    assert.equal(response.condition, "online");
+  }
+  const expired = toMasterHeartbeatResponse(validObservation, receivedAt, new Date("2026-09-03T15:50:00Z"));
+  assert.equal(expired.condition, "stale");
+});
+
+test("the extra daylight-saving hour is also part of the quiet window", () => {
+  const response = toMasterHeartbeatResponse(validObservation,
+    new Date("2026-11-01T04:45:00Z"), new Date("2026-11-01T16:49:00Z"));
+  assert.equal(response.condition, "online");
+});
+
+test("quiet hours do not revive an already expired report", () => {
+  const response = toMasterHeartbeatResponse(validObservation,
+    new Date("2026-09-03T03:00:00Z"), new Date("2026-09-03T10:00:00Z"));
+  assert.equal(response.condition, "stale");
 });
