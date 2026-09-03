@@ -233,38 +233,41 @@ export function UniversalAuthForm() {
   }
 
   return (
-    <div className="rounded-[28px] border border-[#cbd5e1] bg-white p-7 shadow-xl shadow-slate-300/70 md:p-9">
-      <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#334155]">Universal Account</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#0b1220]">Agentech sign in</h2>
-        <p className="mt-3 text-sm leading-6 text-[#334155]">
+    <div data-login-card className="rounded-[28px] border border-[#cbd5e1] bg-white p-7 shadow-xl shadow-slate-300/70 md:p-9">
+      <div data-login-card-header className="mb-8">
+        <p data-login-card-eyebrow className="text-xs font-semibold uppercase tracking-[0.18em] text-[#334155]">Universal Account</p>
+        <h2 data-login-card-title className="mt-3 text-3xl font-semibold tracking-tight text-[#0b1220]">Agentech sign in</h2>
+        <p data-login-card-copy className="mt-3 text-sm leading-6 text-[#334155]">
           Access profile tools, EAIC HUB, robot live viewing, billing, and learning programs through one verified Agentech identity.
         </p>
       </div>
 
       {signedInEmail ? (
-        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
+        <div data-login-success className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
           <p className="font-semibold">Signed in as {signedInEmail}</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => router.push(getPostAuthDestination(false))}
+              data-login-primary
               className="rounded-full bg-[#0b1220] px-5 py-2.5 text-white"
             >
               Continue
             </button>
-            <button type="button" onClick={signOut} className="rounded-full border border-emerald-300 px-5 py-2.5 font-semibold text-emerald-950">
+            <button data-login-secondary-outline type="button" onClick={signOut} className="rounded-full border border-emerald-300 px-5 py-2.5 font-semibold text-emerald-950">
               Sign Out
             </button>
           </div>
         </div>
       ) : null}
 
-      {!signedInEmail ? <div className="mb-6 grid grid-cols-2 rounded-2xl bg-[#f1f5f9] p-1">
+      {!signedInEmail ? <div data-login-mode-switch className="mb-6 grid grid-cols-2 rounded-2xl bg-[#f1f5f9] p-1">
         {(["signup", "signin"] as const).map((option) => (
           <button
             key={option}
             type="button"
+            data-login-mode-option
+            data-active={mode === option ? "true" : "false"}
             disabled={mode === "signin" && status === "loading"}
             onClick={() => {
               setMode(option);
@@ -288,6 +291,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Email</span>
             <input
+              data-login-input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -295,7 +299,7 @@ export function UniversalAuthForm() {
               required
             />
           </label>
-          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+          <button data-login-primary type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
             {status === "loading" ? "Sending..." : "Send Verification Code"}
           </button>
         </form>
@@ -306,6 +310,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Verification Code</span>
             <input
+              data-login-input
               value={code}
               onChange={(event) => setCode(event.target.value)}
               inputMode="numeric"
@@ -317,6 +322,7 @@ export function UniversalAuthForm() {
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">First Name</span>
               <input
+                data-login-input
                 value={firstName}
                 onChange={(event) => setFirstName(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
@@ -326,6 +332,7 @@ export function UniversalAuthForm() {
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Last Name</span>
               <input
+                data-login-input
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
@@ -336,6 +343,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Phone Number</span>
             <input
+              data-login-input
               type="tel"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
@@ -346,12 +354,14 @@ export function UniversalAuthForm() {
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Billing Address</p>
             <input
+              data-login-input
               value={addressLine1}
               onChange={(event) => setAddressLine1(event.target.value)}
               placeholder="Street address, suite, or unit"
               className="w-full rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#0b1220] outline-none focus:border-[#0b1220] focus:ring-4 focus:ring-[#dbe4ef]"
             />
             <input
+              data-login-input
               value={addressLine2}
               onChange={(event) => setAddressLine2(event.target.value)}
               placeholder="City, state, ZIP, country"
@@ -362,6 +372,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Create Password</span>
             <input
+              data-login-input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -370,10 +381,10 @@ export function UniversalAuthForm() {
               required
             />
           </label>
-          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+          <button data-login-primary type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
             {status === "loading" ? "Creating..." : "Create Account"}
           </button>
-          <button type="button" onClick={() => setSignupStep("email")} className="w-full text-sm font-semibold text-[#475569]">
+          <button data-login-secondary-action type="button" onClick={() => setSignupStep("email")} className="w-full text-sm font-semibold text-[#475569]">
             Use a different email
           </button>
         </form>
@@ -384,6 +395,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Email</span>
             <input
+              data-login-input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -394,6 +406,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Password</span>
             <input
+              data-login-input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -401,11 +414,12 @@ export function UniversalAuthForm() {
               required
             />
           </label>
-          <button type="submit" disabled={status === "loading"} className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-70">
+          <button data-login-primary type="submit" disabled={status === "loading"} className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-70">
             {status === "loading" ? "Signing in..." : "Sign In"}
           </button>
           <button
             type="button"
+            data-login-secondary-action
             disabled={status === "loading"}
             onClick={() => {
               setMode("forgot");
@@ -428,6 +442,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Account Email</span>
             <input
+              data-login-input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -435,11 +450,12 @@ export function UniversalAuthForm() {
               required
             />
           </label>
-          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+          <button data-login-primary type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
             {status === "loading" ? "Sending..." : "Send Reset Code"}
           </button>
           <button
             type="button"
+            data-login-secondary-action
             onClick={() => {
               setMode("signin");
               setStatus("idle");
@@ -458,6 +474,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">Verification Code</span>
             <input
+              data-login-input
               value={code}
               onChange={(event) => setCode(event.target.value)}
               inputMode="numeric"
@@ -468,6 +485,7 @@ export function UniversalAuthForm() {
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1f2937]">New Password</span>
             <input
+              data-login-input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -476,11 +494,12 @@ export function UniversalAuthForm() {
               required
             />
           </label>
-          <button type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
+          <button data-login-primary type="submit" className="w-full rounded-full bg-[#0b1220] px-5 py-3 text-sm font-semibold text-white">
             {status === "loading" ? "Saving..." : "Create New Password"}
           </button>
           <button
             type="button"
+            data-login-secondary-action
             onClick={() => {
               setResetStep("email");
               setStatus("idle");
@@ -500,7 +519,7 @@ export function UniversalAuthForm() {
         <p role={status === "error" ? "alert" : "status"} className={`mt-5 text-sm ${status === "error" ? "text-red-600" : "text-emerald-700"}`}>{message}</p>
       ) : null}
       {devCode ? (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div data-login-dev-code className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Temporary testing code: <span className="font-semibold">{devCode}</span>
         </div>
       ) : null}

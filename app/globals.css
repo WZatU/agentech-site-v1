@@ -1166,6 +1166,155 @@ body::after {
   }
 }
 
+/* Login: preserve the warm editorial light view and provide a complete dark surface hierarchy. */
+[data-login-theme-page] {
+  --login-canvas: #f5f4f1;
+  --login-surface: #ffffff;
+  --login-surface-inset: #f1f5f9;
+  --login-title: #0b0b0c;
+  --login-text: #334155;
+  --login-muted: #475569;
+  --login-label: #1f2937;
+  --login-border: #cbd5e1;
+  --login-input: #ffffff;
+  --login-input-text: #0b1220;
+  --login-primary: #0b1220;
+  --login-primary-hover: #1e293b;
+  --login-primary-text: #ffffff;
+  --login-accent: #1a73e8;
+  --login-focus-ring: rgba(26, 115, 232, 0.16);
+  --login-shadow: rgba(15, 23, 42, 0.14);
+  background: var(--login-canvas) !important;
+  color: var(--login-text) !important;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+:root[data-theme="dark"] [data-login-theme-page] {
+  --login-canvas: #040506;
+  --login-surface: #07111f;
+  --login-surface-inset: #0d1117;
+  --login-title: #e5edf5;
+  --login-text: #d8e1ef;
+  --login-muted: #aeb8c2;
+  --login-label: #cdd6df;
+  --login-border: #2a3440;
+  --login-input: #0d1117;
+  --login-input-text: #e5edf5;
+  --login-primary: #1a73e8;
+  --login-primary-hover: #3b82f6;
+  --login-primary-text: #ffffff;
+  --login-accent: #7cc4ff;
+  --login-focus-ring: rgba(124, 196, 255, 0.2);
+  --login-shadow: rgba(0, 0, 0, 0.5);
+}
+
+[data-login-theme-page] [data-login-hero-title],
+[data-login-theme-page] [data-login-card-title] {
+  color: var(--login-title) !important;
+}
+
+[data-login-theme-page] [data-login-hero-copy],
+[data-login-theme-page] [data-login-card-copy] {
+  color: var(--login-text) !important;
+}
+
+[data-login-theme-page] [data-login-card] {
+  border-color: var(--login-border) !important;
+  background: var(--login-surface) !important;
+  color: var(--login-text) !important;
+  box-shadow: 0 24px 64px var(--login-shadow) !important;
+}
+
+[data-login-theme-page] [data-login-card-eyebrow] {
+  color: var(--login-accent) !important;
+}
+
+[data-login-theme-page] [data-login-mode-switch] {
+  background: var(--login-surface-inset) !important;
+}
+
+[data-login-theme-page] [data-login-mode-option] {
+  color: var(--login-muted) !important;
+}
+
+[data-login-theme-page] [data-login-mode-option][data-active="true"] {
+  background: var(--login-surface) !important;
+  color: var(--login-title) !important;
+  box-shadow: 0 4px 18px var(--login-shadow) !important;
+}
+
+[data-login-theme-page] [data-login-card] label > span,
+[data-login-theme-page] [data-login-card] form > div > p {
+  color: var(--login-label) !important;
+}
+
+[data-login-theme-page] [data-login-input] {
+  border-color: var(--login-border) !important;
+  background: var(--login-input) !important;
+  color: var(--login-input-text) !important;
+  caret-color: var(--login-accent);
+}
+
+[data-login-theme-page] [data-login-input]::placeholder {
+  color: var(--login-muted) !important;
+}
+
+[data-login-theme-page] [data-login-input]:focus {
+  border-color: var(--login-accent) !important;
+  box-shadow: 0 0 0 4px var(--login-focus-ring) !important;
+}
+
+[data-login-theme-page] [data-login-input]:-webkit-autofill,
+[data-login-theme-page] [data-login-input]:-webkit-autofill:hover,
+[data-login-theme-page] [data-login-input]:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--login-input-text) !important;
+  box-shadow: 0 0 0 1000px var(--login-input) inset !important;
+  caret-color: var(--login-input-text);
+}
+
+[data-login-theme-page] [data-login-primary] {
+  background: var(--login-primary) !important;
+  color: var(--login-primary-text) !important;
+}
+
+[data-login-theme-page] [data-login-primary]:hover,
+[data-login-theme-page] [data-login-primary]:focus-visible {
+  background: var(--login-primary-hover) !important;
+}
+
+[data-login-theme-page] [data-login-secondary-action] {
+  color: var(--login-accent) !important;
+}
+
+:root[data-theme="dark"] [data-login-theme-page] [data-login-wordmark] {
+  filter: brightness(1.2) saturate(1.08);
+}
+
+:root[data-theme="dark"] [data-login-theme-page] [data-login-success] {
+  border-color: #245c50 !important;
+  background: #0d201d !important;
+  color: #b9efe4 !important;
+}
+
+:root[data-theme="dark"] [data-login-theme-page] [data-login-secondary-outline] {
+  border-color: #3a7569 !important;
+  color: #b9efe4 !important;
+}
+
+:root[data-theme="dark"] [data-login-theme-page] [role="alert"] {
+  color: #ffaf9d !important;
+}
+
+:root[data-theme="dark"] [data-login-theme-page] [role="status"] {
+  color: #8fdc8f !important;
+}
+
+:root[data-theme="dark"] [data-login-theme-page] [data-login-dev-code] {
+  border-color: #7a5d1f !important;
+  background: #20190a !important;
+  color: #f5d06f !important;
+}
+
 body:has(.account-white-page) {
   background: #f3f6fb !important;
   color: #0f172a;
