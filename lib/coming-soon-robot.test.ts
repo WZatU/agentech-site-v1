@@ -45,3 +45,30 @@ test("the coming soon robot exposes English copy and stable scene hooks", async 
   assert.match(component, /aria-label="Wireframe robot building this page"/);
   assert.match(component, /<svg[\s\S]*aria-hidden="true"/);
 });
+
+test("the coming soon scene has scoped themes, interaction, and reduced motion", async () => {
+  const css = await readWorkspaceFile("components/coming-soon-robot.css");
+
+  assert.match(
+    css,
+    /\[data-coming-soon-robot\][^{]*\{[^}]*--coming-soon-canvas:\s*#07111f;/
+  );
+  assert.match(
+    css,
+    /:root\[data-theme="light"\] \[data-coming-soon-robot\][^{]*\{[^}]*--coming-soon-canvas:\s*#f5f4f1;/
+  );
+
+  for (const name of ["draw", "scan", "blink", "breathe", "look", "spark"]) {
+    assert.match(css, new RegExp(`@keyframes coming-soon-${name}`));
+  }
+
+  assert.match(
+    css,
+    /\[data-coming-soon-scene\]:(?:hover|focus)[\s\S]*\[data-coming-soon-speech\]/
+  );
+  assert.match(css, /\[data-coming-soon-scene\]:focus-visible[^{]*\{[^}]*outline:/);
+  assert.match(
+    css,
+    /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation:\s*none\s*!important;/
+  );
+});
