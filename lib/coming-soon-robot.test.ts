@@ -32,11 +32,18 @@ test("the coming soon robot exposes English copy and stable scene hooks", async 
     "data-coming-soon-scene",
     "data-coming-soon-speech",
     "data-coming-soon-machine",
-    "data-coming-soon-illustration",
-    "data-coming-soon-overlay",
+    "data-coming-soon-engineer",
+    "data-coming-soon-head",
+    "data-coming-soon-face",
+    "data-coming-soon-drawing-arm",
+    "data-coming-soon-helper-arm",
+    "data-coming-soon-tool-cup",
+    "data-coming-soon-pen",
     "data-coming-soon-workbench",
+    "data-coming-soon-table-top",
+    "data-coming-soon-table-edge",
+    "data-coming-soon-blueprint",
     "data-coming-soon-draft-path",
-    "data-coming-soon-orbit",
     "data-coming-soon-scanner",
     "data-coming-soon-status-light"
   ]) {
@@ -48,26 +55,22 @@ test("the coming soon robot exposes English copy and stable scene hooks", async 
   assert.match(component, /<svg[\s\S]*aria-hidden="true"/);
 });
 
-test("the illustration uses the detailed 3D humanoid and a perspective workbench", async () => {
+test("the engineer is a native articulated SVG instead of a reused raster image", async () => {
   const [component, css] = await Promise.all([
     readWorkspaceFile("components/coming-soon-robot.tsx"),
     readWorkspaceFile("components/coming-soon-robot.css")
   ]);
 
+  assert.match(component, /viewBox="0 0 1100 900"/);
+  assert.match(component, /data-coming-soon-engineer[\s\S]*data-coming-soon-head/);
+  assert.match(component, /data-coming-soon-drawing-arm[\s\S]*data-coming-soon-pen/);
+  assert.match(component, /data-coming-soon-helper-arm[\s\S]*data-coming-soon-tool-cup/);
   assert.match(
-    css,
-    /url\("\/assets\/products\/agentech-library\/humanoid-wireframe-dark-v1\.png"\)/
+    component,
+    /data-coming-soon-workbench[\s\S]*data-coming-soon-table-top[\s\S]*data-coming-soon-table-edge[\s\S]*data-coming-soon-blueprint/
   );
-  assert.match(
-    css,
-    /url\("\/assets\/products\/agentech-library\/humanoid-wireframe-light-v1\.png"\)/
-  );
-  assert.match(component, /viewBox="0 0 1254 1254"/);
-  assert.match(component, /data-coming-soon-workbench[\s\S]*data-coming-soon-draft-path/);
-  assert.doesNotMatch(component, /viewBox="0 0 760 620"/);
-  assert.doesNotMatch(component, /data-coming-soon-eyes/);
-  assert.match(css, /perspective:\s*\d+px/);
-  assert.match(css, /transform-style:\s*preserve-3d/);
+  assert.doesNotMatch(component, /<img\b|data-coming-soon-illustration/);
+  assert.doesNotMatch(css, /humanoid-wireframe-(?:dark|light)-v1\.png/);
 });
 
 test("the coming soon scene has scoped themes, interaction, and reduced motion", async () => {
@@ -82,7 +85,7 @@ test("the coming soon scene has scoped themes, interaction, and reduced motion",
     /:root\[data-theme="light"\] \[data-coming-soon-robot\][^{]*\{[^}]*--coming-soon-canvas:\s*#f5f4f1;/
   );
 
-  for (const name of ["draft", "scan", "machine", "breathe", "orbit", "spark"]) {
+  for (const name of ["draw", "reach", "look", "machine", "scan", "breathe", "spark"]) {
     assert.match(css, new RegExp(`@keyframes coming-soon-${name}`));
   }
 
@@ -91,6 +94,10 @@ test("the coming soon scene has scoped themes, interaction, and reduced motion",
     /\[data-coming-soon-scene\]:(?:hover|focus)[\s\S]*\[data-coming-soon-speech\]/
   );
   assert.match(css, /\[data-coming-soon-scene\]:focus-visible[^{]*\{[^}]*outline:/);
+  assert.match(
+    css,
+    /\[data-coming-soon-scene\]:(?:hover|focus)[\s\S]*\[data-coming-soon-drawing-arm\][^{]*\{[^}]*animation-play-state:\s*paused;/
+  );
   assert.match(
     css,
     /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation:\s*none\s*!important;/

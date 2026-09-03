@@ -1,11 +1,26 @@
 [data-coming-soon-robot] {
   --coming-soon-canvas: #07111f;
-  --coming-soon-surface: rgba(9, 17, 29, 0.84);
-  --coming-soon-line: #e7dfcf;
-  --coming-soon-muted: #9caabd;
-  --coming-soon-accent: #77dcff;
-  --coming-soon-accent-2: #d9ff79;
-  --coming-soon-grid: rgba(231, 223, 207, 0.16);
+  --coming-soon-surface: rgba(8, 17, 30, 0.9);
+  --coming-soon-line: #e8deca;
+  --coming-soon-muted: #9baabd;
+  --coming-soon-accent: #70dcff;
+  --coming-soon-accent-2: #d7ff72;
+  --coming-soon-grid: rgba(232, 222, 202, 0.12);
+  --coming-soon-shell: rgba(15, 25, 39, 0.82);
+  --coming-soon-shell-lit: #263b51;
+  --coming-soon-shell-shadow: #081422;
+  --coming-soon-limb: rgba(10, 20, 34, 0.92);
+  --coming-soon-limb-lit: #1c3044;
+  --coming-soon-limb-shadow: #050d17;
+  --coming-soon-joint-lit: #2b4359;
+  --coming-soon-joint-shadow: #030a12;
+  --coming-soon-deep: rgba(1, 7, 14, 0.94);
+  --coming-soon-visor-lit: #152a40;
+  --coming-soon-visor-shadow: #01050b;
+  --coming-soon-paper: rgba(17, 34, 49, 0.94);
+  --coming-soon-table: rgba(10, 24, 39, 0.9);
+  --coming-soon-table-lit: #183149;
+  --coming-soon-table-shadow: #071523;
   display: grid;
   grid-template-columns: minmax(16rem, 0.72fr) minmax(34rem, 1.28fr);
   min-height: 74vh;
@@ -14,23 +29,38 @@
   padding: clamp(2rem, 5vw, 5.5rem);
   overflow: hidden;
   background:
-    radial-gradient(circle at 74% 38%, rgba(62, 156, 202, 0.17), transparent 31rem),
-    radial-gradient(circle at 22% 85%, rgba(217, 255, 121, 0.05), transparent 22rem),
+    radial-gradient(circle at 75% 38%, rgba(72, 170, 214, 0.16), transparent 30rem),
+    radial-gradient(circle at 22% 85%, rgba(215, 255, 114, 0.045), transparent 22rem),
     var(--coming-soon-canvas);
   color: var(--coming-soon-line);
 }
 
 :root[data-theme="light"] [data-coming-soon-robot] {
   --coming-soon-canvas: #f5f4f1;
-  --coming-soon-surface: rgba(245, 244, 241, 0.88);
-  --coming-soon-line: #111820;
-  --coming-soon-muted: #586575;
-  --coming-soon-accent: #087da8;
-  --coming-soon-accent-2: #17714f;
-  --coming-soon-grid: rgba(17, 24, 32, 0.14);
+  --coming-soon-surface: rgba(255, 255, 255, 0.9);
+  --coming-soon-line: #17202b;
+  --coming-soon-muted: #5c6875;
+  --coming-soon-accent: #087fa9;
+  --coming-soon-accent-2: #16805a;
+  --coming-soon-grid: rgba(23, 32, 43, 0.1);
+  --coming-soon-shell: rgba(239, 240, 239, 0.94);
+  --coming-soon-shell-lit: #ffffff;
+  --coming-soon-shell-shadow: #c3cbd0;
+  --coming-soon-limb: rgba(229, 232, 232, 0.96);
+  --coming-soon-limb-lit: #f8f9f8;
+  --coming-soon-limb-shadow: #b8c1c5;
+  --coming-soon-joint-lit: #f7f8f7;
+  --coming-soon-joint-shadow: #aeb8bd;
+  --coming-soon-deep: rgba(31, 41, 51, 0.94);
+  --coming-soon-visor-lit: #394b5b;
+  --coming-soon-visor-shadow: #17212c;
+  --coming-soon-paper: rgba(249, 250, 247, 0.98);
+  --coming-soon-table: rgba(228, 231, 230, 0.92);
+  --coming-soon-table-lit: #f8f9f7;
+  --coming-soon-table-shadow: #c8cecf;
   background:
-    radial-gradient(circle at 74% 38%, rgba(54, 170, 207, 0.13), transparent 31rem),
-    radial-gradient(circle at 22% 85%, rgba(23, 113, 79, 0.05), transparent 22rem),
+    radial-gradient(circle at 75% 38%, rgba(54, 170, 207, 0.13), transparent 31rem),
+    radial-gradient(circle at 22% 85%, rgba(22, 128, 90, 0.045), transparent 22rem),
     var(--coming-soon-canvas);
 }
 
@@ -83,59 +113,60 @@
   border-radius: 999px;
   background: var(--coming-soon-accent-2);
   box-shadow: 0 0 0.7rem color-mix(in srgb, var(--coming-soon-accent-2) 56%, transparent);
-  animation: coming-soon-breathe 1.6s ease-in-out infinite;
+  animation: coming-soon-breathe 1.5s ease-in-out infinite;
 }
 
 [data-coming-soon-progress] span:nth-child(2) {
-  animation-delay: 160ms;
+  animation-delay: 150ms;
 }
 
 [data-coming-soon-progress] span:nth-child(3) {
-  animation-delay: 320ms;
+  animation-delay: 300ms;
 }
 
 [data-coming-soon-scene] {
   position: relative;
   z-index: 1;
   min-width: 0;
-  perspective: 1400px;
-  perspective-origin: 48% 42%;
   color: var(--coming-soon-line);
   outline: none;
+  perspective: 1400px;
+  perspective-origin: 50% 42%;
   isolation: isolate;
 }
 
 [data-coming-soon-scene]::before {
   position: absolute;
-  inset: 8% 4% 5%;
+  inset: 5% 4% 3%;
   z-index: -2;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, var(--coming-soon-accent) 13%, transparent),
-    transparent 68%
-  );
-  filter: blur(1.5rem);
+  border: 1px solid color-mix(in srgb, var(--coming-soon-line) 12%, transparent);
+  border-radius: 1.4rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--coming-soon-accent) 6%, transparent), transparent 42%),
+    color-mix(in srgb, var(--coming-soon-surface) 34%, transparent);
+  box-shadow:
+    0 2.2rem 5rem rgba(0, 0, 0, 0.22),
+    inset 0 1px rgba(255, 255, 255, 0.04);
   content: "";
 }
 
 [data-coming-soon-scene]::after {
   position: absolute;
-  right: 5%;
-  bottom: 2.5%;
-  left: 6%;
+  right: 8%;
+  bottom: 0;
+  left: 10%;
   z-index: -1;
-  height: 13%;
+  height: 12%;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.32);
-  filter: blur(1.65rem);
-  opacity: 0.72;
-  transform: rotateX(67deg) translateZ(-4rem);
+  background: rgba(0, 0, 0, 0.38);
+  filter: blur(1.5rem);
+  opacity: 0.75;
+  transform: rotateX(67deg) translateZ(-3rem);
   content: "";
 }
 
 :root[data-theme="light"] [data-coming-soon-scene]::after {
-  background: rgba(24, 34, 45, 0.2);
+  background: rgba(27, 40, 52, 0.2);
 }
 
 [data-coming-soon-scene]:focus-visible {
@@ -146,112 +177,279 @@
 
 [data-coming-soon-machine] {
   position: relative;
-  width: min(100%, 52rem);
+  width: min(100%, 54rem);
   margin-inline: auto;
-  aspect-ratio: 1;
-  transform: rotateX(0.8deg) rotateY(-1.4deg) translateZ(0);
-  transform-origin: 50% 64%;
+  aspect-ratio: 11 / 9;
+  transform: rotateX(0.8deg) rotateY(-0.7deg) translateZ(0);
+  transform-origin: 50% 68%;
   transform-style: preserve-3d;
-  animation: coming-soon-machine 8s cubic-bezier(0.45, 0, 0.25, 1) infinite;
-  transition: transform 700ms cubic-bezier(0.2, 0.75, 0.2, 1);
+  animation: coming-soon-machine 7.5s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  transition: transform 650ms cubic-bezier(0.2, 0.75, 0.2, 1);
   will-change: transform;
 }
 
-[data-coming-soon-illustration] {
-  position: absolute;
-  inset: 0;
-  border-radius: 1.4rem;
-  background-image: url("/assets/products/agentech-library/humanoid-wireframe-dark-v1.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  filter:
-    drop-shadow(0 2.2rem 2.7rem rgba(0, 0, 0, 0.36))
-    drop-shadow(0 0 1.6rem rgba(119, 220, 255, 0.08));
-  transform: translateZ(0);
-}
-
-:root[data-theme="light"] [data-coming-soon-illustration] {
-  background-image: url("/assets/products/agentech-library/humanoid-wireframe-light-v1.png");
-  filter:
-    drop-shadow(0 2.1rem 2.8rem rgba(20, 31, 44, 0.16))
-    drop-shadow(0 0 1.5rem rgba(8, 125, 168, 0.07));
-}
-
-[data-coming-soon-overlay] {
-  position: absolute;
-  inset: 0;
+[data-coming-soon-machine] svg {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
-  pointer-events: none;
-  transform: translateZ(30px);
+  filter:
+    drop-shadow(0 1.6rem 2.5rem rgba(0, 0, 0, 0.26))
+    drop-shadow(0 0 1.2rem color-mix(in srgb, var(--coming-soon-accent) 5%, transparent));
 }
 
-[data-coming-soon-overlay] path,
-[data-coming-soon-overlay] circle,
-[data-coming-soon-overlay] ellipse {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
+[data-coming-soon-machine] svg path,
+[data-coming-soon-machine] svg circle,
+[data-coming-soon-machine] svg ellipse {
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
-[data-coming-soon-workbench] {
-  color: var(--coming-soon-accent);
-  opacity: 0.39;
+[data-line="grid"] {
+  color: var(--coming-soon-grid);
 }
 
-[data-coming-soon-workbench] > path:not([data-coming-soon-draft-path]):not([data-coming-soon-scanner]) {
-  stroke-dasharray: 2 7;
+[data-line="grid"] path,
+[data-line="grid"] circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+}
+
+[data-line="major"] {
+  fill: none;
+  stroke: var(--coming-soon-line);
+  stroke-width: 2.25;
+}
+
+[data-line="detail"] {
+  fill: none;
+  stroke: color-mix(in srgb, var(--coming-soon-line) 69%, transparent);
+  stroke-width: 1.45;
+}
+
+[data-line="mesh"] {
+  fill: none;
+  stroke: color-mix(in srgb, var(--coming-soon-line) 54%, transparent);
+  stroke-width: 1.05;
+}
+
+[data-line="visor-glint"] {
+  fill: none;
+  stroke: color-mix(in srgb, var(--coming-soon-accent) 54%, white);
+  stroke-width: 1.4;
+  opacity: 0.56;
+}
+
+[data-line="blueprint"] {
+  fill: none;
+  stroke: color-mix(in srgb, var(--coming-soon-accent) 62%, transparent);
+  stroke-width: 1.35;
+}
+
+[data-line="accent"] {
+  fill: none;
+  stroke: var(--coming-soon-accent);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--coming-soon-accent) 64%, transparent));
+}
+
+[data-fill] {
+  stroke: var(--coming-soon-line);
+  stroke-width: 1.8;
+}
+
+[data-fill="shell"],
+[data-fill="helmet"] {
+  fill: url(#coming-soon-shell-gradient);
+}
+
+[data-fill="limb"] {
+  fill: url(#coming-soon-limb-gradient);
+}
+
+[data-fill="joint"] {
+  fill: url(#coming-soon-joint-gradient);
+}
+
+[data-fill="joint"] {
+  stroke-width: 2.1;
+}
+
+[data-fill="deep"] {
+  fill: var(--coming-soon-deep);
+}
+
+[data-fill="visor"] {
+  fill: url(#coming-soon-visor-gradient);
+}
+
+[data-fill="visor"] {
+  stroke: color-mix(in srgb, var(--coming-soon-line) 74%, transparent);
+  stroke-width: 2.2;
+}
+
+[data-fill="accent"] {
+  fill: var(--coming-soon-accent);
+  stroke: var(--coming-soon-accent);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--coming-soon-accent) 66%, transparent));
+}
+
+[data-fill="table"] {
+  fill: url(#coming-soon-table-gradient);
+  stroke-width: 2.2;
+}
+
+[data-fill="edge"] {
+  fill: color-mix(in srgb, var(--coming-soon-table) 72%, black);
+  stroke-width: 2.2;
+}
+
+:root[data-theme="light"] [data-fill="edge"] {
+  fill: #cdd1d0;
+}
+
+[data-fill="paper"] {
+  fill: var(--coming-soon-paper);
+  stroke: color-mix(in srgb, var(--coming-soon-accent) 70%, var(--coming-soon-line));
+  stroke-width: 1.9;
+}
+
+[data-fill="tool"] {
+  fill: color-mix(in srgb, var(--coming-soon-limb) 90%, transparent);
+}
+
+[data-fill="hud"] {
+  fill: color-mix(in srgb, var(--coming-soon-surface) 84%, transparent);
+  stroke: color-mix(in srgb, var(--coming-soon-accent) 54%, transparent);
+  stroke-width: 1.4;
+}
+
+[data-coming-soon-table-top],
+[data-coming-soon-table-edge] {
+  filter: drop-shadow(0 1.2rem 1.1rem rgba(0, 0, 0, 0.2));
+}
+
+.coming-soon-shell-highlight {
+  stop-color: var(--coming-soon-shell-lit);
+}
+
+.coming-soon-shell-mid {
+  stop-color: var(--coming-soon-shell);
+}
+
+.coming-soon-shell-shadow {
+  stop-color: var(--coming-soon-shell-shadow);
+}
+
+.coming-soon-limb-highlight {
+  stop-color: var(--coming-soon-limb-lit);
+}
+
+.coming-soon-limb-mid {
+  stop-color: var(--coming-soon-limb);
+}
+
+.coming-soon-limb-shadow {
+  stop-color: var(--coming-soon-limb-shadow);
+}
+
+.coming-soon-joint-highlight {
+  stop-color: var(--coming-soon-joint-lit);
+}
+
+.coming-soon-joint-mid {
+  stop-color: var(--coming-soon-limb);
+}
+
+.coming-soon-joint-shadow {
+  stop-color: var(--coming-soon-joint-shadow);
+}
+
+.coming-soon-table-highlight {
+  stop-color: var(--coming-soon-table-lit);
+}
+
+.coming-soon-table-shadow {
+  stop-color: var(--coming-soon-table-shadow);
+}
+
+.coming-soon-visor-highlight {
+  stop-color: var(--coming-soon-visor-lit);
+}
+
+.coming-soon-visor-mid {
+  stop-color: var(--coming-soon-deep);
+}
+
+.coming-soon-visor-shadow {
+  stop-color: var(--coming-soon-visor-shadow);
+}
+
+[data-coming-soon-blueprint] {
+  transform: translateZ(28px);
 }
 
 [data-coming-soon-draft-path] {
-  stroke-width: 3 !important;
-  stroke-dasharray: 46 19;
-  filter: drop-shadow(0 0 6px currentColor);
-  animation: coming-soon-draft 4.8s linear infinite;
+  stroke-dasharray: 45 22;
+  animation: coming-soon-draft 3.2s linear infinite;
 }
 
 [data-coming-soon-scanner] {
-  color: var(--coming-soon-accent-2);
-  stroke-width: 3 !important;
-  stroke-dasharray: 92 560;
-  filter: drop-shadow(0 0 7px currentColor);
-  animation: coming-soon-scan 3.6s linear infinite;
+  stroke: var(--coming-soon-accent-2);
+  stroke-width: 2.8;
+  stroke-dasharray: 62 460;
+  filter: drop-shadow(0 0 7px var(--coming-soon-accent-2));
+  animation: coming-soon-scan 2.3s linear infinite;
 }
 
-[data-coming-soon-orbit] {
-  color: var(--coming-soon-accent);
-  opacity: 0.5;
+[data-coming-soon-head] {
   transform-box: fill-box;
-  transform-origin: center;
-  animation: coming-soon-orbit 12s linear infinite;
+  transform-origin: center bottom;
+  animation: coming-soon-look 5.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transition: transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-[data-coming-soon-orbit] circle:last-child {
-  fill: currentColor;
-  stroke: none;
-  filter: drop-shadow(0 0 8px currentColor);
+[data-coming-soon-face] {
+  filter: drop-shadow(0 0 0.55rem color-mix(in srgb, var(--coming-soon-accent) 10%, transparent));
+}
+
+[data-coming-soon-torso] {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: coming-soon-breathe 3.4s ease-in-out infinite;
+}
+
+[data-coming-soon-drawing-arm] {
+  transform-box: fill-box;
+  transform-origin: 78% 11%;
+  animation: coming-soon-draw 1.15s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-coming-soon-pen] {
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 7px var(--coming-soon-accent));
+}
+
+[data-coming-soon-helper-arm] {
+  transform-box: fill-box;
+  transform-origin: 84% 9%;
+  animation: coming-soon-reach 4.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  transition: transform 480ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-coming-soon-tools] {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: coming-soon-tool-rattle 4.6s ease-in-out infinite;
 }
 
 [data-coming-soon-status-light] {
-  color: var(--coming-soon-accent-2);
-  filter: drop-shadow(0 0 8px currentColor);
   transform-box: fill-box;
   transform-origin: center;
-  animation: coming-soon-breathe 1.8s ease-in-out infinite;
-}
-
-[data-coming-soon-status-light] circle:first-child {
-  fill: currentColor;
-}
-
-[data-coming-soon-status-light] circle:last-child {
-  opacity: 0.34;
+  animation: coming-soon-status 1.45s ease-in-out infinite;
 }
 
 [data-coming-soon-sparks] {
@@ -259,59 +457,20 @@
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: coming-soon-spark 4.8s ease-out infinite;
+  animation: coming-soon-spark 3.2s ease-out infinite;
 }
 
-[data-coming-soon-depth-marks] {
-  color: var(--coming-soon-line);
-  opacity: 0.2;
+[data-line="spark"] path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 7px currentColor);
 }
 
 [data-coming-soon-hud] {
-  position: absolute;
-  right: 4.5%;
-  bottom: 6%;
-  z-index: 2;
-  display: grid;
-  width: clamp(8.5rem, 16vw, 11.5rem);
-  gap: 0.25rem;
-  padding: 0.78rem 0.85rem 0.72rem;
-  border: 1px solid color-mix(in srgb, var(--coming-soon-accent) 45%, transparent);
-  border-radius: 0.7rem;
-  background: var(--coming-soon-surface);
-  box-shadow:
-    0 0.9rem 2.8rem rgba(0, 0, 0, 0.22),
-    inset 0 1px rgba(255, 255, 255, 0.07);
-  color: var(--coming-soon-muted);
-  font-family: var(--font-mono);
-  font-size: 0.54rem;
-  letter-spacing: 0.16em;
-  transform: translateZ(55px) rotateY(-4deg) rotateX(2deg);
-  backdrop-filter: blur(12px);
-}
-
-[data-coming-soon-hud] b {
-  color: var(--coming-soon-line);
-  font-size: 0.65rem;
-  font-weight: 500;
-}
-
-[data-coming-soon-hud] i {
-  display: block;
-  height: 2px;
-  margin-top: 0.3rem;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--coming-soon-line) 16%, transparent);
-}
-
-[data-coming-soon-hud] em {
-  display: block;
-  width: 43%;
-  height: 100%;
-  background: var(--coming-soon-accent);
-  box-shadow: 0 0 0.6rem var(--coming-soon-accent);
-  transform-origin: left center;
-  animation: coming-soon-hud-progress 3.2s ease-in-out infinite alternate;
+  color: var(--coming-soon-accent);
+  opacity: 0.74;
+  transform: translateZ(38px);
 }
 
 [data-coming-soon-speech] {
@@ -322,7 +481,7 @@
   max-width: 12rem;
   margin: 0;
   padding: 0.78rem 0.95rem;
-  border: 1px solid color-mix(in srgb, var(--coming-soon-accent) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--coming-soon-accent) 52%, transparent);
   border-radius: 0.8rem 0.8rem 0.16rem 0.8rem;
   background: var(--coming-soon-surface);
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
@@ -331,8 +490,9 @@
   line-height: 1.45;
   letter-spacing: 0.01em;
   opacity: 0;
-  transform: translate3d(0, 0.65rem, 4.5rem) scale(0.96);
-  transition: opacity 240ms ease, transform 360ms ease;
+  visibility: hidden;
+  transform: translate3d(0, 0.7rem, 4rem) scale(0.96);
+  transition: transform 320ms ease;
   pointer-events: none;
   backdrop-filter: blur(12px);
 }
@@ -340,60 +500,106 @@
 [data-coming-soon-scene]:hover [data-coming-soon-speech],
 [data-coming-soon-scene]:focus [data-coming-soon-speech] {
   opacity: 1;
-  transform: translate3d(0, 0, 4.5rem) scale(1);
+  visibility: visible;
+  transform: translate3d(0, 0, 4rem) scale(1);
 }
 
-[data-coming-soon-scene]:hover [data-coming-soon-machine],
-[data-coming-soon-scene]:focus [data-coming-soon-machine] {
+[data-coming-soon-scene]:hover [data-coming-soon-drawing-arm],
+[data-coming-soon-scene]:focus [data-coming-soon-drawing-arm] {
   animation-play-state: paused;
-  transform: rotateX(-1.2deg) rotateY(2deg) translate3d(0, -5px, 18px) scale(1.012);
+  transform: translate(2px, -3px) rotate(1deg);
 }
 
-@keyframes coming-soon-draft {
-  from {
-    stroke-dashoffset: 0;
-  }
-
-  to {
-    stroke-dashoffset: -260;
-  }
+[data-coming-soon-scene]:hover [data-coming-soon-helper-arm],
+[data-coming-soon-scene]:focus [data-coming-soon-helper-arm] {
+  animation-play-state: paused;
+  transform: translate(8px, -10px) rotate(7deg);
 }
 
-@keyframes coming-soon-hud-progress {
-  from {
-    transform: scaleX(0.2);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes coming-soon-scan {
-  from {
-    stroke-dashoffset: 0;
-  }
-
-  to {
-    stroke-dashoffset: -652;
-  }
+[data-coming-soon-scene]:hover [data-coming-soon-head],
+[data-coming-soon-scene]:focus [data-coming-soon-head] {
+  animation-play-state: paused;
+  transform: translate(6px, -2px) rotate(4deg);
 }
 
 @keyframes coming-soon-machine {
   0%,
   100% {
-    transform: rotateX(0.8deg) rotateY(-1.4deg) translate3d(0, 0, 0);
+    transform: rotateX(0.8deg) rotateY(-0.7deg) translate3d(0, 0, 0);
   }
 
   50% {
-    transform: rotateX(-0.35deg) rotateY(0.8deg) translate3d(0, -6px, 12px);
+    transform: rotateX(-0.25deg) rotateY(0.55deg) translate3d(0, -4px, 10px);
+  }
+}
+
+@keyframes coming-soon-draw {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  34% {
+    transform: translate(-5px, 1px) rotate(-1.1deg);
+  }
+
+  68% {
+    transform: translate(4px, -1px) rotate(0.8deg);
+  }
+}
+
+@keyframes coming-soon-reach {
+  0%,
+  18%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  42%,
+  64% {
+    transform: translate(-7px, 5px) rotate(-3.5deg);
+  }
+
+  78% {
+    transform: translate(2px, -1px) rotate(0.8deg);
+  }
+}
+
+@keyframes coming-soon-look {
+  0%,
+  38%,
+  100% {
+    transform: rotate(0deg) translate(0, 0);
+  }
+
+  48%,
+  62% {
+    transform: rotate(-2.2deg) translate(-2px, 2px);
+  }
+
+  72%,
+  82% {
+    transform: rotate(2.6deg) translate(3px, -1px);
   }
 }
 
 @keyframes coming-soon-breathe {
   0%,
   100% {
-    opacity: 0.45;
+    opacity: 0.88;
+    transform: scale(0.995);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.005);
+  }
+}
+
+@keyframes coming-soon-status {
+  0%,
+  100% {
+    opacity: 0.48;
     transform: scale(0.88);
   }
 
@@ -403,32 +609,58 @@
   }
 }
 
-@keyframes coming-soon-orbit {
+@keyframes coming-soon-draft {
   from {
-    transform: rotate(0deg);
+    stroke-dashoffset: 0;
   }
 
   to {
-    transform: rotate(360deg);
+    stroke-dashoffset: -268;
+  }
+}
+
+@keyframes coming-soon-scan {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -522;
+  }
+}
+
+@keyframes coming-soon-tool-rattle {
+  0%,
+  46%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-1.8deg);
+  }
+
+  56% {
+    transform: rotate(1.3deg);
   }
 }
 
 @keyframes coming-soon-spark {
   0%,
-  76%,
+  69%,
   100% {
     opacity: 0;
     transform: scale(0.65);
   }
 
-  80% {
+  73% {
     opacity: 1;
     transform: scale(1);
   }
 
-  90% {
+  83% {
     opacity: 0;
-    transform: scale(1.22);
+    transform: scale(1.24);
   }
 }
 
@@ -446,7 +678,7 @@
   [data-coming-soon-robot],
   [data-coming-soon-robot][data-compact="true"] {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.25rem;
+    gap: 0.4rem;
   }
 
   [data-coming-soon-copy] {
@@ -458,7 +690,7 @@
   }
 
   [data-coming-soon-scene] {
-    width: min(100%, 49rem);
+    width: min(100%, 52rem);
     margin-inline: auto;
   }
 }
@@ -484,18 +716,15 @@
     margin-top: 1.35rem;
   }
 
+  [data-coming-soon-scene]::before {
+    inset: 3% 0 2%;
+  }
+
   [data-coming-soon-speech] {
-    top: 5%;
+    top: 4%;
     right: 0;
     max-width: 9.5rem;
     font-size: 0.68rem;
-  }
-
-  [data-coming-soon-hud] {
-    right: 1.5%;
-    bottom: 3%;
-    width: 8.2rem;
-    padding: 0.58rem 0.62rem;
   }
 }
 
