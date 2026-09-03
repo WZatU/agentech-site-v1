@@ -81,13 +81,20 @@ test("shared public-facing title components use Display", async () => {
     readWorkspaceFile("components/page-hero.tsx"),
     readWorkspaceFile("components/section-heading.tsx"),
     readWorkspaceFile("components/product-showcase-card.tsx"),
-    readWorkspaceFile("components/placeholder-page.tsx"),
     readWorkspaceFile("components/news-article-content.tsx")
   ]);
 
   for (const component of components) {
     assert.match(component, /font-display/);
   }
+
+  const [placeholder, comingSoonRobot] = await Promise.all([
+    readWorkspaceFile("components/placeholder-page.tsx"),
+    readWorkspaceFile("components/coming-soon-robot.tsx")
+  ]);
+
+  assert.match(placeholder, /<ComingSoonRobot/);
+  assert.match(comingSoonRobot, /font-display/);
 });
 
 test("keeps EAIC interface controls in Interface while preserving technical values", async () => {

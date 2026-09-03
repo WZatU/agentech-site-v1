@@ -72,3 +72,22 @@ test("the coming soon scene has scoped themes, interaction, and reduced motion",
     /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation:\s*none\s*!important;/
   );
 });
+
+test("the shared placeholder and preview route compose the robot without entering navigation", async () => {
+  const [placeholder, route, sitemap] = await Promise.all([
+    readWorkspaceFile("components/placeholder-page.tsx"),
+    readWorkspaceFile("app/coming-soon/page.tsx"),
+    readWorkspaceFile("app/sitemap.ts")
+  ]);
+
+  assert.match(
+    placeholder,
+    /import \{ ComingSoonRobot \} from "@\/components\/coming-soon-robot"/
+  );
+  assert.match(placeholder, /<ComingSoonRobot/);
+  assert.match(placeholder, /eyebrow=\{title\}/);
+  assert.match(placeholder, /headline\?: string/);
+  assert.match(route, /<PlaceholderPage\s+title="COMING SOON"/);
+  assert.match(route, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false/);
+  assert.doesNotMatch(sitemap, /coming-soon/);
+});
