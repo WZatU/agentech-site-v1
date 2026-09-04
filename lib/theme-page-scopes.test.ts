@@ -48,6 +48,30 @@ test("the light robotics hero keeps the robot crisp while protecting the left-si
   );
 });
 
+test("the robotics mobile hero keeps the robot and brand copy in one shared frame", async () => {
+  const [page, css] = await Promise.all([
+    readWorkspaceFile("app/agentech-robotic/page.tsx"),
+    readWorkspaceFile("app/globals.css")
+  ]);
+
+  assert.match(page, /data-robotics-hero-media/);
+  assert.match(page, /data-robotics-hero-copy/);
+  assert.match(page, /data-robotics-hero-brand/);
+  assert.match(page, /data-robotics-hero-logo/);
+  assert.match(
+    css,
+    /@media \(max-width:\s*767px\)[\s\S]*?\[data-robotics-hero\][^{]*\{[^}]*min-height:\s*420px;[\s\S]*?\[data-robotics-hero-media\][^{]*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;[^}]*height:\s*100%;[\s\S]*?\[data-robotics-hero-copy\][^{]*\{[^}]*min-height:\s*420px;[^}]*display:\s*flex;[^}]*align-items:\s*center;[^}]*background:\s*transparent;/
+  );
+  assert.match(
+    css,
+    /\.robotics-theme-page \[data-robotics-hero-image\][^{]*\{[^}]*object-position:\s*60%\s+center;/
+  );
+  assert.match(
+    css,
+    /\.robotics-theme-page \[data-robotics-hero-brand\][^{]*\{[^}]*width:\s*48%;[^}]*max-width:\s*13rem;/
+  );
+});
+
 test("robotics specification values use the finer mono treatment", async () => {
   const page = await readWorkspaceFile("app/agentech-robotic/page.tsx");
 
@@ -77,7 +101,7 @@ test("robotics runtime level cards match the specification panel corner radius",
   );
 });
 
-test("the Navi feature card becomes white with black type only in the light theme", async () => {
+test("the light Navi feature card keeps black copy while leaving the artwork visible", async () => {
   const [tabs, css] = await Promise.all([
     readWorkspaceFile("components/education-program-tabs.tsx"),
     readWorkspaceFile("app/globals.css")
@@ -100,6 +124,14 @@ test("the Navi feature card becomes white with black type only in the light them
   assert.match(
     css,
     /:root\[data-theme="light"\] \.education-eaic-page \[data-education-navi-title\][^{]*\{[^}]*color:\s*#111111\s*!important;/
+  );
+  assert.match(
+    css,
+    /:root\[data-theme="light"\] \.education-eaic-page \[data-education-navi-media\][^{]*\{[^}]*opacity:\s*0\.96\s*!important;/
+  );
+  assert.match(
+    css,
+    /:root\[data-theme="light"\] \.education-eaic-page \[data-education-navi-overlay\][^{]*\{[^}]*linear-gradient\(\s*90deg,\s*#ffffff\s+0%,\s*#ffffff\s+42%[^}]*rgba\(255, 255, 255, 0\.08\)\s+100%/
   );
 });
 
@@ -135,6 +167,16 @@ test("the light theme keeps the global navigation solid and crisp", async () => 
   );
 });
 
+test("EAIC light humanoid compensates for its larger subject without resizing the dark reference", async () => {
+  const css = await readWorkspaceFile("app/globals.css");
+  const lightRule = css.match(/\.eaic-engineering-theme \[data-eaic-hero-theme="light"\]\s*\{([^}]+)\}/)?.[1] ?? "";
+  const darkRule = css.match(/\.eaic-engineering-theme \[data-eaic-hero-theme="dark"\]\s*\{([^}]+)\}/)?.[1] ?? "";
+
+  assert.match(lightRule, /transform:\s*translate\(-0\.5%, -0\.5%\) scale\(0\.955\);/);
+  assert.match(lightRule, /transform-origin:\s*center;/);
+  assert.doesNotMatch(darkRule, /(?:transform|scale):/, "dark is the unchanged size reference");
+});
+
 test("EAIC workflow SDK accent stays as vivid and readable as the other dark steps", async () => {
   const { workflowAccentPalette, contrastRatio } = await import("./eaic-workflow-palette.ts");
   const sdkAccent = workflowAccentPalette[1].dark;
@@ -153,6 +195,24 @@ test("EAIC workflow SDK accent stays as vivid and readable as the other dark ste
   const sdkContrast = contrastRatio(sdkAccent, "#050b10");
   assert.ok(sdkContrast >= Math.min(...peerContrast), "Step 02 must not be dimmer than every peer");
   assert.ok(sdkContrast <= Math.max(...peerContrast), "Step 02 must stay within the existing brightness range");
+});
+
+test("EAIC workflow connector arrowheads stay white without recoloring the step lines", async () => {
+  const [home, css] = await Promise.all([
+    readWorkspaceFile("features/eaic/01-clients/eaic-hub/components/agentech-library-home.tsx"),
+    readWorkspaceFile("app/globals.css")
+  ]);
+
+  assert.match(home, /data-workflow-arrow\s+className="[^"]*border-b-2 border-r-2"/);
+  assert.match(
+    css,
+    /\.eaic-engineering-theme \[data-workflow-arrow\]\s*\{[^}]*border-color:\s*#ffffff;/
+  );
+  assert.match(home, /data-workflow-accent-background className="absolute top-0 h-10 w-px"/);
+  assert.match(
+    css,
+    /\.eaic-engineering-theme \[data-workflow-accent-background\]\s*\{[^}]*background-color:\s*var\(--workflow-accent\);/
+  );
 });
 
 test("EAIC workflow light accents keep their hues while meeting AA contrast on white", async () => {
@@ -218,4 +278,41 @@ test("the Future Founder immersion page exposes a complete dark theme scope", as
   assert.match(css, /:root\[data-theme="dark"\] \.ff-immersion/);
   assert.match(css, /\.ff-immersion > section:not\(\.ff-hero\)/);
   assert.match(css, /\.ff-immersion \[class\*="bg-\[#fbfaf7\]"\]/);
+});
+
+test("the Navi learning page exposes a complete page-scoped dark palette", async () => {
+  const [page, css] = await Promise.all([
+    readWorkspaceFile("components/navi-learning-page.tsx"),
+    readWorkspaceFile("app/globals.css")
+  ]);
+
+  assert.match(page, /data-navi-theme-page/);
+  assert.match(page, /data-navi-intro-title/);
+  assert.match(page, /data-navi-intro-body/);
+  assert.match(page, /data-navi-feature-card/);
+  assert.match(
+    css,
+    /:root\[data-theme="dark"\] \[data-navi-theme-page\][^{]*\{[^}]*background:[^}]*#07111f[^}]*color:\s*#e8eef6;/
+  );
+  assert.match(
+    css,
+    /:root\[data-theme="dark"\] \[data-navi-theme-page\] \[data-navi-intro-title\][^{]*\{[^}]*color:\s*#f4f7fb\s*!important;/
+  );
+  assert.match(
+    css,
+    /:root\[data-theme="dark"\] \[data-navi-theme-page\] \[data-navi-feature-card\][^{]*\{[^}]*background:\s*#111c2d\s*!important;/
+  );
+});
+
+test("the light Navi hero dots use a scoped green while the dark fallback stays lime", async () => {
+  const css = await readWorkspaceFile("app/globals.css");
+
+  assert.match(
+    css,
+    /:root\[data-theme="light"\] \[data-navi-theme-page\] \[data-navi-hero-chip\]::before\s*\{[^}]*background:\s*#4d7c0f;/
+  );
+  assert.match(
+    css,
+    /\.navi-hero-chip::before\s*\{[^}]*background:\s*#d9ff79;/
+  );
 });

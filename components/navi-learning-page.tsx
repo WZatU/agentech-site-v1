@@ -363,9 +363,10 @@ function LanguageToggle({
   return (
     <button
       type="button"
+      data-navi-language-toggle
       aria-label={label}
       onClick={onToggle}
-      className="fixed right-4 top-[88px] z-[80] inline-flex items-center gap-2 rounded-[10px] border border-white/16 bg-black px-4 py-3 text-sm font-semibold leading-none text-white shadow-[0_4px_14px_rgba(0,0,0,0.26)] transition hover:bg-[#1f1f1f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:right-6"
+      className="z-20 inline-flex items-center gap-2 rounded-[10px] border border-white/16 bg-black px-4 py-3 text-sm font-semibold leading-none text-white shadow-[0_4px_14px_rgba(0,0,0,0.26)] transition hover:bg-[#1f1f1f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >
       <span className={language === "en" ? "text-white" : "text-white/60"}>EN</span>
       <span className="text-white/44">/</span>
@@ -384,12 +385,17 @@ export function NaviLearningPage() {
 
   return (
     <main
+      data-navi-theme-page
       lang={language === "zh" ? "zh-CN" : "en"}
       className={`navi-kids-page min-h-screen bg-[#f7fbff] text-[#14213d] ${language === "zh" ? "ff-zh" : ""}`}
     >
-      <LanguageToggle language={language} onToggle={toggleLanguage} label={text.languageLabel} />
-      <section className="relative min-h-[clamp(580px,86svh,760px)] overflow-hidden bg-[#07111f]">
+      <section
+        data-navi-hero
+        className="relative min-h-[clamp(580px,86svh,760px)] overflow-hidden bg-[#07111f]"
+      >
+        <LanguageToggle language={language} onToggle={toggleLanguage} label={text.languageLabel} />
         <Image
+          data-navi-hero-image
           src="/assets/education/navi-learning-banner.png"
           alt="Navi helping children explore AI learning projects"
           fill
@@ -397,19 +403,22 @@ export function NaviLearningPage() {
           className="navi-hero-image object-cover opacity-[0.88]"
           priority
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,31,0.94)_0%,rgba(6,16,31,0.78)_42%,rgba(6,16,31,0.24)_100%)]" />
+        <div
+          data-navi-hero-overlay
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,16,31,0.94)_0%,rgba(6,16,31,0.78)_42%,rgba(6,16,31,0.24)_100%)]"
+        />
         <div className="relative z-10 mx-auto flex min-h-[clamp(580px,86svh,760px)] max-w-7xl flex-col justify-center px-5 py-14 sm:px-8 lg:px-10">
           <HistoryBackButton fallbackHref="/agentech-education" className="navi-back-link mb-8 w-fit" />
           <p className="navi-pill w-fit">{text.pill}</p>
-          <h1 className="font-display navi-hero-title mt-5 max-w-4xl font-extrabold text-white">
+          <h1 data-navi-hero-title className="font-display navi-hero-title mt-5 max-w-4xl font-extrabold text-white">
             {text.title}
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">
+          <p data-navi-hero-body className="mt-6 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">
             {text.body}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             {text.chips.map((item) => (
-              <span key={item} className="navi-hero-chip">
+              <span key={item} data-navi-hero-chip className="navi-hero-chip">
                 {item}
               </span>
             ))}
@@ -420,10 +429,10 @@ export function NaviLearningPage() {
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
         <div className="max-w-3xl">
           <p className="navi-section-kicker">{text.introKicker}</p>
-          <h2 className="font-display mt-3 text-4xl font-extrabold leading-tight text-[#14213d] sm:text-5xl">
+          <h2 data-navi-intro-title className="font-display mt-3 text-4xl font-extrabold leading-tight text-[#14213d] sm:text-5xl">
             {text.introTitle}
           </h2>
-          <p className="mt-5 text-lg leading-8 text-[#526178]">
+          <p data-navi-intro-body className="mt-5 text-lg leading-8 text-[#526178]">
             {text.introBody}
           </p>
         </div>
@@ -431,6 +440,7 @@ export function NaviLearningPage() {
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {projectLessons.map((lesson, index) => (
             <article
+              data-navi-feature-card
               key={lesson.title.en}
               className={`navi-feature-card group border ${toneClasses[lesson.tone]}`}
               style={{ ["--navi-delay" as string]: `${(index % 6) * 70}ms` }}
@@ -448,7 +458,7 @@ export function NaviLearningPage() {
         </div>
       </section>
 
-      <section className="bg-[#14213d] px-5 py-16 text-white sm:px-8 lg:px-10">
+      <section data-navi-final-section className="bg-[#14213d] px-5 py-16 text-white sm:px-8 lg:px-10">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="navi-section-kicker navi-section-kicker-dark">{text.finalKicker}</p>

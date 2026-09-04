@@ -43,7 +43,7 @@ export default async function AiRoboticsClubApplyPage({ searchParams }: { search
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+          <div data-club-surface className="overflow-hidden rounded-[28px] border border-slate-200 bg-slate-50 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <Image
               src="/assets/talents/club/club-1.png"
               alt="AI and Robotics Club"

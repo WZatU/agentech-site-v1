@@ -209,10 +209,11 @@ export function TechEducationForm() {
 
   return (
     <form
+      id="workshop-application"
       onSubmit={handleSubmit}
       onFocusCapture={gateInteraction}
       onPointerDownCapture={gateInteraction}
-      className="talent-application-form mt-12 w-full space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8"
+      className="talent-application-form mt-12 w-full scroll-mt-24 space-y-8 rounded-[32px] border border-slate-200 bg-white p-6 !text-black shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8"
     >
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <label className="space-y-2">

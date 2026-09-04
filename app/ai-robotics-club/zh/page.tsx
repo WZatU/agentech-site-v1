@@ -366,30 +366,51 @@ function TopicList({
   title,
   items,
   variant,
+  mobileLead,
+  mobileFooter,
 }: {
   title: string;
   items: readonly string[];
   variant: "topics" | "projects";
+  mobileLead?: string;
+  mobileFooter?: string;
 }) {
+  const renderItems = () => (
+    <div className="topic-list-grid mt-3 grid gap-2 sm:grid-cols-2">
+      {items.map((item) => (
+        <div
+          key={item}
+          data-topic-list-item={variant}
+          className="topic-list-item rounded-2xl border px-4 py-3 text-sm font-semibold leading-6"
+        >
+          {item}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div data-topic-list={variant} className="topic-list-group">
-      <div className="topic-list-heading flex items-center justify-between gap-3">
-        <p className="topic-list-label text-xs font-bold uppercase tracking-[0.2em]">{title}</p>
-        <span className="topic-list-kicker" aria-hidden="true">
-          {variant === "topics" ? "Learn" : "Build"}
-        </span>
+      <div data-club-desktop-topic-details>
+        <div className="topic-list-heading flex items-center justify-between gap-3">
+          <p className="topic-list-label text-xs font-bold uppercase tracking-[0.2em]">{title}</p>
+          <span className="topic-list-kicker" aria-hidden="true">
+            {variant === "topics" ? "Learn" : "Build"}
+          </span>
+        </div>
+        {renderItems()}
       </div>
-      <div className="topic-list-grid mt-3 grid gap-2 sm:grid-cols-2">
-        {items.map((item) => (
-          <div
-            key={item}
-            data-topic-list-item={variant}
-            className="topic-list-item rounded-2xl border px-4 py-3 text-sm font-semibold leading-6"
-          >
-            {item}
-          </div>
-        ))}
-      </div>
+      <details data-club-mobile-topic-details>
+        <summary className="topic-list-heading flex cursor-pointer list-none items-center justify-between gap-3 marker:hidden">
+          <span className="topic-list-label text-xs font-bold uppercase tracking-[0.2em]">{title}</span>
+          <span className="topic-list-kicker" aria-hidden="true">
+            {variant === "topics" ? "学习 +" : "实践 +"}
+          </span>
+        </summary>
+        {mobileLead ? <p className="mt-3 text-sm leading-6">{mobileLead}</p> : null}
+        {renderItems()}
+        {mobileFooter ? <p className="topic-outcome-accent mt-4 text-sm leading-6">{mobileFooter}</p> : null}
+      </details>
     </div>
   );
 }
@@ -407,7 +428,7 @@ export default function AiRoboticsClubChinesePage() {
   return (
     <section
       data-club-page-theme="warm-off-white"
-      className="min-h-screen bg-[#f5f4f1] px-6 py-16 pb-28 text-[#0b1220] md:pb-16 lg:px-8 lg:py-20"
+      className="min-h-screen bg-[#f5f4f1] px-6 py-16 text-[#0b1220] lg:px-8 lg:py-20"
     >
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -417,17 +438,18 @@ export default function AiRoboticsClubChinesePage() {
           >
             返回 Agentech Talents
           </Link>
-          <div className="inline-flex rounded-full border border-[#d9e1ea] bg-white p-1 text-sm font-bold shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
+          <div data-club-surface data-club-language-switch className="inline-flex rounded-full border border-[#d9e1ea] bg-white p-1 text-sm font-bold shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
             <Link href="/ai-robotics-club" className="rounded-full px-4 py-2 !text-[#0b1220] transition hover:bg-[#f1f5f9]">
               English
             </Link>
-            <Link href="/ai-robotics-club/zh" className="rounded-full bg-[#0b1220] px-4 py-2 text-white">
+            <Link data-club-language-active href="/ai-robotics-club/zh" className="rounded-full bg-[#0b1220] px-4 py-2 text-white">
               中文
             </Link>
           </div>
         </div>
 
         <ClubSectionNavigation locale="zh" />
+        <ClubMobileApply locale="zh" />
 
         <div className="mt-14 grid items-start gap-10 lg:grid-cols-[1fr_390px]">
           <div>
@@ -442,10 +464,10 @@ export default function AiRoboticsClubChinesePage() {
               从机器人搭建到算法、测试和竞赛，学生将学习真实机器人如何工作。这不只是机器人兴趣课，而是一套长期工程训练项目。
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="#quick-apply" className="inline-flex rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#33312d]">
+              <Link data-club-primary-action href="#quick-apply" className="inline-flex rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#33312d]">
                 立即申请
               </Link>
-              <Link href="#program-details" className="inline-flex rounded-full border border-[#111111] bg-[#fbfaf7] px-6 py-3 text-sm font-bold !text-[#111111] transition hover:bg-[#111111] hover:!text-white">
+              <Link data-club-secondary-action href="#program-details" className="inline-flex rounded-full border border-[#111111] bg-[#fbfaf7] px-6 py-3 text-sm font-bold !text-[#111111] transition hover:bg-[#111111] hover:!text-white">
                 查看项目详情
               </Link>
             </div>
@@ -455,7 +477,7 @@ export default function AiRoboticsClubChinesePage() {
           <ClubQuickApplication locale="zh" />
         </div>
 
-        <div className="mt-14 bg-[#f5f4f1]">
+        <div data-club-hero-media className="mt-14 bg-[#f5f4f1]">
           <Image
             data-club-image-blend="hero"
             data-club-image-blend-shape="rectangular"
@@ -522,6 +544,7 @@ export default function AiRoboticsClubChinesePage() {
             {featuredLearningTopics.map((topic, index) => (
               <article
                 key={topic.title}
+                data-club-surface
                 data-club-topic-layout="desktop-fit"
                 className="topic-feature-row grid overflow-hidden rounded-[30px] border border-[#d9e1ea] bg-white shadow-[0_26px_70px_rgba(15,23,42,0.09)] lg:grid-cols-[1.05fr_0.95fr]"
               >
@@ -557,12 +580,13 @@ export default function AiRoboticsClubChinesePage() {
                   </h3>
                   <p className="topic-feature-subtitle mt-2 text-lg font-semibold !text-[#334155]">{topic.titleZh}</p>
                   <p className="topic-feature-intro mt-5 text-xl font-semibold leading-8 !text-[#0b1220]">{topic.intro}</p>
-                  <p className="topic-feature-copy mt-4 text-base leading-8 !text-[#334155]">{topic.body}</p>
+                  <p data-club-desktop-topic-details className="topic-feature-copy mt-4 text-base leading-8 !text-[#334155]">{topic.body}</p>
                   <div className="topic-list-stack mt-6 space-y-6">
-                    <TopicList title="学习内容" items={topic.topics} variant="topics" />
-                    <TopicList title="项目实践" items={topic.projects} variant="projects" />
+                    <TopicList title="学习内容" items={topic.topics} variant="topics" mobileLead={topic.body} />
+                    <TopicList title="项目实践" items={topic.projects} variant="projects" mobileFooter={topic.outcome} />
                   </div>
                   <p
+                    data-club-desktop-topic-details
                     data-topic-outcome-accent="blue-gold"
                     className="topic-feature-outcome topic-outcome-accent mt-6 text-base leading-8 !text-[#334155]"
                   >
@@ -577,7 +601,7 @@ export default function AiRoboticsClubChinesePage() {
         <ClubFaq locale="zh" />
 
         <section className="mt-14 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[28px] border border-[#d9e1ea] bg-white p-8 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+          <div data-club-surface className="rounded-[28px] border border-[#d9e1ea] bg-white p-8 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
             <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">工程文档</p>
             <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight !text-black">项目会成为可展示的作品集成果。</h2>
             <p className="mt-5 text-base leading-8 !text-[#334155]">
@@ -586,14 +610,14 @@ export default function AiRoboticsClubChinesePage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {projectOutputs.map((item) => (
-              <div key={item} className="rounded-2xl border border-[#d9e1ea] bg-[#f8fafc] px-5 py-4 text-sm font-bold !text-[#0b1220]">
+              <div data-club-surface key={item} className="rounded-2xl border border-[#d9e1ea] bg-[#f8fafc] px-5 py-4 text-sm font-bold !text-[#0b1220]">
                 {item}
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-14 rounded-[30px] border border-[#d9e1ea] bg-white p-8 shadow-[0_20px_55px_rgba(15,23,42,0.08)] md:p-10">
+        <section data-club-surface className="mt-14 rounded-[30px] border border-[#d9e1ea] bg-white p-8 shadow-[0_20px_55px_rgba(15,23,42,0.08)] md:p-10">
           <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.24em] !text-[#475569]">行动召唤</p>
@@ -606,6 +630,7 @@ export default function AiRoboticsClubChinesePage() {
             </div>
             <div className="flex items-center lg:justify-end">
               <Link
+                data-club-secondary-action
                 href="/ai-robotics-club/apply"
                 className="inline-flex w-full justify-center rounded-full border border-[#0b1220] bg-white px-8 py-4 text-base font-bold !text-black transition hover:bg-black hover:!text-white lg:w-auto"
               >
@@ -615,7 +640,6 @@ export default function AiRoboticsClubChinesePage() {
           </div>
         </section>
       </div>
-      <ClubMobileApply locale="zh" />
     </section>
   );
 }

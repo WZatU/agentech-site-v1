@@ -1,0 +1,389 @@
+[data-service-menu] {
+  position: relative;
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+[data-service-menu-trigger] {
+  gap: 0.55rem;
+  color: #c9cbd0;
+}
+
+[data-service-menu][data-open="true"] [data-service-menu-trigger] {
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-service-menu][data-open="true"] .agent-nav-wordmark {
+  color: #ffffff;
+}
+
+[data-service-menu-chevron] {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+
+[data-service-menu][data-open="true"] [data-service-menu-chevron] {
+  transform: rotate(180deg);
+}
+
+[data-service-menu-positioner] {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  right: auto;
+  z-index: 70;
+  width: min(264px, calc(100vw - 32px));
+  padding-top: 10px;
+  transform: translateX(-50%);
+}
+
+[data-service-menu][data-menu-name="Education"]:not([data-mobile="true"]) [data-service-menu-positioner] {
+  width: min(292px, calc(100vw - 32px));
+}
+
+[data-service-menu-panel] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: #080b0f;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.34);
+  color: #c9cbd0;
+  font-family: var(--font-sans);
+}
+
+[data-service-menu-positioner][hidden],
+[data-service-menu-panel][hidden],
+[data-service-submenu-positioner][hidden],
+[data-service-submenu-panel][hidden] {
+  display: none;
+}
+
+[data-service-menu-column] {
+  position: relative;
+  min-width: 0;
+  min-height: 50px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+[data-service-menu-column] + [data-service-menu-column]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-service-menu-branch] {
+  position: relative;
+}
+
+[data-service-menu-branch]::before,
+[data-service-menu-branch] + [data-service-menu-column]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-service-submenu-trigger] {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+[data-service-submenu-trigger]:hover,
+[data-service-menu-branch][data-open="true"] > [data-service-submenu-trigger] {
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 2px 0 #91dfff;
+  color: #91dfff;
+}
+
+[data-service-submenu-trigger]:focus-visible {
+  outline: 2px solid #91dfff;
+  outline-offset: -4px;
+}
+
+[data-service-submenu-chevron] {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  transform: rotate(-90deg);
+  transition: transform 160ms ease;
+}
+
+[data-service-menu-branch][data-open="true"] > [data-service-submenu-trigger] [data-service-submenu-chevron] {
+  transform: rotate(0deg);
+}
+
+[data-service-submenu-positioner] {
+  position: absolute;
+  top: -1px;
+  left: 100%;
+  z-index: 2;
+  width: min(230px, calc(100vw - 32px));
+  padding-left: 8px;
+}
+
+[data-service-submenu-panel] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: #080b0f;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.34);
+  color: #c9cbd0;
+  font-family: var(--font-sans);
+}
+
+[data-service-submenu-item] {
+  position: relative;
+  min-height: 46px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+}
+
+[data-service-submenu-item] + [data-service-submenu-item]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-service-submenu-title] {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+[data-service-submenu-link] {
+  color: #ffffff;
+  box-shadow: inset 2px 0 transparent;
+  transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+[data-service-submenu-link]:hover {
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 2px 0 #91dfff;
+  color: #91dfff;
+}
+
+[data-service-submenu-link]:focus-visible {
+  outline: 2px solid #91dfff;
+  outline-offset: -4px;
+}
+
+[data-service-menu-title] {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+[data-menu-name="Education"] [data-service-menu-title] {
+  white-space: nowrap;
+}
+
+[data-service-menu-link] {
+  color: #ffffff;
+  box-shadow: inset 2px 0 transparent;
+  transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+}
+
+[data-service-menu-link]::after {
+  content: none;
+}
+
+[data-service-menu-link]:hover {
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 2px 0 #91dfff;
+  color: #91dfff;
+}
+
+[data-service-menu-trigger]:focus-visible {
+  outline: 2px solid #91dfff;
+  outline-offset: 5px;
+}
+
+[data-service-menu-link]:focus-visible {
+  outline: 2px solid #91dfff;
+  outline-offset: -4px;
+}
+
+[data-service-menu][data-mobile="true"] {
+  display: block;
+  height: auto;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-menu-trigger] {
+  width: 100%;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-menu-positioner] {
+  position: static;
+  left: auto;
+  right: auto;
+  width: 100%;
+  padding-top: 4px;
+  transform: none;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-menu-panel] {
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid #45494f;
+  border-radius: 12px;
+  background: #080b0f;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-menu-column] {
+  min-height: 56px;
+  padding: 0 16px;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-submenu-positioner] {
+  position: static;
+  top: auto;
+  left: auto;
+  width: auto;
+  padding: 0 12px 12px;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-submenu-panel] {
+  border-color: #343b44;
+  background: #10151b;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-submenu-item] {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-submenu-title] {
+  letter-spacing: 0.22em;
+}
+
+[data-service-menu][data-menu-name="Education"][data-mobile="true"] [data-service-menu-title] {
+  letter-spacing: 0.22em;
+}
+
+[data-service-menu][data-mobile="true"] [data-service-menu-column] + [data-service-menu-column]::before {
+  left: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu-panel] {
+  border-color: #d8d3ca;
+  background: #f5f4f1;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.14);
+  color: #475569;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu][data-mobile="true"] [data-service-menu-panel] {
+  background: #f5f4f1;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu-column] + [data-service-menu-column]::before {
+  background: #d8d3ca;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu-branch]::before,
+:root[data-theme="light"] [data-site-header] [data-service-menu-branch] + [data-service-menu-column]::before,
+:root[data-theme="light"] [data-site-header] [data-service-submenu-item] + [data-service-submenu-item]::before {
+  background: #d8d3ca;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-submenu-panel] {
+  border-color: #d8d3ca;
+  background: #f5f4f1;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.14);
+  color: #475569;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-submenu-trigger]:hover,
+:root[data-theme="light"] [data-site-header] [data-service-menu-branch][data-open="true"] > [data-service-submenu-trigger],
+:root[data-theme="light"] [data-site-header] [data-service-submenu-link]:hover {
+  background: rgba(26, 115, 232, 0.06);
+  box-shadow: inset 2px 0 #1a73e8;
+  color: #1a73e8;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-submenu-link] {
+  color: #111111;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-submenu-trigger]:focus-visible,
+:root[data-theme="light"] [data-site-header] [data-service-submenu-link]:focus-visible {
+  outline-color: #1a73e8;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu-link] {
+  color: #111111;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu-link]:hover {
+  background: rgba(26, 115, 232, 0.06);
+  box-shadow: inset 2px 0 #1a73e8;
+}
+
+:root[data-theme="light"] [data-site-header] [data-service-menu-link]:focus-visible {
+  outline-color: #1a73e8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-service-menu-chevron],
+  [data-service-menu-link],
+  [data-service-submenu-chevron],
+  [data-service-submenu-trigger],
+  [data-service-submenu-link] {
+    transition: none;
+  }
+}

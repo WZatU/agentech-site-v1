@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import postcss from "postcss";
 
 const workspaceRoot = new URL("../", import.meta.url);
 
@@ -44,6 +45,63 @@ test("assigns the primary navigation to Interface", async () => {
     css,
     /\.agent-nav-wordmark\s*\{[\s\S]*?font-family:\s*var\(--font-sans\)/
   );
+});
+
+test("matches desktop navigation labels to the robotics interface-caption rhythm", async () => {
+  const css = postcss.parse(await readWorkspaceFile("app/globals.css"));
+  const declarations: Record<string, string> = {};
+
+  css.walkRules((rule) => {
+    if (!rule.selectors.includes(".agent-nav-wordmark")) return;
+    rule.walkDecls((declaration) => {
+      declarations[declaration.prop] = declaration.value;
+    });
+  });
+
+  assert.deepEqual(
+    {
+      family: declarations["font-family"],
+      size: declarations["font-size"],
+      weight: declarations["font-weight"],
+      tracking: declarations["letter-spacing"],
+      transform: declarations["text-transform"]
+    },
+    {
+      family: "var(--font-sans)",
+      size: "0.75rem",
+      weight: "600",
+      tracking: "0.34em",
+      transform: "uppercase"
+    }
+  );
+});
+
+test("keeps the expanded navigation behind the large-screen breakpoint", async () => {
+  const header = await readWorkspaceFile("components/site-header.tsx");
+
+  assert.match(header, /data-mobile-theme-controls[^>]*className="[^"]*lg:hidden"/);
+  assert.match(header, /className="grid[^"]*lg:hidden"/);
+  assert.match(header, /<nav className=\{`[^`]*lg:flex/);
+  assert.match(header, /w-\[140px\][^"]*lg:flex/);
+  assert.equal((header.match(/lg:hidden/g) ?? []).length, 4);
+  assert.doesNotMatch(header, /\bmd:(?:flex|hidden)\b/);
+});
+
+test("keeps mobile navigation readable without changing the approved type family or weight", async () => {
+  const css = postcss.parse(await readWorkspaceFile("app/globals.css"));
+  const declarations: Record<string, string> = {};
+
+  css.walkRules((rule) => {
+    if (!rule.selectors.includes(".agent-nav-wordmark.is-mobile")) return;
+    rule.walkDecls((declaration) => {
+      declarations[declaration.prop] = declaration.value;
+    });
+  });
+
+  assert.equal(declarations["font-size"], "1.125rem");
+  assert.equal(declarations["font-family"], undefined);
+  assert.equal(declarations["font-weight"], undefined);
+  assert.equal(declarations["letter-spacing"], undefined);
 });
 
 test("assigns core landing-page titles and numerical identifiers by responsibility", async () => {

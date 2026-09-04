@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { RoboticsMobileProductBrowser } from "@/components/robotics-mobile-product-browser";
 
 const products = [
   {
@@ -131,31 +132,35 @@ export default function AgentechRoboticPage() {
     <div className="robotics-theme-page overflow-x-hidden bg-[#030506] text-white">
       <div id="top" />
 
-      <section data-robotics-hero className="relative isolate min-h-[430px] overflow-hidden border-b border-white/10 bg-[#030506] lg:min-h-[500px]">
-        <Image
-          data-robotics-hero-image
-          src="/assets/ff-robotics/ff-master-x2-hero.jpg"
-          alt="FF Master humanoid robot"
-          fill
-          sizes="100vw"
-          className="object-cover object-[68%_center] opacity-88"
-          priority
-        />
-        <div data-robotics-hero-overlay className="absolute inset-0 bg-[linear-gradient(90deg,#030506_0%,rgba(3,5,6,0.98)_26%,rgba(3,5,6,0.48)_58%,rgba(3,5,6,0.10)_100%)]" />
-        <div data-robotics-hero-fade className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#030506] to-transparent" />
+      <section data-robotics-hero className="relative isolate overflow-hidden border-b border-white/10 bg-[#030506] md:min-h-[430px] lg:min-h-[500px]">
+        <div data-robotics-hero-media className="relative md:absolute md:inset-0">
+          <Image
+            data-robotics-hero-image
+            src="/assets/ff-robotics/ff-master-x2-hero.jpg"
+            alt="FF Master humanoid robot"
+            fill
+            sizes="100vw"
+            className="object-cover object-[68%_center] opacity-88"
+            priority
+          />
+          <div data-robotics-hero-overlay className="absolute inset-0 bg-[linear-gradient(90deg,#030506_0%,rgba(3,5,6,0.98)_26%,rgba(3,5,6,0.48)_58%,rgba(3,5,6,0.10)_100%)]" />
+          <div data-robotics-hero-fade className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#030506] to-transparent" />
+        </div>
 
-        <div className="relative mx-auto flex min-h-[430px] max-w-7xl items-center px-6 py-14 lg:min-h-[500px] lg:px-8">
-          <div className="min-w-0 max-w-2xl">
+        <div data-robotics-hero-copy className="relative mx-auto w-full max-w-7xl px-6 py-9 md:flex md:min-h-[430px] md:items-center md:py-14 lg:min-h-[500px] lg:px-8">
+          <div data-robotics-hero-brand className="min-w-0 max-w-2xl">
             <Image
+              data-robotics-hero-logo
               src="/assets/logo/AGENTECH-robotic-solid.png"
               alt="Agentech Robotics"
               width={1000}
               height={247}
-              className="robotics-theme-logo h-auto w-full max-w-[280px] opacity-95 sm:max-w-[340px] lg:max-w-[380px]"
+              className="robotics-theme-logo h-auto w-full max-w-[300px] opacity-95 sm:max-w-[340px] lg:max-w-[380px]"
               priority
             />
             <p
-              className="font-interface mt-10 text-xs font-semibold uppercase tracking-[0.34em] text-[#91dfff]"
+              data-robotics-hero-tagline
+              className="font-interface mt-5 text-xs font-semibold uppercase leading-6 tracking-[0.3em] text-[#91dfff] md:mt-10 md:leading-normal md:tracking-[0.34em]"
             >
               Physical AI Robotics Platform
             </p>
@@ -163,7 +168,7 @@ export default function AgentechRoboticPage() {
         </div>
       </section>
 
-      <section id="robotics-products" className="mx-auto max-w-7xl px-6 pb-3 pt-16 lg:px-8 lg:pb-4 lg:pt-20">
+      <section id="robotics-products" className="mx-auto max-w-7xl px-6 pb-16 pt-16 md:pb-3 lg:px-8 lg:pb-4 lg:pt-20">
         <div className="flex justify-end">
           <div className="min-w-0 max-w-xl text-right">
             <p
@@ -179,7 +184,9 @@ export default function AgentechRoboticPage() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-y-14 md:grid-cols-2 md:gap-x-8 xl:grid-cols-5 xl:gap-x-0">
+        <RoboticsMobileProductBrowser products={products} sections={sections} />
+
+        <div data-robotics-desktop-products className="mt-12 hidden gap-y-14 md:grid md:grid-cols-2 md:gap-x-8 xl:grid-cols-5 xl:gap-x-0">
           <div className="hidden xl:block" aria-hidden="true" />
           {products.map((product) => (
             <article
@@ -235,7 +242,7 @@ export default function AgentechRoboticPage() {
         </div>
       </section>
 
-      <section id="robotics-specs" className="mx-auto max-w-7xl px-3 pb-16 sm:px-5 md:px-6 lg:px-8 lg:pb-24">
+      <section data-robotics-desktop-specifications id="robotics-specs" className="mx-auto hidden max-w-7xl px-3 pb-16 sm:px-5 md:block md:px-6 lg:px-8 lg:pb-24">
         <div className="overflow-x-auto rounded-lg border border-[#1b5f91]/70 bg-[#020509] shadow-[0_32px_110px_rgba(31,183,255,0.08)]">
           <table className="min-w-[960px] w-full border-collapse text-left">
             {sections.map((section) => (

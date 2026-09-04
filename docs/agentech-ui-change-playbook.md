@@ -136,3 +136,12 @@ Success means HTTP `200`, the effective URL remains the Agentech URL, the expect
 - Focused regression: `node --test scripts/account-workspace-theme.test.mjs` plus `lib/account-dashboard-profile-selection.test.ts`.
 - Browser fixture: `/account?previewProfile=teacher` on a **development** server, then select the Developer Lab profile to inspect developer tabs. The existing `developer` fixture uses a gateway-owner email and redirects to the admin console. Never submit/save preview forms. Production must ignore `previewProfile`.
 - Test desktop/mobile, Light/Dark, edit/cancel, horizontal tab scrolling, and ensure the closed mobile drawer has no residual shadow. If parallel work is rebuilding `.next`, stage a temporary source copy for the production build instead of interrupting another process.
+
+## EAIC Hub Humanoid Hero (2026-09-02)
+
+- Route: `/agentech-products/eaic-hub`. The existing `interactive-dog-hero.tsx` / `.module.css` files now render the approved humanoid images while retaining the original pointer motion.
+- Assets: `public/assets/products/agentech-library/humanoid-wireframe-light-v1.png` and `humanoid-wireframe-dark-v1.png`. Both are unchanged copies of the user's approved attachments; keep the original dog asset for other uses.
+- Theme selection uses `[data-eaic-hero-theme="light"|"dark"]` under `.eaic-engineering-theme` in `app/globals.css`. Use CSS visibility, not a hydration-time image swap. Hidden artwork uses `display: none`.
+- The square artwork uses `object-fit: contain`, no recoloring/dimming filter, and a 58%-wide desktop visual. The mobile overlay must be transparent by 60% of the hero height to avoid darkening the head. Do not restore the old full-image sheen.
+- The light source has a larger drawn subject than the dark source. Its image-only `translate(-0.5%, -0.5%) scale(0.955)` compensates for that difference; keep the shared visual frame and dark image unchanged when adjusting this match.
+- Focused checks: `EAIC_THEME_TEST_BASE_URL=http://127.0.0.1:3002 node --test --test-name-pattern='EAIC Hub|EAIC brand' scripts/eaic-task-theme.test.mjs`; also verify Light/Dark at desktop and mobile widths.

@@ -231,6 +231,7 @@ export function SummerSchoolForm({ initialValues = {} }: { initialValues?: Summe
 
   return (
     <form
+      data-club-surface
       onSubmit={handleSubmit}
       onFocusCapture={gateInteraction}
       onPointerDownCapture={gateInteraction}
@@ -332,6 +333,7 @@ export function SummerSchoolForm({ initialValues = {} }: { initialValues?: Summe
       {success ? <p className="text-sm font-semibold text-emerald-700">{success}</p> : null}
 
       <button
+        data-club-primary-action
         type="submit"
         disabled={isSubmitting}
         className="talent-submit inline-flex w-full justify-center rounded-full bg-slate-950 px-7 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"

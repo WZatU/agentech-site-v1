@@ -82,9 +82,9 @@ export function ClubSectionNavigation({ locale }: { locale: ClubLocale }) {
     <nav
       data-club-section-navigation="true"
       aria-label={copy.navigationLabel}
-      className="sticky top-[84px] z-30 mt-7 overflow-x-auto rounded-full border border-[#d8d3ca] bg-[#fbfaf7]/95 p-1.5 shadow-[0_12px_34px_rgba(17,17,17,0.08)] backdrop-blur"
+      className="sticky top-[84px] z-30 mt-7 rounded-[22px] border border-[#d8d3ca] bg-[#fbfaf7]/95 p-1.5 shadow-[0_12px_34px_rgba(17,17,17,0.08)] backdrop-blur sm:rounded-full"
     >
-      <div className="flex min-w-max items-center justify-center gap-1">
+      <div className="flex items-center justify-center gap-1">
         {copy.navigation.map(([label, href]) => (
           <Link
             key={href}
@@ -103,7 +103,7 @@ export function ClubHeroFacts({ locale }: { locale: ClubLocale }) {
   const copy = clubExperienceCopy[locale];
 
   return (
-    <dl className="mt-8 grid overflow-hidden rounded-[22px] border border-[#d8d3ca] bg-[#fbfaf7] sm:grid-cols-2 lg:grid-cols-4">
+    <dl data-club-surface className="mt-8 grid overflow-hidden rounded-[22px] border border-[#d8d3ca] bg-[#fbfaf7] sm:grid-cols-2 lg:grid-cols-4">
       {copy.facts.map(([label, value], index) => (
         <div
           key={label}
@@ -121,7 +121,7 @@ export function ClubQuickApplication({ locale }: { locale: ClubLocale }) {
   const copy = clubExperienceCopy[locale];
 
   return (
-    <aside id="quick-apply" className="scroll-mt-32 rounded-[30px] border border-[#d8d3ca] bg-[#fbfaf7] p-5 shadow-[0_24px_70px_rgba(17,17,17,0.12)]">
+    <aside data-club-surface id="quick-apply" className="scroll-mt-32 rounded-[30px] border border-[#d8d3ca] bg-[#fbfaf7] p-5 shadow-[0_24px_70px_rgba(17,17,17,0.12)]">
       <form
         data-club-quick-application="true"
         action="/ai-robotics-club/apply"
@@ -159,6 +159,7 @@ export function ClubQuickApplication({ locale }: { locale: ClubLocale }) {
         </div>
 
         <button
+          data-club-primary-action
           type="submit"
           className="mt-5 inline-flex w-full justify-center rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#33312d]"
         >
@@ -181,7 +182,7 @@ export function ClubFaq({ locale }: { locale: ClubLocale }) {
         </div>
         <div className="grid gap-3">
           {copy.faqs.map(([question, answer]) => (
-            <details key={question} className="group rounded-[22px] border border-[#d8d3ca] bg-[#fbfaf7] p-5">
+            <details data-club-surface key={question} className="group rounded-[22px] border border-[#d8d3ca] bg-[#fbfaf7] p-5">
               <summary className="cursor-pointer list-none pr-8 text-base font-semibold !text-[#171717] marker:hidden">
                 {question}
                 <span className="float-right transition group-open:rotate-45" aria-hidden="true">+</span>
@@ -201,8 +202,9 @@ export function ClubMobileApply({ locale }: { locale: ClubLocale }) {
   return (
     <Link
       data-club-mobile-apply="true"
-      href="/ai-robotics-club/apply"
-      className="fixed inset-x-4 bottom-4 z-40 inline-flex justify-center rounded-full bg-[#111111] px-6 py-4 text-sm font-bold text-white shadow-[0_18px_45px_rgba(17,17,17,0.28)] md:hidden"
+      data-club-primary-action
+      href="#quick-apply"
+      className="mt-5 inline-flex w-full justify-center rounded-full bg-[#111111] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(17,17,17,0.2)] md:hidden"
     >
       {copy.mobileApply}
     </Link>

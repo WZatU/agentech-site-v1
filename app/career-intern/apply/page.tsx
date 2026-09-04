@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function CareerInternApplyPage() {
   return (
-    <section className="min-h-screen bg-white px-6 py-16 text-slate-950 lg:px-8 lg:py-20">
+    <section className="internship-light-page min-h-screen bg-[#f5f4f1] px-6 py-16 text-slate-950 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap gap-3">
           <HistoryBackButton

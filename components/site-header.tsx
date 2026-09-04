@@ -5,9 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/brand-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ServiceMenu } from "@/components/service-menu";
 import { accountSessionEvent, clearAccountSession, getAccountSession } from "@/lib/account-session";
 import { navigation } from "@/lib/site-data";
-import { shouldHideSiteHeader, shouldShowAuthControls, shouldShowThemeToggle } from "@/lib/site-header-visibility";
+import {
+  shouldHideSiteHeader,
+  shouldShowAuthControls,
+  shouldShowMobileThemeToggle,
+  shouldShowThemeToggle
+} from "@/lib/site-header-visibility";
 
 function NavWordmark({
   active,
@@ -33,6 +39,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openCategoryMenu, setOpenCategoryMenu] = useState<string | null>(null);
   const [accountEmail, setAccountEmail] = useState("");
   const [showAuthControls, setShowAuthControls] = useState(false);
 
@@ -60,6 +67,12 @@ export function SiteHeader() {
 
   function closeMobileNav() {
     setMobileOpen(false);
+    setOpenCategoryMenu(null);
+  }
+
+  function changeCategoryMenu(key: string, open: boolean) {
+    // An old menu's delayed pointer-leave must not close the newly opened one.
+    setOpenCategoryMenu((current) => open ? key : current === key ? null : current);
   }
 
   function signOut() {
@@ -98,6 +111,7 @@ export function SiteHeader() {
 
   const loginHref = getLoginHref();
   const showThemeToggle = shouldShowThemeToggle(pathname);
+  const showMobileThemeToggle = shouldShowMobileThemeToggle(pathname);
 
   if (shouldHideSiteHeader(pathname)) {
     return null;
@@ -108,29 +122,51 @@ export function SiteHeader() {
       data-site-header
       className="sticky top-0 z-50 h-[72px] border-b border-[#363d45]/70 bg-black/80 backdrop-blur-xl"
     >
-      <div className="relative mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-2 sm:px-3 lg:px-4">
+      <div data-site-header-inner className="relative mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-2 sm:px-3 lg:px-4">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-3" onClick={closeMobileNav}>
           <BrandMark />
         </Link>
 
-        <button
-          type="button"
-          aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-          aria-expanded={mobileOpen}
-          onClick={() => setMobileOpen((open) => !open)}
-          className="ml-auto grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 text-white transition hover:bg-white/10 md:hidden"
-        >
-          <span className="flex w-5 flex-col gap-1.5">
-            <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "translate-y-2 rotate-45" : ""}`} />
-            <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "opacity-0" : ""}`} />
-            <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "-translate-y-2 -rotate-45" : ""}`} />
-          </span>
-        </button>
+        <div data-mobile-theme-controls className="ml-auto flex shrink-0 items-center gap-2 lg:hidden">
+          {showMobileThemeToggle ? <ThemeToggle mobileHeader /> : null}
+          <button
+            type="button"
+            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileOpen}
+            onClick={() => {
+              setMobileOpen((open) => !open);
+              setOpenCategoryMenu(null);
+            }}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 text-white transition hover:bg-white/10 lg:hidden"
+          >
+            <span className="flex w-5 flex-col gap-1.5">
+              <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "translate-y-2 rotate-45" : ""}`} />
+              <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "opacity-0" : ""}`} />
+              <span className={`h-0.5 rounded-full bg-current transition ${mobileOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+            </span>
+          </button>
+        </div>
 
-        <nav className={`ml-auto hidden flex-nowrap items-center justify-end gap-1 text-sm text-slate md:flex ${showAuthControls && accountEmail ? "pr-[152px]" : ""}`}>
+        <nav className={`ml-auto hidden h-full flex-nowrap items-center justify-end gap-1 text-sm text-slate lg:flex ${showAuthControls && accountEmail ? "pr-[152px]" : ""}`}>
           {navigation.map((item) => {
             const linkClassName = "agent-nav-link rounded-xl px-3 py-2";
             const isActive = isActiveNavItem(item.href);
+
+            if (item.columns?.length) {
+              return (
+                <ServiceMenu
+                  key={item.href}
+                  name={item.label}
+                  columns={item.columns}
+                  triggerHref={item.menuTriggerHref}
+                  active={isActive}
+                  open={openCategoryMenu === `desktop:${item.label}`}
+                  onOpenChange={(open) => changeCategoryMenu(`desktop:${item.label}`, open)}
+                >
+                  <NavWordmark active={isActive} alt={item.label} />
+                </ServiceMenu>
+              );
+            }
 
             if (item.children?.length) {
               return (
@@ -198,7 +234,7 @@ export function SiteHeader() {
         </nav>
 
         {showAuthControls && accountEmail ? (
-        <div className="absolute right-2 top-1/2 hidden w-[140px] -translate-y-1/2 items-center justify-end gap-1 sm:right-3 md:flex lg:right-4">
+        <div className="absolute right-2 top-1/2 hidden w-[140px] -translate-y-1/2 items-center justify-end gap-1 sm:right-3 lg:right-4 lg:flex">
           <Link href="/account" className="rounded-full border border-white/10 px-2 py-2 text-[11px] font-semibold leading-none text-slate transition hover:bg-white/5 hover:text-white">
             Account
           </Link>
@@ -214,20 +250,38 @@ export function SiteHeader() {
       </div>
 
       <div
-        className={`fixed inset-0 top-[72px] z-[80] bg-black/55 transition md:hidden ${
+        className={`fixed inset-0 top-[72px] z-[80] bg-black/55 transition lg:hidden ${
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeMobileNav}
       />
 
       <aside
-        className={`fixed right-0 top-[72px] z-[90] h-[calc(100vh-72px)] w-[82vw] max-w-[340px] border-l border-white/10 bg-[#05070a] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.72)] transition-transform duration-200 md:hidden ${
+        inert={!mobileOpen}
+        aria-hidden={!mobileOpen}
+        className={`fixed right-0 top-[72px] z-[90] h-[calc(100vh-72px)] w-[82vw] max-w-[340px] overflow-y-auto border-l border-white/10 bg-[#05070a] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.72)] transition-transform duration-200 lg:hidden ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <nav className="flex flex-col gap-2">
           {navigation.map((item) => {
             const isActive = isActiveNavItem(item.href);
+            if (item.columns?.length) {
+              return (
+                <ServiceMenu
+                  key={item.href}
+                  name={item.label}
+                  columns={item.columns}
+                  active={isActive}
+                  open={openCategoryMenu === `mobile:${item.label}`}
+                  onOpenChange={(open) => changeCategoryMenu(`mobile:${item.label}`, open)}
+                  mobile
+                  onNavigate={closeMobileNav}
+                >
+                  <NavWordmark active={isActive} alt={item.label} mobile />
+                </ServiceMenu>
+              );
+            }
             return (
               <Link
                 key={item.href}
@@ -247,8 +301,7 @@ export function SiteHeader() {
             News
           </Link>
           <div className="my-3 h-px bg-white/10" />
-          {showThemeToggle ? <ThemeToggle mobile /> : null}
-          {showThemeToggle && showAuthControls ? <div className="my-3 h-px bg-white/10" /> : null}
+          {showAuthControls ? <div className="my-3 h-px bg-white/10" /> : null}
           {showAuthControls && accountEmail ? (
             <>
               <Link href="/account" onClick={closeMobileNav} className="rounded-xl px-4 py-4 text-sm font-semibold text-slate transition hover:bg-white/6 hover:text-white">

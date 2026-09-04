@@ -362,6 +362,8 @@ export function AgentechGalaxyHero({
 
   return (
     <section
+      data-agentech-galaxy-hero
+      data-agentech-galaxy-locked={lockedViewport ? "true" : "false"}
       className={
         lockedViewport
           ? "relative h-[calc(100svh-72px)] w-full overflow-hidden bg-black text-white"
@@ -374,6 +376,7 @@ export function AgentechGalaxyHero({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/80 to-transparent" />
 
       <div
+        data-agentech-galaxy-content
         className={
           lockedViewport
             ? "relative z-10 mx-auto flex h-full max-w-7xl justify-center px-5 pb-28 pt-[48svh] text-center sm:px-6 sm:pb-32 sm:pt-[50svh] md:px-10 md:pb-32 md:pt-[52svh] lg:px-8 lg:pt-[54svh]"

@@ -253,6 +253,7 @@ export function InternshipForm() {
 
   return (
     <form
+      data-internship-surface
       onSubmit={handleSubmit}
       onFocusCapture={gateInteraction}
       onPointerDownCapture={gateInteraction}

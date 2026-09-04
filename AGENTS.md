@@ -1,5 +1,7 @@
 # Agentech Website Working Notes
 
+For a compact handoff of project history, current worktree state, decisions, and the five EAIC layers, read [`.codex/skills/agentech-project-memory/SKILL.md`](.codex/skills/agentech-project-memory/SKILL.md). Load only the layer reference relevant to the task; do not read all five by default.
+
 For Agentech UI, theme, screenshot-matching, navigation, browser verification, or public-preview work, read and follow [`docs/agentech-ui-change-playbook.md`](docs/agentech-ui-change-playbook.md) before editing.
 
 - Preserve the user's existing worktree changes.

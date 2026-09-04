@@ -19,6 +19,7 @@ const talentPrograms = [
     description:
       "Build technical fluency through real robotics challenges, collaborative projects, and guided exploration.",
     href: "/ai-robotics-club",
+    applyHref: "/ai-robotics-club/apply",
     image: "/assets/programs/summer-school.png",
     alt: "Students collaborating in the Agentech AI and Robotics Club",
     accent: "#75d4c2",
@@ -32,6 +33,7 @@ const talentPrograms = [
     description:
       "Work alongside the Agentech team on embodied AI, robotics systems, and products built for the real world.",
     href: "/career-intern",
+    applyHref: "/career-intern/apply",
     image: "/assets/programs/internship.png",
     alt: "Agentech internship team collaborating on embodied robotics systems",
     accent: "#83c8ef",
@@ -45,6 +47,7 @@ const talentPrograms = [
     description:
       "Turn curiosity into working capability with focused, hands-on sessions across AI, robotics, and product building.",
     href: "/tech-education",
+    applyHref: "/tech-education#workshop-application",
     image: "/assets/programs/tech-education.png",
     alt: "Students building robotics projects in an Agentech workshop",
     accent: "#c7aff2",
@@ -97,7 +100,7 @@ export default function TalentsPage() {
         />
 
         <div className="mx-auto flex min-h-[calc(100svh-72px)] w-full max-w-7xl items-end px-5 pb-14 pt-24 sm:px-8 md:items-center md:py-20">
-          <div className="max-w-2xl">
+          <div data-talents-hero-copy className="max-w-2xl">
             <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#80d8f4] sm:text-xs">
               Agentech / Talent systems
             </p>
@@ -133,10 +136,10 @@ export default function TalentsPage() {
             >
               Start early. Build for real.
             </h1>
-            <p className="mt-6 max-w-lg text-sm leading-7 text-[#a7b2bd] sm:text-base sm:leading-8">
+            <p data-talents-hero-body className="mt-6 max-w-lg text-sm leading-7 text-[#a7b2bd] sm:text-base sm:leading-8">
               Pathways for students, emerging builders, and professionals ready to learn by making real AI and robotics systems.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div data-talents-hero-actions className="mt-8 flex flex-wrap gap-3">
               <a
                 href="#talent-pathways"
                 data-theme-primary-action
@@ -182,12 +185,16 @@ export default function TalentsPage() {
 
           <ol className="mt-8 grid gap-5 lg:grid-cols-3">
             {talentPrograms.map((program) => (
-              <li key={program.href}>
+              <li
+                key={program.href}
+                data-talents-program={program.id}
+                style={{ "--talents-light-accent": program.lightAccent } as CSSProperties}
+                className="relative"
+              >
                 <Link
                   href={program.href}
                   aria-label={`Explore ${program.title}`}
-                  data-talents-program={program.id}
-                  style={{ "--talents-light-accent": program.lightAccent } as CSSProperties}
+                  data-talents-program-link={program.id}
                   className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#223947] bg-[#050b10] transition duration-300 hover:-translate-y-0.5 hover:border-[#4c7087] hover:bg-[#08131b] hover:shadow-[0_22px_60px_rgba(0,0,0,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83c8ef]"
                 >
                   <div className="relative aspect-[16/11] overflow-hidden border-b border-[#24323b]">
@@ -230,12 +237,22 @@ export default function TalentsPage() {
                     <span
                       data-page-cta
                       data-talents-accent="true"
-                      className="mt-7 inline-flex w-fit items-center gap-3 rounded-xl border border-[#31566d] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition group-hover:border-current group-hover:text-white lg:mt-auto lg:translate-y-1"
+                      className="mt-7 inline-flex min-h-11 w-fit items-center gap-3 rounded-xl border border-[#31566d] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition group-hover:border-current group-hover:text-white max-[359px]:px-3 max-[359px]:tracking-[0.08em] lg:mt-auto lg:translate-y-1"
                       style={{ color: program.accent }}
                     >
-                      Open pathway <ArrowIcon />
+                      Explore <ArrowIcon />
                     </span>
                   </div>
+                </Link>
+                <Link
+                  href={program.applyHref}
+                  aria-label={`Apply for ${program.title}`}
+                  data-talents-application={program.id}
+                  data-talents-accent="true"
+                  className="absolute bottom-6 right-6 z-20 inline-flex min-h-11 items-center gap-2 rounded-xl border bg-[#020609]/80 px-4 text-[10px] font-semibold uppercase tracking-[0.12em] shadow-[0_10px_24px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-[#08131b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83c8ef] max-[359px]:px-3 max-[359px]:tracking-[0.08em] sm:bottom-7 sm:right-7"
+                  style={{ color: program.accent, borderColor: `${program.accent}88` }}
+                >
+                  Apply now <ArrowIcon />
                 </Link>
               </li>
             ))}

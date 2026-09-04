@@ -28,6 +28,22 @@ test("hides the theme switcher on the homepage only", async () => {
   assert.equal(policy.shouldShowThemeToggle("/agentech-products/eaic-hub"), true);
 });
 
+test("hides the mobile theme switcher on the homepage while keeping it on other global-header pages", async () => {
+  const [policy, headerSource] = await Promise.all([
+    import("./site-header-visibility.ts").catch(() => null),
+    readFile(path.join(process.cwd(), "components/site-header.tsx"), "utf8")
+  ]);
+
+  assert.ok(policy, "site header visibility policy must be available");
+  assert.equal(policy.shouldShowMobileThemeToggle("/"), false);
+  assert.equal(policy.shouldShowMobileThemeToggle("/agentech-education"), true);
+  assert.equal(policy.shouldShowMobileThemeToggle("/agentech-products/eaic-hub/view-sdk"), true);
+  assert.equal(policy.shouldShowMobileThemeToggle("/field-interest/agt-qr-2026"), false);
+  assert.equal(policy.shouldShowMobileThemeToggle("/agentech-products/agentech-library"), false);
+  assert.match(headerSource, /data-mobile-theme-controls/);
+  assert.match(headerSource, /<ThemeToggle mobileHeader\s*\/>/);
+});
+
 test("hides auth controls only for localhost or an explicit public review build", async () => {
   const policy = await import("./site-header-visibility.ts").catch(() => null);
 
@@ -58,7 +74,7 @@ test("orders and names the primary navigation for the platform-first hierarchy",
     navigation.map(({ label, href }) => ({ label, href })),
     [
       { label: "Platform", href: "/agentech-products/eaic-hub" },
-      { label: "Robotics", href: "/agentech-robotic" },
+      { label: "Service", href: "/agentech-robotic" },
       { label: "Education", href: "/agentech-education" },
       { label: "Talents", href: "/talents" }
     ]

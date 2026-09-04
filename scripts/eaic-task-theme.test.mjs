@@ -363,13 +363,18 @@ test("cleans Start Coding blueprint ink only in dark mode", async () => {
   assert.equal(alpha(5), 0, "transparent areas must remain transparent");
 });
 
-test("renders the EAIC Hub hero with the approved refined Aegis blueprint", async () => {
+test("renders the EAIC Hub hero with the approved light and dark humanoid illustrations", async () => {
   const response = await fetch(`${baseUrl}/agentech-products/eaic-hub`);
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /dog-blueprint-refined-v2\.png/);
-  assert.doesNotMatch(html, /dog-blueprint-transparent-v4\.png/);
-  assert.doesNotMatch(html, /dog-blueprint\.png/);
+  const images = [...html.matchAll(/<img\b[^>]*>/g)].map(([tag]) => tag);
+  for (const theme of ["light", "dark"]) {
+    const image = images.find((tag) => tag.includes(`data-eaic-hero-theme="${theme}"`));
+    assert.ok(image, `the ${theme} illustration must be rendered`);
+    assert.ok(image.includes(`humanoid-wireframe-${theme}-v1.png`), `${theme} must use the approved image`);
+    assert.ok(image.includes("Humanoid robot wireframe"), "the accessible description must match the new subject");
+  }
+  assert.doesNotMatch(html, /dog-blueprint/);
 });
 
 test("keeps the EAIC Hub blueprint linework legible in light mode", async () => {
@@ -397,19 +402,34 @@ test("keeps the EAIC Hub blueprint linework legible in light mode", async () => 
   );
   const stylesheet = postcss.parse(stylesheets.join("\n"));
 
-  let lightBlueprintFilter = "";
+  let blueprintFilter = "";
+  let blueprintFit = "";
+  const themeDisplay = {};
+  const mobileOverlays = {};
   let desktopLightOverlay = "";
 
   stylesheet.walkRules((rule) => {
     const isLightThemeRule = /\[data-theme=(?:"light"|light)\]/.test(rule.selector);
 
-    if (
-      isLightThemeRule &&
-      rule.selector.includes("[data-eaic-hero-blueprint]")
-    ) {
-      lightBlueprintFilter = rule.nodes.find(
+    if (rule.selector.includes("[data-eaic-hero-blueprint]")) {
+      blueprintFilter = rule.nodes.find(
         (node) => node.type === "decl" && node.prop === "filter",
-      )?.value ?? lightBlueprintFilter;
+      )?.value ?? blueprintFilter;
+      blueprintFit = rule.nodes.find(
+        (node) => node.type === "decl" && node.prop === "object-fit",
+      )?.value ?? blueprintFit;
+    }
+
+    for (const theme of ["light", "dark"]) {
+      if (rule.selector.includes(`[data-eaic-hero-theme=${theme}]`) || rule.selector.includes(`[data-eaic-hero-theme="${theme}"]`)) {
+        const display = rule.nodes.find((node) => node.type === "decl" && node.prop === "display")?.value;
+        if (display) themeDisplay[`${isLightThemeRule ? "light" : "default"}:${theme}`] = display;
+      }
+    }
+
+    if (rule.selector.includes("[data-eaic-hero-overlay]") && rule.parent?.type === "root") {
+      const background = rule.nodes.find((node) => node.type === "decl" && node.prop === "background")?.value;
+      if (background) mobileOverlays[isLightThemeRule ? "light" : "dark"] = background;
     }
 
     if (
@@ -425,10 +445,15 @@ test("keeps the EAIC Hub blueprint linework legible in light mode", async () => 
     }
   });
 
-  const contrast = Number(lightBlueprintFilter.match(/contrast\((\d*\.?\d+)\)/)?.[1]);
-  const saturation = Number(lightBlueprintFilter.match(/saturate\((\d*\.?\d+)\)/)?.[1]);
-  assert.ok(contrast >= 1.15, "light mode should strengthen the blueprint line contrast");
-  assert.ok(saturation >= 0.8, "light mode should retain enough blue separation for the floor grid");
+  assert.equal(blueprintFilter, "none", "the restored linework must not be dimmed or recolored");
+  assert.equal(blueprintFit, "contain", "the square illustration must retain the head and both hands");
+  assert.deepEqual(themeDisplay, {
+    "default:light": "none", "default:dark": "block",
+    "light:light": "block", "light:dark": "none",
+  }, "exactly the matching illustration should be visible for each theme");
+  for (const theme of ["light", "dark"]) {
+    assert.match(mobileOverlays[theme] ?? "", /transparent 60%/, `${theme} overlay must clear the mobile illustration's head`);
+  }
 
   const lowOpacityStop = [...desktopLightOverlay.matchAll(/rgba\(245,\s*244,\s*241,\s*(0?\.\d+)\)\s*(\d+)%/g)]
     .map((match) => ({ alpha: Number(match[1]), position: Number(match[2]) }))

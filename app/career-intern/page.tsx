@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function CareerInternPage() {
   return (
-    <section className="internship-light-page internship-list-page min-h-screen bg-white px-6 py-16 lg:px-8 lg:py-20">
+    <section className="internship-light-page internship-list-page min-h-screen bg-[#f5f4f1] px-6 py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <HistoryBackButton
           fallbackHref="/talents"
@@ -45,6 +45,7 @@ export default function CareerInternPage() {
             {internshipRoles.map((role, index) => (
               <Link
                 key={role.slug}
+                data-internship-surface
                 href={`/career-intern/${role.slug}`}
                 className={`group block rounded-[24px] border bg-white p-5 !text-black shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)] md:p-6 ${
                   index === 1 ? "border-blue-600" : "border-slate-200"
@@ -53,7 +54,7 @@ export default function CareerInternPage() {
                 <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-lg bg-slate-100 px-3 py-1 text-sm font-bold !text-black">
+                      <span data-internship-chip className="rounded-lg bg-slate-100 px-3 py-1 text-sm font-bold !text-black">
                         {role.schedule}
                       </span>
                     </div>
@@ -64,7 +65,7 @@ export default function CareerInternPage() {
                     <p className="mt-4 max-w-3xl text-sm leading-6 !text-black md:text-base">{role.summary}</p>
                     <div className="mt-5 flex flex-wrap gap-2">
                       {role.tags.map((tag) => (
-                        <span key={tag} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-bold !text-black">
+                        <span data-internship-chip key={tag} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-bold !text-black">
                           {tag}
                         </span>
                       ))}

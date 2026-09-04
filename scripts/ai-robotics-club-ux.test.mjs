@@ -103,7 +103,7 @@ test("offers scannable navigation and a mobile application action in both langua
     assert.match(html, /href="#program-details"/);
     assert.match(html, /href="#curriculum"/);
     assert.match(html, /href="#faq"/);
-    assert.match(html, /data-club-mobile-apply="true"[^>]*href="\/ai-robotics-club\/apply"/);
+    assert.match(html, /data-club-mobile-apply="true"[^>]*href="#quick-apply"/);
   }
 });
 

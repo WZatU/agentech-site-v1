@@ -55,21 +55,16 @@ export function AgentechLibraryHome() {
       <section
         aria-labelledby="eaic-hub-title"
         data-eaic-hero
-        className="relative isolate min-h-[calc(100svh-72px)] overflow-hidden border-b border-white/10 bg-[#a3a6a6]"
+        className="relative isolate min-h-[calc(100svh-72px)] overflow-hidden border-b border-white/10 bg-[#020609]"
       >
         <InteractiveDogHero />
         <div
           data-eaic-hero-overlay
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#020609_0%,#020609_48%,rgba(2,6,9,0.72)_67%,rgba(2,6,9,0.18)_100%)] md:bg-[linear-gradient(90deg,#020609_0%,rgba(2,6,9,0.98)_14%,rgba(2,6,9,0.72)_36%,rgba(2,6,9,0.18)_68%,rgba(2,6,9,0.08)_100%)]"
-          aria-hidden="true"
-        />
-        <div
-          data-eaic-hero-sheen
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_26%,rgba(0,0,0,0.28)_100%)]"
+          className="pointer-events-none absolute inset-0"
           aria-hidden="true"
         />
 
-        <div className="relative mx-auto flex min-h-[calc(100svh-72px)] w-full max-w-7xl items-start px-5 pb-[38vh] pt-14 sm:px-8 md:items-center md:py-20">
+        <div data-eaic-hero-content className="relative mx-auto flex min-h-[calc(100svh-72px)] w-full max-w-7xl items-start px-5 pb-[38vh] pt-14 sm:px-8 md:items-center md:py-20">
           <div className="max-w-2xl">
             <p className="font-interface text-[11px] font-medium uppercase tracking-[0.28em] text-[#80d8f4] sm:text-xs">
               Embodied AI command infrastructure
@@ -94,7 +89,7 @@ export function AgentechLibraryHome() {
             <p className="mt-7 max-w-lg text-sm leading-7 text-[#a7b2bd] sm:text-base sm:leading-8">
               One technical workspace for robot SDK references, code certification, scheduling, and supervised live execution.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div data-eaic-hero-actions className="mt-8 flex flex-wrap gap-3">
               <Link
                 href={getEaicHubTaskPath("start-coding")}
                 data-eaic-primary-action
@@ -122,16 +117,13 @@ export function AgentechLibraryHome() {
           <ol data-workflow-flow className="bg-[#03070a] p-4 sm:p-6 lg:p-8">
             {agentechLibraryTasks.map((task, index) => {
               const accent = workflowAccentPalette[index];
-              const nextAccent = workflowAccentPalette[index + 1] ?? accent;
               return (
                 <li
                   key={task.slug}
                   data-workflow-step={task.number}
                   style={{
                     "--workflow-accent-dark": accent.dark,
-                    "--workflow-accent-light": accent.light,
-                    "--workflow-next-accent-dark": nextAccent.dark,
-                    "--workflow-next-accent-light": nextAccent.light
+                    "--workflow-accent-light": accent.light
                   } as CSSProperties}
                 >
                   <Link
@@ -181,7 +173,7 @@ export function AgentechLibraryHome() {
                     <div data-flow-connector className="relative flex h-16 items-center justify-center" aria-hidden="true">
                       <span data-workflow-accent-background className="absolute top-0 h-10 w-px" />
                       <span
-                        data-workflow-next-accent
+                        data-workflow-arrow
                         className="absolute bottom-3 h-4 w-4 rotate-45 border-b-2 border-r-2"
                       />
                     </div>

@@ -1,38 +1,95 @@
 export type NavItem = {
   label: string;
   href: string;
+  menuTriggerHref?: string;
   image?: string;
   activeImage?: string;
+  columns?: Array<{
+    label: string;
+    href?: string;
+    children?: Array<{
+      label: string;
+      href?: string;
+    }>;
+  }>;
   children?: Array<{
     label: string;
     href: string;
   }>;
 };
 
+const defaultComingSoonFeature = { title: "COMING SOON" } as const;
+
+export const comingSoonFeatures = {
+  eais: { title: "EAIS" },
+  "robotics-rent": { title: "ROBOTICS RENT" },
+  "ai-website": { title: "AI-WEBSITE" },
+  "ai-app-dev": { title: "AI-APP DEV" },
+  "ai-service": { title: "AI-SERVICE" },
+  "data-collection": { title: "DATA COLLECTION" }
+} as const;
+
+export function resolveComingSoonFeature(feature?: string | string[]) {
+  if (typeof feature !== "string") return defaultComingSoonFeature;
+  return comingSoonFeatures[feature as keyof typeof comingSoonFeatures] ?? defaultComingSoonFeature;
+}
+
 export const navigation: NavItem[] = [
   {
     label: "Platform",
     href: "/agentech-products/eaic-hub",
+    menuTriggerHref: "/agentech-products/eaic-hub",
     image: "/assets/logo/AGENTECH-products-grey191.png",
-    activeImage: "/assets/logo/AGENTECH-products-solid.png"
+    activeImage: "/assets/logo/AGENTECH-products-solid.png",
+    columns: [
+      { label: "EAIC", href: "/agentech-products/eaic-hub" },
+      { label: "EAIS", href: "/coming-soon?feature=eais" },
+      { label: "NAVI STORE", href: "/agentech-education/what-can-we-learn-from-navi" }
+    ]
   },
   {
-    label: "Robotics",
+    label: "Service",
     href: "/agentech-robotic",
+    menuTriggerHref: "/agentech-robotic",
     image: "/assets/logo/AGENTECH-robotic-grey191.png",
-    activeImage: "/assets/logo/AGENTECH-robotic-solid.png"
+    activeImage: "/assets/logo/AGENTECH-robotic-solid.png",
+    columns: [
+      { label: "ROBOTICS RENT", href: "/coming-soon?feature=robotics-rent" },
+      { label: "ROBOTICS SALE", href: "/agentech-robotic" },
+      {
+        label: "AI-DEVELOPMENT",
+        children: [
+          { label: "AI-WEBSITE", href: "/coming-soon?feature=ai-website" },
+          { label: "AI-APP DEV", href: "/coming-soon?feature=ai-app-dev" },
+          { label: "AI-SERVICE", href: "/coming-soon?feature=ai-service" }
+        ]
+      },
+      { label: "DATA COLLECTION", href: "/coming-soon?feature=data-collection" }
+    ]
   },
   {
     label: "Education",
     href: "/agentech-education",
+    menuTriggerHref: "/agentech-education",
     image: "/assets/logo/AGENTECH-education-grey191.png",
-    activeImage: "/assets/logo/AGENTECH-education-solid.png"
+    activeImage: "/assets/logo/AGENTECH-education-solid.png",
+    columns: [
+      { label: "K-8", href: "/agentech-education?pathway=grade-k-8#program-pathways" },
+      { label: "9-12 HIGH SCHOOL", href: "/agentech-education?pathway=high-school#program-pathways" },
+      { label: "UNIVERSITY / COLLEGE", href: "/agentech-education?pathway=university-college#program-pathways" }
+    ]
   },
   {
     label: "Talents",
     href: "/talents",
+    menuTriggerHref: "/talents",
     image: "/assets/logo/AGENTECH-talents-grey191.png",
-    activeImage: "/assets/logo/AGENTECH-talents-solid.png"
+    activeImage: "/assets/logo/AGENTECH-talents-solid.png",
+    columns: [
+      { label: "CLUB", href: "/ai-robotics-club" },
+      { label: "INTERN", href: "/career-intern" },
+      { label: "WORKSHOP", href: "/tech-education" }
+    ]
   }
 ];
 

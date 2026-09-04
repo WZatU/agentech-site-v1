@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import { PlaceholderPage } from "@/components/placeholder-page";
+import { resolveComingSoonFeature } from "@/lib/site-data";
+
+type ComingSoonPageProps = {
+  searchParams: Promise<{ feature?: string | string[] }>;
+};
 
 export const metadata: Metadata = {
   title: "Coming Soon",
@@ -10,6 +15,9 @@ export const metadata: Metadata = {
   }
 };
 
-export default function ComingSoonPage() {
-  return <PlaceholderPage title="COMING SOON" />;
+export default async function ComingSoonPage({ searchParams }: ComingSoonPageProps) {
+  const { feature } = await searchParams;
+  const resolvedFeature = resolveComingSoonFeature(feature);
+
+  return <PlaceholderPage title={resolvedFeature.title} />;
 }

@@ -119,9 +119,40 @@ test("exposes one primary content landmark", () => {
 });
 
 test("publishes every Talent pathway", () => {
-  for (const href of ["/ai-robotics-club", "/career-intern", "/tech-education"]) {
-    assert.match(html, new RegExp(`href=["']${href}["']`));
+  const pathwayDestinations = [
+    ["club", "/ai-robotics-club"],
+    ["internship", "/career-intern"],
+    ["workshop", "/tech-education"]
+  ];
+
+  for (const [program, href] of pathwayDestinations) {
+    assert.match(
+      html,
+      new RegExp(`<a\\b(?=[^>]*data-talents-program-link="${program}")(?=[^>]*href="${href}")[^>]*>`, "i")
+    );
   }
+});
+
+test("connects every Talent pathway to its existing application flow", async () => {
+  const applicationDestinations = [
+    ["club", "/ai-robotics-club/apply"],
+    ["internship", "/career-intern/apply"],
+    ["workshop", "/tech-education#workshop-application"]
+  ];
+
+  for (const [program, href] of applicationDestinations) {
+    assert.match(
+      html,
+      new RegExp(`<a\\b(?=[^>]*data-talents-application="${program}")(?=[^>]*href="${href}")[^>]*>`, "i")
+    );
+
+    const response = await fetch(`${baseUrl}${href.split("#")[0]}`);
+    assert.equal(response.status, 200, `${program} application destination must resolve`);
+  }
+
+  const workshopResponse = await fetch(`${baseUrl}/tech-education`);
+  const workshopHtml = await workshopResponse.text();
+  assert.match(workshopHtml, /<form\b[^>]*id="workshop-application"/i);
 });
 
 test("publishes every Talent pathway image", () => {
@@ -139,15 +170,15 @@ test("gives every pathway one complete high-contrast light accent", () => {
 
   for (const [program, lightAccent] of expectedAccents) {
     const card = html.match(
-      new RegExp(`<a\\b[^>]*data-talents-program="${program}"[^>]*>[\\s\\S]*?<\\/a>`, "i")
+      new RegExp(`<li\\b[^>]*data-talents-program="${program}"[^>]*>[\\s\\S]*?<\\/li>`, "i")
     )?.[0] ?? "";
 
     assert.notEqual(card, "", `${program} must expose its theme hook`);
     assert.match(card, new RegExp(`--talents-light-accent:${lightAccent}`, "i"));
     assert.equal(
       card.match(/data-talents-accent="true"/g)?.length ?? 0,
-      3,
-      `${program} must apply its accent to the number, audience, and pathway action`
+      4,
+      `${program} must apply its accent to the number, audience, pathway action, and application action`
     );
   }
 });

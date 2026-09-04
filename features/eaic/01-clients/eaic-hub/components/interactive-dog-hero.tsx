@@ -140,13 +140,26 @@ export function InteractiveDogHero() {
   }, []);
 
   return (
-    <div ref={visualRef} className={styles.visual} data-dog-visual>
+    <div ref={visualRef} className={styles.visual} data-eaic-hero-visual>
       <Image
         data-eaic-hero-blueprint="linework"
-        src="/assets/products/agentech-library/dog-blueprint-refined-v2.png"
-        alt="Blueprint sketch of the Aegis robot dog"
+        data-eaic-hero-theme="dark"
+        src="/assets/products/agentech-library/humanoid-wireframe-dark-v1.png"
+        alt="Humanoid robot wireframe working at a table"
         fill
-        sizes="100vw"
+        sizes="(min-width: 768px) 58vw, 100vw"
+        quality={90}
+        className={styles.image}
+        priority
+      />
+      <Image
+        data-eaic-hero-blueprint="linework"
+        data-eaic-hero-theme="light"
+        src="/assets/products/agentech-library/humanoid-wireframe-light-v1.png"
+        alt="Humanoid robot wireframe working at a table"
+        fill
+        sizes="(min-width: 768px) 58vw, 100vw"
+        quality={90}
         className={styles.image}
         priority
       />

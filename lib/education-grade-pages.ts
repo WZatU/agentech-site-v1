@@ -41,6 +41,16 @@ export const educationGradePages = [
 
 export type EducationGradePage = (typeof educationGradePages)[number];
 
+export const educationPathwayIds = ["high-school", "grade-k-8", "university-college"] as const;
+
+export type EducationPathwayId = (typeof educationPathwayIds)[number];
+
+export function resolveEducationPathway(value?: string): EducationPathwayId {
+  return educationPathwayIds.includes(value as EducationPathwayId)
+    ? (value as EducationPathwayId)
+    : "high-school";
+}
+
 export function getEducationGradePage(slug: string) {
   return educationGradePages.find((page) => page.slug === slug);
 }

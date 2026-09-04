@@ -50,7 +50,7 @@ export function InternshipRoleDetail({ role }: { role: InternshipRole }) {
         };
 
   return (
-    <div className="internship-role-content rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
+    <div data-internship-surface className="internship-role-content rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="inline-flex shrink-0 rounded-full border border-[#d9e1ea] bg-white p-1 text-sm font-bold shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
           {(["en", "zh"] as InternshipLanguage[]).map((value) => (

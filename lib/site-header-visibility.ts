@@ -15,6 +15,10 @@ export function shouldShowThemeToggle(pathname: string) {
   return pathname !== "/";
 }
 
+export function shouldShowMobileThemeToggle(pathname: string) {
+  return shouldShowThemeToggle(pathname) && !shouldHideSiteHeader(pathname);
+}
+
 export function shouldShowAuthControls(hostname: string, hideSignInForPublicReview: boolean) {
   return !hideSignInForPublicReview && !isLocalHostname(hostname);
 }

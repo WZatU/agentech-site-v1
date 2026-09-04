@@ -28,14 +28,14 @@ export default async function NewsPage() {
               key={entry.slug}
               href={`/news/${entry.slug}`}
               data-news-card
-              className="group grid min-h-[150px] grid-cols-[1fr_34%] gap-5 rounded-[8px] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.08)] sm:min-h-[170px] sm:gap-8 sm:p-7"
+              className="group min-h-[150px] gap-5 rounded-[8px] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.08)] sm:min-h-[170px] sm:gap-8 sm:p-7"
             >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div data-news-card-content className="min-w-0">
+                <div data-news-card-meta className="flex flex-wrap items-center gap-3 text-sm">
                   <span data-news-author className="font-semibold text-[#4666a1]">{entry.author || "Agentech"}</span>
                   <span data-news-meta className="text-[#a3aab5]">{entry.displayDate}</span>
                 </div>
-                <h2 data-news-title className="font-display mt-3 line-clamp-2 text-xl font-semibold leading-snug text-[#111827] sm:text-2xl">
+                <h2 data-news-title data-news-card-title className="font-display mt-3 line-clamp-2 text-xl font-semibold leading-snug text-[#111827] sm:text-2xl">
                   {entry.title}
                 </h2>
                 <p data-news-excerpt className="mt-3 line-clamp-2 text-sm leading-6 text-[#4b5563] sm:text-base">
@@ -51,7 +51,7 @@ export default async function NewsPage() {
                   src={entry.coverImage}
                   alt={entry.title}
                   fill
-                  sizes="(min-width: 768px) 320px, 34vw"
+                  sizes="(min-width: 768px) 320px, calc(100vw - 72px)"
                   className="object-cover transition duration-500 group-hover:scale-[1.03]"
                   priority
                 />

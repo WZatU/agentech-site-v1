@@ -43,7 +43,13 @@ function ThemeOptionIcon({ option }: { option: ThemeMode }) {
   );
 }
 
-export function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
+export function ThemeToggle({
+  mobile = false,
+  mobileHeader = false
+}: {
+  mobile?: boolean;
+  mobileHeader?: boolean;
+}) {
   const [mode, setMode] = useState<ThemeMode>("system");
 
   useEffect(() => {
@@ -92,7 +98,7 @@ export function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
     <div
       role="radiogroup"
       aria-label="Select a display theme"
-      className={`theme-switcher ${mobile ? "theme-switcher-mobile" : ""}`}
+      className={`theme-switcher ${mobile ? "theme-switcher-mobile" : ""} ${mobileHeader ? "theme-switcher-mobile-header" : ""}`}
     >
       {THEME_OPTIONS.map((option) => (
         <button

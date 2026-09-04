@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { resolveEducationPathway, type EducationPathwayId } from "@/lib/education-grade-pages";
 
 type EducationProgram = {
   slug: string;
@@ -26,13 +27,14 @@ type EducationProgramTabsProps = {
   initialAutoRotate: boolean;
 };
 
-type TabId = "high-school" | "grade-k-8";
+type TabId = EducationPathwayId;
 
 const immersionSlug = "agentech-ff-eai-robotics-future-founder-immersion-program";
 
 const tabs: Array<{ id: TabId; label: string }> = [
-  { id: "high-school", label: "HIGH SCHOOL" },
-  { id: "grade-k-8", label: "GRADE K-8" }
+  { id: "grade-k-8", label: "K-8" },
+  { id: "high-school", label: "9-12 HIGH SCHOOL" },
+  { id: "university-college", label: "UNIVERSITY / COLLEGE" }
 ];
 
 const tabAutoRotateDurationMs = 9000;
@@ -42,8 +44,12 @@ const k8LearningImage = "/assets/education/navi-learning-banner.png";
 
 export function EducationProgramTabs({ programs, initialTab, initialAutoRotate }: EducationProgramTabsProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+  const searchParams = useSearchParams();
+  const requestedPathway = searchParams.get("pathway");
+  const requestedTab = requestedPathway ? resolveEducationPathway(requestedPathway) : null;
+  const [rotatingTab, setRotatingTab] = useState<TabId>(initialTab);
   const [autoRotate, setAutoRotate] = useState(initialAutoRotate);
+  const activeTab = requestedTab ?? rotatingTab;
 
   const immersionProgram = useMemo(
     () => programs.find((program) => program.slug === immersionSlug),
@@ -62,21 +68,21 @@ export function EducationProgramTabs({ programs, initialTab, initialAutoRotate }
   }, [router]);
 
   useEffect(() => {
-    if (!autoRotate) {
+    if (!autoRotate || requestedTab) {
       return;
     }
 
     const timer = window.setTimeout(() => {
-      const nextTab = activeTab === "high-school" ? "grade-k-8" : "high-school";
-      setActiveTab(nextTab);
-      rememberPathway(nextTab);
+      const activeIndex = tabs.findIndex((tab) => tab.id === activeTab);
+      const nextTab = tabs[(activeIndex + 1) % tabs.length].id;
+      setRotatingTab(nextTab);
     }, tabAutoRotateDurationMs);
 
     return () => window.clearTimeout(timer);
-  }, [activeTab, autoRotate, rememberPathway]);
+  }, [activeTab, autoRotate, requestedTab]);
 
   function selectTab(tabId: TabId) {
-    setActiveTab(tabId);
+    setRotatingTab(tabId);
     setAutoRotate(false);
     rememberPathway(tabId);
   }
@@ -91,7 +97,7 @@ export function EducationProgramTabs({ programs, initialTab, initialAutoRotate }
         <div className="border-b border-[#284354] bg-[#061722] px-6 py-5 sm:px-8">
           <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-[#80d8f4]">Program pathways</p>
         </div>
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-3">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -125,11 +131,35 @@ export function EducationProgramTabs({ programs, initialTab, initialAutoRotate }
       <div className="pt-10 lg:pt-14">
         {activeTab === "high-school" && immersionProgram ? (
           <HighSchoolPanel program={immersionProgram} />
-        ) : (
+        ) : activeTab === "grade-k-8" ? (
           <GradeK8Panel programs={k8Programs} />
+        ) : (
+          <UniversityCollegePanel />
         )}
       </div>
     </section>
+  );
+}
+
+function UniversityCollegePanel() {
+  return (
+    <div className="grid overflow-hidden rounded-xl border border-[#174766] bg-[#03070a] shadow-[0_30px_90px_rgba(0,0,0,0.3)] lg:grid-cols-[0.78fr_1.22fr]">
+      <div className="border-b border-[#24323b] p-7 sm:p-9 lg:border-b-0 lg:border-r lg:p-10">
+        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#80d8f4]">University / College</p>
+        <h2 className="font-display mt-5 text-4xl font-semibold leading-tight tracking-[-0.055em] text-[#e4edf5] md:text-5xl">
+          Applied AI and robotics for higher education.
+        </h2>
+      </div>
+
+      <div className="flex min-h-[280px] flex-col justify-center p-7 sm:p-9 lg:p-10">
+        <p className="max-w-2xl text-base leading-8 text-[#91a2b5]">
+          University and college pathways for students, research teams, and institutional partners are in development.
+        </p>
+        <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#83c8ef]">
+          Programs coming soon
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -214,6 +244,7 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
 
   return (
     <div
+      data-education-program-media
       className="group relative min-h-[360px] overflow-hidden bg-[#06131c] transition sm:min-h-[440px] lg:min-h-[520px]"
       aria-roledescription="carousel"
       aria-label="High school program media"
@@ -239,24 +270,31 @@ function HighSchoolMediaCarousel({ program }: { program: EducationProgram }) {
         />
       ))}
 
-      <div className="absolute inset-x-0 bottom-5 z-20 flex items-center justify-center gap-2">
+      <div data-education-carousel-controls className="absolute inset-x-0 bottom-3 z-20 flex items-center justify-center gap-0.5 sm:bottom-5 sm:gap-2">
         {slides.map((slide, index) => (
           <button
             key={`${slide.src}-dot`}
             type="button"
+            data-education-slide-control
             aria-label={`Show slide ${index + 1}`}
             aria-current={activeSlide === index}
             onClick={() => selectSlide(index)}
-            className={`h-2.5 rounded-full border border-[#31566d] transition ${
-              activeSlide === index ? "w-7 bg-[#80d8f4]" : "w-2.5 bg-[#07131b] hover:bg-[#123247]"
-            }`}
-          />
+            className="group/slide-control grid h-11 min-w-11 place-items-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80d8f4]"
+          >
+            <span
+              aria-hidden="true"
+              className={`block h-2.5 rounded-full border border-[#31566d] transition ${
+                activeSlide === index ? "w-7 bg-[#80d8f4]" : "w-2.5 bg-[#07131b] group-hover/slide-control:bg-[#123247]"
+              }`}
+            />
+          </button>
         ))}
         <button
           type="button"
+          data-education-autoplay-control
           aria-label="Resume high school image autoplay"
           onClick={resumeAutoplay}
-          className={`grid h-7 w-7 place-items-center rounded-full border border-[#31566d] bg-[#07131b] transition hover:border-[#80d8f4] hover:bg-[#0b1d29] ${
+          className={`grid h-11 w-11 place-items-center rounded-full border border-[#31566d] bg-[#07131b] transition hover:border-[#80d8f4] hover:bg-[#0b1d29] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80d8f4] ${
             isAutoplaying ? "opacity-25" : "opacity-55 hover:opacity-85"
           }`}
         >

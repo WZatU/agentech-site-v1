@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { EducationProgramTabs } from "@/components/education-program-tabs";
 import { getChildrenEnrolled } from "@/lib/education-counter";
-import { educationGradePages } from "@/lib/education-grade-pages";
+import { educationGradePages, resolveEducationPathway } from "@/lib/education-grade-pages";
 
 type AgentechEducationPageProps = {
   searchParams: Promise<{
@@ -16,8 +16,8 @@ export default async function AgentechEducationPage({ searchParams }: AgentechEd
   const requestedPathway = Array.isArray(resolvedSearchParams.pathway)
     ? resolvedSearchParams.pathway[0]
     : resolvedSearchParams.pathway;
-  const hasRequestedPathway = requestedPathway === "high-school" || requestedPathway === "grade-k-8";
-  const initialTab = requestedPathway === "grade-k-8" ? "grade-k-8" : "high-school";
+  const initialTab = resolveEducationPathway(requestedPathway);
+  const hasRequestedPathway = requestedPathway === initialTab;
 
   return (
     <div className="education-eaic-page relative isolate min-h-screen overflow-hidden bg-[#020609] text-[#dbe7f2]">

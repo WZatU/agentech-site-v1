@@ -17,7 +17,7 @@ export default function HomePage() {
   return (
     <AgentechGalaxyHero
       title={company.name.toUpperCase()}
-      titleImage="/assets/logo/AGENTECH.png"
+      titleImage="/assets/logo/AGENTECH-white.png"
       bottomContent={
         <div className="w-full overflow-hidden">
           <div className="logo-roll flex w-max items-center">
